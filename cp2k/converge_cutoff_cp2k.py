@@ -10,8 +10,11 @@ import pymatgen as mg
 
 """
 Usage:
-    python converge_ecut.py xxx.xyz ecut_min ecut_max ecut_step
+    python converge_cutoff_cp2k.py xxx.xyz cutoff_min cutoff_max cutoff_step rel_cutoff
     xxx.xyz is the input structure file
+
+    make sure the xyz structure file and pseudopotential file
+    for all the elements of the system is in the directory.
 """
 
 
@@ -107,25 +110,27 @@ class XYZ:
 # OK now we can use XYZ class to extract information 
 # from the xyz file: sys.argv[1]
 
-ecut_min = int(sys.argv[2]) # in Ry: 1 Ry = 13.6 ev
-ecut_max = int(sys.argv[3])
-ecut_step = int(sys.argv[4])
+cutoff_min = int(sys.argv[2]) # in Ry: 1 Ry = 13.6 ev
+cutoff_max = int(sys.argv[3])
+cutoff_step = int(sys.argv[4])
+rel_cutoff = int(sys.argv[5])
 
 
 xyz = XYZ()
 
 base_project_name = "test"
 
-os.mkdir("./tmp")
-os.chdir("./tmp")
+if os.path.exists("./tmp-cutoff"):
+    shutil.rmtree("./tmp-cutoff")
+os.mkdir("./tmp-cutoff")
+os.chdir("./tmp-cutoff")
 shutil.copyfile("../%s" % sys.argv[1], "%s" % sys.argv[1])
 #shutil.copyfile("../Li.psf", "Li.psf")
 
-n_test = int((ecut_max - ecut_min) / ecut_step)
+n_test = int((cutoff_max - cutoff_min) / cutoff_step)
 for i in range(n_test + 1):
-    cutoff = int(ecut_min + i * ecut_step)
-    rel_cutoff = cutoff / 3
-    inp_name = "test-ecut-%d.inp" % cutoff
+    cutoff = int(cutoff_min + i * cutoff_step)
+    inp_name = "test-cutoff-%d.inp" % cutoff
     with open(inp_name, 'w') as fout:
         fout.write("&GLOBAL\n")
         fout.write("\tPROJECT\t%s\n" % (base_project_name + str(cutoff)))
@@ -175,25 +180,25 @@ for i in range(n_test + 1):
 
 # run the simulation
 for i in range(n_test + 1):
-    cutoff = int(ecut_min + i * ecut_step)
-    inp_name = "test-ecut-%d.inp" % cutoff
-    out_f_name = "test-ecut-%d.out" % cutoff
+    cutoff = int(cutoff_min + i * cutoff_step)
+    inp_name = "test-cutoff-%d.inp" % cutoff
+    out_f_name = "test-cutoff-%d.out" % cutoff
     os.system("cp2k.psmp -in %s > %s" % (inp_name, out_f_name))
 
 
 # analyse the result
 for i in range(n_test + 1):
-    cutoff = int(ecut_min + i * ecut_step)
-    out_f_name = "test-ecut-%d.out" % cutoff
-    os.system("cat %s | grep 'Total energy:' >> energy-ecut.data" % out_f_name)
+    cutoff = int(cutoff_min + i * cutoff_step)
+    out_f_name = "test-cutoff-%d.out" % cutoff
+    os.system("cat %s | grep 'Total energy:' >> energy-cutoff.data" % out_f_name)
 
-ecut = [ ecut_min + i * ecut_step for i in range(n_test + 1)]
+ecutoff = [ cutoff_min + i * cutoff_step for i in range(n_test + 1)]
 energy = []
-with open("energy-ecut.data", 'r') as fin:
+with open("energy-cutoff.data", 'r') as fin:
     for line in fin:
-        energy.append(line.split()[2])
+        energy.append(float(line.split()[2]))
 
 import matplotlib.pyplot as plt
 
-plt.plot(ecut, energy)
+plt.plot(ecutoff, energy)
 plt.show()

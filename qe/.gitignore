@@ -1,4 +1,4 @@
-*.xyz
-*.psf
 tmp
 tmp-ecut
+*.UPF
+*.xyz

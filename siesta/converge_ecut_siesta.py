@@ -12,6 +12,9 @@ import pymatgen as mg
 Usage:
     python converge_ecut.py xxx.xyz ecut_min ecut_max ecut_step
     xxx.xyz is the input structure file
+
+    make sure the xyz structure file and the corresponding pseudopotential
+    file for the elements of the system is in the directory.
 """
 
 class Atom:
@@ -93,9 +96,9 @@ class XYZ:
             fout.write("\n")
 
             fout.write("%block LatticeVectors\n")
-            fout.write("100 100 100\n")
-            fout.write("100 100 100\n")
-            fout.write("100 100 100\n")
+            fout.write("10 0 0\n")
+            fout.write("0 10 0\n")
+            fout.write("0 0 10\n")
             fout.write("%endblock LatticeVectors\n")
             fout.write("\n")
 
@@ -133,8 +136,11 @@ xyz = XYZ()
 system_name = "Test Meshcutoff Value"
 system_label = "TestEcut"
 
-os.mkdir("./tmp")
-os.chdir("./tmp")
+
+if os.path.exists("./tmp-ecut"):
+    shutil.rmtree("./tmp-ecut")
+os.mkdir("./tmp-ecut")
+os.chdir("./tmp-ecut")
 shutil.copyfile("../H.psf", "H.psf")
 shutil.copyfile("../Li.psf", "Li.psf")
 
@@ -186,7 +192,7 @@ ecut = [ ecut_min + i * ecut_step for i in range(n_test + 1)]
 energy = []
 with open("energy-ecut.data", 'r') as fin:
     for line in fin:
-        energy.append(line.split()[3])
+        energy.append(float(line.split()[3]))
 
 import matplotlib.pyplot as plt
 
