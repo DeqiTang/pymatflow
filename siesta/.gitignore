@@ -2,3 +2,9 @@
 *.psf
 tmp
 tmp-ecut
+tmp-dos-pdos
+tmp-ldos
+tmp-bands
+tmp-geo-opt
+tmp-phonon
+tmp-md
