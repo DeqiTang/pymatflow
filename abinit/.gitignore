@@ -1,4 +1,7 @@
 tmp
 tmp-ecut
+tmp-dos
+tmp-bands
+tmp-geo-opt
 *.xyz
 *.psp8

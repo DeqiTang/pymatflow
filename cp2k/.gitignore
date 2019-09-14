@@ -2,3 +2,8 @@
 tmp
 tmp-cutoff
 tmp-rel-cutoff
+tmp-pdos
+tmp-bands
+tmp-geo-opt
+tmp-aimd
+tmp-phonon
