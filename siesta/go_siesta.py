@@ -96,9 +96,9 @@ class XYZ:
             fout.write("\n")
 
             fout.write("%block LatticeVectors\n")
-            fout.write("4.000175 0 0\n")
-            fout.write("0 4.000175 0\n")
-            fout.write("0 0 4.000175\n")
+            fout.write("15 0 0\n")
+            fout.write("0 15 0\n")
+            fout.write("0 0 15\n")
             fout.write("%endblock LatticeVectors\n")
             fout.write("\n")
 
@@ -148,7 +148,8 @@ if os.path.exists("./tmp-geo-opt"):
 os.mkdir("./tmp-geo-opt")
 os.chdir("./tmp-geo-opt")
 shutil.copyfile("../H.psf", "H.psf")
-shutil.copyfile("../Li.psf", "Li.psf")
+#shutil.copyfile("../Li.psf", "Li.psf")
+shutil.copyfile("../C.psf", "C.psf")
 
 fdf_name = "geo-opt.fdf"
 with open(fdf_name, 'w') as fout:
@@ -186,6 +187,9 @@ with open(fdf_name, 'a') as fout:
     fout.write("MD.Steps %d\n" % max_step)
     fout.write("MD.MaxDispl 0.2 Bohr # default value\n")
     fout.write("MD.PreconditionVariableCell 5 Ang # default value\n")
+    # write the final structure to an xyz file
+    fout.write("WriteCoorXmol true\n")
+    fout.write("\n")
     
 # run the simulation
 fdf_name = "geo-opt.fdf"

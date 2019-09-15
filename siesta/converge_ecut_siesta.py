@@ -142,8 +142,8 @@ if os.path.exists("./tmp-ecut"):
 os.mkdir("./tmp-ecut")
 os.chdir("./tmp-ecut")
 shutil.copyfile("../H.psf", "H.psf")
-shutil.copyfile("../Li.psf", "Li.psf")
-
+#shutil.copyfile("../Li.psf", "Li.psf")
+shutil.copyfile("../C.psf", "C.psf")
 n_test = int((ecut_max - ecut_min) / ecut_step)
 for i in range(n_test + 1):
     meshcutoff = int(ecut_min + i * ecut_step)
