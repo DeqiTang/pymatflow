@@ -8,3 +8,9 @@ tmp-bands
 tmp-geo-opt
 tmp-phonon
 tmp-md
+tmp-chem-analysis
+tmp-optical
+tmp-macro-polarization
+tmp-wannier90
+tmp-net-charge-dipole-elec-field
+tmp-charge-density-potentials

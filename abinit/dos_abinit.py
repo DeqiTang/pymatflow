@@ -134,12 +134,15 @@ with open(files_name, 'w') as fout:
     #
 with open(inp_name, 'w') as fout:
     fout.write("acell 4.000175 4.000175 4.000175\n")
+    fout.write("scalecart 3*3\n") # 一定要注意scalecart的重要性, 设置大了可能会耗尽内存, 但对于周期体系又和重要
     fout.write("ntypat %d\n" % xyz.nspecies)
     fout.write("natom %d\n" % xyz.natom)
 
     fout.write("ecut %d\n" % cutoff)
-    fout.write("kptopt 0\n")
-    fout.write("nkpt 1\n")
+    # k-point setting
+    fout.write("kptopt 1\n")
+    fout.write("ngkpt 3 3 3\n")
+    # dos setting
     fout.write("occopt 3\n")
     fout.write("prtdos 1\n") # prtdos = 1, 2, 3
     fout.write("nstep 100\n")
@@ -158,6 +161,6 @@ out_f_name = "dos-calc.out"
 os.system("abinit < %s > %s" % (files_name, out_f_name))
 
 # analyse the result
-
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
+os.system("abiopen.py %s --expose -sns=talk" % (base_project_name + "o_GSR.nc"))
 

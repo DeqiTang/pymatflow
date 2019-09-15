@@ -3,5 +3,6 @@ tmp-ecut
 tmp-dos
 tmp-bands
 tmp-geo-opt
+tmp-phonon
 *.xyz
 *.psp8
