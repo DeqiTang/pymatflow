@@ -94,11 +94,11 @@ class XYZ:
             fout.write("AtomCoorFormatOut Ang\n")
             fout.write("LatticeConstant 1.00000 Ang\n")
             fout.write("\n")
-
+            
             fout.write("%block LatticeVectors\n")
-            fout.write("10 0 0\n")
-            fout.write("0 10 0\n")
-            fout.write("0 0 10\n")
+            fout.write("4.08376 0.0 0.0\n")
+            fout.write("0.0 4.00251 0.0\n")
+            fout.write("-0.05485 0.0 8.16247\n")
             fout.write("%endblock LatticeVectors\n")
             fout.write("\n")
 
@@ -141,9 +141,15 @@ if os.path.exists("./tmp-ecut"):
     shutil.rmtree("./tmp-ecut")
 os.mkdir("./tmp-ecut")
 os.chdir("./tmp-ecut")
-shutil.copyfile("../H.psf", "H.psf")
+#shutil.copyfile("../H.psf", "H.psf")
 #shutil.copyfile("../Li.psf", "Li.psf")
-shutil.copyfile("../C.psf", "C.psf")
+#shutil.copyfile("../C.psf", "C.psf")
+shutil.copyfile("../Na.psf", "Na.psf")
+shutil.copyfile("../K.psf", "K.psf")
+shutil.copyfile("../Nb.psf", "Nb.psf")
+shutil.copyfile("../O.psf", "O.psf")
+
+
 n_test = int((ecut_max - ecut_min) / ecut_step)
 for i in range(n_test + 1):
     meshcutoff = int(ecut_min + i * ecut_step)

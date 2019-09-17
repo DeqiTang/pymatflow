@@ -96,9 +96,9 @@ class XYZ:
             fout.write("\n")
 
             fout.write("%block LatticeVectors\n")
-            fout.write("4.000175 0 0\n")
-            fout.write("0 4.000175 0\n")
-            fout.write("0 0 4.000175\n")
+            fout.write("4.08376 0.0 0.0\n")
+            fout.write("0.0 4.00251 0.0\n")
+            fout.write("-0.05485 0.0 8.16247\n")
             fout.write("%endblock LatticeVectors\n")
             fout.write("\n")
 
@@ -144,8 +144,12 @@ if os.path.exists("./tmp-dos-pdos"):
     shutil.rmtree("./tmp-dos-pdos")
 os.mkdir("./tmp-dos-pdos")
 os.chdir("./tmp-dos-pdos")
-shutil.copyfile("../H.psf", "H.psf")
-shutil.copyfile("../Li.psf", "Li.psf")
+#shutil.copyfile("../H.psf", "H.psf")
+#shutil.copyfile("../Li.psf", "Li.psf")
+shutil.copyfile("../Na.psf", "Na.psf")
+shutil.copyfile("../K.psf", "K.psf")
+shutil.copyfile("../Nb.psf", "Nb.psf")
+shutil.copyfile("../O.psf", "O.psf")
 
 fdf_name = "dos.fdf"
 with open(fdf_name, 'w') as fout:

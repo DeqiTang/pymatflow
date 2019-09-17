@@ -1,3 +1,4 @@
+*.cif
 *.xyz
 *.psf
 tmp
