@@ -11,7 +11,7 @@ import pymatgen as mg
 
 """
 Usage:
-    python converge_ecut.py xxx.xyz ecut_min ecut_max ecut_step
+    python geo_opt_pwscf.py xxx.xyz
     xxx.xyz is the input structure file
 
     make sure the xyz structure file and the pseudopotential
@@ -49,6 +49,7 @@ class XYZ:
         self.atoms = []
         self.specie_labels = dict()
         self.get_info()
+        self.cell = self.get_cell()
 
     def get_info(self):
         with open(self.file, 'r') as fin:
@@ -79,6 +80,7 @@ class XYZ:
         self.nspecies = len(self.specie_labels)
 
     def to_pwscf(self, fname):
+        cell = self.cell
         with open(fname, 'a') as fout:
             fout.write("ATOMIC_SPECIES\n")
             for element in self.specie_labels:
@@ -92,14 +94,24 @@ class XYZ:
                 fout.write("%s %f %s\n" % (element, mg.Element(element).atomic_mass, pseudo_file))
 
             fout.write("CELL_PARAMETERS (angstrom)\n")
-            fout.write("10.0 0.0 0.0\n")
-            fout.write("0.0 10.0 0.0\n")
-            fout.write("0.0 0.0 10.0\n")
+            fout.write("%f %f %f\n" % (cell[0], cell[1], cell[2]))
+            fout.write("%f %f %f\n" % (cell[3], cell[4], cell[5]))
+            fout.write("%f %f %f\n" % (cell[6], cell[7], cell[8]))
             fout.write("\n")
             fout.write("ATOMIC_POSITIONS (crystal)\n")
             for atom in self.atoms:
                 fout.write("%s\t%f\t%f\t%f\n" % (atom.name, atom.x, atom.y, atom.z))
             fout.write("\n")
+
+    def get_cell(self):
+        """
+        cell defined in xxx.xyz must be in format like this:
+        cell: 4.08376 0.00000 0.00000 | 0.00000 4.00251 0.00000 | -0.05485 0.00000 8.16247
+        """
+        with open(self.file, 'r') as fin:
+            fin.readline()
+            line = fin.readline()
+        return [float(line.split()[i]) for i in [1, 2, 3, 5, 6, 7, 9, 10, 11]]
 
     def update(self, newxyzfile):
         self.file = newxyzfile
@@ -116,97 +128,80 @@ class XYZ:
 # OK now we can use XYZ class to extract information 
 # from the xyz file: sys.argv[1]
 
-ecut_min = int(sys.argv[2]) # in Ry: 1 Ry = 13.6 ev
-ecut_max = int(sys.argv[3])
-ecut_step = int(sys.argv[4])
+#ecut_min = int(sys.argv[2]) # in Ry: 1 Ry = 13.6 ev
+#ecut_max = int(sys.argv[3])
+#ecut_step = int(sys.argv[4])
 
+ecut_wfc = 80
+ecut_rho = ecut_wfc * 2
 
 xyz = XYZ()
 
-title = "Test Cutoff"
-base_prefix = "LiH"
+title = "Geometric Optimization"
 
-if os.path.exists("./tmp-ecut"):
-    shutil.rmtree("./tmp-ecut")
-os.mkdir("./tmp-ecut")
-os.chdir("./tmp-ecut")
-#shutil.copyfile("../%s" % sys.argv[1], "%s" % sys.argv[1])
-#shutil.copyfile("../Li.psf", "Li.psf")
+base_prefix = "knn"
 
-n_test = int((ecut_max - ecut_min) / ecut_step)
-for i in range(n_test + 1):
-    ecut_wfc = int(ecut_min + i * ecut_step)
-    ecut_rho = ecut_wfc * 3
-    inp_name = "test-ecut-%d.in" % ecut_wfc
-    with open(inp_name, 'w') as fout:
-        fout.write("&control\n")
-        fout.write("calculation = 'scf'\n")
-        fout.write("title = '%s'\n" % title)
-        fout.write("prefix = '%s'\n" % (base_prefix + str(ecut_wfc)))
-        fout.write("restart_mode = 'from_scratch'\n")
-        fout.write("nstep = 300\n")
-        fout.write("outdir = '%s'\n" % ("./tmp-" + str(ecut_wfc)))
-        fout.write("pseudo_dir = '../'\n")
-        fout.write("wf_collect = .true.\n")
-        fout.write("tstress = .true.\n")
-        fout.write("tprnfor = .true.\n")
-        fout.write("/\n")
-        fout.write("\n")
+if os.path.exists("./tmp-geo-opt"):
+    shutil.rmtree("./tmp-geo-opt")
+os.mkdir("./tmp-geo-opt")
+os.chdir("./tmp-geo-opt")
 
-        fout.write("&system\n")
-        fout.write("ibrav = 0\n")
-        fout.write("nat = %d\n" % xyz.natom)
-        fout.write("ntyp = %d\n" % xyz.nspecies)
-        fout.write("nspin = 1\n")
-        #fout.write("nspin = 2\n")
-        #fout.write("starting_magnetization(1) = 1\n")
-        #fout.write("starting_magnetization(2) = 1\n")
-        fout.write("ecutwfc = %d\n" % ecut_wfc)
-        fout.write("ecutrho = %d\n" % ecut_rho)
-        fout.write("input_DFT = 'PBE'\n")
-        fout.write("occupations = 'smearing'\n")
-        fout.write("degauss = 1.0d-4\n")
-        fout.write("smearing = 'marzari-vanderbilt'\n")
-        fout.write("/\n")
-        fout.write("\n")
+inp_name = "geo-opt.in"
+with open(inp_name, 'w') as fout:
+    fout.write("&control\n")
+    fout.write("calculation = 'scf'\n")
+    fout.write("title = '%s'\n" % title)
+    fout.write("prefix = '%s'\n" % (base_prefix))
+    fout.write("restart_mode = 'from_scratch'\n")
+    fout.write("nstep = 300\n")
+    fout.write("outdir = '%s'\n" % ("./tmp"))
+    fout.write("pseudo_dir = '../'\n")
+    fout.write("wf_collect = .true.\n")
+    fout.write("tstress = .true.\n")
+    fout.write("tprnfor = .true.\n")
+    fout.write("/\n")
+    fout.write("\n")
 
-        fout.write("&electrons\n")
-        fout.write("electron_maxstep = 300\n")
-        #fout.write("conv_thr = 1.0d-10\n")
-        fout.write("conv_thr = 1.0d-5\n")
-        fout.write("mixing_mode = 'plain'\n")
-        fout.write("mixing_beta = 0.3d0\n")
-        fout.write("scf_must_converge = .true.\n")
-        fout.write("/\n")
-        fout.write("\n")
+    fout.write("&system\n")
+    fout.write("ibrav = 0\n")
+    fout.write("nat = %d\n" % xyz.natom)
+    fout.write("ntyp = %d\n" % xyz.nspecies)
+    fout.write("nspin = 1\n")
+    #fout.write("nspin = 2\n")
+    #fout.write("starting_magnetization(1) = 1\n")
+    #fout.write("starting_magnetization(2) = 1\n")
+    fout.write("ecutwfc = %d\n" % ecut_wfc)
+    fout.write("ecutrho = %d\n" % ecut_rho)
+    fout.write("input_DFT = 'PBE'\n")
+    fout.write("occupations = 'smearing'\n")
+    fout.write("degauss = 1.0d-4\n")
+    fout.write("smearing = 'marzari-vanderbilt'\n")
+    fout.write("/\n")
+    fout.write("\n")
 
-        fout.write("K_POINTS automatic\n")
-        fout.write("2 2 2 0 0 0\n")
-        fout.write("\n")
-    xyz.to_pwscf(inp_name)
+    fout.write("&electrons\n")
+    fout.write("electron_maxstep = 300\n")
+    #fout.write("conv_thr = 1.0d-10\n")
+    fout.write("conv_thr = 1.0d-5\n")
+    fout.write("mixing_mode = 'plain'\n")
+    fout.write("mixing_beta = 0.3d0\n")
+    fout.write("scf_must_converge = .true.\n")
+    fout.write("/\n")
+    fout.write("\n")
+
+    fout.write("K_POINTS automatic\n")
+    fout.write("2 2 2 0 0 0\n")
+    fout.write("\n")
+xyz.to_pwscf(inp_name)
 
 
 # run the simulation
-for i in range(n_test + 1):
-    cutoff = int(ecut_min + i * ecut_step)
-    inp_name = "test-ecut-%d.in" % cutoff
-    out_f_name = "test-ecut-%d.out" % cutoff
-    os.system("pw.x < %s > %s" % (inp_name, out_f_name))
+inp_name = "geo-opt.in"
+out_f_name = "geo-opt.out"
+os.system("pw.x < %s > %s" % (inp_name, out_f_name))
 
 
 # analyse the result
-for i in range(n_test + 1):
-    cutoff = int(ecut_min + i * ecut_step)
-    out_f_name = "test-ecut-%d.out" % cutoff
-    os.system("cat %s | grep 'Total energy:' >> energy-ecut.data" % out_f_name)
-
-ecut = [ ecut_min + i * ecut_step for i in range(n_test + 1)]
-energy = []
-with open("energy-ecut.data", 'r') as fin:
-    for line in fin:
-        energy.append(float(line.split()[2]))
 
 import matplotlib.pyplot as plt
 
-plt.plot(ecut, energy)
-plt.show()

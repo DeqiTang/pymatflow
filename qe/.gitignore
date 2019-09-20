@@ -1,4 +1,8 @@
 tmp
-tmp-ecut
+tmp-ecutwfc
+tmp-ecutrho
+tmp-geo-opt
+tmp-dos
+tmp-bands
 *.UPF
 *.xyz

@@ -50,6 +50,7 @@ class XYZ:
         self.atoms = []
         self.specie_labels = dict()
         self.get_info()
+        self.cell = self.get_cell()
 
     def get_info(self):
         with open(self.file, 'r') as fin:
@@ -80,15 +81,19 @@ class XYZ:
         self.nspecies = len(self.specie_labels)
 
     def to_subsys(self, fname):
+        cell = self.cell
         with open(fname, 'a') as fout:
             fout.write("\t&SUBSYS\n")
             for element in self.specie_labels:
                 fout.write("\t\t&KIND %s\n" % element)
-                fout.write("\t\t\tBASIS_SET DZV-GTH-PADE\n")
+                fout.write("\t\t\tBASIS_SET SZV-GTH-PADE\n")
                 fout.write("\t\t\tPOTENTIAL GTH-PADE\n")
                 fout.write("\t\t&END KIND\n")
             fout.write("\t\t&CELL\n")
-            fout.write("\t\t\tABC 10 10 10\n")
+            #fout.write("\t\t\tABC %f %f %f\n" % (cell[0], cell[4], cell[8]))
+            fout.write("\t\t\tA %f %f %f\n" % (cell[0], cell[1], cell[2]))
+            fout.write("\t\t\tB %f %f %f\n" % (cell[3], cell[4], cell[5]))
+            fout.write("\t\t\tC %f %f %f\n" % (cell[6], cell[7], cell[8]))
             fout.write("\t\t&END CELL\n")
             fout.write("\t\t&TOPOLOGY\n")
             fout.write("\t\t\tCOORD_FILE_FORMAT xyz\n")
@@ -97,6 +102,16 @@ class XYZ:
             fout.write("\t&END SUBSYS\n")
             fout.write("\n")
 
+    def get_cell(self):
+        """
+        cell defined in xxx.xyz must be in format like this:
+        cell: 4.08376 0.00000 0.00000 | 0.00000 4.00251 0.00000 | -0.05485 0.00000 8.16247
+        """
+        with open(self.file, 'r') as fin:
+            fin.readline()
+            line = fin.readline()
+        return [float(line.split()[i]) for i in [1, 2, 3, 5, 6, 7, 9, 10, 11]]
+
     def update(self, newxyzfile):
         self.file = newxyzfile
         self.natom = 0
@@ -104,7 +119,7 @@ class XYZ:
         self.atoms = []
         self.specie_labels = dict()
         self.get_info()
-        self.set_species_number()
+        self.cell = self.get_cell()
 
 
         

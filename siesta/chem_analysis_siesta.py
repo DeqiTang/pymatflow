@@ -47,6 +47,7 @@ class XYZ:
         self.atoms = []
         self.specie_labels = dict()
         self.get_info()
+        self.cell = self.get_cell()
 
     def get_info(self):
         with open(self.file, 'r') as fin:
@@ -77,6 +78,7 @@ class XYZ:
         self.nspecies = len(self.specie_labels)
 
     def to_fdf(self, fname):
+        cell = self.cell
         with open(fname, 'a') as fout:
             fout.write("%block ChemicalSpeciesLabel\n")
             for element in self.specie_labels:
@@ -96,9 +98,9 @@ class XYZ:
             fout.write("\n")
 
             fout.write("%block LatticeVectors\n")
-            fout.write("4.000175 0 0\n")
-            fout.write("0 4.000175 0\n")
-            fout.write("0 0 4.000175\n")
+            fout.write("%f %f %f\n" % (cell[0], cell[1], cell[2]))
+            fout.write("%f %f %f\n" % (cell[3], cell[4], cell[5]))
+            fout.write("%f %f %f\n" % (cell[6], cell[7], cell[8]))
             fout.write("%endblock LatticeVectors\n")
             fout.write("\n")
 
@@ -110,6 +112,17 @@ class XYZ:
             fout.write("%endblock AtomicCoordinatesAndAtomicSpecies\n")
             fout.write("\n")
 
+    def get_cell(self):
+        """
+        cell defined in xxx.xyz must be in format like this:
+        cell: 4.08376 0.00000 0.00000 | 0.00000 4.00251 0.00000 | -0.05485 0.00000 8.16247
+        """
+        with open(self.file, 'r') as fin:
+            fin.readline()
+            line = fin.readline()
+        return [float(line.split()[i]) for i in [1, 2, 3, 5, 6, 7, 9, 10, 11]]
+
+
     def update(self, newxyzfile):
         self.file = newxyzfile
         self.natom = 0
@@ -117,7 +130,7 @@ class XYZ:
         self.atoms = []
         self.specie_labels = dict()
         self.get_info()
-        self.set_species_number()
+        self.cell = self.get_cell()
 
 
        
