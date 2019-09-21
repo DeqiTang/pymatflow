@@ -173,8 +173,8 @@ with open(inp_name, 'w') as fout:
 xyz.to_abinit(inp_name)
 
 # run the simulation
-out_f_name = "geo-opt-calc.out.log"
-os.system("abinit < %s > %s" % (files_name, out_f_name))
+#out_f_name = "geo-opt-calc.out.log"
+os.system("abinit < %s" % (files_name))
 
 # analyse the result
 
