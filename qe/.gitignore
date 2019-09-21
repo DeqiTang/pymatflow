@@ -1,8 +1,11 @@
 tmp
 tmp-ecutwfc
 tmp-ecutrho
-tmp-geo-opt
+tmp-geo-opt-not-vc
+tmp-geo-opt-vc
 tmp-dos
 tmp-bands
+tmp-phonon-with-phonopy
+tmp-phonon-with-phx
 *.UPF
 *.xyz

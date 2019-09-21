@@ -7,7 +7,6 @@ tmp-dos-pdos
 tmp-ldos
 tmp-bands
 tmp-geo-opt
-tmp-phonon
 tmp-md
 tmp-chem-analysis
 tmp-optical
@@ -15,3 +14,5 @@ tmp-macro-polarization
 tmp-wannier90
 tmp-net-charge-dipole-elec-field
 tmp-charge-density-potentials
+tmp-phonon
+tmp-phonon-with-phonopy

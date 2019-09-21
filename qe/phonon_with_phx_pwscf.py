@@ -11,11 +11,13 @@ import pymatgen as mg
 
 """
 Usage:
-    python geo_opt_pwscf.py xxx.xyz
+    python phonon_with_phx_pwscf.py xxx.xyz
     xxx.xyz is the input structure file
 
     make sure the xyz structure file and the pseudopotential
     file for all the elements in the system is in the directory.
+
+Note:
 """
 
 
@@ -93,12 +95,12 @@ class XYZ:
                         break
                 fout.write("%s %f %s\n" % (element, mg.Element(element).atomic_mass, pseudo_file))
 
-            fout.write("CELL_PARAMETERS (angstrom)\n")
+            fout.write("CELL_PARAMETERS angstrom\n")
             fout.write("%f %f %f\n" % (cell[0], cell[1], cell[2]))
             fout.write("%f %f %f\n" % (cell[3], cell[4], cell[5]))
             fout.write("%f %f %f\n" % (cell[6], cell[7], cell[8]))
             fout.write("\n")
-            fout.write("ATOMIC_POSITIONS (crystal)\n")
+            fout.write("ATOMIC_POSITIONS angstrom\n")
             for atom in self.atoms:
                 fout.write("%s\t%f\t%f\t%f\n" % (atom.name, atom.x, atom.y, atom.z))
             fout.write("\n")
@@ -132,21 +134,23 @@ class XYZ:
 #ecut_max = int(sys.argv[3])
 #ecut_step = int(sys.argv[4])
 
-ecut_wfc = 80
-ecut_rho = ecut_wfc * 2
+ecut_wfc = 55
+ecut_rho = ecut_wfc * 4
 
 xyz = XYZ()
 
-title = "Geometric Optimization"
+title = "Phonon with Ph.x"
 
-base_prefix = "knn"
+base_prefix = "bfo"
 
-if os.path.exists("./tmp-geo-opt"):
-    shutil.rmtree("./tmp-geo-opt")
-os.mkdir("./tmp-geo-opt")
-os.chdir("./tmp-geo-opt")
+if os.path.exists("./tmp-phonon-with-phx"):
+    shutil.rmtree("./tmp-phonon-with-phx")
+os.mkdir("./tmp-phonon-with-phx")
+os.chdir("./tmp-phonon-with-phx")
 
-inp_name = "geo-opt.in"
+os.system("cp ../*.UPF ./")
+
+inp_name = "phonon.in"
 with open(inp_name, 'w') as fout:
     fout.write("&control\n")
     fout.write("calculation = 'scf'\n")
@@ -155,7 +159,7 @@ with open(inp_name, 'w') as fout:
     fout.write("restart_mode = 'from_scratch'\n")
     fout.write("nstep = 300\n")
     fout.write("outdir = '%s'\n" % ("./tmp"))
-    fout.write("pseudo_dir = '../'\n")
+    fout.write("pseudo_dir = './'\n")
     fout.write("wf_collect = .true.\n")
     fout.write("tstress = .true.\n")
     fout.write("tprnfor = .true.\n")
@@ -190,18 +194,7 @@ with open(inp_name, 'w') as fout:
     fout.write("\n")
 
     fout.write("K_POINTS automatic\n")
-    fout.write("2 2 2 0 0 0\n")
+    fout.write("1 1 1 0 0 0\n")
     fout.write("\n")
 xyz.to_pwscf(inp_name)
-
-
-# run the simulation
-inp_name = "geo-opt.in"
-out_f_name = "geo-opt.out"
-os.system("pw.x < %s > %s" % (inp_name, out_f_name))
-
-
-# analyse the result
-
-import matplotlib.pyplot as plt
 

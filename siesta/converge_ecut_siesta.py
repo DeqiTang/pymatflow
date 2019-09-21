@@ -93,6 +93,8 @@ class XYZ:
             fout.write("\n")
 
             fout.write("AtomicCoordinatesFormat ScaledCartesian\n")
+            # 这里可以用ScaledCartesian也可以用Ang, 因为我的LatticeConstant 设置为1Ang
+            # 这样ScaledCartesian以LatticeConstant扩展后的值实际上与Ang是一样的
             fout.write("AtomCoorFormatOut Ang\n")
             fout.write("LatticeConstant 1.00000 Ang\n")
             fout.write("\n")
@@ -156,10 +158,11 @@ os.chdir("./tmp-ecut")
 #shutil.copyfile("../H.psf", "H.psf")
 #shutil.copyfile("../Li.psf", "Li.psf")
 #shutil.copyfile("../C.psf", "C.psf")
-shutil.copyfile("../Na.psf", "Na.psf")
-shutil.copyfile("../K.psf", "K.psf")
-shutil.copyfile("../Nb.psf", "Nb.psf")
-shutil.copyfile("../O.psf", "O.psf")
+#shutil.copyfile("../Na.psf", "Na.psf")
+#shutil.copyfile("../K.psf", "K.psf")
+#shutil.copyfile("../Nb.psf", "Nb.psf")
+#shutil.copyfile("../O.psf", "O.psf")
+os.system("cp ../*.psf ./")
 
 
 n_test = int((ecut_max - ecut_min) / ecut_step)

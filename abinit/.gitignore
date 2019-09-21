@@ -4,5 +4,6 @@ tmp-dos
 tmp-bands
 tmp-geo-opt
 tmp-phonon
+tmp-phonon-with-phonopy
 *.xyz
 *.psp8

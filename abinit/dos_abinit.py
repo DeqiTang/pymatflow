@@ -48,6 +48,7 @@ class XYZ:
         self.atoms = []
         self.specie_labels = dict()
         self.get_info()
+        self.cell = self.get_cell()
 
     def get_info(self):
         with open(self.file, 'r') as fin:
@@ -78,15 +79,40 @@ class XYZ:
         self.nspecies = len(self.specie_labels)
 
     def to_abinit(self, fname):
+        cell = self.cell
         with open(fname, 'a') as fout:
+            fout.write("acell 1 1 1\n") # scaling with 1 means no actually scaling of rprim by acell
+            fout.write("rprim\n")
+            fout.write("%f %f %f\n" % (cell[0], cell[1], cell[2]))
+            fout.write("%f %f %f\n" % (cell[3], cell[4], cell[5]))
+            fout.write("%f %f %f\n" % (cell[6], cell[7], cell[8]))
+
+            fout.write("ntypat %d\n" % self.nspecies)
+            fout.write("natom %d\n" % self.natom)
             fout.write("typat ")
             for atom in self.atoms:
                 fout.write("%d " % self.specie_labels[atom.name])
             fout.write("\n")
+            fout.write("znucl ")
+            for element in xyz.specie_labels:
+                fout.write(str(mg.Element[element].number))
+                fout.write(" ")
+            fout.write("\n")
+            fout.write("\n")
             fout.write("xangst\n")
             for atom in self.atoms:
-                fout.write("%d %d %d\n" % (atom.x, atom.y, atom.z))
+                fout.write("%f %f %f\n" % (atom.x, atom.y, atom.z))
             fout.write("\n")
+
+    def get_cell(self):
+        """
+        cell defined in xxx.xyz must be in format like this:
+        cell: 4.08376 0.00000 0.00000 | 0.00000 4.00251 0.00000 | -0.05485 0.00000 8.16247
+        """
+        with open(self.file, 'r') as fin:
+            fin.readline()
+            line = fin.readline()
+        return [float(line.split()[i]) for i in [1, 2, 3, 5, 6, 7, 9, 10, 11]]
 
     def update(self, newxyzfile):
         self.file = newxyzfile
@@ -95,7 +121,7 @@ class XYZ:
         self.atoms = []
         self.specie_labels = dict()
         self.get_info()
-        self.set_species_number()
+        self.cell = self.get_cell()
 
 
         
@@ -106,7 +132,9 @@ class XYZ:
 #ecut_min = int(sys.argv[2]) # in Ry: 1 Ry = 13.6 ev
 #ecut_max = int(sys.argv[3])
 #ecut_step = int(sys.argv[4])
-cutoff = 100
+cutoff = 40
+
+scale_cart = "3*1" # '3*1' actually means no scaling
 
 xyz = XYZ()
 
@@ -117,8 +145,10 @@ os.mkdir("./tmp-dos")
 os.chdir("./tmp-dos")
 #shutil.copyfile("../%s" % sys.argv[1], "%s" % sys.argv[1])
 #shutil.copyfile("../Li.psf", "Li.psf")
-shutil.copyfile("../Li.psp8", "Li.psp8")
-shutil.copyfile("../H.psp8", "H.psp8")
+#shutil.copyfile("../Li.psp8", "Li.psp8")
+#shutil.copyfile("../H.psp8", "H.psp8")
+os.system("cp ../*.psp8 ./")
+
 
 inp_name = "dos-calc.in"
 files_name = "dos-calc.files"
@@ -133,11 +163,7 @@ with open(files_name, 'w') as fout:
         fout.write("%s\n" % (element + ".psp8"))
     #
 with open(inp_name, 'w') as fout:
-    fout.write("acell 4.000175 4.000175 4.000175\n")
-    fout.write("scalecart 3*3\n") # 一定要注意scalecart的重要性, 设置大了可能会耗尽内存, 但对于周期体系又和重要
-    fout.write("ntypat %d\n" % xyz.nspecies)
-    fout.write("natom %d\n" % xyz.natom)
-
+    fout.write("scalecart %s\n" % scale_cart) # 一定要注意scalecart的重要性, 设置大了可能会耗尽内存, 但对于周期体系又和重要
     fout.write("ecut %d\n" % cutoff)
     # k-point setting
     fout.write("kptopt 1\n")
@@ -148,17 +174,11 @@ with open(inp_name, 'w') as fout:
     fout.write("nstep 100\n")
     fout.write("toldfe 1.0d-6\n")
     fout.write("diemac 2.0\n")
-    fout.write("znucl ")
-    for element in xyz.specie_labels:
-        fout.write(str(mg.Element[element].number))
-        fout.write(" ")
-    fout.write("\n")
     fout.write("\n")
 xyz.to_abinit(inp_name)
 
 # run the simulation
-out_f_name = "dos-calc.out"
-os.system("abinit < %s > %s" % (files_name, out_f_name))
+os.system("abinit < %s" % (files_name))
 
 # analyse the result
 # import matplotlib.pyplot as plt

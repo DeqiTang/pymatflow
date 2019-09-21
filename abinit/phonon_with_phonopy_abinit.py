@@ -10,11 +10,13 @@ import pymatgen as mg
 
 """
 Usage:
-    python converge_ecut.py xxx.xyz ecut_min ecut_max ecut_step
+    python phonon_with_phonopy_abinit.py xxx.xyz
     xxx.xyz is the input structure file
 
     make sure the xyz structure file and the pseudopotential file
     for all the elements of the system is in the directory.
+Note:
+    参考: https://atztogo.github.io/phonopy/abinit.html
 """
 
 
@@ -123,77 +125,85 @@ class XYZ:
         self.get_info()
         self.cell = self.get_cell()
 
-
         
 
 # OK now we can use XYZ class to extract information 
 # from the xyz file: sys.argv[1]
 
-ecut_min = int(sys.argv[2]) # in Ry: 1 Ry = 13.6 ev
-ecut_max = int(sys.argv[3])
-ecut_step = int(sys.argv[4])
+#ecut_min = int(sys.argv[2]) # in Ry: 1 Ry = 13.6 ev
+#ecut_max = int(sys.argv[3])
+#ecut_step = int(sys.argv[4])
+cutoff = 40
 
+supercell_n = "1 1 1"
 
 xyz = XYZ()
 
-base_project_name = "test"
-if os.path.exists("./tmp-ecut"):
-    shutil.rmtree("./tmp-ecut")
-os.mkdir("./tmp-ecut")
-os.chdir("./tmp-ecut")
+base_project_name = "phonon-calc"
+if os.path.exists("./tmp-phonon-with-phonopy"):
+    shutil.rmtree("./tmp-phonon-with-phonopy")
+os.mkdir("./tmp-phonon-with-phonopy")
+os.chdir("./tmp-phonon-with-phonopy")
 #shutil.copyfile("../%s" % sys.argv[1], "%s" % sys.argv[1])
 #shutil.copyfile("../Li.psf", "Li.psf")
 #shutil.copyfile("../Li.psp8", "Li.psp8")
 #shutil.copyfile("../H.psp8", "H.psp8")
 os.system("cp ../*.psp8 ./")
 
+head_inp_name = "head-phonon.in"
+with open(head_inp_name, 'w') as fout:
+    fout.write("kptopt 1\n")
+    fout.write("ngkpt 1 1 1\n")
+    fout.write("occopt 3\n")
+    fout.write("ecut %d\n" % cutoff)
+    fout.write("toldfe 1.0d-6\n")
+    fout.write("nstep 100\n")
+    fout.write("diemac 2.0\n")
+    fout.write("\n")
 
-n_test = int((ecut_max - ecut_min) / ecut_step)
-for i in range(n_test + 1):
-    cutoff = int(ecut_min + i * ecut_step)
-    rel_cutoff = cutoff / 3
-    inp_name = "test-ecut-%d.in" % cutoff
-    files_name = "test-ecut-%d.files" % cutoff
-    with open(files_name, 'w') as fout:
-        fout.write(inp_name)
-        fout.write("\n")
-        fout.write("test-ecut-%d.out\n" % cutoff)
-        fout.write("test-ecut-%di\n" % cutoff)
-        fout.write("test-ecut-%do\n" % cutoff)
+pos_inp_name = "pos.in"
+xyz.to_abinit(pos_inp_name)
+os.system("phonopy --abinit -d --dim='%s' -c %s" % (supercell_n, pos_inp_name))
+
+os.system("ls | grep 'supercell-' > geo.data")
+disp_dirs = []
+with open("geo.data", 'r') as fin:
+    for line in fin:
+        disp_dirs.append(line.split(".")[0].split("-")[1])
+
+for disp in disp_dirs:
+    os.mkdir("disp-%s" % disp)
+    os.system("cp ./*.psp8 ./disp-%s/" % (disp))
+    os.system("cat %s > ./disp-%s/supercell-%s.in" % (head_inp_name, disp, disp))
+    os.system("head %s -n -%d >> ./disp-%s/supercell-%s.in" % (pos_inp_name, (xyz.natom + 2), disp, disp))
+    os.system("tail supercell-%s.in -n %d >> ./disp-%s/supercell-%s.in" % (disp, (xyz.natom + 1), disp, disp))
+    with open("./disp-%s/supercell-%s.files" % (disp, disp), 'w') as fout:
+        fout.write("supercell-%s.in\n" % disp)
+        fout.write("supercell-%s.out\n" % disp)
+        fout.write("supercell-%si\n" % disp)
+        fout.write("supercell-%so\n" % disp)
         fout.write("temp\n")
         for element in xyz.specie_labels:
             fout.write("%s\n" % (element + ".psp8"))
-        #
-    with open(inp_name, 'w') as fout:
-        fout.write("ecut %d\n" % cutoff)
-        fout.write("kptopt 1\n")
-        fout.write("ngkpt 1 1 1\n")
-        fout.write("nstep 100\n")
-        fout.write("toldfe 1.0d-6\n")
-        fout.write("diemac 2.0\n")
-        fout.write("\n")
-    xyz.to_abinit(inp_name)
+
 # run the simulation
-for i in range(n_test + 1):
-    cutoff = int(ecut_min + i * ecut_step)
-    files_name = "test-ecut-%d.files" % cutoff
-    os.system("abinit < %s" % (files_name))
+for disp in disp_dirs:
+    os.chdir("disp-%s" % disp)
+    os.system("abinit < supercell-%s.files" % disp)
+    os.chdir("../")
 
 # analyse the result
-for i in range(n_test + 1):
-    cutoff = int(ecut_min + i * ecut_step)
-    out_f_name = "test-ecut-%d.out" % cutoff
-    os.system("cat %s | grep 'Etotal=' >> energy-ecut.data" % out_f_name)
-
-ecut = [ ecut_min + i * ecut_step for i in range(n_test + 1)]
-energy = []
-with open("energy-ecut.data", 'r') as fin:
-    for line in fin:
-        energy.append(float(line.split()[2]))
 
 import matplotlib.pyplot as plt
 
-#for i in range(len(energy)):
-#    energy[i] = energy[i] - 31
-plt.plot(ecut, energy)
-plt.show()
+os.system("phonopy --abinit -f disp-{001..%s}/supercell-*.out" % (disp_dirs[-1]))
+
+# plot phonon band
+with open("band.conf", 'w') as fout:
+    fout.write("ATOM_NAME =")
+    for element in xyz.specie_labels:
+        fout.write(" %s" % element)
+    fout.write("\n")
+    fout.write("DIM = %s\n" % supercell_n)
+    fout.write("BAND = 0.5 0.5 0.5 0.0 0.0 0.0 0.5 0.5 0.0 0.0 0.5 0.0\n")
+os.system("phonopy --abinit -c %s -p band.conf" % (pos_inp_name))

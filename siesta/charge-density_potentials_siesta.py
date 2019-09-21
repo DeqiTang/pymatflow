@@ -93,6 +93,8 @@ class XYZ:
             fout.write("\n")
 
             fout.write("AtomicCoordinatesFormat ScaledCartesian\n")
+            # 这里可以用ScaledCartesian也可以用Ang, 因为我的LatticeConstant 设置为1Ang
+            # 这样ScaledCartesian以LatticeConstant扩展后的值实际上与Ang是一样的
             fout.write("AtomCoorFormatOut Ang\n")
             fout.write("LatticeConstant 1.00000 Ang\n")
             fout.write("\n")
@@ -156,8 +158,9 @@ if os.path.exists("./tmp-charge-density-potentials"):
     shutil.rmtree("./tmp-charge-density-potentials")
 os.mkdir("./tmp-charge-density-potentials")
 os.chdir("./tmp-charge-density-potentials")
-shutil.copyfile("../H.psf", "H.psf")
-shutil.copyfile("../Li.psf", "Li.psf")
+#shutil.copyfile("../H.psf", "H.psf")
+#shutil.copyfile("../Li.psf", "Li.psf")
+os.system("cp ../*.psf ./")
 
 fdf_name = "charge-density-potentials.fdf"
 with open(fdf_name, 'w') as fout:

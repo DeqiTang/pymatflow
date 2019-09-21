@@ -93,12 +93,12 @@ class XYZ:
                         break
                 fout.write("%s %f %s\n" % (element, mg.Element(element).atomic_mass, pseudo_file))
 
-            fout.write("CELL_PARAMETERS (angstrom)\n")
+            fout.write("CELL_PARAMETERS angstrom\n")
             fout.write("%f %f %f\n" % (cell[0], cell[1], cell[2]))
             fout.write("%f %f %f\n" % (cell[3], cell[4], cell[5]))
             fout.write("%f %f %f\n" % (cell[6], cell[7], cell[8]))
             fout.write("\n")
-            fout.write("ATOMIC_POSITIONS (crystal)\n")
+            fout.write("ATOMIC_POSITIONS angstrom\n")
             for atom in self.atoms:
                 fout.write("%s\t%f\t%f\t%f\n" % (atom.name, atom.x, atom.y, atom.z))
             fout.write("\n")
@@ -145,6 +145,7 @@ os.mkdir("./tmp-ecutrho")
 os.chdir("./tmp-ecutrho")
 #shutil.copyfile("../%s" % sys.argv[1], "%s" % sys.argv[1])
 #shutil.copyfile("../Li.psf", "Li.psf")
+os.system("cp ../*.UPF ./")
 
 n_test = int((ecut_rho_max - ecut_rho_min) / ecut_rho_step)
 for i in range(n_test + 1):
@@ -158,8 +159,8 @@ for i in range(n_test + 1):
         fout.write("restart_mode = 'from_scratch'\n")
         fout.write("nstep = 300\n")
         fout.write("outdir = '%s'\n" % ("./tmp-" + str(ecut_rho)))
-        fout.write("pseudo_dir = '../'\n")
-        fout.write("#wf_collect = .true.\n")
+        fout.write("pseudo_dir = './'\n")
+        fout.write("wf_collect = .true.\n")
         fout.write("tstress = .true.\n")
         fout.write("tprnfor = .true.\n")
         fout.write("/\n")

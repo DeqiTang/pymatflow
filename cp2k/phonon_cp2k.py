@@ -157,6 +157,8 @@ class XYZ:
 cutoff = 60
 rel_cutoff = 30
 
+supercell_n = "1 1 1"
+
 xyz = XYZ()
 
 base_project_name = "phonon"
@@ -223,7 +225,7 @@ with open(inp_name, 'a') as fout:
 
 
 # run the simulation
-os.system("phonopy --cp2k -c %s -d --dim='2 2 2'" % inp_name)
+os.system("phonopy --cp2k -c %s -d --dim='%s'" % (supercell_n, inp_name))
 # now supercell-00x.inp is generated which will be used to construct input for cp2k
 i = 1
 while i < 10:
@@ -312,7 +314,7 @@ os.system(phonopy_command)
 
 # get the band structure
 # 注意--pa设置Primitive Axis要设置正确! --band 控制了声子谱的图示
-os.system("phonopy --cp2k -c %s -p --dim='2 2 2' --pa='1 0 0 0 1 0 0 0 1' --band='1/2 1/2 1/2 0 0 0 1/2 0 1/2'" % inp_name)
+os.system("phonopy --cp2k -c %s -p --dim='%s' --pa='1 0 0 0 1 0 0 0 1' --band='1/2 1/2 1/2 0 0 0 1/2 0 1/2'" % (inp_name, supercell_n))
 
 # analyse the result
 
