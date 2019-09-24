@@ -10,11 +10,13 @@ import pymatgen as mg
 
 """
 Usage:
-    python bands_abinit.py xxx.xyz
+    python neb_abinit.py initial.xyz final.xyz
     xxx.xyz is the input structure file
 
     make sure the xyz structure file and the pseudopotential file
     for all the elements of the system is in the directory.
+Note:
+    参考: https://docs.abinit.org/topics/TransPath/
 """
 
 
@@ -94,12 +96,18 @@ class XYZ:
                 fout.write("%d " % self.specie_labels[atom.name])
             fout.write("\n")
             fout.write("znucl ")
-            for element in xyz.specie_labels:
+            for element in self.specie_labels:
                 fout.write(str(mg.Element[element].number))
                 fout.write(" ")
             fout.write("\n")
             fout.write("\n")
             fout.write("xangst\n")
+            for atom in self.atoms:
+                fout.write("%f %f %f\n" % (atom.x, atom.y, atom.z))
+            fout.write("\n")
+    def to_xangst_lastimg(self, fname):
+        with open(fname, 'a') as fout:
+            fout.write("xangst_lastimg\n")
             for atom in self.atoms:
                 fout.write("%f %f %f\n" % (atom.x, atom.y, atom.z))
             fout.write("\n")
@@ -133,70 +141,59 @@ class XYZ:
 #ecut_step = int(sys.argv[4])
 cutoff = 40
 
-xyz = XYZ()
+xyz_initial = XYZ(sys.argv[1])
+xyz_final = XYZ(sys.argv[2])
 
-base_project_name = "bands-calc"
-if os.path.exists("./tmp-bands"):
-    shutil.rmtree("./tmp-bands")
-os.mkdir("./tmp-bands")
-os.chdir("./tmp-bands")
+base_project_name = "neb-transpath"
+if os.path.exists("./tmp-neb"):
+    shutil.rmtree("./tmp-neb")
+os.mkdir("./tmp-neb")
+os.chdir("./tmp-neb")
 #shutil.copyfile("../%s" % sys.argv[1], "%s" % sys.argv[1])
 #shutil.copyfile("../Li.psf", "Li.psf")
 #shutil.copyfile("../Li.psp8", "Li.psp8")
 #shutil.copyfile("../H.psp8", "H.psp8")
 os.system("cp ../*.psp8 ./")
 
-inp_name = "bands-calc.in"
-files_name = "bands-calc.files"
+
+inp_name = "neb.in"
+files_name = "neb.files"
 with open(files_name, 'w') as fout:
     fout.write(inp_name)
     fout.write("\n")
-    fout.write("bands-calc.out\n")
-    fout.write("bands-calci\n")
-    fout.write("bands-calco\n")
+    fout.write("neb.out\n")
+    fout.write("nebi\n")
+    fout.write("nebo\n")
     fout.write("temp\n")
-    for element in xyz.specie_labels:
+    for element in xyz_initial.specie_labels:
         fout.write("%s\n" % (element + ".psp8"))
     #
 with open(inp_name, 'w') as fout:
-    fout.write("ndtset 2\n")
-    # dataset 1: scf calculation
-    fout.write("# Dataset 1: scf\n")
-    fout.write("kptopt1 1\n")
-    fout.write("nshiftk1 4\n")
-    fout.write("shiftk1 0.5 0.5 0.5\n")
-    fout.write("  0.5 0.0 0.0\n")
-    fout.write("  0.0 0.5 0.0\n")
-    fout.write("  0.0 0.0 0.5\n")
-    fout.write("ngkpt1 4 4 4\n")
-    fout.write("prtden1 1\n")
-    fout.write("toldfe1 1.0d-6\n")
-    # dataset 2: band calculation
-    fout.write("iscf2 -2\n")
-    fout.write("getden2 -1\n")
-    fout.write("kptopt2 -3\n")
-    fout.write("nband2 8\n")
-    fout.write("ndivk2 10 12 17\n")
-    fout.write("kptbounds2 0.5 0.0 0.0 # L point\n")
-    fout.write("0.0 0.0 0.0 # Gamma\n")
-    fout.write("0.0 0.5 0.5 # X\n")
-    fout.write("1.0 1.0 1.0 # Gamma in another cell\n")
-    fout.write("tolwfr2 1.0d-12\n")
-    fout.write("enunit2 1\n")
-    fout.write("\n")
-
     fout.write("ecut %d\n" % cutoff)
-    fout.write("occopt 3\n")
-    #fout.write("prtdos 1\n") # prtdos = 1, 2, 3
+    fout.write("kptopt 1\n")
+    fout.write("ngkpt 1 1 1\n")
+    fout.write("occopt 3\n") # fermi dirac smearing of occupation
     fout.write("nstep 100\n")
+    fout.write("toldff 1.0d-6\n")
+    fout.write("nband 10\n")
     fout.write("diemac 2.0\n")
+    fout.write("nimage 12\n")
+    fout.write("imgmov 5\n")
+    fout.write("ntimimage 50\n")
+    fout.write("tolimg 0.0001\n") # Tol. criterion (will stop when average energy of cells < tolimg)
+    fout.write("dynimage 0 10*1 0\n")  # Keep first and last images fixed
+    fout.write("fxcartfactor 1.0\n")
+    fout.write("prtvolimg 0\n")
     fout.write("\n")
-xyz.to_abinit(inp_name)
+xyz_initial.to_abinit(inp_name)
+xyz_final.to_xangst_lastimg(inp_name)
+
 
 # run the simulation
+#out_f_name = "geo-opt-calc.out.log"
 os.system("abinit < %s" % (files_name))
 
 # analyse the result
 
 import matplotlib.pyplot as plt
-os.system("abiopen.py bands-calco_DS1_GSR.nc -e -sns=talk")
+

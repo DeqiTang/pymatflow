@@ -166,6 +166,7 @@ for i in range(n_test + 1):
         #
     with open(inp_name, 'w') as fout:
         fout.write("ecut %d\n" % cutoff)
+        fout.write("ixc = 11\n")
         fout.write("kptopt 1\n")
         fout.write("ngkpt 1 1 1\n")
         fout.write("nstep 100\n")

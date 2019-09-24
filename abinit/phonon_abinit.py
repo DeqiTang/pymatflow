@@ -17,6 +17,7 @@ Usage:
     for all the elements of the system is in the directory.
 Reference:
     https://docs.abinit.org/tutorial/rf2/
+    https://docs.abinit.org/topics/PhononBands/
 Note:
     目前此脚本进行的声子计算还未成功
 """
@@ -140,7 +141,7 @@ cutoff = 40
 
 scale_cart = "3*1"
 
-xyz = XYZ()
+xyz = XYZ(sys.argv[1])
 
 base_project_name = "phonon-calc"
 if os.path.exists("./tmp-phonon"):
@@ -175,7 +176,8 @@ with open(inp_name_1, 'w') as fout:
     fout.write("getwfk1 0 # cancel default\n")
     fout.write("kptopt1 1 # automatic generation of k points, taking into account the symmetry\n")
     fout.write("nqpt1 0 # cancel default\n")
-    fout.write("tolvrs1 1.0d-18 # SCF stopping criterion (modify default)\n")
+    #fout.write("tolvrs1 1.0d-18 # SCF stopping criterion (modify default)\n")
+    fout.write("toldfe1 1.0d-6\n")
     fout.write("rfphon1 0 # cancel default\n")
     fout.write("nqpt 1\n") #  Q vectors for all datasets
     fout.write("qpt2   0.00000000E+00  0.00000000E+00  0.00000000E+00\n")
@@ -193,7 +195,8 @@ with open(inp_name_1, 'w') as fout:
     fout.write("kptopt2 2\n")
     fout.write("rfphon2 0 # cancel default\n")
     fout.write("rfelfd2 2 \n")
-    fout.write("tolwfr2 1.0d-22\n")
+    #fout.write("tolwfr2 1.0d-22\n")
+    fout.write("tolwfr2 1.0d-20\n")
     fout.write("\n")
     # Set 3 : Response function calculation of Q=0 phonons and electric field pert.
     fout.write("getddk3 2\n")
@@ -206,12 +209,13 @@ with open(inp_name_1, 'w') as fout:
     fout.write("rfphon 1 # Do phonon response\n")
     fout.write("rfatpol 1 2\n")
     fout.write("rfdir 1 1 1\n")
-    fout.write("tolvrs 1.0d-8\n")
+    #fout.write("tolvrs 1.0d-8\n")
+    fout.write("tolvrs 1.0d-7\n")
     
     # definition of general setup
-    fout.write("scalecart %s\n" % scale_cart) # 一定要注意scalecart的重要性, 设置大了可能会耗尽内存, 但对于周期体系又和重要
     fout.write("ecut %d\n" % cutoff)
-    fout.write("ngkpt 4 4 4\n") # 似乎k点需要设置为偶数, 设置为奇数比如 3 3 3 计算会报错,说k点不对称
+    #fout.write("ngkpt 4 4 4\n") # 似乎k点需要设置为偶数, 设置为奇数比如 3 3 3 计算会报错,说k点不对称
+    fout.write("ngkpt 2 2 2\n")
     fout.write("nstep 50\n")
     fout.write("diemac 2.0\n")
     fout.write("\n")
@@ -219,14 +223,15 @@ xyz.to_abinit(inp_name_1)
 
 # run the simulation
 #out_f_name_1 = "phonon-calc-1.out"
-os.system("abinit < %s > %s" % (files_name_1))
+os.system("abinit < %s" % (files_name_1))
 
 # 2 Manipulation of the derivative databases (the MRGDDB utility)
 inp_name_3 = "phonon-calc-3.in"
 with open(inp_name_3, 'w') as fout:
     fout.write("phonon-calc-3.ddb.out\n")
     fout.write("System phonons on 3 3 3 mesh\n")
-    fout.write("8\n")
+    #fout.write("8\n")
+    fout.write("4\n")
     fout.write("phonon-calc-1o_DS3_DDB\n")
     fout.write("phonon-calc-1o_DS4_DDB\n")
     fout.write("phonon-calc-1o_DS5_DDB\n")
@@ -255,7 +260,8 @@ with open(files_name_4, 'w') as fout:
 with open(inp_name_4, 'w') as fout:
     fout.write("ifcflag 1\n")
     fout.write("brav 1\n") # Bravais Lattice : 1-S.C., 2-F.C., 3-B.C., 4-Hex.)
-    fout.write("ngqpt 4 4 4\n")
+    #fout.write("ngqpt 4 4 4\n")
+    fout.write("ngqpt 2 2 2\n")
     fout.write("nqshft 1\n")
     fout.write("q1shft 3*0.0\n")
     fout.write("chneut 1\n")

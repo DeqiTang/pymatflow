@@ -183,10 +183,11 @@ with open(inp_name, 'w') as fout:
     
     fout.write("&electrons\n")
     fout.write("electron_maxstep = 300\n")
-    #fout.write("conv_thr = 1.0d-10\n")
-    fout.write("conv_thr = 1.0d-5\n")
+    fout.write("conv_thr = 1.0d-6\n")
     fout.write("mixing_mode = 'plain'\n")
-    fout.write("mixing_beta = 0.3d0\n")
+    fout.write("mixing_beta = 0.7d0\n") # default: 0.7 
+    fout.write("mixing_ndim = 8\n") # default: 8 这个参数对内存的占用影响较大
+    fout.write("diagonalization = 'david'\n") # default: david
     fout.write("scf_must_converge = .true.\n")
     fout.write("/\n")
     fout.write("\n")

@@ -161,14 +161,19 @@ with open(files_name, 'w') as fout:
     #
 with open(inp_name, 'w') as fout:
     fout.write("ecut %d\n" % cutoff)
+    fout.write("ixc = 11\n")
     fout.write("kptopt 1\n")
     fout.write("ngkpt 1 1 1\n")
     fout.write("occopt 3\n") # fermi dirac smearing of occupation
     fout.write("nstep 100\n")
-    fout.write("ionmov 3\n")
-    fout.write("tolmxf 5.0d-4  # Ha/Bohr\n")
     fout.write("toldfe 1.0d-6\n")
     fout.write("diemac 2.0\n")
+    # geo opt setting
+    fout.write("ionmov 3\n")
+    fout.write("optcell 0\n")
+    fout.write("ntime 100\n")
+    fout.write("tolmxde 0.0001 eV\n") # 
+    fout.write("tolmxf 0 #5.0d-3  # Ha/Bohr\n") # tolmxde 与tolmxf两者只能设置一个为有效值, 其一需要定义为0
     fout.write("\n")
 xyz.to_abinit(inp_name)
 
@@ -179,4 +184,7 @@ os.system("abinit < %s" % (files_name))
 # analyse the result
 
 import matplotlib.pyplot as plt
+# use abiview.py to view information in relaxation
+os.system("abiview.py hist %so_HIST.nc" % base_project_name)
+
 

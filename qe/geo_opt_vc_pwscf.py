@@ -132,14 +132,14 @@ class XYZ:
 #ecut_max = int(sys.argv[3])
 #ecut_step = int(sys.argv[4])
 
-ecut_wfc = 55
-ecut_rho = ecut_wfc * 4.2 # default is ecutrho = 4 * ecutwfc
+ecut_wfc = 40 # in Ry: 1 Ry = 13.6 ev
+ecut_rho = ecut_wfc * 4 # default is ecutrho = 4 * ecutwfc
 
 xyz = XYZ()
 
 title = "Geometric Optimization"
 
-base_prefix = "bfo"
+base_prefix = "geo"
 
 if os.path.exists("./tmp-geo-opt-vc"):
     shutil.rmtree("./tmp-geo-opt-vc")
@@ -184,9 +184,11 @@ with open(inp_name, 'w') as fout:
     fout.write("&electrons\n")
     fout.write("electron_maxstep = 300\n")
     #fout.write("conv_thr = 1.0d-10\n")
-    fout.write("conv_thr = 1.0d-5\n")
+    fout.write("conv_thr = 1.0d-6\n")
     fout.write("mixing_mode = 'plain'\n")
-    fout.write("mixing_beta = 0.3d0\n")
+    fout.write("mixing_beta = 0.7d0\n")
+    fout.write("mixing_ndim = 8") # default: 8 这个参数对于内存的使用有较大影响
+    fout.write("diagonalization = 'david'\n")
     fout.write("scf_must_converge = .true.\n")
     fout.write("/\n")
     fout.write("\n")

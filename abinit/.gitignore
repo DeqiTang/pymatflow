@@ -5,5 +5,7 @@ tmp-bands
 tmp-geo-opt
 tmp-phonon
 tmp-phonon-with-phonopy
+tmp-md
+tmp-neb
 *.xyz
 *.psp8
