@@ -9,3 +9,4 @@ tmp-md
 tmp-neb
 *.xyz
 *.psp8
+__pycache__

@@ -9,3 +9,4 @@ tmp-phonon-with-phonopy
 tmp-phonon-with-phx
 *.UPF
 *.xyz
+__pycache__
