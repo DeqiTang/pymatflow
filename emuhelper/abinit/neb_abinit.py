@@ -7,7 +7,7 @@ import os
 import shutil
 import pymatgen as mg
 
-from base.xyz import abinit_xyz
+from emuhelper.abinit.base.xyz import abinit_xyz
 
 """
 Usage:
@@ -24,8 +24,11 @@ class abinit_xyz_neb(abinit_xyz):
     """
 
     """
-    def __init__(self,*args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, xyz_f):
+        super().__init__(xyz_f)
+    #def __init__(self, *args, **kwargs):
+    #    super().__init__(*args, **kwargs)
+
     def to_xangst_lastimg(self, fname):
         with open(fname, 'a') as fout:
             fout.write("xangst_lastimg\n")

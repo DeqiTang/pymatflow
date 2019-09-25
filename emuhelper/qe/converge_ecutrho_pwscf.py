@@ -8,7 +8,8 @@ import shutil
 import re
 import pymatgen as mg
 
-from base.xyz import qe_xyz
+from emuhelper.qe.base.xyz import qe_xyz
+
 """
 Usage:
     python converge_ecutrho_pwscf.py xxx.xyz ecut_rho_min ecut_rho_max ecut_rho_step ecut_wfc

@@ -7,7 +7,7 @@ import os
 import shutil
 import pymatgen as mg
 
-from base.xyz import abinit_xyz
+from emuhelper.abinit.base.xyz import abinit_xyz
 
 
 """

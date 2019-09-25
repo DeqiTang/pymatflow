@@ -69,6 +69,7 @@ setup(
         "emuhelper/siesta/phonon_with_phonopy_siesta.py",
         "emuhelper/siesta/wannier90_siesta.py",
         "emuhelper/siesta/xyz2fdf.py",
+        "emuhelper/tools/build_supercell.py"
         ],
     #entry_points = {
     #    'console_scripts': [

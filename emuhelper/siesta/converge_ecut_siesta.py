@@ -7,7 +7,7 @@ import os
 import shutil
 import pymatgen as mg
 
-from base.xyz import siesta_xyz
+from emuhelper.siesta.base.xyz import siesta_xyz
 
 
 """

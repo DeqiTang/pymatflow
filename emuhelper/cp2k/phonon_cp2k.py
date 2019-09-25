@@ -6,7 +6,8 @@ import sys
 import os
 import shutil
 import pymatgen as mg
-from base.xyz import cp2k_xyz
+
+from emuhelper.cp2k.base.xyz import cp2k_xyz
 
 
 """
