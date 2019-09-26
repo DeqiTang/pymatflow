@@ -88,7 +88,7 @@ with open(fdf_name, 'a') as fout:
 # run the simulation
 fdf_name = "charge-density-potentials.fdf"
 out_f_name = "charge-density-potentials.out"
-os.system("siesta < %s > %s" % (fdf_name, out_f_name))
+os.system("siesta < %s | tee %s" % (fdf_name, out_f_name))
 
 
 # analyse the result

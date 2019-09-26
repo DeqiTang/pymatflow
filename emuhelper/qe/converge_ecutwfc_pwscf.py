@@ -103,7 +103,7 @@ for i in range(n_test + 1):
     ecut_wfc = int(ecut_wfc_min + i * ecut_wfc_step)
     inp_name = "test-ecutwfc-%d.in" % ecut_wfc
     out_f_name = "test-ecutwfc-%d.out" % ecut_wfc
-    os.system("pw.x < %s > %s" % (inp_name, out_f_name))
+    os.system("pw.x < %s | tee %s" % (inp_name, out_f_name))
 
 
 # analyse the result

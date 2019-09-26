@@ -131,7 +131,7 @@ for disp in disp_dirs:
 # run every disp
 for disp in disp_dirs:
     os.chdir("disp-%s" % disp)
-    os.system("siesta < supercell-%s.fdf > supercell-%s.out" % (disp, disp))
+    os.system("siesta < supercell-%s.fdf | tee supercell-%s.out" % (disp, disp))
     os.chdir("../")
 
 # analyse the result

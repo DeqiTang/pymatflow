@@ -84,7 +84,7 @@ for i in range(n_test + 1):
     meshcutoff = int(ecut_min + i * ecut_step)
     fdf_name = "test-ecut-%d.fdf" % meshcutoff
     out_f_name = "test-ecut-%d.out" % meshcutoff
-    os.system("siesta < %s > %s" % (fdf_name, out_f_name))
+    os.system("siesta < %s | tee %s" % (fdf_name, out_f_name))
 
 
 # analyse the result

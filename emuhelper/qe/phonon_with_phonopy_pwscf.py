@@ -116,7 +116,7 @@ for disp in disp_dirs:
     os.system("rm supercell-%s.in" % disp)
 # run the dft
 for disp in disp_dirs:
-    os.system("pw.x < supercell-%s-full.in > supercell-%s.out" % (disp, disp))
+    os.system("pw.x < supercell-%s-full.in | tee supercell-%s.out" % (disp, disp))
 
 # analyse the result
 import matplotlib.pyplot as plt

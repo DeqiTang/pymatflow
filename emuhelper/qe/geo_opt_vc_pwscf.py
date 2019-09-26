@@ -110,7 +110,7 @@ xyz.to_pwscf(inp_name)
 # run the simulation
 inp_name = "geo-opt-vc.in"
 out_f_name = "geo-opt-vc.out"
-os.system("pw.x < %s > %s" % (inp_name, out_f_name))
+os.system("pw.x < %s | tee %s" % (inp_name, out_f_name))
 
 
 # analyse the result

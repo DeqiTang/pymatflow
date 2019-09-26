@@ -226,7 +226,7 @@ while i < 10:
     in_name = "supercell-00" + str(i) + ".inp"
     if os.path.exists(in_name) is not True:
         break
-    os.system("cp2k.psmp -in %s > %s" % (in_name, in_name+".out"))
+    os.system("cp2k.psmp -in %s | tee %s" % (in_name, in_name+".out"))
     i += 1
 
 

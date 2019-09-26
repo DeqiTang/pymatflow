@@ -108,7 +108,7 @@ with open(inp_name, 'a') as fout:
 
 # run the simulation
 out_f_name = "pdos-calc.out"
-os.system("cp2k.psmp -in %s > %s" % (inp_name, out_f_name))
+os.system("cp2k.psmp -in %s | tee %s" % (inp_name, out_f_name))
 
 
 # analyse the result

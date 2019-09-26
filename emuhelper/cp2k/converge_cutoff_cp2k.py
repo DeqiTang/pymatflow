@@ -98,7 +98,7 @@ for i in range(n_test + 1):
     cutoff = int(cutoff_min + i * cutoff_step)
     inp_name = "test-cutoff-%d.inp" % cutoff
     out_f_name = "test-cutoff-%d.out" % cutoff
-    os.system("cp2k.psmp -in %s > %s" % (inp_name, out_f_name))
+    os.system("cp2k.psmp -in %s | tee %s" % (inp_name, out_f_name))
 
 
 # analyse the result

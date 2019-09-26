@@ -98,7 +98,7 @@ for i in range(n_test + 1):
     ecut_rho = int(ecut_rho_min + i * ecut_rho_step)
     inp_name = "test-ecutrho-%d.in" % ecut_rho
     out_f_name = "test-ecutrho-%d.out" % ecut_rho
-    os.system("pw.x < %s > %s" % (inp_name, out_f_name))
+    os.system("pw.x < %s | tee %s" % (inp_name, out_f_name))
 
 
 # analyse the result

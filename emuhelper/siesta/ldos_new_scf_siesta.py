@@ -79,7 +79,7 @@ with open(fdf_name, 'a') as fout:
 # run the simulation
 fdf_name = "ldos.fdf"
 out_f_name = "ldos.out"
-os.system("siesta < %s > %s" % (fdf_name, out_f_name))
+os.system("siesta < %s | tee %s" % (fdf_name, out_f_name))
 
 
 # analyse the result

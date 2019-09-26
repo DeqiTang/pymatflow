@@ -18,29 +18,27 @@ Usage:
     for all the elements of the system is in the directory.
 """
 
+# =======================================
+#           Control Parameters
+# =======================================
 
-
-
-# OK now we can use XYZ class to extract information 
-# from the xyz file: sys.argv[1]
-
-#cutoff_min = int(sys.argv[2]) # in Ry: 1 Ry = 13.6 ev
-#cutoff_max = int(sys.argv[3])
-#cutoff_step = int(sys.argv[4])
-#rel_cutoff = int(sys.argv[5])
 cutoff = 60
+
 rel_cutoff = 30
 
 xyz = cp2k_xyz(sys.argv[1])
 
 base_project_name = "aimd"
 
+
+
+# build folder to conduct the computing
+
 if os.path.exists("./tmp-aimd"):
     shutil.rmtree("./tmp-aimd")
 os.mkdir("./tmp-aimd")
 os.chdir("./tmp-aimd")
 shutil.copyfile("../%s" % sys.argv[1], "%s" % sys.argv[1])
-#shutil.copyfile("../Li.psf", "Li.psf")
 
 inp_name = "aimd.inp"
 with open(inp_name, 'w') as fout:
@@ -116,7 +114,7 @@ with open(inp_name, 'a') as fout:
 
 # run the simulation
 out_f_name = "aimd.out"
-os.system("cp2k.psmp -in %s > %s" % (inp_name, out_f_name))
+os.system("cp2k.psmp -in %s | tee %s" % (inp_name, out_f_name))
 
 
 # analyse the result
