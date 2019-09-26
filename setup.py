@@ -47,6 +47,10 @@ setup(
         "emuhelper/cp2k/mp2_cp2k.py",
         "emuhelper/cp2k/pdos_cp2k.py",
         "emuhelper/cp2k/phonon_cp2k.py",
+        "emuhelper/dalton/single_point_dalton.py",
+        "emuhelper/orca/single_point_orca.py",
+        "emuhelper/orca/geo_opt_orca.py",
+        "emuhelper/orca/converge_multiplicity_orca.py",
         "emuhelper/qe/converge_ecutrho_pwscf.py",
         "emuhelper/qe/converge_ecutwfc_pwscf.py",
         "emuhelper/qe/geo_opt_not_vc_pwscf.py",
@@ -69,7 +73,8 @@ setup(
         "emuhelper/siesta/phonon_with_phonopy_siesta.py",
         "emuhelper/siesta/wannier90_siesta.py",
         "emuhelper/siesta/xyz2fdf.py",
-        "emuhelper/tools/build_supercell.py"
+        "emuhelper/tools/build_supercell.py",
+        "emuhelper/tools/cluster_sphere.py"
         ],
     #entry_points = {
     #    'console_scripts': [

@@ -38,9 +38,16 @@ class abinit_xyz(base_xyz):
 
             fout.write("ntypat %d\n" % self.nspecies)
             fout.write("natom %d\n" % self.natom)
-            fout.write("typat ")
+            fout.write("typat\n")
+            # abinit 不允许输入文件列数超过264, 因此如果原子数太多
+            # 这里的typat要分多行列出
+            # 利用余数设置如果一行超过30个原子就换行
+            i = 0 
             for atom in self.atoms:
                 fout.write("%d " % self.specie_labels[atom.name])
+                if i % 30 == 29:
+                    fout.write("\n")
+                i += 1
             fout.write("\n")
             fout.write("znucl ")
             for element in self.specie_labels:

@@ -3,6 +3,7 @@
 With scripts to provide preparing and/or post-processing for your Emulations(DFT, MD, FEM).
 
 ## Features
+* Automated surface cut: not implemented yet
 * Slab Builder: not implemented yet
 * Nanotube Builder: not implemented yet
 * Cluster Builder: not implemented yet

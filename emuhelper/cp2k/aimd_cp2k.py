@@ -30,6 +30,8 @@ xyz = cp2k_xyz(sys.argv[1])
 
 base_project_name = "aimd"
 
+potential_file = "POTENTIAL"
+basis_file = "BASIS_SET"
 
 
 # build folder to conduct the computing
@@ -57,8 +59,8 @@ xyz.to_subsys(inp_name)
 with open(inp_name, 'a') as fout:
     # dft
     fout.write("\t&DFT\n")
-    fout.write("\t\tBASIS_SET_FILE_NAME BASIS_SET\n")
-    fout.write("\t\tPOTENTIAL_FILE_NAME GTH_POTENTIALS\n")
+    fout.write("\t\tBASIS_SET_FILE_NAME %s\n" % basis_file)
+    fout.write("\t\tPOTENTIAL_FILE_NAME %s\n" % potential_file)
     fout.write("\t\t&QS\n")
     fout.write("\t\t\tEPS_DEFAULT 1.0E-10\n")
     fout.write("\t\t&END QS\n")

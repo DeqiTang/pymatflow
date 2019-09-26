@@ -34,7 +34,7 @@ class cp2k_xyz(base_xyz):
             fout.write("\t&SUBSYS\n")
             for element in self.specie_labels:
                 fout.write("\t\t&KIND %s\n" % element)
-                fout.write("\t\t\tBASIS_SET SZV-GTH-PADE\n")
+                fout.write("\t\t\tBASIS_SET DZVP-GTH-PADE\n")
                 fout.write("\t\t\tPOTENTIAL GTH-PADE\n")
                 fout.write("\t\t&END KIND\n")
             fout.write("\t\t&CELL\n")
