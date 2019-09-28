@@ -69,7 +69,7 @@ xyz.to_subsys(inp_name)
 with open(inp_name, 'a') as fout:
     # dft
     fout.write("\t&DFT\n")
-    fout.write("\t\tBASIS_SET_FILE_NAME BASIS_SET\n")
+    fout.write("\t\tBASIS_SET_FILE_NAME BASIS_MOLOPT\n")
     fout.write("\t\tPOTENTIAL_FILE_NAME GTH_POTENTIALS\n")
     fout.write("\t\t&QS\n")
     fout.write("\t\t\tEPS_DEFAULT 1.0E-10\n")
@@ -81,7 +81,7 @@ with open(inp_name, 'a') as fout:
     fout.write("\t\t\tREL_CUTOFF %d\n" % rel_cutoff)
     fout.write("\t\t&END MGRID\n")
     fout.write("\t\t&XC\n")
-    fout.write("\t\t\t&XC_FUNCTIONAL PADE\n")
+    fout.write("\t\t\t&XC_FUNCTIONAL PBE\n")
     fout.write("\t\t\t&END XC_FUNCTIONAL\n")
     fout.write("\t\t&END XC\n")
     fout.write("\t\t&SCF\n")

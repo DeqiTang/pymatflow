@@ -30,8 +30,8 @@ xyz = cp2k_xyz(sys.argv[1])
 
 base_project_name = "aimd"
 
-potential_file = "POTENTIAL"
-basis_file = "BASIS_SET"
+potential_file = "GTH_POTENTIALS"
+basis_file = "BASIS_MOLOPT"
 
 
 # build folder to conduct the computing
@@ -70,7 +70,7 @@ with open(inp_name, 'a') as fout:
     fout.write("\t\t\tREL_CUTOFF %d\n" % rel_cutoff)
     fout.write("\t\t&END MGRID\n")
     fout.write("\t\t&XC\n")
-    fout.write("\t\t\t&XC_FUNCTIONAL PADE\n")
+    fout.write("\t\t\t&XC_FUNCTIONAL PBE\n")
     fout.write("\t\t\t&END XC_FUNCTIONAL\n")
     fout.write("\t\t&END XC\n")
     fout.write("\t\t&SCF\n")

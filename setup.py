@@ -47,6 +47,7 @@ setup(
         "emuhelper/cp2k/mp2_cp2k.py",
         "emuhelper/cp2k/pdos_cp2k.py",
         "emuhelper/cp2k/phonon_cp2k.py",
+        "emuhelper/cp2k/single_point_cp2k.py",
         "emuhelper/dalton/single_point_dalton.py",
         "emuhelper/orca/single_point_orca.py",
         "emuhelper/orca/geo_opt_orca.py",
