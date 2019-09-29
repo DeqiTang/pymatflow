@@ -10,9 +10,9 @@ import pymatgen as mg
 """
 Usage:
 """
-# ============================
-# CP2K/FORCE_EVAL/DFT/ALMO_SCF
-# ============================
+# ==================================
+# CP2K / FORCE_EVAL / DFT / ALMO_SCF
+# ==================================
 class cp2k_dft_almo_scf:
     def __init__(self):
         pass
@@ -65,11 +65,31 @@ class cp2k_dft_kg_method:
     def __init__(self):
         pass
 
-# ======================
-# ======================
+# =================================
+# CP2K / FORCE_EVAL / DFT / KPOINTS
+# =================================
 class cp2k_dft_kpoints:
     def __init__(self):
-        pass
+        self.params = {
+                "EPS_GEO": None,
+                "FULL_GRID": None,
+                "KPOINT": None,
+                "PARALLEL_GROUP_SIZE": None,
+                "SCHEME": None,
+                "SYMMETRY": None,
+                "UNITS": None,
+                "VERBOSE": None,
+                "WAVEFUNCTIONS": None,
+                }
+    def to_dft(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t&KPOINTS\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t&END KPOINTS\n")
 
 # =======================
 # =======================
@@ -77,23 +97,72 @@ class cp2k_dft_localize:
     def __init__(self):
         pass
 
-# ============================
-# ============================
+# =======================================
+# CP2K / FORCE_EVAL / DFT / LOW_SPIN_ROKS
+# =======================================
 class cp2k_dft_low_spin_roks:
     def __init__(self):
         self.params = {
                 "ENERGY_SCALING": None,
                 "SPIN_CONFIGURATION": None
                 }
+    def to_dft(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t&LOW_SPIN_ROKS\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t&END LOW_SPIN_ROKS\n")
 
-# ======================
-# ======================
+# =======================================
+# CP2K / FORCE_EVAL / DFT /  LS_SCF
+# =======================================
 class cp2k_dft_ls_scf:
     def __init__(self):
-        pass
+        self.params = {
+                "CHECK_S_INV": None,
+                "DYNAMIC_THRESHOLD": None,
+                "EPS_DIIS": None,
+                "EPS_FILTER": None,
+                "EPS_LANCZOS": None,
+                "EPS_SCF": None,
+                "EXTRAPOLATION_ORDER": None,
+                "FIXED_MU": None,
+                "INI_DIIS": None,
+                "LS_DIIS": None,
+                "MATRIX_CLUSTER_TYPE": None,
+                "MAX_DIIS": None,
+                "MAX_ITER_LANCZOS": None,
+                "MAX_SCF": None,
+                "MIXING_FRACTION": None,
+                "MU": None,
+                "NMIXING": None,
+                "NON_MONOTONIC": None,
+                "PERFORM_MU_SCAN": None,
+                "PURIFICATION_METHOD": None,
+                "REPORT_ALL_SPARSITIES": None,
+                "RESTART_READ": None,
+                "RESTART_WRITE": None,
+                "SIGN_SQRT_ORDER": None,
+                "SINGLE_PRECISION_MATRICES": None,
+                "S_INVERSION": None,
+                "S_PRECONDITIONER": None,
+                }
+    def to_dft(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t&LS_SCF\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t&END LS_SCF\n")
  
-# ====================
-# ====================
+# ===============================
+# CP2K / FORCE_EVAL / DFT / MGRID
+# ===============================
 class cp2k_dft_mgrid:
     def __init__(self):
         self.params = {
@@ -105,7 +174,16 @@ class cp2k_dft_mgrid:
                 "MULTIGRID_SET": None,
                 "PROGRESSION_FACTOR": None,
                 "SKIP_LOAD_BALANCE_DISTRIBUTED": None,
-                }       
+                }
+    def to_dft(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t&MGRID\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t&END MGRID\n")
 
 
 # ================================
@@ -114,23 +192,46 @@ class cp2k_dft_periodic_efield:
     def __init__(self):
         pass
 
-# ===========================
-# ===========================
+# =================================
+# CP2K / FORCE_EVAL / DFT / POISSON
+# =================================
 class cp2k_dft_poisson:
     def __init__(self):
         self.params = {
                 "PERIODIC": "XYZ",
                 "POISSON_SOLVER": "PERIODIC",
                 }
+    def to_dft(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t&POISSON\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t&END POISSON\n")
 
-# ==============================
-# ==============================
+# ===============================
+# CP2K / FORCE_EVAL / DFT / PRINT
+# ===============================
 class cp2k_dft_print:
     def __init__(self):
-        pass
+        self.params = {
+                }
+    def to_dft(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t&PRINT\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t%s %s\n" % (item, self.params[item]))
+        fout.write("\t\t&END PRINT\n")
 
-# =======================
-# =======================
+
+# ============================
+# CP2K / FORCE_EVAL / DFT / QS
+# ============================
 class cp2k_dft_qs:
     def __init__(self):
         self.params = {
@@ -138,6 +239,15 @@ class cp2k_dft_qs:
                 "EPS_DEFAULT": "1.0E-10",
                 "FORCE_PAW": None,
                 }
+    def to_dft(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t&QS\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t&END QS\n")
 
 
 # ==================================
@@ -175,9 +285,9 @@ class cp2k_dft_sccs:
     def __init__(self):
         pass
 
-# ==================
+# =============================
 # CP2K / FORCE_EVAL / DFT / SCF
-# ==================
+# =============================
 class cp2k_dft_scf_diagonalization:
     def __init__(self):
         self.section = '.TRUE.'
@@ -189,6 +299,16 @@ class cp2k_dft_scf_diagonalization:
                 "JACOBI_THRESHOLD": None,
                 "MAX_ITER": None,
                 }
+    def to_scf(self, fout):
+       """
+       fout: a file stream for writing
+       """
+       fout.write("\t\t\t&DIAGONALIZATION\n")
+       for item in self.params:
+           if self.params[item] is not None:
+               fout.write("\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+       fout.write("\t\t\t&END DIAGONALIZATION\n")
+
 class cp2k_dft_scf_mixing:
     def __init__(self):
         self.section = '.TRUE.'
@@ -197,24 +317,53 @@ class cp2k_dft_scf_mixing:
                 "BETA": None,
                 "METHOD": "BROYDEN_MIXING",
                 }
+    def to_scf(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t&MIXING\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t&END MIXING\n")
+
 class cp2k_dft_scf_smear:
     def __init__(self):
         self.section = '.TRUE.'
         self.params = {
-                "METHOD": None,
+                "METHOD": 'FERMI_DIRAC',
                 "ELECTRONIC_TEMPERATURE": None,
                 }
+    def to_scf(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t&SMEAR %s\n" % self.section)
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t&END SMEAR\n")
+
 class cp2k_dft_scf_print:
     def __init__(self):
         self.params = {
                 "DM_RESTART_WRITE": None,
                 }
+    def to_scf(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t&PRINT\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t&END PRINT\n")
 
 
 class cp2k_dft_scf:
     def __init__(self):
         self.params = {
-                "ADDED_MOS": None,
+                "ADDED_MOS": 20,
                 "SCF_GUESS": "ATOMIC",
                 "EPS_SCF": "1.0E-06",
                 "MAX_SCF": 50,
@@ -227,6 +376,25 @@ class cp2k_dft_scf:
         self.mixing = cp2k_dft_scf_mixing()
         self.smear = cp2k_dft_scf_smear()
         self.printout = cp2k_dft_scf_print()
+        self.ifsmear = True
+
+    def to_dft(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t&SCF\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t%s %s\n" % (item, str(self.params[item])))
+        self.diagonalization.to_scf(fout)
+        self.mixing.to_scf(fout)
+        if self.ifsmear == True:
+            if self.params["ADDED_MOS"] == None or self.params["ADDED_MOS"] == 0:
+                print("If you are using smearing, you should set ADDED_MOS too!!!\n")
+                sys.exit()
+            self.smear.to_scf(fout)
+        self.printout.to_scf(fout)
+        fout.write("\t\t&END SCF\n")
 
 
 # ===================
@@ -292,6 +460,12 @@ class cp2k_dft_xc_xc_functional:
         self.section = "PBE"
         self.params = {
                 }
+    def to_xc(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t&XC_FUNCTIONAL %s\n" % self.section)
+        fout.write("\t\t\t&END XC_FUNCTIONAL\n")
 
 
 class cp2k_dft_xc:
@@ -300,6 +474,16 @@ class cp2k_dft_xc:
                 
                 }
         self.xc_functional = cp2k_dft_xc_xc_functional()
+    def to_dft(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t&XC\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t%s %s" % (item, str(self.params[item])))
+        self.xc_functional.to_xc(fout)
+        fout.write("\t\t&END XC\n")
 
 
 # ============================================
@@ -319,11 +503,11 @@ class cp2k_dft:
         self.params = {
                 "AUTO_BASIS": None,
                 "BASIS_SET_FILE_NAME": "BASIS_MOLOPT",
+                "POTENTIAL_FILE_NAME": "GTH_POTENTIALS",
                 "CHARGE": None,
                 "EXCITATIONS": None,
                 "MULTIPLICITY": None,
                 "PLUS_U_METHOD": None,
-                "POTENTIAL_FILE_NAME": "GTH_POTENTIALS",
                 "RELAX_MULTIPLICITY": None,
                 "ROKS": None,
                 "SUBCELLS": None,
@@ -395,37 +579,12 @@ class cp2k_dft:
         for item in self.params:
             if self.params[item] is not None:                    
                 fout.write("\t\t%s %s\n" % (item, self.params[item]))
-        fout.write("\t\t&QS\n")
-        for item in self.qs.params:
-            if self.qs.params[item] is not None:
-                fout.write("\t\t\t%s %s\n" % (item, str(self.qs.params[item])))
-        fout.write("\t\t&END QS\n")
-        fout.write("\t\t&MGRID\n")
-        for item in self.mgrid.params:
-            if self.mgrid.params[item] is not None:
-                fout.write("\t\t\t%s %s\n" % (item, str(self.mgrid.params[item])))
-        fout.write("\t\t&END MGRID\n")
-        fout.write("\t\t&XC\n")
-        fout.write("\t\t\t&XC_FUNCTIONAL %s\n" % self.xc.xc_functional.section)
-        fout.write("\t\t\t&END XC_FUNCTIONAL\n")
-        fout.write("\t\t&END XC\n")
-        #fout.write("\t\t&KPOINTS\n")
-        #fout.write("\t\t&END KPOINTS\n")
-        fout.write("\t\t&SCF\n")
-        for item in self.scf.params:
-            if self.scf.params[item] is not None:
-                fout.write("\t\t\t%s %s\n" % (item, str(self.scf.params[item])))
-        fout.write("\t\t\t&DIAGONALIZATION ON\n")
-        fout.write("\t\t\t\tALGORITHM STANDARD\n")
-        fout.write("\t\t\t&END DIAGONALIZATION\n")
-        fout.write("\t\t\t&MIXING T\n")
-        fout.write("\t\t\t\tMETHOD BROYDEN_MIXING\n")
-        fout.write("\t\t\t\tALPHA 0.4\n")
-        fout.write("\t\t\t\tNBROYDEN 8\n")
-        fout.write("\t\t\t&END MIXING\n")
-        fout.write("\t\t&END SCF\n")
-        fout.write("\t\t&PRINT\n")
-        fout.write("\t\t&END PRINT\n")
+        self.qs.to_dft(fout)
+        self.mgrid.to_dft(fout)
+        self.xc.to_dft(fout)
+        #self.kpoints.to_dft(fout)
+        self.scf.to_dft(fout)
+        #self.printout.to_dft(fout)
         fout.write("\t&END DFT\n")
         #fout.write("\n")
 

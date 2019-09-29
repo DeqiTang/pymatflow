@@ -26,6 +26,15 @@ class cp2k_motion_band:
                 "ROTATE_FRAMES": None,
                 "USE_COLVARS": None,
                 }
+    def to_motion(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t&BAND\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t&END BAND\n")
 
 # ========================
 # CP2K / MOTION / CELL_OPT
@@ -47,6 +56,15 @@ class cp2k_motion_cell_opt:
                 "STEP_START_VAL": None,
                 "TYPE": None,
                 }
+    def to_motion(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t&CELL_OPT\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t&END CELL_OPT\n")
 
 class cp2k_motion_constraint:
     def __init__(self):
@@ -55,6 +73,15 @@ class cp2k_motion_constraint:
                 "ROLL_TOLERANCE": None,
                 "SHAKE_TOLERANCE": None,
                 }
+    def to_motion(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t&CONSTRAINT\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t%s %s\n" % (item, self.params[item]))
+        fout.write("\t&END CONSTRAINT\n")
 
 # ========================
 # CP2K / MOTION / DRIVER
@@ -62,6 +89,7 @@ class cp2k_motion_constraint:
 class cp2k_motion_driver:
     def __init__(self):
         pass
+
 
 class cp2k_motion_flexible_partitioning:
     def __init__(self):
@@ -74,15 +102,26 @@ class cp2k_motion_free_energy:
 class cp2k_motion_geo_opt:
     def __init__(self):
         self.params = {
+                "TYPE": None,
                 "MAX_DR": None,
                 "MAX_FORCE": None,
                 "MAX_ITER": None,
                 "RMS_DR": None,
                 "RMS_FORCE": None,
-                "OPTIMIZER": None,
+                "OPTIMIZER": None, # BFGS(default), CG, LBFGS
                 "STEP_START_VAL": None,
-                "TYPE": None,
+                "TYPE": None, # MINIMIZATION(default), TRANSITION_STATE
                 }
+    def to_motion(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t&GEO_OPT\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t%s %s\n" % (item, self.params[item]))
+        fout.write("\t&END GEO_OPT\n")
+
  
 class cp2k_motion_mc:
     def __init__(self):
@@ -112,6 +151,18 @@ class cp2k_motion_md:
                 "TIME_START_VAL": None,
                 }
 
+    def to_motion(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t&MD\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t&END MD\n")
+
+
+
 class cp2k_motion_pint:
     def __init__(self):
         self.params = {
@@ -129,6 +180,16 @@ class cp2k_motion_pint:
                 "TRANSFORMATION": None,
                 "T_TOL": None,
                 }
+    def to_motion(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t&PINT\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t%s %s\n" % (item, self.params[item]))
+        fout.write("\t&END PINT\n")
+
 
 class cp2k_motion_print:
     def __init__(self):
@@ -145,6 +206,15 @@ class cp2k_motion_shell_opt:
                 "OPTIMIZER": None,
                 "STEP_START_VAL": None,
                 }
+    def to_motion(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t&SHELL_OPT\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t%s %s\n" % (item, self.params[item]))
+        fout.write("\t&END SHELL_OPT\n")
 
 class cp2k_motion_tmc:
     def __init__(self):
@@ -185,12 +255,30 @@ class cp2k_motion:
         
         self.tmc = cp2k_motion_tmc() 
 
+        self.run_type = "GEO_OPT"
 
     def to_motion(self, fname):
         with open(fname, 'a') as fout:
             fout.write("&MOTION\n")
             for item in self.params:
                 fout.write("\t%s %s\n" % (item, self.params[item]))
+            if self.run_type == "GEO_OPT":
+                self.geo_opt.to_motion(fout)
+            elif self.run_type == "CELL_OPT":
+                self.cell_opt.to_motion(fout)
+            elif self.run_type == "MC":
+                self.mc.to_motion(fout)
+            elif self.run_type == "MD":
+                self.md.to_motion(fout)
+            elif self.run_type == "PINT":
+                self.pint.to_motion(fout)
+            elif self.run_type == "SHELL_OPT":
+                self.shell_opt.to_motion(fout)
             fout.write("&END MOTION\n")
             fout.write("\n")
-
+    
+    def set_type(self, run_type):
+        """
+        runtype: CELL_OPT, GEO_OPT, MC, MD, SHELL_OPT
+        """
+        self.run_type = run_type
