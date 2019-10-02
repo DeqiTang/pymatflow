@@ -28,5 +28,9 @@ with open("scf-steps.data", 'r') as fin:
         scf_steps.append(int(line.split()[5]))
 
 ion_steps = [i for i in range(len(energies))]
-plt.plot(ion_steps, energies)
+#plt.plot(ion_steps, energies)
+plt.scatter(ion_steps, energies)
+for a, b in zip(ion_steps, energies):
+    #plt.text(a+0.001, b+0.001, 'scf steps: %d' % scf_steps[a], ha='center', va='bottom', fontsize=7)
+    plt.annotate(s="scf steps: %d" % scf_steps[a], xy=(a, b), xytext=(a+0.01, b+0.01), arrowprops={'arrowstyle':'->'})
 plt.show()
