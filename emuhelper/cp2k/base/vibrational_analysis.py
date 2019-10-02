@@ -27,7 +27,7 @@ class cp2k_vibrational_analysis:
                 "THERMOCHEMISTRY": None,
                 }
 
-    def to_vibrational_analysis(self, fname):
+    def to_input(self, fname):
         with open(fname, 'a') as fout:
             fout.write("&VIBRATIONAL_ANALYSIS\n")
             for item in self.params:

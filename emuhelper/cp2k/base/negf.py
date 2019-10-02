@@ -37,7 +37,7 @@ class cp2k_negf:
                 "V_SHIFT_OFFSET": None,
                 }
 
-    def to_negf(self, fname):
+    def to_input(self, fname):
         with open(fname, 'a') as fout:
             fout.write("&NEGF\n")
             for item in self.params:

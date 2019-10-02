@@ -257,7 +257,7 @@ class cp2k_motion:
 
         self.run_type = "GEO_OPT"
 
-    def to_motion(self, fname):
+    def to_input(self, fname):
         with open(fname, 'a') as fout:
             fout.write("&MOTION\n")
             for item in self.params:

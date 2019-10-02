@@ -28,6 +28,6 @@ if __name__ == "__main__":
     shutil.copyfile("../%s" % sys.argv[1], "./%s" % sys.argv[1])
 
     glob.params["RUN_TYPE"] = "ENERGY_FORCE"
-    glob.to_global(inp_name)
-    force_eval.to_force_eval(inp_name)
+    glob.to_input(inp_name)
+    force_eval.to_input(inp_name)
     os.system("cp2k.psmp -in %s | tee log.txt" % inp_name)

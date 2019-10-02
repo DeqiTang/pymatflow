@@ -38,7 +38,7 @@ setup(
         "emuhelper/abinit/neb_abinit.py",
         "emuhelper/abinit/phonon_abinit.py",
         "emuhelper/abinit/phonon_with_phonopy_abinit.py",
-        "emuhelper/cp2k/scripts/aimd_cp2k.py",
+        "emuhelper/cp2k/scripts/aimd-cp2k.py",
         "emuhelper/cp2k/scripts/bands_cp2k.py",
         "emuhelper/cp2k/scripts/converge_cutoff_cp2k.py",
         "emuhelper/cp2k/scripts/converge_rel_cutoff_cp2k.py",

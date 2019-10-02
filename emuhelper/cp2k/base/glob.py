@@ -23,7 +23,7 @@ class cp2k_glob:
                 "FFTW_PLAN_TYPE": "ESTIMATE",
                 }
 
-    def to_global(self, fname):
+    def to_input(self, fname):
         with open(fname, 'a') as fout:
             fout.write("&GLOBAL\n")
             for item in self.params:

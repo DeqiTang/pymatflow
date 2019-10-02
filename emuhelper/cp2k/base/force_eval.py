@@ -30,7 +30,7 @@ class cp2k_force_eval:
                 }
         self.check_spin()
 
-    def to_force_eval(self, fname):
+    def to_input(self, fname):
         with open(fname, 'a') as fout:
             fout.write("&FORCE_EVAL\n")
             for item in self.force_eval:
