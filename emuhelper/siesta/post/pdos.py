@@ -55,6 +55,7 @@ class pdos:
         for element in elements:
             plt.plot(self.energy_values, elements[element], label=element)
 
+        plt.vlines(self.fermi_energy, 0, 1, linestyle="dashed", label="Fermi Energy")
         plt.legend()
         plt.show()
 
