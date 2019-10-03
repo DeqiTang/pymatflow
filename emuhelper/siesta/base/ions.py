@@ -39,5 +39,21 @@ class siesta_ions:
                 fout.write("%s %s\n" % (item, str(self.params[item])))
         for item in self.md:
             if self.md[item] is not None:
-                fout.write("%s %s\n" % (item, str(self.md[item])))
+                if item == "InitialTemperature":
+                    fout.write("MD.%s %s K\n" % (item, str(self.md[item])))
+                elif item == "TargetTemperature":
+                    fout.write("MD.%s %s K\n" % (item, str(self.md[item])))
+                elif item == "LengthTimeStep":
+                    fout.write("MD.%s %s fs\n" % (item, str(self.md[item])))
+                elif item == "MaxForceTol":
+                    fout.write("MD.%s %s eV/Ang\n" % (item, str(self.md[item])))
+                elif item == "MaxStressTol":
+                    fout.write("MD.%s %s GPa\n" % (item, str(self.md[item])))
+                elif item == "MaxDispl":
+                    fout.write("MD.%s %s Bohr\n" % (item, str(self.md[item])))
+                elif item == "PreconditionVariableCell":
+                    fout.write("MD.%s %s Ang\n" % (item, str(self.md[item])))
+                else:
+                    fout.write("MD.%s %s\n" % (item, str(self.md[item])))
         #
+        fout.write("\n")

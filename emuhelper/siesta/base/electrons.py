@@ -39,11 +39,15 @@ class siesta_electrons:
     def to_fdf(self, fout):
         for item in self.params:
             if self.params[item] is not None:
-                fout.write("%s %s\n" % (item, str(self.params[item])))
+                if item == "MeshCutoff":
+                    fout.write("%s %s Ry\n" % (item, str(self.params[item])))
+                else:
+                    fout.write("%s %s\n" % (item, str(self.params[item])))
         for item in self.xc:
             if self.xc[item] is not None:
-                fout.write("%s %s\n" % (item, str(self.xc[item])))
+                fout.write("XC.%s %s\n" % (item, str(self.xc[item])))
         for item in self.dm:
             if self.dm[item] is not None:
-                fout.write("%s %s\n" % (item, str(self.dm[item])))
+                fout.write("DM.%s %s\n" % (item, str(self.dm[item])))
         #
+        fout.write("\n")

@@ -20,13 +20,15 @@ class siesta_properties:
     def __init__(self):
         self.params = {
                 }
-
+        self.options = None
 
     def to_fdf(self, fout):
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("%s %s\n" % (item, str(self.params[item])))
         #
+        if self.option == "pdos":
+            self.to_fdf_pdos(fout)
     
     def to_fdf_pdos(self, fout, emin=-20.0, emax=10.0, peak_width=0.1, npoint=2000):
         # 输出pdos时会同时输出total dos
