@@ -1,0 +1,43 @@
+#!/usr/bin/evn python
+# _*_ coding: utf-8 _*_
+
+import numpy as np
+import sys
+import os
+import shutil
+import pymatgen as mg
+
+
+
+"""
+Usage:
+"""
+
+
+class siesta_ions:
+    """
+    """
+    def __init__(self):
+        self.params = {
+                "WriteCoorXmol": None,
+                }
+        self.md = {
+                "TypeOfRun": None,
+                "VariableCell": None,
+                "ConstantVolume": None,
+                "MaxForceTol": None,
+                "MaxStressTol": None,
+                "Steps": None,
+                "MaxDispl": None,
+                "PreconditionVariableCell": None,
+                }
+
+
+    def to_fdf(self, fout):
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("%s %s\n" % (item, str(self.params[item])))
+        for item in self.md:
+            if self.md[item] is not None:
+                fout.write("%s %s\n" % (item, str(self.md[item])))
+        #
