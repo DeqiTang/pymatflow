@@ -27,11 +27,11 @@ class cp2k_vibrational_analysis:
                 "THERMOCHEMISTRY": None,
                 }
 
-    def to_input(self, fname):
-        with open(fname, 'a') as fout:
-            fout.write("&VIBRATIONAL_ANALYSIS\n")
-            for item in self.params:
-                fout.write("\t%s %s\n" % (item, self.params[item]))
-            fout.write("&END VIBRATIONAL_ANALYSIS\n")
-            fout.write("\n")
+    def to_input(self, fout):
+        # fout: a file stream for writing
+        fout.write("&VIBRATIONAL_ANALYSIS\n")
+        for item in self.params:
+            fout.write("\t%s %s\n" % (item, self.params[item]))
+        fout.write("&END VIBRATIONAL_ANALYSIS\n")
+        fout.write("\n")
 

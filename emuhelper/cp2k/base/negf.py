@@ -37,11 +37,10 @@ class cp2k_negf:
                 "V_SHIFT_OFFSET": None,
                 }
 
-    def to_input(self, fname):
-        with open(fname, 'a') as fout:
-            fout.write("&NEGF\n")
-            for item in self.params:
-                fout.write("\t%s %s\n" % (item, self.params[item]))
-            fout.write("&END NEGF\n")
-            fout.write("\n")
-
+    def to_input(self, fout):
+        # fout: a file stream for writing
+        fout.write("&NEGF\n")
+        for item in self.params:
+            fout.write("\t%s %s\n" % (item, self.params[item]))
+        fout.write("&END NEGF\n")
+        fout.write("\n")
