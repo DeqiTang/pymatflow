@@ -20,7 +20,7 @@ class siesta_properties:
     def __init__(self):
         self.params = {
                 }
-        self.options = None
+        self.option = None
 
     def to_fdf(self, fout):
         for item in self.params:

@@ -82,6 +82,7 @@ setup(
         "emuhelper/siesta/scripts/phonon_with_phonopy_siesta.py",
         "emuhelper/siesta/scripts/wannier90_siesta.py",
         "emuhelper/siesta/scripts/xyz2fdf.py",
+        "emuhelper/siesta/scripts/siesta-converge-cutoff.py",
         "emuhelper/siesta/post/scripts/post-siesta-pdos.py",
         "emuhelper/tools/build_supercell.py",
         "emuhelper/tools/cluster_sphere.py"

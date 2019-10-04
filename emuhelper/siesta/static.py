@@ -72,3 +72,42 @@ class static_run:
         plt.plot(energy, states)
         plt.show()
         os.chdir("../")
+
+    def converge_cutoff(self, emin, emax, step, directory="tmp-converge-cutoff-siesta"):
+
+        if os.path.exists(directory):
+            shutil.rmtree(directory)
+        os.mkdir(directory)
+        
+        for element in self.system.xyz.specie_labels:
+            shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
+
+        n_test = int((emax - emin) / step)
+        for i in range(n_test + 1):
+            meshcutoff = int(emin + i * step)
+            self.electrons.params["MeshCutoff"] = meshcutoff
+            with open(os.path.join(directory, "cutoff-%d.fdf" % meshcutoff), 'w') as fout:
+                self.system.to_fdf(fout)
+                self.electrons.to_fdf(fout)
+                self.properties.to_fdf(fout)
+        # run
+        os.chdir(directory)
+        for i in range(n_test + 1):
+            meshcutoff = int(emin + i * step)
+            os.system("siesta < cutoff-%d.fdf | tee cutoff-%d.out" % (meshcutoff, meshcutoff))
+        os.chdir("../")
+        # analysis
+        os.chdir(directory)
+        for i in range(n_test + 1):
+            meshcutoff = int(ecut_min + i * ecut_step)
+            out_f_name = "cutoff-%d.out" % meshcutoff
+            os.system("cat %s | grep 'Total =' >> energy-cutoff.data" % out_f_name)
+        cutoff = [emin + i * step for i in range(n_test + 1) ]
+        energy = []
+        with open("energy-ecut.data", 'r') as fin:
+            for line in fin:
+                energy.append(float(line.split()[3]))
+        import matplotlib.pyplot as plt
+        plt.plot(ecut, energy)
+        plt.show()
+        os.chdir("../")
