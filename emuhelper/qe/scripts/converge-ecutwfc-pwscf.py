@@ -45,6 +45,10 @@ ctl.params['title'] = "Test ecutwfc"
 ctl.params['prefix'] = 'test-ecutwfc'
 ctl.params['calculation'] = 'scf'
 ctl.params['pseudo_dir'] = './'
+system.params["ibrav"] = 0
+system.params["nat"] = arts.xyz.natom
+system.params["ntyp"] = arts.xyz.nspecies
+system.params["input_DFT"] = "PBE"
 
 if os.path.exists("./tmp-ecutwfc"):
     shutil.rmtree("./tmp-ecutwfc")

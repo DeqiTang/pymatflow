@@ -37,9 +37,9 @@ class qe_xyz(base_xyz):
                 tmp = os.listdir("../")
                 pseudo_file = ""
                 for f in tmp:
-                    match_string = "%s.*.UPF" % element
+                    match_string = "%s\." % element
                     match = re.match(match_string, f)
-                    if match is not None:
+                    if match is not None and match.string.split(".")[-1] == 'UPF':
                         pseudo_file = match.string
                         break
                 fout.write("%s %f %s\n" % (element, mg.Element(element).atomic_mass, pseudo_file))

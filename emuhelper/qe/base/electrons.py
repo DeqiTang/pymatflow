@@ -42,6 +42,6 @@ class qe_electrons:
         fout.write("&electrons\n")
         for item in self.params:
             if self.params[item] is not None:
-                fout.write("%s %s\n" % (item, str(self.params[item])))
+                fout.write("%s = %s\n" % (item, str(self.params[item])))
         fout.write("/\n")
         fout.write("\n")

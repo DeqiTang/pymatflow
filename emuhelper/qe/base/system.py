@@ -119,6 +119,9 @@ class qe_system:
         fout.write("&system\n")
         for item in self.params:
             if self.params[item] is not None:
-                fout.write("%s %s\n" % (item, str(self.params[item])))
+                if type(self.params[item]) == str:
+                    fout.write("%s = '%s'\n" % (item, str(self.params[item])))
+                else:
+                    fout.write("%s = %s\n" % (item, str(self.params[item])))
         fout.write("/\n")
         fout.write("\n")

@@ -50,8 +50,11 @@ class qe_control:
         for item in self.params:
             if self.params[item] is not None:
                 if type(self.params[item]) == str:
-                    fout.write("%s '%s'\n" % (item, str(self.params[item])))
+                    if self.params[item] == ".true." or self.params[item] == ".false.":
+                        fout.write("%s = %s\n" % (item, str(self.params[item])))
+                    else:
+                        fout.write("%s = '%s'\n" % (item, str(self.params[item])))
                 else:
-                    fout.write("%s %s\n" % (item, str(self.params[item])))
+                    fout.write("%s = %s\n" % (item, str(self.params[item])))
         fout.write("/\n")
         fout.write("\n")
