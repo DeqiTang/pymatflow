@@ -12,8 +12,6 @@ from emuhelper.base.xyz import base_xyz
 
 """
 Usage:
-    python converge_ecut.py xxx.xyz ecut_min ecut_max ecut_step
-    xxx.xyz is the input structure file
 
     make sure the xyz structure file and the pseudopotential file
     for all the elements of the system is in the directory.
