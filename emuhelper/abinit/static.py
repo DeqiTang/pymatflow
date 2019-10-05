@@ -99,3 +99,13 @@ class static_run:
 
         os.chdir("../")
         #
+
+    def print_dos(self):
+        #self.properties.params["prtdos"] = 1
+        self.electrons.params["prtdos"] = 1
+
+    def print_bands(self):
+        #self.properties.params["nband"] = 8
+        self.electrons.params["nband"] = 8
+        self.electrons.params["ngkpt"] = "6 6 6" 
+        self.electrons.params["enunit"] = 1

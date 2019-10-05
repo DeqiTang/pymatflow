@@ -36,7 +36,7 @@ class cp2k_xyz_phonopy(cp2k_xyz):
     """
     """
     def __init__(self, *args, **kwargs):
-        super().__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
     def to_subsys_phonopy(self, fname):
@@ -61,7 +61,7 @@ class cp2k_xyz_phonopy(cp2k_xyz):
             fout.write("\t\t&COORD\n")
             fout.write("\t\t\tSCALED .TRUE.\n")
             for atom in self.atoms:
-                fout.write("\t\t\t%s\t%f\t%f\t%f\n" % (atom.name, atom.x/10, atom.y/10, atom.z/10))
+                fout.write("\t\t\t%s\t%f\t%f\t%f\n" % (atom.name, atom.x/cell[0], atom.y/cell[4], atom.z/cell[8]))
             fout.write("\t\t&END COORD\n")
             fout.write("\t&END SUBSYS\n")
             fout.write("\n")
@@ -70,8 +70,8 @@ class cp2k_xyz_phonopy(cp2k_xyz):
         with open(fname, 'a') as fout:
             for element in self.specie_labels:
                 fout.write("\t\t&KIND %s\n" % element)
-                fout.write("\t\t\tBASIS_SET SZV-GTH-PADE\n")
-                fout.write("\t\t\tPOTENTIAL GTH-PADE\n")
+                fout.write("\t\t\tBASIS_SET DZVP-MOLOPT-SR-GTH\n")
+                fout.write("\t\t\tPOTENTIAL GTH-PBE\n")
                 fout.write("\t\t&END KIND\n")
 
 
@@ -87,7 +87,7 @@ rel_cutoff = 30
 
 supercell_n = "1 1 1"
 
-xyz = XYZ()
+xyz = cp2k_xyz_phonopy(sys.argv[1])
 
 base_project_name = "phonon"
 
@@ -153,18 +153,23 @@ with open(inp_name, 'a') as fout:
 
 
 # run the simulation
-os.system("phonopy --cp2k -c %s -d --dim='%s'" % (supercell_n, inp_name))
+os.system("phonopy --cp2k -c %s -d --dim='%s'" % (inp_name, supercell_n))
 # now supercell-00x.inp is generated which will be used to construct input for cp2k
-i = 1
-while i < 10:
-    in_name = "supercell-00" + str(i) + ".inp"
+os.system("ls | grep 'supercell-' > geo.data")
+disps = []
+with open("geo.data", 'r') as fin:
+    for line in fin:
+        disps.append(line.split(".")[0].split("-")[1])
+
+for disp in disps:
+    in_name = "supercell-%s.inp" % disp
     if os.path.exists(in_name) is not True:
         break
-    tmp_file = "supercell-00" + str(i) + ".tmp.txt"
+    tmp_file = "supercell-%s.tmp.txt" % disp
     shutil.copyfile(in_name, tmp_file)
     with open(in_name, 'w') as fout:
         fout.write("&GLOBAL\n")
-        fout.write("\tPROJECT\t%s\n" % (base_project_name+"-supercell-00"+str(i)))
+        fout.write("\tPROJECT\t%s\n" % (base_project_name+"-supercell-"+disp))
         fout.write("\tRUN_TYPE ENERGY_FORCE\n")
         fout.write("\tPRINT_LEVEL LOW\n")
         fout.write("&END GLOBAL\n")
@@ -219,25 +224,21 @@ while i < 10:
         fout.write("\t\t&END FORCES\n")
         fout.write("\t&END PRINT\n")
         fout.write("&END FORCE_EVAL\n")
-    i += 1
 
-i = 1
-while i < 10:
-    in_name = "supercell-00" + str(i) + ".inp"
+for disp in disps:
+    in_name = "supercell-%s.inp" % disp
     if os.path.exists(in_name) is not True:
         break
     os.system("cp2k.psmp -in %s | tee %s" % (in_name, in_name+".out"))
-    i += 1
 
 
-i = 1
 phonopy_command = "phonopy --cp2k -f "
-while i < 10:
-    f_name = base_project_name + "-supercell-00" + str(i) + "-forces-1_0.xyz"
+for disp in disps:
+    f_name = base_project_name + "-supercell-" + disp + "-forces-1_0.xyz"
     if os.path.exists(f_name) is not True:
         break
     phonopy_command = phonopy_command + f_name + " "
-    i += 1
+
 os.system(phonopy_command)
 
 # get the band structure

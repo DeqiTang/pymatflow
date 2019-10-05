@@ -103,7 +103,10 @@ for disp in disp_dirs:
 
 import matplotlib.pyplot as plt
 
-os.system("phonopy --abinit -f disp-{001..%s}/supercell-*.out" % (disp_dirs[-1]))
+outs = ""
+for disp in disp_dirs:
+    outs += "disp-%s/supercell-%s.out " % (disp, disp)
+os.system("phonopy --abinit -f %s" % (outs))
 
 # plot phonon band
 with open("band.conf", 'w') as fout:
