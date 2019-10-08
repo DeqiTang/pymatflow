@@ -7,17 +7,16 @@ import matplotlib.pyplot as plt
 
 from emuhelper.abinit.base.electrons import abinit_electrons
 from emuhelper.abinit.base.system import abinit_system
-
+from emuhelper.abinit.base.properties import abinit_properties
 class static_run:
     """
     """
     def __init__(self, xyz_f):
         self.system = abinit_system(xyz_f)
         self.electrons = abinit_electrons()
+        self.properties = abinit_properties()
         
-        self.electrons.params["ecut"] = 50
-        self.electrons.params["kptopt"] = 1
-        self.electrons.params["ngkpt"] = "1 1 1"
+        self.electrons.params["ecut"] = 30 #50
         self.electrons.params["occopt"] = 3  # fermi dirac smearing of occupation
         self.electrons.params["nstep"] = 100
         self.electrons.params["diemac"] = 2.0
@@ -27,10 +26,12 @@ class static_run:
         if os.path.exists(directory):
             shutil.rmtree(directory)
         os.mkdir(directory)
-        os.system("cp *.psp8 %s/" % directory) 
+        #os.system("cp *.psp8 %s/" % directory)
+        os.system("cp *.GGA_PBE-JTH.xml %s/" % directory)
 
         with open(os.path.join(directory, inpname), 'w') as fout:
             self.electrons.to_in(fout)
+            self.properties.to_in(fout)
             self.system.to_in(fout)
 
         with open(os.path.join(directory, inpname.split(".")[0]+".files"), 'w') as fout:
@@ -40,7 +41,8 @@ class static_run:
             fout.write("%so\n" % inpname.split(".")[0])
             fout.write("temp\n")
             for element in self.system.xyz.specie_labels:
-                fout.write("%s\n" % (element + ".psp8"))
+                #fout.write("%s\n" % (element + ".psp8"))
+                fout.write("%s\n" % (element + ".GGA_PBE-JTH.xml"))
     def run(self, directory="tmp-abinit-static", inpname="static.in"):
         os.chdir(directory)
         os.system("abinit < %s" % inpname.split(".")[0]+".files")
@@ -101,11 +103,17 @@ class static_run:
         #
 
     def print_dos(self):
-        #self.properties.params["prtdos"] = 1
-        self.electrons.params["prtdos"] = 1
+        self.properties.params["prtdos"] = 1
+        self.electrons.kpoints.ngkpt = [6, 6, 6]
 
     def print_bands(self):
-        #self.properties.params["nband"] = 8
+        self.properties.params["nband"] = 8
         self.electrons.params["nband"] = 8
-        self.electrons.params["ngkpt"] = "6 6 6" 
+        self.electrons.kpoints.ngkpt = [6, 6, 6]
         self.electrons.params["enunit"] = 1
+
+    def berry_phase(self):
+        self.properties.berry_phase()
+
+    def dft_plus_u(self):
+        self.electrons.dft_plus_u()

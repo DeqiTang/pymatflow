@@ -24,6 +24,7 @@ Usage:
 
 if __name__ == '__main__':
     task = md_run(sys.argv[1])
+    task.ir_spectra()
     task.gen_input()
     task.run() 
     task.analysis()

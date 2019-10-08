@@ -20,8 +20,6 @@ class opt_run:
         
         self.electrons.params["ecut"] = 50
         self.electrons.params["ixc"] = 11 
-        self.electrons.params["kptopt"] = 1
-        self.electrons.params["ngkpt"] = "1 1 1"
         self.electrons.params["occopt"] = 3  # fermi dirac smearing of occupation
         self.electrons.params["nstep"] = 100
         self.electrons.params["diemac"] = 2.0

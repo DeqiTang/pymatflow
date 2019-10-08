@@ -23,14 +23,15 @@ class opt_run:
         self.glob = cp2k_glob()
         self.force_eval = cp2k_force_eval(xyz_f)
         self.motion = cp2k_motion()
+        
+        self.run_type = "GEO_OPT" # CELL_OPT
+        self.set_run_type("GEO_OPT")
 
         cutoff = 60
         rel_cutoff = 30
-        self.glob.params["RUN_TYPE"] = "GEO_OPT"
 
-        self.motion.set_type("GEO_OPT")
-
-    def gen_input(self, directory="tmp-opt-cp2k", inpname="geometric-optimization.inp"):
+        
+    def gen_input(self, directory="tmp-cp2k-opt", inpname="geometric-optimization.inp"):
         """
         directory: a place for all the generated files
         """
@@ -43,7 +44,7 @@ class opt_run:
         self.force_eval.to_input(os.path.join(directory, inpname))
         self.motion.to_input(os.path.join(directory, inpname))
     
-    def run(self, directory="tmp-opt-cp2k", inpname="geometric-optimization.inp", output="geometric-optimization.out"):
+    def run(self, directory="tmp-cp2k-opt", inpname="geometric-optimization.inp", output="geometric-optimization.out"):
         """
         directory: a place for all the generated files
         """
@@ -51,7 +52,7 @@ class opt_run:
         os.system("cp2k.psmp -in %s | tee %s" % (inpname, output))
         os.chdir("../")    
 
-    def analysis(self, directory="tmp-opt-cp2k", output="geometric-optimization.out"):
+    def analysis(self, directory="tmp-cp2k-opt", output="geometric-optimization.out"):
         # analyse the result
         os.chdir(directory)
         os.system("cat %s | grep 'ENERGY| Total FORCE_EVAL' > energy-per-ion-step.data" % (output))
@@ -65,31 +66,21 @@ class opt_run:
         plt.show()
 
         os.chdir("../")
-
-    #fout.write("\t&MD\n")
-    #fout.write("\t\tENSEMBLE NVT\n")
-    #fout.write("\t\tSTEPS 100\n")
-    #fout.write("\t\tTIMESTEP 0.5\n")
-    #fout.write("\t\t&THERMOSTAT\n")
-    #fout.write("\t\t\tTYPE NOSE\n")
-    #fout.write("\t\t\t&NOSE\n")
-    #fout.write("\t\t\t\tTIMECON 10.0\n")
-    #fout.write("\t\t\t&END NOSE\n")
-    #fout.write("\t\t&END THERMOSTAT\n")
-    #fout.write("\t\tTEMPERATURE 300.0\n")
-    #fout.write("\t&END MD\n")
-    #fout.write("\t&PRINT\n")
-    #fout.write("\t\t&RESTART\n")
-    #fout.write("\t\t\t&EACH\n")
-    #fout.write("\t\t\t\tMD 0\n")
-    #fout.write("\t\t\t&END EACH\n")
-    #fout.write("\t\t&END RESTART\n")
-    #fout.write("\t&END PRINT\n")
-    #fout.write("&END MOTION\n")
-
-
-
-    # analyse the result
-
-    import matplotlib.pyplot as plt
-
+    
+    def set_run_type(self, run_type="GEO_OPT"):
+        # run_type can only be one of "GEO_OPT" and "CELL_OPT"
+        # Note:
+        #   if you are doing CELL_OPT run, you must also enable
+        #   "STRESS_TENSOR" in FORCE_EVAL%STRESS_TENSOR
+        if run_type != "GEO_OPT" and run_type != "CELL_OPT":
+            print("==========================================\n")
+            print("           WARNING    !!!!!!!!!\n")
+            print("==========================================\n")
+            print("cp2k.opt.opt_run can only conduct 'GEO_OPT'\n")
+            print("and 'CELL_OPT'\n")
+            sys.exit(1)
+        self.run_type = run_type 
+        self.glob.params["RUN_TYPE"] = run_type
+        self.motion.set_type(run_type)
+        if run_type == "CELL_OPT" and self.force_eval.params["STRESS_TENSOR"] is None:
+            self.force_eval.params["STRESS_TENSOR"] = "ANALYTICAL" # NUMERICAL

@@ -31,7 +31,7 @@ class md_run:
         self.motion.set_type("MD")
         self.motion.md.params["STEPS"] = 20
 
-    def gen_input(self, directory="tmp-md-cp2k", inpname="molecular-dynamics.inp"):
+    def gen_input(self, directory="tmp-cp2k-md", inpname="molecular-dynamics.inp"):
         """
         directory: a place for all the generated files
         """
@@ -44,7 +44,7 @@ class md_run:
         self.force_eval.to_input(os.path.join(directory, inpname))
         self.motion.to_input(os.path.join(directory, inpname))
     
-    def run(self, directory="tmp-md-cp2k", inpname="molecular-dynamics.inp", output="molecular-dynamics.out"):
+    def run(self, directory="tmp-cp2k-md", inpname="molecular-dynamics.inp", output="molecular-dynamics.out"):
         """
         directory: a place for all the generated files
         """
@@ -52,7 +52,7 @@ class md_run:
         os.system("cp2k.psmp -in %s | tee %s" % (inpname, output))
         os.chdir("../")
 
-    def analysis(self, directory="tmp-md-cp2k", output="molecular-dynamics.out"):
+    def analysis(self, directory="tmp-cp2k-md", output="molecular-dynamics.out"):
         # analyse the result
         os.chdir(directory)
         os.system("cat %s | grep 'ENERGY| Total FORCE_EVAL' > energy-per-ion-step.data" % (output))
@@ -87,4 +87,14 @@ class md_run:
     #fout.write("\t\t&END RESTART\n")
     #fout.write("\t&END PRINT\n")
     #fout.write("&END MOTION\n")
+    def ir_spectra(self):
+        """
+        if you are calculating ir spectra, you have to
+        have the dipole information for the molecule 
+        available in the simulated trajectory.
+        that is realized by FORCE_EVAL%DFT%LOCALIZE
 
+        Reference:
+            http://www.travis-analyzer.de/
+        """
+        self.force_eval.dft.localize.status = True

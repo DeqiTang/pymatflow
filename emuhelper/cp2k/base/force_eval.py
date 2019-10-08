@@ -23,7 +23,7 @@ class cp2k_force_eval:
     def __init__(self, xyz_f):
         self.subsys = cp2k_subsys(xyz_f)
         self.dft = cp2k_dft()
-        self.force_eval = {
+        self.params = {
                 "METHOD": "QS",
                 "EMBED": None,
                 "STRESS_TENSOR": None,
@@ -33,9 +33,9 @@ class cp2k_force_eval:
     def to_input(self, fname):
         with open(fname, 'a') as fout:
             fout.write("&FORCE_EVAL\n")
-            for item in self.force_eval:
-                if self.force_eval[item] is not None:
-                    fout.write("\t%s %s\n" % (item, self.force_eval[item]))
+            for item in self.params:
+                if self.params[item] is not None:
+                    fout.write("\t%s %s\n" % (item, self.params[item]))
             self.subsys.to_subsys(fout)
             self.dft.to_dft(fout)
             fout.write("&END FORCE_EVAL\n") 

@@ -54,8 +54,10 @@ class cp2k_motion_cell_opt:
                 "OPTIMIZER": None,
                 "PRESSURE_TOLLERANCE": None,
                 "STEP_START_VAL": None,
-                "TYPE": None,
+                "TYPE": None,  # DIRECT_CELL_OPT, GEO_OPT, MD
                 }
+        self.default_set()
+
     def to_motion(self, fout):
         """
         fout: a file stream for writing
@@ -65,6 +67,19 @@ class cp2k_motion_cell_opt:
             if self.params[item] is not None:
                 fout.write("\t\t%s %s\n" % (item, str(self.params[item])))
         fout.write("\t&END CELL_OPT\n")
+    
+    def default_set(self):
+        self.params["CONSTRAINT"] = "NONE"
+        self.params["KEEP_ANGLES"] = ".FALSE."
+        self.params["KEEP_SYMMETRY"] = ".FALSE."
+        self.params["MAX_DR"] = 3.0E-3
+        self.params["MAX_FORCE"] = 4.5e-4
+        self.params["MAX_ITER"] = 200
+        self.params["OPTIMIZER"] = "BFGS"
+        self.params["PRESSURE_TOLERANCE"] = 1.0E2
+        self.params["RMS_DR"] = 1.5e-3
+        self.params["RMS_FORCE"] = 3.0e-4
+        self.params["TYPE"] = "DIRECT_CELL_OPT"
 
 class cp2k_motion_constraint:
     def __init__(self):
@@ -102,7 +117,6 @@ class cp2k_motion_free_energy:
 class cp2k_motion_geo_opt:
     def __init__(self):
         self.params = {
-                "TYPE": None,
                 "MAX_DR": None,
                 "MAX_FORCE": None,
                 "MAX_ITER": None,
@@ -112,6 +126,8 @@ class cp2k_motion_geo_opt:
                 "STEP_START_VAL": None,
                 "TYPE": None, # MINIMIZATION(default), TRANSITION_STATE
                 }
+        self.default_set()
+
     def to_motion(self, fout):
         """
         fout: a file stream for writing
@@ -119,9 +135,17 @@ class cp2k_motion_geo_opt:
         fout.write("\t&GEO_OPT\n")
         for item in self.params:
             if self.params[item] is not None:
-                fout.write("\t\t%s %s\n" % (item, self.params[item]))
+                fout.write("\t\t%s %s\n" % (item, str(self.params[item])))
         fout.write("\t&END GEO_OPT\n")
-
+    
+    def default_set(self):
+        self.params["MAX_DR"] = 3.0e-3
+        self.params["MAX_FORCE"] = 4.5e-4
+        self.params["MAX_ITER"] = 200
+        self.params["OPTIMIZER"] = "BFGS"
+        self.params["RMS_DR"] = 1.5e-3
+        self.params["RMS_FORCE"] = 3.0e-4
+        self.params["TYPE"] = "MINIMIZATION"
  
 class cp2k_motion_mc:
     def __init__(self):
@@ -194,6 +218,11 @@ class cp2k_motion_pint:
 class cp2k_motion_print:
     def __init__(self):
         pass
+    
+    def to_motion(self, fout):
+        # fout: a file stream for writing
+        fout.write("\t&PRINT\n")
+        fout.write("\t&END PRINT\n")
 
 class cp2k_motion_shell_opt:
     def __init__(self):
@@ -274,6 +303,7 @@ class cp2k_motion:
                 self.pint.to_motion(fout)
             elif self.run_type == "SHELL_OPT":
                 self.shell_opt.to_motion(fout)
+            self.printout.to_motion(fout)
             fout.write("&END MOTION\n")
             fout.write("\n")
     

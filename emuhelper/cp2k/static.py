@@ -27,7 +27,7 @@ class static_run:
         self.force_eval.dft.mgrid.params["REL_CUTOFF"]= 60
 
 
-    def gen_input(self, directory="tmp-static-cp2k", inpname="static.inp"):
+    def gen_input(self, directory="tmp-cp2k-static", inpname="static.inp"):
         """
         directory: a place for all the generated files
         """
@@ -39,7 +39,7 @@ class static_run:
         self.glob.to_input(os.path.join(directory, inpname))
         self.force_eval.to_input(os.path.join(directory, inpname))
     
-    def run(self, directory="tmp-static-cp2k", inpname="static.inp", output="static.out"):
+    def run(self, directory="tmp-cp2k-static", inpname="static.inp", output="static.out"):
         """
         directory: a place for all the generated files
         """
@@ -47,13 +47,13 @@ class static_run:
         os.system("cp2k.psmp -in %s | tee %s" % (inpname, output))
         os.chdir("../")    
 
-    def analysis(self, directory="tmp-static-cp2k", output="static.out"):
+    def analysis(self, directory="tmp-cp2k-static", output="static.out"):
         # analyse the result
         os.chdir(directory)
 
         os.chdir("../")
     
-    def converge_cutoff(self, emin, emax, step, rel_cutoff, directory="tmp-cutoff-cp2k"):
+    def converge_cutoff(self, emin, emax, step, rel_cutoff, directory="tmp-cp2k-cutoff"):
         if os.path.exists(directory):
             shutil.rmtree(directory)
         os.mkdir(directory)
@@ -90,7 +90,7 @@ class static_run:
         plt.show()
         os.chdir("../")
 
-    def converge_rel_cutoff(self, emin, emax, step, cutoff, directory="tmp-rel-cutoff-cp2k"):
+    def converge_rel_cutoff(self, emin, emax, step, cutoff, directory="tmp-cp2k-rel-cutoff"):
         if os.path.exists(directory):
             shutil.rmtree(directory)
         os.mkdir(directory)
