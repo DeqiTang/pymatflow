@@ -24,14 +24,14 @@ class static_run:
         self.electrons.xc["authors"] = "PBE"
         self.electrons.dm["Tolerance"] = "1.d-6"
         self.electrons.dm["MixingWight"] = 0.1
-        self.electrons.dm["NumberPulay"] = 5
+        self.electrons.dm["NumberPulay"] = 8 # this can affect the convergence of scf
         self.electrons.dm["AllowExtrapolation"] = "true"
         self.electrons.dm["UseSaveDM"] = "false"
         self.electrons.params["SolutionMethod"] = "diagon"
-        self.electrons.params["MeshCutoff"] = 100
+        self.electrons.params["MeshCutoff"] = 300 #100
         
 
-    def gen_input(self, directory="tmp-static-siesta", inpname="static.fdf"):
+    def gen_input(self, directory="tmp-siesta-static", inpname="static.fdf"):
         
         if os.path.exists(directory):
             shutil.rmtree(directory)
@@ -46,14 +46,14 @@ class static_run:
             self.electrons.to_fdf(fout)
             self.properties.to_fdf(fout)
     
-    def run(self, directory="tmp-static-siesta", inpname="static.fdf", output="static.out"):
+    def run(self, directory="tmp-siesta-static", inpname="static.fdf", output="static.out"):
         # run the simulation
         os.chdir(directory)
         os.system("siesta < %s | tee %s" % (inpname, output))
         os.chdir("../")
 
 
-    def analysis(self, directory="tmp-static-siesta", inpname="static.fdf", output="static.out"):
+    def analysis(self, directory="tmp-siesta-static", inpname="static.fdf", output="static.out"):
         # analyse the results
         
         if self.properties.option == "pdos":
@@ -73,7 +73,7 @@ class static_run:
         plt.show()
         os.chdir("../")
 
-    def converge_cutoff(self, emin, emax, step, directory="tmp-converge-cutoff-siesta"):
+    def converge_cutoff(self, emin, emax, step, directory="tmp-siesta-converge-cutoff"):
 
         if os.path.exists(directory):
             shutil.rmtree(directory)
@@ -99,15 +99,18 @@ class static_run:
         # analysis
         os.chdir(directory)
         for i in range(n_test + 1):
-            meshcutoff = int(ecut_min + i * ecut_step)
+            meshcutoff = int(emin + i * step)
             out_f_name = "cutoff-%d.out" % meshcutoff
             os.system("cat %s | grep 'Total =' >> energy-cutoff.data" % out_f_name)
         cutoff = [emin + i * step for i in range(n_test + 1) ]
         energy = []
-        with open("energy-ecut.data", 'r') as fin:
+        with open("energy-cutoff.data", 'r') as fin:
             for line in fin:
                 energy.append(float(line.split()[3]))
         import matplotlib.pyplot as plt
-        plt.plot(ecut, energy)
+        plt.plot(cutoff, energy)
         plt.show()
         os.chdir("../")
+
+    def set_spin(self, spin="non-polarized"):
+        self.electrons.set_spin(spin)

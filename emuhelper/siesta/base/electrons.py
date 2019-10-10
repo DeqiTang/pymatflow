@@ -51,3 +51,6 @@ class siesta_electrons:
                 fout.write("DM.%s %s\n" % (item, str(self.dm[item])))
         #
         fout.write("\n")
+
+    def set_spin(self, spin="non-polarized"):
+        self.params["Spin"] = spin

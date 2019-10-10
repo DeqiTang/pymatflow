@@ -16,7 +16,8 @@ class static_run:
         self.electrons = abinit_electrons()
         self.properties = abinit_properties()
         
-        self.electrons.params["ecut"] = 30 #50
+        self.electrons.params["ecut"] = 50 #50
+        #self.electrons.params["pawecutdg"] = 50
         self.electrons.params["occopt"] = 3  # fermi dirac smearing of occupation
         self.electrons.params["nstep"] = 100
         self.electrons.params["diemac"] = 2.0
@@ -26,8 +27,8 @@ class static_run:
         if os.path.exists(directory):
             shutil.rmtree(directory)
         os.mkdir(directory)
-        #os.system("cp *.psp8 %s/" % directory)
-        os.system("cp *.GGA_PBE-JTH.xml %s/" % directory)
+        os.system("cp *.psp8 %s/" % directory)
+        #os.system("cp *.GGA_PBE-JTH.xml %s/" % directory)
 
         with open(os.path.join(directory, inpname), 'w') as fout:
             self.electrons.to_in(fout)
@@ -41,8 +42,8 @@ class static_run:
             fout.write("%so\n" % inpname.split(".")[0])
             fout.write("temp\n")
             for element in self.system.xyz.specie_labels:
-                #fout.write("%s\n" % (element + ".psp8"))
-                fout.write("%s\n" % (element + ".GGA_PBE-JTH.xml"))
+                fout.write("%s\n" % (element + ".psp8"))
+                #fout.write("%s\n" % (element + ".GGA_PBE-JTH.xml"))
     def run(self, directory="tmp-abinit-static", inpname="static.in"):
         os.chdir(directory)
         os.system("abinit < %s" % inpname.split(".")[0]+".files")

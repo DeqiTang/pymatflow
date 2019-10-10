@@ -30,7 +30,7 @@ class siesta_properties:
         if self.option == "pdos":
             self.to_fdf_pdos(fout)
     
-    def to_fdf_pdos(self, fout, emin=-20.0, emax=10.0, peak_width=0.1, npoint=2000):
+    def to_fdf_pdos(self, fout, emin=-20.0, emax=20.0, peak_width=0.1, npoint=2000):
         # 输出pdos时会同时输出total dos
         fout.write("%block ProjectedDensityOfStates\n")
         fout.write("%f %f %f %d eV\n" % (emin, emax, peak_width, npoint))

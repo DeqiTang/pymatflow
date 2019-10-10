@@ -29,7 +29,7 @@ class opt_run:
         self.electrons.dm["AllowExtrapolation"] = "true"
         self.electrons.dm["UseSaveDM"] = "true"
         self.electrons.params["SolutionMethod"] = "diagon"
-        self.electrons.params["MeshCutoff"] = 100
+        self.electrons.params["MeshCutoff"] = 300 #100
         
         self.ions.md["TypeOfRun"] = "CG"   # CG, Broyden, 
         self.ions.md["VariableCell"] = "false"
@@ -40,8 +40,10 @@ class opt_run:
         self.ions.md["MaxDispl"] = 0.2 # Bohr
         self.ions.md["PreconditionVariableCell"] = 5 # Ang
 
+        self.ions.params["WriteCoorXmol"] = "true"
+        self.ions.params["WriteMDXmol"] = "true"
 
-    def gen_input(self, directory="tmp-opt-siesta", inpname="geometric-optimization.fdf"):
+    def gen_input(self, directory="tmp-siesta-opt", inpname="geometric-optimization.fdf"):
         
         if os.path.exists(directory):
             shutil.rmtree(directory)
@@ -56,14 +58,14 @@ class opt_run:
             self.electrons.to_fdf(fout)
             self.ions.to_fdf(fout)
     
-    def run(self, directory="tmp-opt-siesta", inpname="geometric-optimization.fdf", output="geometric-optimization.out"):
+    def run(self, directory="tmp-siesta-opt", inpname="geometric-optimization.fdf", output="geometric-optimization.out"):
         # run the simulation
         os.chdir(directory)
         os.system("siesta < %s | tee %s" % (inpname, output))
         os.chdir("../")
 
 
-    def analysis(self, directory="tmp-opt-siesta", inpname="geometric-optimization.fdf", output="geometric-optimization.out"):
+    def analysis(self, directory="tmp-siesta-opt", inpname="geometric-optimization.fdf", output="geometric-optimization.out"):
         # analyse the results
         import matplotlib.pyplot as plt
 

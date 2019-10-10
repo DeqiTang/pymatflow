@@ -22,7 +22,7 @@ class md_run:
         self.ions = siesta_ions()
 
 
-    def gen_input(self, directory="tmp-md-siesta", inpname="molecular-dynamics.fdf"):
+    def gen_input(self, directory="tmp-siesta-md", inpname="molecular-dynamics.fdf"):
         
         if os.path.exists(directory):
             shutil.rmtree(directory)
@@ -47,20 +47,23 @@ class md_run:
         self.ions.md["LengthTimeStep"] = 1
         self.ions.md["InitialTemperature"] = 0
         self.ions.md["TargetTemperature"] = 0
+
+        self.ions.params["WriteCoorXmol"] = "true"
+        self.ions.params["WriteMDXmol"] = "true"
         
         with open(os.path.join(directory, inpname), 'w') as fout:
             self.system.to_fdf(fout)
             self.electrons.to_fdf(fout)
             self.ions.to_fdf(fout)
     
-    def run(self, directory="tmp-md-siesta", inpname="molecular-dynamics.fdf", output="molecular-dynamics.out"):
+    def run(self, directory="tmp-siesta-md", inpname="molecular-dynamics.fdf", output="molecular-dynamics.out"):
         # run the simulation
         os.chdir(directory)
         os.system("siesta < %s | tee %s" % (inpname, output))
         os.chdir("../")
 
 
-    def analysis(self, directory="tmp-md-siesta", inpname="molecular-dynamics.fdf", output="molecular-dynamics.out"):
+    def analysis(self, directory="tmp-siest-md", inpname="molecular-dynamics.fdf", output="molecular-dynamics.out"):
         # analyse the results
         import matplotlib.pyplot as plt
 
