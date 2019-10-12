@@ -158,8 +158,14 @@ class qe_system:
         self.params["ntyp"] = arts.xyz.nspecies
 
         self.params["ecutwfc"] = 100
-        self.params["input_DFT"] = 'PBE'
-        self.params["occupations"] = "smearing"
-        self.params["smearing"] = "gaussian"
-        self.params["degauss"] = 0.0001
-
+        self.params["input_dft"] = 'PBE'
+        #self.params["occupations"] = "smearing"
+        #self.params["smearing"] = "gaussian"
+        #self.params["degauss"] = 0.0001
+    
+    def set_params(self, params):
+        """
+        params: a dict storing the parameters and values
+        """
+        for item in params:
+            self.params[item] = params[item]

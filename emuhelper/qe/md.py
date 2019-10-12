@@ -27,7 +27,7 @@ class md_run:
         self.control.basic_setting("md")
         
         self.system.basic_setting(self.arts)
-
+        self.electrons.basic_setting()
         self.ions.basic_setting('md') 
 
     def gen_input(self, directory="tmp-md-qe", inpname="molecular-dynamics.in"):

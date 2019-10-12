@@ -16,6 +16,20 @@ from emuhelper.qe.base.arts import qe_arts
 
 class static_run:
     """
+    About:
+        static_run implements the control over scf, nscf and
+        calculations based on them, like dos, pdos, bands
+    Status:
+        currently implemented calculation including:
+            scf, nscf, dos, bands, projwfc(pdos),
+            epsilon, turbo_davidson, turbo_lanczos,
+            phx_qmesh, q2r, matdyn, plotband, phx_gamma,
+            dynmat, ir_raman, elf, fermi_surface,
+            difference_charge_density, ellectron_density,
+
+            converge test:
+                ecutwfc, ecutrho, kpoints, degauss
+    #
     """
     def __init__(self, xyz_f):
         self.control = qe_control()
@@ -24,34 +38,82 @@ class static_run:
         self.arts = qe_arts(xyz_f)
 
         self.control.basic_setting("scf") 
-        
         self.system.basic_setting(self.arts)
+        self.electrons.basic_setting()
 
-    def gen_input(self, directory="tmp-qe-static", inpname="static-scf.in"):
+    def scf(self, directory="tmp-qe-static", inpname="static-scf.in", output="static-scf.out", runopt="gen",
+            control={}, system={}, electrons={}, kpoints_mp=[2, 2, 2, 0, 0, 0]):
         """
         directory: a place for all the generated files
+
+        parameters:
+            directory: the overall static calculation directory
+
+            runopt: determine whether the calculation is executed.
+                there are three values: 'gen', 'genrun', 'run'
+                'gen': only generate the input files
+                'genrun': generate input files and run
+                'run': run from the previously generated input files
+        Note:
+            only scf can generate the overall directory for static 
+            calculation(except the converge test for parameters like
+            ecutwfc, kpoints, degauss)! other calculations is based 
+            on scf or nscf(which is based scf), so logically when 
+            doing these calculations there should already be the 
+            directory where scf calculation has been conducted.
         """
-        if os.path.exists(directory):
-            shutil.rmtree(directory)
-        os.mkdir(directory)
-        
-        os.system("cp *.UPF %s/" % directory)
+        if runopt == 'gen' or runopt == 'genrun':
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
+            os.system("cp *.UPF %s/" % directory)
+            
+            self.control.set_params(control)
+            self.system.set_params(system)
+            self.electrons.set_params(electrons)
+            self.arts.set_kpoints(kpoints_mp)
+            with open(os.path.join(directory, inpname), 'w') as fout:
+                self.control.to_in(fout)
+                self.system.to_in(fout)
+                self.electrons.to_in(fout)
+                self.arts.to_in(fout)
 
-        with open(os.path.join(directory, inpname), 'w') as fout:
-            self.control.to_in(fout)
-            self.system.to_in(fout)
-            self.electrons.to_in(fout)
-            self.arts.to_in(fout)
-    
-    def run_scf(self, directory="tmp-qe-static", inpname="static-scf.in", output="static-scf.out"):
-        os.chdir(directory)
-        os.system("pw.x < %s | tee %s" % (inpname, output))
-        os.chdir("../")
+        if runopt == 'genrun' or runopt == 'run':
+            os.chdir(directory)
+            os.system("pw.x < %s | tee %s" % (inpname, output))
+            os.chdir("../")
 
-    def run_nscf(self, directory="tmp-qe-static", inpname="static-nscf.in", output="static-nscf.out"):
-        os.chdir(directory)
-        os.system("pw.x < %s | tee %s" % (inpname, output))
-        os.chdir("../")
+    def nscf(self, directory="tmp-qe-static", inpname="static-nscf.in", output="static-nscf.out", runopt='gen'):
+        """
+        parameters:
+            directory: the overall static calculation directory
+
+            runopt: determine whether the calculation is executed.
+                there are three values: 'gen', 'genrun', 'run'
+                'gen': only generate the input files
+                'genrun': generate input files and run
+                'run': run from the previously generated input files
+        """
+        # first check whether there is a previous scf running
+        if not os.path.exists(directory):
+            print("===================================================\n")
+            print("                 Warning !!!\n")
+            print("===================================================\n")
+            print("non-scf calculation:\n")
+            print("  directory of previous scf calculattion not found!\n")
+            sys.exit(1)
+        if runopt == 'gen' or runopt == 'genrun':
+            self.control.calculation("nscf")
+            self.arts.set_kpoints([4, 4, 4, 0, 0, 0])
+            with open(os.path.join(directory, inpname), 'w') as fout:
+                self.control.to_in(fout)
+                self.system.to_in(fout)
+                self.electrons.to_in(fout)
+                self.arts.to_in(fout)
+        if runopt == 'genrun' or runopt == 'run':
+            os.chdir(directory)
+            os.system("pw.x < %s | tee %s" % (inpname, output))
+            os.chdir("../")
     
     def converge_ecutwfc(self, emin, emax, step, directory="tmp-qe-ecutwfc"):
         if os.path.exists(directory):
@@ -246,28 +308,6 @@ class static_run:
         plt.show()
         os.chdir("../")  
 
-    def scf(self, directory="tmp-qe-static"):
-        self.control.calculation("scf")
-
-    def nscf(self, directory="tmp-qe-static", inpname="static-nscf.in"):
-        """
-        first check whether there is a previous scf running
-        """
-        if not os.path.exists(directory):
-            print("===================================================\n")
-            print("                 Warning !!!\n")
-            print("===================================================\n")
-            print("non-scf calculation:\n")
-            print("  directory of previous scf calculattion not found!\n")
-            sys.exit(1)
-
-        self.control.calculation("nscf")
-        self.arts.set_kpoints([6, 6, 6, 0, 0, 0])
-        with open(os.path.join(directory, inpname), 'w') as fout:
-            self.control.to_in(fout)
-            self.system.to_in(fout)
-            self.electrons.to_in(fout)
-            self.arts.to_in(fout)
     
     def dos(self, directory="tmp-qe-static", inpname="static-dos.in", output="static-dos.out"):
         """
@@ -282,7 +322,7 @@ class static_run:
             sys.exit(1)
         with open(os.path.join(directory, inpname), 'w') as fout:
             fout.write("&DOS\n")
-            #fout.write("prefix = '%s'\n" % "pwscf")
+            fout.write("prefix = '%s'\n" % self.control.params["prefix"])
             fout.write("outdir = '%s'\n" % self.control.params["outdir"])
             fout.write("fildos = 'output.dos'\n")
             fout.write("/\n")
@@ -322,6 +362,7 @@ class static_run:
 
         with open(os.path.join(directory, inpname2), 'w') as fout:
             fout.write("&BANDS\n")
+            fout.write("prefix = '%s'\n" % self.control.params["prefix"])
             fout.write("outdir = '%s'\n" % ("./tmp"))
             fout.write("filband = '%s'\n" % ("bands.dat"))
             fout.write("lsym = %s\n" % (".true."))
@@ -348,6 +389,7 @@ class static_run:
             sys.exit(1)
         with open(os.path.join(directory, inpname), 'w') as fout:
             fout.write("&PROJWFC\n")
+            fout.write("prefix = '%s'\n" % self.control.params["prefix"])
             fout.write("outdir = '%s'\n" % self.control.params["outdir"])
             fout.write("filpdos = 'output.projwfc'\n")
             fout.write("/\n")
@@ -376,6 +418,7 @@ class static_run:
         with open(os.path.join(directory, inpname), 'w') as fout:
             fout.write("&INPUTPP\n")
             fout.write("calculation = 'eps'\n")
+            fout.write("prefix = '%s'\n" % self.control.params["prefix"])
             fout.write("outdir = '%s'\n" % self.control.params["outdir"])
             fout.write("/\n")
             fout.write("\n")
@@ -430,6 +473,7 @@ class static_run:
             sys.exit(1)
         with open(os.path.join(directory, inpname1), 'w') as fout:
             fout.write("&lr_input\n")
+            fout.write("prefix = '%s'\n" % self.control.params["prefix"])
             fout.write("outdir = '%s'\n" % self.control.params["outdir"])
             fout.write("/\n")
             fout.write("\n")
@@ -452,6 +496,7 @@ class static_run:
     
         with open(os.path.join(directory, inpname2), 'w') as fout:
             fout.write("&lr_input\n")
+            fout.write("prefix = '%s'\n" % self.control.params["prefix"])
             fout.write("outdir = %s\n" % self.control.params["outdir"])
             fout.write("td = 'davidson'\n")
             fout.write("epsil = 0.004\n")
@@ -493,6 +538,7 @@ class static_run:
             sys.exit(1)
         with open(os.path.join(directory, inpname1), 'w') as fout:
             fout.write("&lr_input\n")
+            fout.write("prefix = '%s'\n" % self.control.params["prefix"])
             fout.write("outdir = '%s'\n" % self.control.params["outdir"])
             fout.write("restart_step = 100\n")
             fout.write("restart = .false.\n")
@@ -509,6 +555,7 @@ class static_run:
     
         with open(os.path.join(directory, inpname2), 'w') as fout:
             fout.write("&lr_input\n")
+            fout.write("prefix = '%s'\n" % self.control.params["prefix"])
             fout.write("outdir = %s\n" % self.control.params["outdir"])
             fout.write("intermax0 = 1500\n") # Number of calculated Lanczos coefficient
             fout.write("intermax = 20000\n") # umber of extrapolated Lanczos coefficient
@@ -573,7 +620,8 @@ class static_run:
             fout.write("nq1 = 2 \n") # 4
             fout.write("nq2 = 2 \n") # 4
             fout.write("nq3 = 2 \n") # 4
-            fout.write("outdir = './tmp'\n")
+            fout.write("prefix = '%s'\n" % self.control.params["prefix"])
+            fout.write("outdir = '%s'\n" % self.control.params["outdir"])
             fout.write("fildyn = '%s'\n" % dynamat_file)
             fout.write("/\n")
             fout.write("\n")
@@ -581,7 +629,7 @@ class static_run:
         os.system("ph.x < %s | tee %s" % (inpname, output))
         os.chdir("../")
 
-    def q2r(self, directory="tmp-qe-static", inpname="q2r.in", output="q2r.out", dynamat_file="phx-qmesh.dyn"):
+    def q2r(self, directory="tmp-qe-static", inpname="q2r.in", output="q2r.out", dynamat_file="phx-qmesh.dyn", ifc_file="ifc.fc"):
         """
         q2r.x:
             calculation of Interatomic Force Constants(IFC) from 
@@ -599,7 +647,7 @@ class static_run:
             fout.write("&input\n")
             fout.write("fildyn = '%s'\n" % dynamat_file) # Dynamical matrices from the phonon calculation
             fout.write("zasr = 'simple'\n") # A way to impose the acoustic sum rule
-            fout.write("flfrc = ifc.fc\n") # Output file of the interatomic force constants
+            fout.write("flfrc = '%s'\n" % ifc_file) # Output file of the interatomic force constants
             fout.write("/\n")
             fout.write("\n")
         os.chdir(directory)
@@ -677,7 +725,8 @@ class static_run:
         with open(os.path.join(directory, inpname), 'w') as fout:
             fout.write("&inputph\n")
             fout.write("tr2_ph = 1.0d-14\n")
-            fout.write("oudir = './tmp'")
+            fout.write("prefix = '%s'\n" % self.control.params["prefix"])
+            fout.write("outdir = '%s'\n" % self.control.params["outdir"])
             fout.write("fildyn = '%s'\n" % dynamat_file)
             fout.write("/\n")
             fout.write("0.0 0.0 0.0\n")
@@ -724,3 +773,133 @@ class static_run:
         """
         self.phx_qmesh()
         self.dynmat()
+
+    def elf(self, directory="tmp-qe-static", inpname="elf.in", output="elf.out"):
+        """
+        """
+        # first check whether there is a previous scf running
+        if not os.path.exists(directory):
+            print("===================================================\n")
+            print("                 Warning !!!\n")
+            print("===================================================\n")
+            print("dynmat.x calculation:\n")
+            print("  directory of previous scf or nscf calculattion not found!\n")
+            sys.exit(1)
+        with open(os.path.join(directory, inpname), 'w') as fout:
+            fout.write("&inputpp\n")
+            fout.write("prefix = '%s'\n" % self.control.params["prefix"])
+            fout.write("outdir = '%s'\n" % self.control.params["outdir"])
+            fout.write("filplot = '%s'\n" % ("pwscf.rho"))
+            fout.write("plot_num = 8\n")
+            fout.write("/\n")
+            fout.write("&plot\n")
+            fout.write("nfile = 1\n")
+            fout.write("filepp(1) = '%s'\n" % ("pwscf.rho"))
+            fout.write("weight(1) = 1.0\n")
+            fout.write("iflag = 3\n")
+            fout.write("output_format = 3\n")
+            fout.write("e1(1) = 2, e1(2) = 0, e1(3) = 0\n")
+            fout.write("e2(1) = 0, e2(2) = 2, e2(3) = 0\n")
+            fout.write("e3(1) = 0, e3(2) = 0, e3(3) = 3.982131\n")
+            fout.write("x0(1) = 0.0, x0(2) = 0.0, x0(3) = 0.0\n")
+            fout.write("nx = 50, ny = 50, nz = 50\n")
+            fout.write("fileout = '%s'\n" % ("xxx.elf.xsf"))
+            fout.write("/\n")
+            fout.write("\n")
+        os.chdir(directory)
+        os.system("pp.x < %s | tee %s" % (inpname, output))
+        os.chdir("../")
+
+    def fermi_surface(self, directory="tmp-qe-static", inpname="fermi-surface.in", output="fermi-surface.out"):
+        """
+        scf->nscf(with denser k points)->fs.x
+        """
+        # first check whether there is a previous scf running
+        if not os.path.exists(directory):
+            print("===================================================\n")
+            print("                 Warning !!!\n")
+            print("===================================================\n")
+            print("dynmat.x calculation:\n")
+            print("  directory of previous scf or nscf calculattion not found!\n")
+            sys.exit(1)
+        with open(os.path.join(directory, inpname), 'w') as fout:
+            fout.write("&fermi\n")
+            fout.write("prefix = '%s'\n" % self.control.params["prefix"])
+            fout.write("outdir = '%s'\n" % self.control.params["outdir"])
+            fout.write("/\n")
+            fout.write("\n")
+        os.chdir(directory)
+        os.system("fs.x < %s | tee %s" % (inpname, output))
+        os.chdir("../")
+
+    def difference_charge_density(self, directory="tmp-qe-static", inpname="difference-charge-density.in", output="difference-charge-density.out"):
+        """
+        """
+        # first check whether there is a previous scf running
+        if not os.path.exists(directory):
+            print("===================================================\n")
+            print("                 Warning !!!\n")
+            print("===================================================\n")
+            print("dynmat.x calculation:\n")
+            print("  directory of previous scf or nscf calculattion not found!\n")
+            sys.exit(1)
+        with open(os.path.join(directory, inpname), 'w') as fout:
+            fout.write("&inputpp\n")
+            fout.write("prefix = '%s'\n" % self.control.params["prefix"])
+            fout.write("outdir = '%s'\n" % self.control.params["outdir"])
+            fout.write("filplot = '%s'\n" % ("difference-charge-density.rho"))
+            fout.write("plot_num = 9\n")
+            fout.write("/\n")
+            fout.write("&plot\n")
+            fout.write("nfile = 1\n")
+            fout.write("filepp(1) = '%s'\n" % ("difference-charge-density.rho"))
+            fout.write("weight(1) = 1.0\n")
+            fout.write("iflag = 3\n")
+            fout.write("output_format = 3\n")
+            fout.write("e1(1) = 2, e1(2) = 0, e1(3) = 0\n")
+            fout.write("e2(1) = 0, e2(2) = 2, e2(3) = 0\n")
+            fout.write("e3(1) = 0, e3(2) = 0, e3(3) = 3.982131\n")
+            fout.write("x0(1) = -1.0, x0(2) = -1.0, x0(3) = 0.0\n")
+            fout.write("nx = 50, ny = 50, nz = 50\n")
+            fout.write("fileout = '%s'\n" % ("difference-charge-density.dcd.xsf"))
+            fout.write("/\n")
+            fout.write("\n")
+        os.chdir(directory)
+        os.system("pp.x < %s | tee %s" % (inpname, output))
+        os.chdir("../")
+
+    def electron_density(self, directory="tmp-qe-static", inpname="electron-density.in", output="electron-density.out"):
+        """
+        """
+        # first check whether there is a previous scf running
+        if not os.path.exists(directory):
+            print("===================================================\n")
+            print("                 Warning !!!\n")
+            print("===================================================\n")
+            print("dynmat.x calculation:\n")
+            print("  directory of previous scf or nscf calculattion not found!\n")
+            sys.exit(1)
+        with open(os.path.join(directory, inpname), 'w') as fout:
+            fout.write("&inputpp\n")
+            fout.write("prefix = '%s'\n" % self.control.params["prefix"])
+            fout.write("outdir = '%s'\n" % self.control.params["outdir"])
+            fout.write("filplot = '%s'\n" % ("electron-density.rho"))
+            fout.write("plot_num = 8\n")
+            fout.write("/\n")
+            fout.write("&plot\n")
+            fout.write("nfile = 1\n")
+            fout.write("filepp(1) = '%s'\n" % ("electron-density.rho"))
+            fout.write("weight(1) = 1.0\n")
+            fout.write("iflag = 3\n")
+            fout.write("output_format = 3\n")
+            fout.write("e1(1) = 2, e1(2) = 0, e1(3) = 0\n")
+            fout.write("e2(1) = 0, e2(2) = 2, e2(3) = 0\n")
+            fout.write("e3(1) = 0, e3(2) = 0, e3(3) = 3.982131\n")
+            fout.write("x0(1) = 0.0, x0(2) = 0.0, x0(3) = 0.0\n")
+            fout.write("nx = 50, ny = 50, nz = 50\n")
+            fout.write("fileout = '%s'\n" % ("electron-density.rho.xsf"))
+            fout.write("/\n")
+            fout.write("\n")
+        os.chdir(directory)
+        os.system("pp.x < %s | tee %s" % (inpname, output))
+        os.chdir("../")

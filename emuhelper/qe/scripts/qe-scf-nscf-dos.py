@@ -11,9 +11,6 @@ usage:
 
 if __name__ == "__main__":
     task = static_run(sys.argv[1])
-    task.scf() # this is actually default
-    task.gen_input()
-    task.nscf()
-    task.run_scf()
-    task.run_nscf()
+    task.scf(runopt='genrun')
+    task.nscf(runopt='genrun')
     task.dos()

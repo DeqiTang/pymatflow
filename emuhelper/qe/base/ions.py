@@ -62,3 +62,10 @@ class qe_ions:
             self.params["ion_dynamics"] = 'bfgs'
             self.params["ion_temperature"] = 'notcontrolled'
             self.params["tempw"] = 300
+
+    def set_params(self, params):
+        """
+        params: a dict storing the parameters and values
+        """
+        for item in params:
+            self.params[item] = params[item]

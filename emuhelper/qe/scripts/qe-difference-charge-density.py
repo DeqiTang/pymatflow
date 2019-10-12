@@ -6,9 +6,9 @@ from emuhelper.qe.static import static_run
 
 """
 usage:
-    qe-single-point.py xxx.xyz
+    qe-difference-charge-density.py xxx.xyz
 """
 
 if __name__ == "__main__":
     task = static_run(sys.argv[1])
-    task.scf(runopt="genrun")
+    task.difference_charge_density()

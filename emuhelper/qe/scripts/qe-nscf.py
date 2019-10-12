@@ -11,5 +11,4 @@ usage:
 
 if __name__ == "__main__":
     task = static_run(sys.argv[1])
-    task.nscf()
-    task.run_nscf()
+    task.nscf(runopt='genrun')

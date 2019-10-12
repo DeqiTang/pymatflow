@@ -27,7 +27,7 @@ class opt_run:
         self.control.basic_setting("relax")
        
         self.system.basic_setting(self.arts)
-        
+        self.electrons.basic_setting()
         self.ions.basic_setting()
 
     def gen_input(self, directory="tmp-opt-qe", inpname="geometric-optimization.in"):

@@ -44,6 +44,28 @@ class qe_electrons:
         fout.write("&electrons\n")
         for item in self.params:
             if self.params[item] is not None:
-                fout.write("%s = %s\n" % (item, str(self.params[item])))
+                if type(self.params[item]) is str:
+                    if self.params[item] == ".true." or self.params[item] == ".false.":
+                        fout.write("%s = %s\n" % (item, str(self.params[item])))
+                    else:
+                        fout.write("%s = '%s'\n" % (item, str(self.params[item])))
+                else:
+                    fout.write("%s = %s\n" % (item, str(self.params[item])))
         fout.write("/\n")
         fout.write("\n")
+
+    def basic_setting(self):
+        self.params["conv_thr"] = 1.0E-6
+        self.params["mixing_mode"] = "plain" # namely charge density Broyden mixing
+        self.params["mixing_beta"] = 0.7E0 # mixing factor for self-consistency
+        # number of iterations used in mixing scheme
+        # if tight with memory, we can reduce it to 4
+        self.params["mixing_ndim"] = 8
+        self.params["diagonalization"] = 'david'
+
+    def set_params(self, params):
+        """
+        params: a dict storing the parameters and values
+        """
+        for item in params:
+            self.params[item] = params[item]

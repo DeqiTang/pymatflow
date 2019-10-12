@@ -67,11 +67,12 @@ class qe_control:
         """
         do a basic setting for all kinds of calculation
         """
+        self.params["prefix"] = 'pwscf'
         self.calculation(calc)
         if calc == "scf":
             self.params["outdir"] = "./tmp"
             self.params["pseudo_dir"] = "./"
-            self.params["wf_collect"] = ".true."
+            self.params["wf_collect"] = True
         elif calc == "nscf":
             self.params["outdir"] = "./tmp"
             self.params["pseudo_dir"] = "./tmp"
@@ -90,3 +91,10 @@ class qe_control:
             pass
         elif calc == "vc-md":
             pass
+
+    def set_params(self, params):
+        """
+        params: a dict storing the parameters and values
+        """
+        for item in params:
+            self.params[item] = params[item]
