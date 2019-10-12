@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
+import sys
+
 import pymatgen as mg
 
 """
@@ -116,6 +118,13 @@ class qe_system:
                 }
     def to_in(self, fout):
         # fout: a file stream for writing
+        # ==============================
+        # checking legacy of parameters
+        # if there is problem with it 
+        # the it will kill the script
+        # ==============================
+        self.check_all()
+        # ==============================
         fout.write("&system\n")
         for item in self.params:
             if self.params[item] is not None:
@@ -125,3 +134,32 @@ class qe_system:
                     fout.write("%s = %s\n" % (item, str(self.params[item])))
         fout.write("/\n")
         fout.write("\n")
+
+    def check_all(self):
+        """
+        """
+        must_define = ["ibrav", "nat", "ntyp", "ecutwfc"]
+        for item in must_define:
+            if self.params[item] is None:
+                print("===================================\n")
+                print("          Warning !!!!!!\n")
+                print("===================================\n")
+                print("the following parameters must always be\n")
+                print("set:\n")
+                print("[%s, %s, %s, %s]\n" % (must_define[0], must_define[1], must_define[2], must_define[3]))
+                sys.exit(1)
+
+    def basic_setting(self, arts):
+        """
+        arts: an object of qe.base.arts.qe_arts
+        """
+        self.params["ibrav"] = 0
+        self.params["nat"] = arts.xyz.natom
+        self.params["ntyp"] = arts.xyz.nspecies
+
+        self.params["ecutwfc"] = 100
+        self.params["input_DFT"] = 'PBE'
+        self.params["occupations"] = "smearing"
+        self.params["smearing"] = "gaussian"
+        self.params["degauss"] = 0.0001
+

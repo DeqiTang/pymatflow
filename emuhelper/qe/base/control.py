@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
+import sys
 import pymatgen as mg
 
 """
@@ -58,3 +59,34 @@ class qe_control:
                     fout.write("%s = %s\n" % (item, str(self.params[item])))
         fout.write("/\n")
         fout.write("\n")
+    
+    def calculation(self, calc="scf"):
+        self.params["calculation"] = calc
+
+    def basic_setting(self, calc="scf"):
+        """
+        do a basic setting for all kinds of calculation
+        """
+        self.calculation(calc)
+        if calc == "scf":
+            self.params["outdir"] = "./tmp"
+            self.params["pseudo_dir"] = "./"
+            self.params["wf_collect"] = ".true."
+        elif calc == "nscf":
+            self.params["outdir"] = "./tmp"
+            self.params["pseudo_dir"] = "./tmp"
+            self.params["wf_collect"] = ".true."
+        elif calc == "bands":
+            pass
+        elif calc == "relax":
+            self.params["outdir"] = "./tmp"
+            self.params["pseudo_dir"] = "./"
+            self.params["wf_collect"] = ".true."
+        elif calc == "md":
+            self.params["outdir"] = "./tmp"
+            self.params["pseudo_dir"] = "./"
+            self.params["wf_collect"] = ".true."
+        elif calc == "vc-relax":
+            pass
+        elif calc == "vc-md":
+            pass

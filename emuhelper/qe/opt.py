@@ -22,23 +22,13 @@ class opt_run:
         self.electrons = qe_electrons()
         self.ions = qe_ions()
         self.arts = qe_arts(xyz_f)
+   
+        self.control.calculation("relax")
+        self.control.basic_setting("relax")
+       
+        self.system.basic_setting(self.arts)
         
-        self.control.params["calculation"] = 'relax'
-        self.control.params["outdir"] = "./tmp"
-        self.control.params["pseudo_dir"] = "./"
-        self.control.params["wf_collect"] = ".true."
-        self.system.params["ibrav"] = 0
-        self.system.params["nat"] = self.arts.xyz.natom
-        self.system.params["ntyp"] = self.arts.xyz.nspecies
-        self.system.params["ecutwfc"] = 100
-        self.system.params["input_DFT"] = 'PBE'
-        self.system.params["occupations"] = 'smearing'
-        self.system.params["smearing"] = "gaussian"
-        self.system.params["degauss"] = 0.0001
-        
-        self.ions.params["ion_dynamics"] = 'bfgs'
-        self.ions.params["ion_temperature"] = 'not_controlled'
-        self.ions.params["tempw"] = 300
+        self.ions.basic_setting()
 
     def gen_input(self, directory="tmp-opt-qe", inpname="geometric-optimization.in"):
         """

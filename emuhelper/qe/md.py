@@ -23,22 +23,12 @@ class md_run:
         self.ions = qe_ions()
         self.arts = qe_arts(xyz_f)
         
-        self.control.params["calculation"] = 'md'
-        self.control.params["outdir"] = "./tmp"
-        self.control.params["pseudo_dir"] = "./"
-        self.control.params["wf_collect"] = ".true."
-        self.system.params["ibrav"] = 0
-        self.system.params["nat"] = self.arts.xyz.natom
-        self.system.params["ntyp"] = self.arts.xyz.nspecies
-        self.system.params["ecutwfc"] = 100
-        self.system.params["input_DFT"] = 'PBE'
-        self.system.params["occupations"] = 'smearing'
-        self.system.params["smearing"] = "gaussian"
-        self.system.params["degauss"] = 0.0001
+        self.control.calculation('md')
+        self.control.basic_setting("md")
         
-        self.ions.params["ion_dynamics"] = 'verlet'
-        self.ions.params["ion_temperature"] = 'not_controlled'
-        self.ions.params["tempw"] = 300
+        self.system.basic_setting(self.arts)
+
+        self.ions.basic_setting('md') 
 
     def gen_input(self, directory="tmp-md-qe", inpname="molecular-dynamics.in"):
         """

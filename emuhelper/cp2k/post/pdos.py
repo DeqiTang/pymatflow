@@ -34,3 +34,12 @@ class pdos:
 
     def help(self):
         pass
+
+    def convolute(self, ):
+        """
+        need to do a convolution plot using gaussian to get a smooth DOS.
+        Reference:
+            https://matthew-brett.github.io/teaching/smoothing_as_convolution.html
+        maybe we can use scipy.ndimage.gaussian_filter1d to do it conveniently
+        """
+        pass

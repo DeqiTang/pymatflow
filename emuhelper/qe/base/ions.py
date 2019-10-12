@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
+import sys
+
 import pymatgen as mg
 
 """
@@ -43,3 +45,20 @@ class qe_ions:
                     fout.write("%s = %s\n" % (item, str(self.params[item])))
         fout.write("/\n")
         fout.write("\n")
+
+    def basic_setting(self, calc='relax'):
+        """
+        for different kind of running set different parameters
+        """
+        if calc == 'relax':
+            self.params["ion_dynamics"] = "bfgs"
+            self.params["ion_temperature"] = 'not-controlled'
+            self.params["tempw"] = 300
+        elif calc == 'md':
+            self.params["ion_dynamics"] = 'verlet'
+            self.params["ion_temperature"] = 'not_controlled'
+            self.params["tempw"] = 300
+        elif calc == 'vc-relax':
+            self.params["ion_dynamics"] = 'bfgs'
+            self.params["ion_temperature"] = 'notcontrolled'
+            self.params["tempw"] = 300

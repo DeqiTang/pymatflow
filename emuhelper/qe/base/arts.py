@@ -31,6 +31,11 @@ class qe_arts:
                 "cell_dofree": None,
                 }
 
+        self.kpoints_option = "automatic"
+        self.kpoints_mp = [1, 1, 1, 0, 0, 0]
+
+        self.nks = 4
+
     def to_in(self, fout):
         # fout: a file stream for writing
         fout.write("&cell\n")
@@ -59,3 +64,41 @@ class qe_arts:
         for atom in self.xyz.atoms:
             fout.write("%s\t%f\t%f\t%f\n" % (atom.name, atom.x, atom.y, atom.z))
         fout.write("\n")
+        
+        # writing KPOINTS to the fout
+        self.write_kpoints(fout)
+        # =========================
+
+    def write_kpoints(self, fout):
+        # fout: a file stream for writing
+        if self.kpoints_option == "automatic":
+            fout.write("K_POINTS %s\n" % self.kpoints_option)
+            fout.write("%d %d %d %d %d %d\n" % (
+                self.kpoints_mp[0],
+                self.kpoints_mp[1],
+                self.kpoints_mp[2],
+                self.kpoints_mp[3],
+                self.kpoints_mp[4],
+                self.kpoints_mp[5]
+                ))
+        elif self.kpoints_option == "crystal_b":
+            fout.write("K_POINTS %s\n" % self.kpoints_option)
+            fout.write("%d\n" % self.nks)
+            # Gamma-K-M-Gamma
+            fout.write("0.0000000000     0.0000000000     0.0000000000     20\n")
+            fout.write("0.3333333333     0.3333333333     0.0000000000     10\n")
+            fout.write("0.0000000000     0.5000000000     0.0000000000     17\n")
+            fout.write("0.0000000000     0.0000000000     0.0000000000     0\n")
+
+
+    def set_kpoints(self, kpoints_mp=[1, 1, 1, 0, 0, 0], option="automatic"):
+        """
+        TODO: 
+            considering using seekpath to get the kpoints automatically from structure
+            https://github.com/giovannipizzi/seekpath/tree/develop/seekpath
+        """
+        if option == "automatic":
+            self.kpoints_mp = kpoints_mp
+        if option == "crystal_b":
+            self.kpoints_option = option
+            return
