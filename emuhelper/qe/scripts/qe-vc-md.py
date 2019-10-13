@@ -11,4 +11,4 @@ usage: qe-md.py xxx.xyz
 
 if __name__ == "__main__":
     task = md_run(sys.argv[1])
-    task.md(runopt="genrun")
+    task.vc_md(runopt="genrun")

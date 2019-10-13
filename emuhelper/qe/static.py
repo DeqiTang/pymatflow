@@ -41,7 +41,7 @@ class static_run:
         self.system.basic_setting(self.arts)
         self.electrons.basic_setting()
 
-    def scf(self, directory="tmp-qe-static", inpname="static-scf.in", output="static-scf.out", runopt="gen",
+    def scf(self, directory="tmp-qe-static", inpname="static-scf.in", output="static-scf.out", mpi="", runopt="gen",
             control={}, system={}, electrons={}, kpoints_mp=[2, 2, 2, 0, 0, 0]):
         """
         directory: a place for all the generated files
@@ -80,10 +80,10 @@ class static_run:
 
         if runopt == 'genrun' or runopt == 'run':
             os.chdir(directory)
-            os.system("pw.x < %s | tee %s" % (inpname, output))
+            os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
 
-    def nscf(self, directory="tmp-qe-static", inpname="static-nscf.in", output="static-nscf.out", runopt='gen'):
+    def nscf(self, directory="tmp-qe-static", inpname="static-nscf.in", output="static-nscf.out", mpi="", runopt='gen', control={}, system={}, electrons={}, kpoints_mp=[4, 4, 4, 0, 0, 0]):
         """
         parameters:
             directory: the overall static calculation directory
@@ -103,8 +103,11 @@ class static_run:
             print("  directory of previous scf calculattion not found!\n")
             sys.exit(1)
         if runopt == 'gen' or runopt == 'genrun':
+            self.control.set_params(control)
+            self.system.set_params(system)
+            self.electrons.set_params(electrons)
+            self.arts.set_kpoints(kpoints_mp)
             self.control.calculation("nscf")
-            self.arts.set_kpoints([4, 4, 4, 0, 0, 0])
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)
@@ -112,10 +115,10 @@ class static_run:
                 self.arts.to_in(fout)
         if runopt == 'genrun' or runopt == 'run':
             os.chdir(directory)
-            os.system("pw.x < %s | tee %s" % (inpname, output))
+            os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
     
-    def converge_ecutwfc(self, emin, emax, step, directory="tmp-qe-ecutwfc"):
+    def converge_ecutwfc(self, emin, emax, step, directory="tmp-qe-ecutwfc", mpi=""):
         if os.path.exists(directory):
             shutil.rmtree(directory)
         os.mkdir(directory)
@@ -139,7 +142,7 @@ class static_run:
             ecut_wfc = int(emin + i * step)
             inp_name = "ecutwfc-%d.in" % ecut_wfc
             out_f_name = "ecutwfc-%d.out" % ecut_wfc
-            os.system("pw.x < %s | tee %s" % (inp_name, out_f_name))
+            os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
 
         # analyse the result
         for i in range(n_test + 1):
@@ -158,7 +161,7 @@ class static_run:
         os.chdir("../")
 
         
-    def converge_ecutrho(self, emin, emax, step, ecutwfc, directory="tmp-qe-ecutrho"):
+    def converge_ecutrho(self, emin, emax, step, ecutwfc, directory="tmp-qe-ecutrho", mpi=""):
         if os.path.exists(directory):
             shutil.rmtree(directory)
         os.mkdir(directory)
@@ -182,7 +185,7 @@ class static_run:
             ecut_rho = int(emin + i * step)
             inp_name = "ecutrho-%d.in" % ecut_rho
             out_f_name = "ecutrho-%d.out" % ecut_rho
-            os.system("pw.x < %s | tee %s" % (inp_name, out_f_name))
+            os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
         # analyse the result
         for i in range(n_test + 1):
             ecut_rho = int(emin + i * step)
@@ -199,7 +202,7 @@ class static_run:
         plt.show()
         os.chdir("../")
     #
-    def converge_kpoints(self,nk_min, nk_max, step=1, directory="tmp-qe-kpoints", ecutwfc=50):
+    def converge_kpoints(self,nk_min, nk_max, step=1, directory="tmp-qe-kpoints", ecutwfc=150, mpi=""):
         """
         test the energy convergenc against k-points
 
@@ -230,7 +233,7 @@ class static_run:
             nk = nk_min + i * step
             inp_name = "kpoints-%d.in" % nk
             out_f_name = "kpoints-%d.out" % nk
-            os.system("pw.x < %s | tee %s" % (inp_name, out_f_name))
+            os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
 
         # analyse the result
         for i in range(n_test + 1):
@@ -248,7 +251,7 @@ class static_run:
         plt.show()
         os.chdir("../")  
 
-    def converge_degauss(self,degauss_min, degauss_max, step, smearing='gauss', directory="tmp-qe-degauss", ecutwfc=50):
+    def converge_degauss(self,degauss_min, degauss_max, step=0.01, smearing='gauss', directory="tmp-qe-degauss", ecutwfc=150, mpi=""):
         """
         Convergence with respect to degauss/smearing
 
@@ -290,7 +293,7 @@ class static_run:
             degauss = degauss_min + i * step
             inp_name = "degauss-%d.in" % degauss
             out_f_name = "degauss-%d.out" % degauss
-            os.system("pw.x < %s | tee %s" % (inp_name, out_f_name))
+            os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
 
         # analyse the result
         for i in range(n_test + 1):
@@ -309,7 +312,7 @@ class static_run:
         os.chdir("../")  
 
     
-    def dos(self, directory="tmp-qe-static", inpname="static-dos.in", output="static-dos.out"):
+    def dos(self, directory="tmp-qe-static", inpname="static-dos.in", output="static-dos.out", mpi=""):
         """
         first check whether there is a previous scf running
         """
@@ -328,10 +331,10 @@ class static_run:
             fout.write("/\n")
             fout.write("\n")
         os.chdir(directory)
-        os.system("dos.x < %s | tee %s" % (inpname, output))
+        os.system("%s dos.x < %s | tee %s" % (mpi, inpname, output))
         os.chdir("../")
 
-    def bands(self, directory="tmp-qe-static", inpname1="static-bands.in", output1="static-bands.out", inpname2="bands.in", output2="bands.out"):
+    def bands(self, directory="tmp-qe-static", inpname1="static-bands.in", output1="static-bands.out", inpname2="bands.in", output2="bands.out", mpi=""):
         """
         first check whether there is a previous scf running
         Note:
@@ -357,7 +360,7 @@ class static_run:
             self.arts.to_in(fout)
 
         os.chdir(directory)
-        os.system("pw.x < %s | tee %s" % (inpname1, output1))
+        os.system("%s pw.x < %s | tee %s" % (mpi, inpname1, output1))
         os.chdir("../")
 
         with open(os.path.join(directory, inpname2), 'w') as fout:
@@ -370,11 +373,11 @@ class static_run:
             fout.write("\n")
 
         os.chdir(directory)
-        os.system("bands.x < %s | tee %s" % (inpname2, output2))
+        os.system("%s bands.x < %s | tee %s" % (mpi, inpname2, output2))
         os.chdir("../")
         
 
-    def projwfc(self, directory="tmp-qe-static", inpname="static-projwfc.in", output="static-projwfc.out"):
+    def projwfc(self, directory="tmp-qe-static", inpname="static-projwfc.in", output="static-projwfc.out", mpi=""):
         """
         &projwfc can using projwfc.x to calculate Lowdin charges, spilling 
         parameter, projected DOS
@@ -395,10 +398,10 @@ class static_run:
             fout.write("/\n")
             fout.write("\n")
         os.chdir(directory)
-        os.system("projwfc.x < %s | tee %s" % (inpname, output))
+        os.system("%s projwfc.x < %s | tee %s" % (mpi, inpname, output))
         os.chdir("../")
 
-    def epsilon(self, directory="tmp-qe-static", inpname="epsilon.in", output="epsilon.out"):
+    def epsilon(self, directory="tmp-qe-static", inpname="epsilon.in", output="epsilon.out", mpi=""):
         """
         References:
             https://gitlab.com/QEF/material-for-ljubljana-qe-summer-school/blob/master/Day-3/handson-day3-TDDFPT.pdf
@@ -431,11 +434,11 @@ class static_run:
             fout.write("/\n")
             fout.write("\n")
         os.chdir(directory)
-        os.system("epsilon.x < %s | tee %s" % (inpname, output))
+        os.system("%s epsilon.x < %s | tee %s" % (mpi, inpname, output))
         os.chdir("../")
 
     def turbo_davidson(self, directory="tmp-qe-static", inpname1="turbo-davidson.in", output1="turbo-davidson.out",
-            inpname2="turbo-spectrum-davidson.in", output2="turbo-spectrum-davidson.out"):
+            inpname2="turbo-spectrum-davidson.in", output2="turbo-spectrum-davidson.out", mpi=""):
         """
         References:
             https://gitlab.com/QEF/material-for-ljubljana-qe-summer-school/blob/master/Day-3/handson-day3-TDDFPT.pdf
@@ -491,7 +494,7 @@ class static_run:
             fout.write("/\n")
             fout.write("\n")
         os.chdir(directory)
-        os.system("turbo_davidson.x < %s | tee %s" % (inpname1, output1))
+        os.system("%s turbo_davidson.x < %s | tee %s" % (mpi, inpname1, output1))
         os.chdir("../")
     
         with open(os.path.join(directory, inpname2), 'w') as fout:
@@ -507,11 +510,11 @@ class static_run:
             fout.write("/\n")
             fout.write("\n")
         os.chdir(directory)
-        os.system("turbo_spectrum.x < %s | tee %s" % (inpname2, output2))
+        os.system("%s turbo_spectrum.x < %s | tee %s" % (mpi, inpname2, output2))
         os.chdir("../")
     
     def turbo_lanczos(self, directory="tmp-qe-static", inpname1="turbo-lanczos.in", output1="turbo-lanczos.out",
-            inpname2="turbo-spectrum-lanczos.in", output2="turbo-spectrum-lanczos.out"):
+            inpname2="turbo-spectrum-lanczos.in", output2="turbo-spectrum-lanczos.out", mpi=""):
         """
         References:
             https://gitlab.com/QEF/material-for-ljubljana-qe-summer-school/blob/master/Day-3/handson-day3-TDDFPT.pdf
@@ -550,7 +553,7 @@ class static_run:
             fout.write("/\n")
             fout.write("\n")
         os.chdir(directory)
-        os.system("turbo_lanczos.x < %s | tee %s" % (inpname1, output1))
+        os.system("%s turbo_lanczos.x < %s | tee %s" % (mpi, inpname1, output1))
         os.chdir("../")
     
         with open(os.path.join(directory, inpname2), 'w') as fout:
@@ -568,10 +571,10 @@ class static_run:
             fout.write("/\n")
             fout.write("\n")
         os.chdir(directory)
-        os.system("turbo_spectrum.x < %s | tee %s" % (inpname2, output2))
+        os.system("%s turbo_spectrum.x < %s | tee %s" % (mpi, inpname2, output2))
         os.chdir("../")
 
-    def phx_qmesh(self, directory="tmp-qe-static", inpname="phx-qmesh.in", output="phx-qmesh.out", dynamat_file="phx-qmesh.dyn"):
+    def phx_qmesh(self, directory="tmp-qe-static", inpname="phx-qmesh.in", output="phx-qmesh.out", dynamat_file="phx-qmesh.dyn", mpi=""):
         """
         Reference:
             https://gitlab.com/QEF/material-for-ljubljana-qe-summer-school/blob/master/Day-3/handson-day3-DFPT.pdf
@@ -626,10 +629,10 @@ class static_run:
             fout.write("/\n")
             fout.write("\n")
         os.chdir(directory)
-        os.system("ph.x < %s | tee %s" % (inpname, output))
+        os.system("%s ph.x < %s | tee %s" % (mpi, inpname, output))
         os.chdir("../")
 
-    def q2r(self, directory="tmp-qe-static", inpname="q2r.in", output="q2r.out", dynamat_file="phx-qmesh.dyn", ifc_file="ifc.fc"):
+    def q2r(self, directory="tmp-qe-static", inpname="q2r.in", output="q2r.out", dynamat_file="phx-qmesh.dyn", ifc_file="ifc.fc", mpi=""):
         """
         q2r.x:
             calculation of Interatomic Force Constants(IFC) from 
@@ -651,10 +654,10 @@ class static_run:
             fout.write("/\n")
             fout.write("\n")
         os.chdir(directory)
-        os.system("q2r.x < %s | tee %s" % (inpname, output))
+        os.system("%s q2r.x < %s | tee %s" % (mpi, inpname, output))
         os.chdir("../")
 
-    def matdyn(self, directory="tmp-qe-static", inpname="matdyn.in", output="matdyn.out", ifc_file="ifc.fc"):
+    def matdyn(self, directory="tmp-qe-static", inpname="matdyn.in", output="matdyn.out", ifc_file="ifc.fc", mpi=""):
         """
         matdyn.x
             Calculate phonons at generic q points using IFC
@@ -682,10 +685,10 @@ class static_run:
             for i in range(nqpoints):
                 fout.write("%f %f %f\n" % (qpoints[i][0], qpoints[i][1], qpoints[i][2]))
         os.chdir(directory)
-        os.system("matdyn.x < %s | tee %s" % (inpname, output))
+        os.system("%s matdyn.x < %s | tee %s" % (mpi, inpname, output))
         os.chdir("../")
 
-    def plotband(self, directory="tmp-qe-static", inpname="plotband.in", output="plotband.out"):
+    def plotband(self, directory="tmp-qe-static", inpname="plotband.in", output="plotband.out", mpi=""):
         """
         plotband.x
             Plot the phonon dispersion
@@ -706,11 +709,11 @@ class static_run:
             fout.write("0.0\n") # Fermi level (needed only for band structure plot)
             fout.write("100.0 0.0\n") # Freq. step and reference freq. on the plot freq.ps
         os.chdir(directory)
-        os.system("plotband.x < %s | tee %s" % (inpname, output))
+        os.system("%s plotband.x < %s | tee %s" % (mpi, inpname, output))
         os.chdir("../")
 
 
-    def phx_gamma(self, directory="tmp-qe-static", inpname="phx-gamma.in", output="phx-gamma.out", dynamat_file="phx-gamma.dyn"):
+    def phx_gamma(self, directory="tmp-qe-static", inpname="phx-gamma.in", output="phx-gamma.out", dynamat_file="phx-gamma.dyn", mpi=""):
         """
         do phonon calculation only at \Gamma point
         """
@@ -732,10 +735,10 @@ class static_run:
             fout.write("0.0 0.0 0.0\n")
             fout.write("\n")
         os.chdir(directory)
-        os.system("ph.x < %s | tee %s" % (inpname, output))
+        os.system("%s ph.x < %s | tee %s" % (mpi, inpname, output))
         os.chdir("../")
 
-    def dynmat(self, directory="tmp-qe-static", inpname="dynmat.in", output="dynmat.out", dynamat_file="phx-qmesh.dyn"):
+    def dynmat(self, directory="tmp-qe-static", inpname="dynmat.in", output="dynmat.out", dynamat_file="phx-qmesh.dyn", mpi=""):
         """
         imposing acoustic sum rule (ASR)
         extract the phonon information from ph.x output using dynmat.x(
@@ -757,10 +760,10 @@ class static_run:
             fout.write("/\n")
             fout.write("\n")
         os.chdir(directory)
-        os.system("dynmat.x < %s | tee %s" % (inpname, output))
+        os.system("%s dynmat.x < %s | tee %s" % (mpi, inpname, output))
         os.chdir("../")
 
-    def ir_raman(self, directory="tmp-qe-static"):
+    def ir_raman(self, directory="tmp-qe-static", mpi=""):
         """
         Reference:
             https://larrucea.eu/compute-ir-raman-spectra-qe/
@@ -774,7 +777,7 @@ class static_run:
         self.phx_qmesh()
         self.dynmat()
 
-    def elf(self, directory="tmp-qe-static", inpname="elf.in", output="elf.out"):
+    def elf(self, directory="tmp-qe-static", inpname="elf.in", output="elf.out", mpi=""):
         """
         """
         # first check whether there is a previous scf running
@@ -807,10 +810,10 @@ class static_run:
             fout.write("/\n")
             fout.write("\n")
         os.chdir(directory)
-        os.system("pp.x < %s | tee %s" % (inpname, output))
+        os.system("%s pp.x < %s | tee %s" % (mpi, inpname, output))
         os.chdir("../")
 
-    def fermi_surface(self, directory="tmp-qe-static", inpname="fermi-surface.in", output="fermi-surface.out"):
+    def fermi_surface(self, directory="tmp-qe-static", inpname="fermi-surface.in", output="fermi-surface.out", mpi=""):
         """
         scf->nscf(with denser k points)->fs.x
         """
@@ -829,10 +832,10 @@ class static_run:
             fout.write("/\n")
             fout.write("\n")
         os.chdir(directory)
-        os.system("fs.x < %s | tee %s" % (inpname, output))
+        os.system("%s fs.x < %s | tee %s" % (mpi, inpname, output))
         os.chdir("../")
 
-    def difference_charge_density(self, directory="tmp-qe-static", inpname="difference-charge-density.in", output="difference-charge-density.out"):
+    def difference_charge_density(self, directory="tmp-qe-static", inpname="difference-charge-density.in", output="difference-charge-density.out", mpi=""):
         """
         """
         # first check whether there is a previous scf running
@@ -865,10 +868,10 @@ class static_run:
             fout.write("/\n")
             fout.write("\n")
         os.chdir(directory)
-        os.system("pp.x < %s | tee %s" % (inpname, output))
+        os.system("%s pp.x < %s | tee %s" % (mpi, inpname, output))
         os.chdir("../")
 
-    def electron_density(self, directory="tmp-qe-static", inpname="electron-density.in", output="electron-density.out"):
+    def electron_density(self, directory="tmp-qe-static", inpname="electron-density.in", output="electron-density.out", mpi=""):
         """
         """
         # first check whether there is a previous scf running
@@ -901,5 +904,5 @@ class static_run:
             fout.write("/\n")
             fout.write("\n")
         os.chdir(directory)
-        os.system("pp.x < %s | tee %s" % (inpname, output))
+        os.system("%s pp.x < %s | tee %s" % (mpi, inpname, output))
         os.chdir("../")

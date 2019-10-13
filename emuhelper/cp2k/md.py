@@ -31,28 +31,26 @@ class md_run:
         self.motion.set_type("MD")
         self.motion.md.params["STEPS"] = 20
 
-    def gen_input(self, directory="tmp-cp2k-md", inpname="molecular-dynamics.inp"):
+    def md(self, directory="tmp-cp2k-md", inpname="md.inp", output="md.out", mpi="", runopt="gen"):
         """
         directory: a place for all the generated files
         """
-        if os.path.exists(directory):
-            shutil.rmtree(directory)
-        os.mkdir(directory)
-        shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, self.force_eval.subsys.xyz.file))
+        if runopt == "gen" or runopt == "genrun":
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
+            shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, self.force_eval.subsys.xyz.file))
 
-        self.glob.to_input(os.path.join(directory, inpname))
-        self.force_eval.to_input(os.path.join(directory, inpname))
-        self.motion.to_input(os.path.join(directory, inpname))
+            self.glob.to_input(os.path.join(directory, inpname))
+            self.force_eval.to_input(os.path.join(directory, inpname))
+            self.motion.to_input(os.path.join(directory, inpname))
+        if runopt == "run" or runopt == "genrun":
+            os.chdir(directory)
+            os.system("%s cp2k.psmp < %s | tee %s" % (mpi, inpname, output))
+            os.chdir("../")
     
-    def run(self, directory="tmp-cp2k-md", inpname="molecular-dynamics.inp", output="molecular-dynamics.out"):
-        """
-        directory: a place for all the generated files
-        """
-        os.chdir(directory)
-        os.system("cp2k.psmp -in %s | tee %s" % (inpname, output))
-        os.chdir("../")
 
-    def analysis(self, directory="tmp-cp2k-md", output="molecular-dynamics.out"):
+    def analysis(self, directory="tmp-cp2k-md", output="md.out"):
         # analyse the result
         os.chdir(directory)
         os.system("cat %s | grep 'ENERGY| Total FORCE_EVAL' > energy-per-ion-step.data" % (output))

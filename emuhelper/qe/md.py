@@ -23,6 +23,52 @@ class md_run:
         self.ions = qe_ions()
         self.arts = qe_arts(xyz_f)
         
+        
+    def md(self, directory="tmp-qe-md", inpname="md.in", output="md.out", mpi="", runopt="gen"):
+        """
+        directory: a place for all the generated files
+        """
+        if runopt ==  "gen" or runopt == "genrun":
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
+            os.system("cp *.UPF %s/" % directory)
+            
+            self.set_md()
+            with open(os.path.join(directory, inpname), 'w') as fout:
+                self.control.to_in(fout)
+                self.system.to_in(fout)
+                self.electrons.to_in(fout)
+                self.ions.to_in(fout)
+                self.arts.to_in(fout)
+        if runopt == "run" or runopt == "genrun":
+            os.chdir(directory)
+            os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
+            os.chdir("../")
+
+    def vc_md(self, directory="tmp-qe-vc-md", inpname="vc-md.in", output="vc-md.out", mpi="", runopt="gen"):
+        """
+        directory: a place for all the generated files
+        """
+        if runopt ==  "gen" or runopt == "genrun":
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
+            os.system("cp *.UPF %s/" % directory)
+            
+            self.set_vc_md()
+            with open(os.path.join(directory, inpname), 'w') as fout:
+                self.control.to_in(fout)
+                self.system.to_in(fout)
+                self.electrons.to_in(fout)
+                self.ions.to_in(fout)
+                self.arts.to_in(fout)
+        if runopt == "run" or runopt == "genrun":
+            os.chdir(directory)
+            os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
+            os.chdir("../")
+
+    def set_md(self):
         self.control.calculation('md')
         self.control.basic_setting("md")
         
@@ -30,24 +76,11 @@ class md_run:
         self.electrons.basic_setting()
         self.ions.basic_setting('md') 
 
-    def gen_input(self, directory="tmp-md-qe", inpname="molecular-dynamics.in"):
-        """
-        directory: a place for all the generated files
-        """
-        if os.path.exists(directory):
-            shutil.rmtree(directory)
-        os.mkdir(directory)
-        os.system("cp *.UPF %s/" % directory)
-
-        with open(os.path.join(directory, inpname), 'w') as fout:
-            self.control.to_in(fout)
-            self.system.to_in(fout)
-            self.electrons.to_in(fout)
-            self.ions.to_in(fout)
-            self.arts.to_in(fout)
-    
-    def run(self, directory="tmp-md-qe", inpname="molecular-dynamics.in", output="molecular-dynamics.out"):
-        os.chdir(directory)
-        os.system("pw.x < %s | tee %s" % (inpname, output))
-        os.chdir("../")
+    def set_vc_md(self):
+        self.control.calculation('vc-md')
+        self.control.basic_setting("vc-md")
+        
+        self.system.basic_setting(self.arts)
+        self.electrons.basic_setting()
+        self.ions.basic_setting('vc-md') 
 

@@ -159,9 +159,9 @@ class qe_system:
 
         self.params["ecutwfc"] = 100
         self.params["input_dft"] = 'PBE'
-        #self.params["occupations"] = "smearing"
-        #self.params["smearing"] = "gaussian"
-        #self.params["degauss"] = 0.0001
+        self.params["occupations"] = "smearing"
+        self.params["smearing"] = "gaussian"
+        self.params["degauss"] = 0.0001
     
     def set_params(self, params):
         """

@@ -23,6 +23,54 @@ class opt_run:
         self.ions = qe_ions()
         self.arts = qe_arts(xyz_f)
    
+        
+    def relax(self, directory="tmp-qe-relax", inpname="relax.in", output="realx.out", mpi="", runopt="gen"):
+        """
+        directory: a place for all the generated files
+        """
+        if runopt == "gen" or runopt == "genrun":
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
+            os.system("cp *.UPF %s/" % directory)
+            
+            self.set_relax()
+            with open(os.path.join(directory, inpname), 'w') as fout:
+                self.control.to_in(fout)
+                self.system.to_in(fout)
+                self.electrons.to_in(fout)
+                self.ions.to_in(fout)
+                self.arts.to_in(fout)
+
+        if runopt == "run" or runopt == "genrun":
+            os.chdir(directory)
+            os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
+            os.chdir("../")
+    
+    def vc_relax(self, directory="tmp-qe-vc-relax", inpname="vc-relax.in", output="vc-realx.out", mpi="", runopt="gen"):
+        """
+        directory: a place for all the generated files
+        """
+        if runopt == "gen" or runopt == "genrun":
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
+            os.system("cp *.UPF %s/" % directory)
+
+            self.set_vc_relax()
+            with open(os.path.join(directory, inpname), 'w') as fout:
+                self.control.to_in(fout)
+                self.system.to_in(fout)
+                self.electrons.to_in(fout)
+                self.ions.to_in(fout)
+                self.arts.to_in(fout)
+
+        if runopt == "run" or runopt == "genrun":
+            os.chdir(directory)
+            os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
+            os.chdir("../")
+        
+    def set_relax(self):
         self.control.calculation("relax")
         self.control.basic_setting("relax")
        
@@ -30,24 +78,11 @@ class opt_run:
         self.electrons.basic_setting()
         self.ions.basic_setting()
 
-    def gen_input(self, directory="tmp-opt-qe", inpname="geometric-optimization.in"):
-        """
-        directory: a place for all the generated files
-        """
-        if os.path.exists(directory):
-            shutil.rmtree(directory)
-        os.mkdir(directory)
-        os.system("cp *.UPF %s/" % directory)
-
-        with open(os.path.join(directory, inpname), 'w') as fout:
-            self.control.to_in(fout)
-            self.system.to_in(fout)
-            self.electrons.to_in(fout)
-            self.ions.to_in(fout)
-            self.arts.to_in(fout)
-    
-    def run(self, directory="tmp-opt-qe", inpname="geometric-optimization.in", output="geometric-optimization.out"):
-        os.chdir(directory)
-        os.system("pw.x < %s | tee %s" % (inpname, output))
-        os.chdir("../")
+    def set_vc_relax(self):
+        self.control.calculation("vc-relax")
+        self.control.basic_setting("vc-relax")
+       
+        self.system.basic_setting(self.arts)
+        self.electrons.basic_setting()
+        self.ions.basic_setting()
 
