@@ -1,14 +1,27 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
-import sys
+import argparse
 
 from emuhelper.qe.static import static_run
 
 """
-usage qe-converge-degauss.py xxx.xyz degauss_min degauss_max step
+usage qe-converge-degauss.py -f xxx.xyz --range degauss_min degauss_max step
 """
 
 if __name__ == "__main__":
-    task = static_run(sys.argv[1])
-    task.converge_degauss(int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]))
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+    parser.add_argument("--range", help="degauss_min degauss_max step", nargs='+', type=float)
+    parser.add_argument("-k", "--kpoints", help="set kpoints like '1 1 1 0 0 0'", type=str, default="1 1 1 0 0 0")
+
+    # ==========================================================
+    # transfer parameters from the arg parser to opt_run setting
+    # ==========================================================
+    args = parser.parse_args()
+    xyzfile = args.file
+    kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
+
+    task = static_run(xyzfile)
+
+    task.converge_degauss(args.range[0], args.range[1], args.range[2], runopt="genrun")

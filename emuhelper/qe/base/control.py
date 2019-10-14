@@ -78,7 +78,9 @@ class qe_control:
             self.params["pseudo_dir"] = "./tmp"
             self.params["wf_collect"] = ".true."
         elif calc == "bands":
-            pass
+            self.params["outdir"] = "./tmp"
+            self.params["pseudo_dir"] = "./"
+            self.params["wf_collect"] = ".true."
         elif calc == "relax":
             self.params["outdir"] = "./tmp"
             self.params["pseudo_dir"] = "./"
@@ -88,9 +90,13 @@ class qe_control:
             self.params["pseudo_dir"] = "./"
             self.params["wf_collect"] = ".true."
         elif calc == "vc-relax":
-            pass
+            self.params["outdir"] = "./tmp"
+            self.params["pseudo_dir"] = "./"
+            self.params["wf_collect"] = ".true."
         elif calc == "vc-md":
-            pass
+            self.params["outdir"] = "./tmp"
+            self.params["pseudo_dir"] = "./"
+            self.params["wf_collect"] = ".true."
 
     def set_params(self, params):
         """

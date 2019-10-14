@@ -24,7 +24,8 @@ class opt_run:
         self.arts = qe_arts(xyz_f)
    
         
-    def relax(self, directory="tmp-qe-relax", inpname="relax.in", output="realx.out", mpi="", runopt="gen"):
+    def relax(self, directory="tmp-qe-relax", inpname="relax.in", output="realx.out", 
+            mpi="", runopt="gen", control={}, system={}, electrons={}, ions={}, kpoints_mp=[1, 1, 1, 0, 0, 0]):
         """
         directory: a place for all the generated files
         """
@@ -35,6 +36,12 @@ class opt_run:
             os.system("cp *.UPF %s/" % directory)
             
             self.set_relax()
+            self.control.set_params(control)
+            self.system.set_params(system)
+            self.electrons.set_params(electrons)
+            self.ions.set_params(ions)
+            self.arts.set_kpoints(kpoints_mp)
+
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)
@@ -47,7 +54,8 @@ class opt_run:
             os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
     
-    def vc_relax(self, directory="tmp-qe-vc-relax", inpname="vc-relax.in", output="vc-realx.out", mpi="", runopt="gen"):
+    def vc_relax(self, directory="tmp-qe-vc-relax", inpname="vc-relax.in", output="vc-realx.out", 
+            mpi="", runopt="gen", control={}, system={}, electrons={}, ions={}, kpoints_mp=[1, 1, 1, 0, 0, 0]):
         """
         directory: a place for all the generated files
         """
@@ -58,6 +66,12 @@ class opt_run:
             os.system("cp *.UPF %s/" % directory)
 
             self.set_vc_relax()
+            self.control.set_params(control)
+            self.system.set_params(system)
+            self.electrons.set_params(electrons)
+            self.ions.set_params(ions)
+            self.arts.set_kpoints(kpoints_mp)
+
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)

@@ -41,8 +41,8 @@ class static_run:
         self.system.basic_setting(self.arts)
         self.electrons.basic_setting()
 
-    def scf(self, directory="tmp-qe-static", inpname="static-scf.in", output="static-scf.out", mpi="", runopt="gen",
-            control={}, system={}, electrons={}, kpoints_mp=[2, 2, 2, 0, 0, 0]):
+    def scf(self, directory="tmp-qe-static", inpname="static-scf.in", output="static-scf.out", 
+            mpi="", runopt="gen", control={}, system={}, electrons={}, kpoints_mp=[2, 2, 2, 0, 0, 0]):
         """
         directory: a place for all the generated files
 
@@ -72,6 +72,7 @@ class static_run:
             self.system.set_params(system)
             self.electrons.set_params(electrons)
             self.arts.set_kpoints(kpoints_mp)
+            self.control.calculation("scf")
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)
@@ -83,7 +84,8 @@ class static_run:
             os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
 
-    def nscf(self, directory="tmp-qe-static", inpname="static-nscf.in", output="static-nscf.out", mpi="", runopt='gen', control={}, system={}, electrons={}, kpoints_mp=[4, 4, 4, 0, 0, 0]):
+    def nscf(self, directory="tmp-qe-static", inpname="static-nscf.in", output="static-nscf.out",
+            mpi="", runopt='gen', control={}, system={}, electrons={}, kpoints_mp=[4, 4, 4, 0, 0, 0]):
         """
         parameters:
             directory: the overall static calculation directory
@@ -118,140 +120,155 @@ class static_run:
             os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
     
-    def converge_ecutwfc(self, emin, emax, step, directory="tmp-qe-ecutwfc", mpi=""):
-        if os.path.exists(directory):
-            shutil.rmtree(directory)
-        os.mkdir(directory)
-        os.system("cp *.UPF %s/" % directory)
+    def converge_ecutwfc(self, emin, emax, step, directory="tmp-qe-ecutwfc", 
+            mpi="", runopt="gen", kpoints_mp=[1, 1, 1, 0, 0, 0]):
+        if runopt == "gen" or runopt == "genrun":
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
+            os.system("cp *.UPF %s/" % directory)
     
-        os.chdir(directory)
-        n_test = int((emax - emin) / step)
-        for i in range(n_test + 1):
-            ecut_wfc = int(emin + i * step)
-            ecut_rho = ecut_wfc * 4 # using default value for ecut_rho: 4 * ecutwfc
-            inp_name = "ecutwfc-%d.in" % ecut_wfc
-            self.control.params['outdir'] = './tmp-' + str(ecut_wfc)
-            self.system.params['ecutwfc'] = ecut_wfc
-            with open(inp_name, 'w') as fout:
-                self.control.to_in(fout)
-                self.system.to_in(fout)
-                self.electrons.to_in(fout)
-                self.arts.to_in(fout)
-        # run the simulation
-        for i in range(n_test + 1):
-            ecut_wfc = int(emin + i * step)
-            inp_name = "ecutwfc-%d.in" % ecut_wfc
-            out_f_name = "ecutwfc-%d.out" % ecut_wfc
-            os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
+            os.chdir(directory)
+            n_test = int((emax - emin) / step)
+            for i in range(n_test + 1):
+                ecut_wfc = int(emin + i * step)
+                ecut_rho = ecut_wfc * 4 # using default value for ecut_rho: 4 * ecutwfc
+                inp_name = "ecutwfc-%d.in" % ecut_wfc
+                self.control.params['outdir'] = './tmp-' + str(ecut_wfc)
+                self.system.params['ecutwfc'] = ecut_wfc
+                self.arts.set_kpoints(kpoints_mp)
+                with open(inp_name, 'w') as fout:
+                    self.control.to_in(fout)
+                    self.system.to_in(fout)
+                    self.electrons.to_in(fout)
+                    self.arts.to_in(fout)
+        if runopt == "run" or runopt == "genrun":
+            # run the simulation
+            for i in range(n_test + 1):
+                ecut_wfc = int(emin + i * step)
+                inp_name = "ecutwfc-%d.in" % ecut_wfc
+                out_f_name = "ecutwfc-%d.out" % ecut_wfc
+                os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
 
-        # analyse the result
-        for i in range(n_test + 1):
-            ecut_wfc = int(emin + i * step)
-            out_f_name = "ecutwfc-%d.out" % ecut_wfc
-            os.system("cat %s | grep '!    total energy' >> energy-ecutwfc.data" % out_f_name)
+            # analyse the result
+            for i in range(n_test + 1):
+                ecut_wfc = int(emin + i * step)
+                out_f_name = "ecutwfc-%d.out" % ecut_wfc
+                os.system("cat %s | grep '!    total energy' >> energy-ecutwfc.data" % out_f_name)
 
-        ecut_wfc_all = [emin + i * step for i in range(n_test + 1)]
-        energy_all = []
-        with open("energy-ecutwfc.data", 'r') as fin:
-            for line in fin:
-                energy_all.append(float(line.split()[4]))
+            ecut_wfc_all = [emin + i * step for i in range(n_test + 1)]
+            energy_all = []
+            with open("energy-ecutwfc.data", 'r') as fin:
+                for line in fin:
+                    energy_all.append(float(line.split()[4]))
 
-        plt.plot(ecut_wfc_all, energy_all)
-        plt.show()
-        os.chdir("../")
+            plt.plot(ecut_wfc_all, energy_all)
+            plt.show()
+            plt.savefig("energy-ecutwfc.png")
+            os.chdir("../")
 
         
-    def converge_ecutrho(self, emin, emax, step, ecutwfc, directory="tmp-qe-ecutrho", mpi=""):
-        if os.path.exists(directory):
-            shutil.rmtree(directory)
-        os.mkdir(directory)
-        os.system("cp *.UPF %s/" % directory)
-    
-        os.chdir(directory)
-        n_test = int((emax - emin) / step)
-        for i in range(n_test + 1):
-            ecut_rho = int(emin + i * step)
-            inp_name = "ecutrho-%d.in" % ecut_rho
-            self.control.params['outdir'] = './tmp-' + str(ecut_rho)
-            self.system.params['ecutwfc'] = ecutwfc
-            self.system.params["ecutrho"] = ecut_rho
-            with open(inp_name, 'w') as fout:
-                self.control.to_in(fout)
-                self.system.to_in(fout)
-                self.electrons.to_in(fout)
-                self.arts.to_in(fout)
-        # run the simulation
-        for i in range(n_test + 1):
-            ecut_rho = int(emin + i * step)
-            inp_name = "ecutrho-%d.in" % ecut_rho
-            out_f_name = "ecutrho-%d.out" % ecut_rho
-            os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
-        # analyse the result
-        for i in range(n_test + 1):
-            ecut_rho = int(emin + i * step)
-            out_f_name = "ecutrho-%d.out" % ecut_rho
-            os.system("cat %s | grep '!    total energy' >> energy-ecutrho.data" % out_f_name)
+    def converge_ecutrho(self, emin, emax, step, ecutwfc, directory="tmp-qe-ecutrho", 
+            mpi="", runopt="gen", kpoints_mp=[1, 1, 1, 0, 0, 0]):
+        if runopt == "gen" or runopt == "genrun":
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
+            os.system("cp *.UPF %s/" % directory)
 
-        ecut_rho_all = [emin + i * step for i in range(n_test + 1)]
-        energy_all = []
-        with open("energy-ecutrho.data", 'r') as fin:
-            for line in fin:
-                energy_all.append(float(line.split()[4]))
+            os.chdir(directory)
+            n_test = int((emax - emin) / step)
+            for i in range(n_test + 1):
+                ecut_rho = int(emin + i * step)
+                inp_name = "ecutrho-%d.in" % ecut_rho
+                self.control.params['outdir'] = './tmp-' + str(ecut_rho)
+                self.system.params['ecutwfc'] = ecutwfc
+                self.system.params["ecutrho"] = ecut_rho
+                self.arts.set_kpoints(kpoints_mp)
+                with open(inp_name, 'w') as fout:
+                    self.control.to_in(fout)
+                    self.system.to_in(fout)
+                    self.electrons.to_in(fout)
+                    self.arts.to_in(fout)
+        if runopt == "run" or runopt == "genrun":
+            # run the simulation
+            for i in range(n_test + 1):
+                ecut_rho = int(emin + i * step)
+                inp_name = "ecutrho-%d.in" % ecut_rho
+                out_f_name = "ecutrho-%d.out" % ecut_rho
+                os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
+            # analyse the result
+            for i in range(n_test + 1):
+                ecut_rho = int(emin + i * step)
+                out_f_name = "ecutrho-%d.out" % ecut_rho
+                os.system("cat %s | grep '!    total energy' >> energy-ecutrho.data" % out_f_name)
 
-        plt.plot(ecut_rho_all, energy_all)
-        plt.show()
-        os.chdir("../")
+            ecut_rho_all = [emin + i * step for i in range(n_test + 1)]
+            energy_all = []
+            with open("energy-ecutrho.data", 'r') as fin:
+                for line in fin:
+                    energy_all.append(float(line.split()[4]))
+
+            plt.plot(ecut_rho_all, energy_all)
+            plt.show()
+            plt.savefig("energy-ecutrho.png")
+            os.chdir("../")
     #
-    def converge_kpoints(self,nk_min, nk_max, step=1, directory="tmp-qe-kpoints", ecutwfc=150, mpi=""):
+    def converge_kpoints(self, nk_min, nk_max, step=1, directory="tmp-qe-kpoints", 
+            ecutwfc=150, mpi="", runopt="gen"):
         """
         test the energy convergenc against k-points
 
         currently only support automatic schme of K_POINTS
         and only nk1 = nk2 = nk3 are supported
         """
-        if os.path.exists(directory):
-            shutil.rmtree(directory)
-        os.mkdir(directory)
-        os.system("cp *.UPF %s/" % directory)
-    
-        os.chdir(directory)
-        
-        n_test = int((nk_max - nk_min) / step)
-        for i in range(n_test + 1):
-            nk = nk_min + i * step # nk1 = nk2 = nk3 = nk
-            inp_name = "kpoints-%d.in" % nk
-            self.control.params['outdir'] = './tmp-' + str(nk)
-            self.system.params['ecutwfc'] = ecutwfc # use the previously converged ecutwfc
-            self.arts.set_kpoints([nk, nk, nk, 0, 0, 0])
-            with open(inp_name, 'w') as fout:
-                self.control.to_in(fout)
-                self.system.to_in(fout)
-                self.electrons.to_in(fout)
-                self.arts.to_in(fout)
-        # run the simulation
-        for i in range(n_test + 1):
-            nk = nk_min + i * step
-            inp_name = "kpoints-%d.in" % nk
-            out_f_name = "kpoints-%d.out" % nk
-            os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
+        if runopt == "gen" or runopt == "genrun":
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
+            os.system("cp *.UPF %s/" % directory)
+	    
+            os.chdir(directory)	
+            n_test = int((nk_max - nk_min) / step)
+            for i in range(n_test + 1):
+                nk = nk_min + i * step # nk1 = nk2 = nk3 = nk
+                inp_name = "kpoints-%d.in" % nk
+                self.control.params['outdir'] = './tmp-' + str(nk)
+                self.system.params['ecutwfc'] = ecutwfc # use the previously converged ecutwfc
+                self.arts.set_kpoints([nk, nk, nk, 0, 0, 0])
+                with open(inp_name, 'w') as fout:
+                    self.control.to_in(fout)
+                    self.system.to_in(fout)
+                    self.electrons.to_in(fout)
+                    self.arts.to_in(fout)
 
-        # analyse the result
-        for i in range(n_test + 1):
-            nk = nk_min + i * step
-            out_f_name = "kpoints-%d.out" % nk
-            os.system("cat %s | grep '!    total energy' >> energy-kpoints.data" % out_f_name)
+        if runopt == "run" or runopt == "genrun":
+            # run the simulation
+            for i in range(n_test + 1):
+                nk = nk_min + i * step
+                inp_name = "kpoints-%d.in" % nk
+                out_f_name = "kpoints-%d.out" % nk
+                os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
 
-        nk_all = [nk_min + i * step for i in range(n_test + 1)]
-        energy_all = []
-        with open("energy-kpoints.data", 'r') as fin:
-            for line in fin:
-                energy_all.append(float(line.split()[4]))
+            # analyse the result
+            for i in range(n_test + 1):
+                nk = nk_min + i * step
+                out_f_name = "kpoints-%d.out" % nk
+                os.system("cat %s | grep '!    total energy' >> energy-kpoints.data" % out_f_name)
+            
+            nk_all = [nk_min + i * step for i in range(n_test + 1)]
+            energy_all = []
+            with open("energy-kpoints.data", 'r') as fin:
+                for line in fin:
+                    energy_all.append(float(line.split()[4]))
+            
+            plt.plot(nk_all, energy_all)
+            plt.show()
+            plt.savefig("energy-kpoints.png")
+            os.chdir("../")  
 
-        plt.plot(nk_all, energy_all)
-        plt.show()
-        os.chdir("../")  
-
-    def converge_degauss(self,degauss_min, degauss_max, step=0.01, smearing='gauss', directory="tmp-qe-degauss", ecutwfc=150, mpi=""):
+    def converge_degauss(self,degauss_min, degauss_max, step=0.01, directory="tmp-qe-degauss",
+            smearing='gauss', ecutwfc=150, mpi="", runopt="gen"):
         """
         Convergence with respect to degauss/smearing
 
@@ -267,49 +284,51 @@ class static_run:
             however quantities like the force on an atom
             may be more suited for this kind of testing.
         """
-        if os.path.exists(directory):
-            shutil.rmtree(directory)
-        os.mkdir(directory)
-        os.system("cp *.UPF %s/" % directory)
-    
-        os.chdir(directory)
-        
-        n_test = int((degauss_max - degauss_min) / step)
-        for i in range(n_test + 1):
-            degauss = degauss_min + i * step
-            inp_name = "degauss-%d.in" % degauss
-            self.control.params['outdir'] = './tmp-' + str(degauss)
-            self.system.params['ecutwfc'] = ecutwfc # use the previously converged ecutwfc
-            #self.arts.set_kpoints([nk, nk, nk, 0, 0, 0]) # use the previously convered kpoints(automatic)
-            self.system.params['smearing'] = smearing
-            self.system.params['degauss'] = degauss
-            with open(inp_name, 'w') as fout:
-                self.control.to_in(fout)
-                self.system.to_in(fout)
-                self.electrons.to_in(fout)
-                self.arts.to_in(fout)
-        # run the simulation
-        for i in range(n_test + 1):
-            degauss = degauss_min + i * step
-            inp_name = "degauss-%d.in" % degauss
-            out_f_name = "degauss-%d.out" % degauss
-            os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
+        if runopt == "gen" or runopt == "genrun":
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
+            os.system("cp *.UPF %s/" % directory)
+	    
+            os.chdir(directory)	
+            n_test = int((degauss_max - degauss_min) / step)
+            for i in range(n_test + 1):
+                degauss = degauss_min + i * step
+                inp_name = "degauss-%d.in" % degauss
+                self.control.params['outdir'] = './tmp-' + str(degauss) 
+                self.system.params['ecutwfc'] = ecutwfc # use the previously converged ecutwfc
+                #self.arts.set_kpoints([nk, nk, nk, 0, 0, 0]) # use the previously convered kpoints(automatic)
+                self.system.params['smearing'] = smearing
+                self.system.params['degauss'] = degauss
+                with open(inp_name, 'w') as fout:
+                    self.control.to_in(fout)
+                    self.system.to_in(fout)
+                    self.electrons.to_in(fout)
+                    self.arts.to_in(fout)
+        if runopt == "run" or runopt == "genrun":
+            # run the simulation
+            for i in range(n_test + 1):
+                degauss = degauss_min + i * step
+                inp_name = "degauss-%d.in" % degauss
+                out_f_name = "degauss-%d.out" % degauss
+                os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
 
-        # analyse the result
-        for i in range(n_test + 1):
-            degauss = degauss_min + i * step
-            out_f_name = "degauss-%d.out" % degauss
-            os.system("cat %s | grep '!    total energy' >> energy-degauss.data" % out_f_name)
+            # analyse the result
+            for i in range(n_test + 1):
+                degauss = degauss_min + i * step
+                out_f_name = "degauss-%d.out" % degauss
+                os.system("cat %s | grep '!    total energy' >> energy-degauss.data" % out_f_name)
 
-        degauss_all = [degauss_min + i * step for i in range(n_test + 1)]
-        energy_all = []
-        with open("energy-degauss.data", 'r') as fin:
-            for line in fin:
-                energy_all.append(float(line.split()[4]))
+            degauss_all = [degauss_min + i * step for i in range(n_test + 1)]
+            energy_all = []
+            with open("energy-degauss.data", 'r') as fin:
+                for line in fin:
+                    energy_all.append(float(line.split()[4]))
 
-        plt.plot(degauss_all, energy_all)
-        plt.show()
-        os.chdir("../")  
+            plt.plot(degauss_all, energy_all)
+            plt.show()
+            plt.savefig("energy-degauss.png")
+            os.chdir("../")  
 
     
     def dos(self, directory="tmp-qe-static", inpname="static-dos.in", output="static-dos.out", mpi=""):
