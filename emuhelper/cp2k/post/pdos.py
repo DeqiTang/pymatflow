@@ -42,4 +42,7 @@ class pdos:
             https://matthew-brett.github.io/teaching/smoothing_as_convolution.html
         maybe we can use scipy.ndimage.gaussian_filter1d to do it conveniently
         """
-        pass
+     def convoluted_dos(self):
+        #from scipy.ndimage.filters import gaussian_filter1d as gf
+        #dos_conv = gf(self.data[:, 1], sigma=0.001, mode="constant")
+       pass

@@ -37,4 +37,6 @@ class qe_dos:
         plt.plot(self.data[:, 0], self.data[:, 1], label="TDOS")
         plt.vlines(0, 0, 10, linestyle="dashed", label="Fermi Energy")
         plt.legend()
+        plt.savefig("%s.png" % self.dosfile)
         plt.show()
+

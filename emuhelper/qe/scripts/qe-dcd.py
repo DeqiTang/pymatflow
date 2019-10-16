@@ -6,7 +6,7 @@ from emuhelper.qe.static import static_run
 
 """
 usage:
-    qe-elf.py -f xxx.xyz
+    qe-difference-charge-density.py xxx.xyz
 """
 
 if __name__ == "__main__":
@@ -22,4 +22,4 @@ if __name__ == "__main__":
     directory = args.directory
  
     task = static_run(xyzfile)
-    task.elf()
+    task.difference_charge_density()

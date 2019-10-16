@@ -121,13 +121,17 @@ class static_run:
             os.chdir("../")
     
     def converge_ecutwfc(self, emin, emax, step, directory="tmp-qe-ecutwfc", 
-            mpi="", runopt="gen", kpoints_mp=[1, 1, 1, 0, 0, 0]):
+            mpi="", runopt="gen", control={}, system={}, electrons={}, kpoints_mp=[1, 1, 1, 0, 0, 0]):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
     
+            self.control.set_params(control)
+            self.system.set_params(system)
+            self.electrons.set_params(electrons)
+            self.arts.set_kpoints(kpoints_mp)
             os.chdir(directory)
             n_test = int((emax - emin) / step)
             for i in range(n_test + 1):
@@ -136,7 +140,6 @@ class static_run:
                 inp_name = "ecutwfc-%d.in" % ecut_wfc
                 self.control.params['outdir'] = './tmp-' + str(ecut_wfc)
                 self.system.params['ecutwfc'] = ecut_wfc
-                self.arts.set_kpoints(kpoints_mp)
                 with open(inp_name, 'w') as fout:
                     self.control.to_in(fout)
                     self.system.to_in(fout)
@@ -162,19 +165,29 @@ class static_run:
                 for line in fin:
                     energy_all.append(float(line.split()[4]))
 
-            plt.plot(ecut_wfc_all, energy_all)
-            plt.show()
+            plt.plot(ecut_wfc_all, energy_all, marker='o')
+            plt.title("Ecutwfc Converge Test", fontweight='bold', color='red')
+            plt.xlabel("Ecutwfc (Ry)")
+            plt.ylabel("Energy (Ry)")
+            plt.tight_layout()
+            plt.grid(True)
             plt.savefig("energy-ecutwfc.png")
+            plt.show()
             os.chdir("../")
 
         
     def converge_ecutrho(self, emin, emax, step, ecutwfc, directory="tmp-qe-ecutrho", 
-            mpi="", runopt="gen", kpoints_mp=[1, 1, 1, 0, 0, 0]):
+            mpi="", runopt="gen", control={}, system={}, electrons={}, kpoints_mp=[1, 1, 1, 0, 0, 0]):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
+
+            self.control.set_params(control)
+            self.system.set_params(system)
+            self.electrons.set_params(electrons)
+            self.arts.set_kpoints(kpoints_mp)
 
             os.chdir(directory)
             n_test = int((emax - emin) / step)
@@ -184,7 +197,6 @@ class static_run:
                 self.control.params['outdir'] = './tmp-' + str(ecut_rho)
                 self.system.params['ecutwfc'] = ecutwfc
                 self.system.params["ecutrho"] = ecut_rho
-                self.arts.set_kpoints(kpoints_mp)
                 with open(inp_name, 'w') as fout:
                     self.control.to_in(fout)
                     self.system.to_in(fout)
@@ -209,18 +221,28 @@ class static_run:
                 for line in fin:
                     energy_all.append(float(line.split()[4]))
 
-            plt.plot(ecut_rho_all, energy_all)
-            plt.show()
+            plt.plot(ecut_rho_all, energy_all, marker='o')
+            plt.title("Ecutrho Converge Test", fontweight='bold', color='red')
+            plt.xlabel("Ecutrho (Ry)")
+            plt.ylabel("Energy (Ry)")
+            plt.tight_layout()
+            plt.grid(True)
             plt.savefig("energy-ecutrho.png")
+            plt.show()
             os.chdir("../")
     #
     def converge_kpoints(self, nk_min, nk_max, step=1, directory="tmp-qe-kpoints", 
-            ecutwfc=150, mpi="", runopt="gen"):
+            mpi="", control={}, system={}, electrons={}, runopt="gen"):
         """
         test the energy convergenc against k-points
 
         currently only support automatic schme of K_POINTS
         and only nk1 = nk2 = nk3 are supported
+
+        Note:
+            if you converge the ecutwfc previously, you should
+            specify the converged ecutwfc through system in the
+            parameters
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
@@ -228,13 +250,15 @@ class static_run:
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
 	    
+            self.control.set_params(control)
+            self.system.set_params(system)
+            self.electrons.set_params(electrons)
             os.chdir(directory)	
             n_test = int((nk_max - nk_min) / step)
             for i in range(n_test + 1):
                 nk = nk_min + i * step # nk1 = nk2 = nk3 = nk
                 inp_name = "kpoints-%d.in" % nk
                 self.control.params['outdir'] = './tmp-' + str(nk)
-                self.system.params['ecutwfc'] = ecutwfc # use the previously converged ecutwfc
                 self.arts.set_kpoints([nk, nk, nk, 0, 0, 0])
                 with open(inp_name, 'w') as fout:
                     self.control.to_in(fout)
@@ -262,13 +286,18 @@ class static_run:
                 for line in fin:
                     energy_all.append(float(line.split()[4]))
             
-            plt.plot(nk_all, energy_all)
-            plt.show()
+            plt.plot(nk_all, energy_all, marker='o')
+            plt.title("kpoints converge test", fontweight='bold', color='red')
+            plt.xlabel("Kpoints")
+            plt.ylabel("Energy (Ry)")
+            plt.tight_layout()
+            plt.grid(True)
             plt.savefig("energy-kpoints.png")
+            plt.show()
             os.chdir("../")  
 
-    def converge_degauss(self,degauss_min, degauss_max, step=0.01, directory="tmp-qe-degauss",
-            smearing='gauss', ecutwfc=150, mpi="", runopt="gen"):
+    def converge_degauss(self,degauss_min, degauss_max, step=0.01, directory="tmp-qe-degauss", mpi="",
+            smearing='gauss', control={}, system={}, electrons={}, runopt="gen", kpoints_mp=[1, 1, 1, 0, 0, 0]):
         """
         Convergence with respect to degauss/smearing
 
@@ -283,20 +312,38 @@ class static_run:
             here we do the testing of degauss on energy.
             however quantities like the force on an atom
             may be more suited for this kind of testing.
+
+            smearing is in fact part of the system setting
+            how ever I set it a independent parameter in 
+            this function, to provide user the direct way
+            to set the type of gauss smearing for testing.
+            And of course we should not set smearing and
+            occupations through system parameters.
+
+            occpuations should always be set to smearing in
+            testing degauss
+
+            the user better set the previously converged
+            ecutwfc throught system parameters
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
-	    
+	   
+            self.control.set_params(control)
+            self.system.set_params(system)
+            self.electrons.set_params(electrons)
+            self.arts.set_kpoints(kpoints_mp)
+            self.system.params["occupations"] = "smearing"
+
             os.chdir(directory)	
             n_test = int((degauss_max - degauss_min) / step)
             for i in range(n_test + 1):
                 degauss = degauss_min + i * step
-                inp_name = "degauss-%d.in" % degauss
+                inp_name = "degauss-%f.in" % degauss
                 self.control.params['outdir'] = './tmp-' + str(degauss) 
-                self.system.params['ecutwfc'] = ecutwfc # use the previously converged ecutwfc
                 #self.arts.set_kpoints([nk, nk, nk, 0, 0, 0]) # use the previously convered kpoints(automatic)
                 self.system.params['smearing'] = smearing
                 self.system.params['degauss'] = degauss
@@ -309,14 +356,14 @@ class static_run:
             # run the simulation
             for i in range(n_test + 1):
                 degauss = degauss_min + i * step
-                inp_name = "degauss-%d.in" % degauss
-                out_f_name = "degauss-%d.out" % degauss
+                inp_name = "degauss-%f.in" % degauss
+                out_f_name = "degauss-%f.out" % degauss
                 os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
 
             # analyse the result
             for i in range(n_test + 1):
                 degauss = degauss_min + i * step
-                out_f_name = "degauss-%d.out" % degauss
+                out_f_name = "degauss-%f.out" % degauss
                 os.system("cat %s | grep '!    total energy' >> energy-degauss.data" % out_f_name)
 
             degauss_all = [degauss_min + i * step for i in range(n_test + 1)]
@@ -325,16 +372,50 @@ class static_run:
                 for line in fin:
                     energy_all.append(float(line.split()[4]))
 
-            plt.plot(degauss_all, energy_all)
-            plt.show()
+            plt.plot(degauss_all, energy_all, marker='o')
+            plt.title("degauss converge test", fontweight='bold', color='red')
+            plt.xlabel("degauss")
+            plt.ylabel("Energy (Ry)")
+            plt.tight_layout()
+            plt.grid(True)
             plt.savefig("energy-degauss.png")
+            plt.show()
             os.chdir("../")  
 
     
-    def dos(self, directory="tmp-qe-static", inpname="static-dos.in", output="static-dos.out", mpi=""):
+    def dos(self, directory="tmp-qe-static", inpname="static-dos.in", output="static-dos.out", mpi="",
+            fildos="output.dos", bz_sum='smearing', ngauss='default', degauss='default', emin='default', emax='default',
+            deltae='default'
+            ):
         """
-        first check whether there is a previous scf running
+        Reference:
+            http://www.quantum-espresso.org/Doc/INPUT_DOS.html
+        
+        bz_sum:
+            'smearing' :
+            'tetrahedra' :
+            'tetrahedra_lin' :
+            'tetrahedra_opt' :
+        ngauss:
+            'default': read from saved input for pw.x
+                    0: Simple Gaussian (default)
+                    1: Methfessel-Paxton of order 1
+                   -1: Marzari-Vanderbilt "cold smearing"
+                  -99: Fermi-Dirac function
+        degauss:
+            gaussian broadening, Ry (not eV!)
+            'default': 
+            a floating number
+
+        Note:
+            the degauss in dos.x can significantly affect
+            the  plotting of dos,
+            but I don't know whether the degauss in scf
+            and nscf also has such significant effect. if
+            so, I might need provdie more ability to set
+            appropriate degauss in scf and nscf running.
         """
+        # first check whether there is a previous scf running
         if not os.path.exists(directory):
             print("===================================================\n")
             print("                 Warning !!!\n")
@@ -346,14 +427,42 @@ class static_run:
             fout.write("&DOS\n")
             fout.write("prefix = '%s'\n" % self.control.params["prefix"])
             fout.write("outdir = '%s'\n" % self.control.params["outdir"])
-            fout.write("fildos = 'output.dos'\n")
+            fout.write("fildos = '%s'\n" % fildos)
+            #fout.write("bz_sum = '%s'\n" % bz_sum)
+            if bz_sum == 'smearing':
+                if ngauss == 'default':
+                    fout.write("! use ngauss read from input for pw.x store in xxx.save\n")
+                else:
+                    fout.write("ngauss = %d\n" % ngauss)
+                if degauss == 'default':
+                    fout.write("! use degauss read from input for pw.x stored in xxx.save\n")
+                    fout.write("! or degauss = DeltaE, if DeltaE is specified\n")
+                    fout.write("! we better set degauss and ngauss ourselves!\n")
+                else:
+                    fout.write("degauss = %f\n" % degauss)
+            if emin == 'default':
+                fout.write("!using default Emin: lower band value plus 3 times gauss smearing value\n")
+            else:
+                fout.write("emin = %f\n" % emin)
+            if emax == 'default':
+                fout.write("!using default Emax: upper band value minus 3 times gauss smearing value\n")
+            else:
+                fout.write("emax = %f\n" % emax)
+            if deltae == 'default':
+                fout.write("!using default DeltaE value\n")
+            else:
+                fout.write("deltae = %f\n" % deltae)
             fout.write("/\n")
             fout.write("\n")
+
         os.chdir(directory)
         os.system("%s dos.x < %s | tee %s" % (mpi, inpname, output))
         os.chdir("../")
 
-    def bands(self, directory="tmp-qe-static", inpname1="static-bands.in", output1="static-bands.out", inpname2="bands.in", output2="bands.out", mpi=""):
+    def bands(self, directory="tmp-qe-static", inpname1="static-bands.in", output1="static-bands.out",
+            inpname2="bands.in", output2="bands.out", mpi="", kptopt="automatic",
+            control={}, system={}, electrons={}, kpoints_mp=[4, 4, 4, 0, 0, 0]
+            ):
         """
         first check whether there is a previous scf running
         Note:
@@ -368,10 +477,19 @@ class static_run:
             print("bands calculation:\n")
             print("  directory of previous scf or nscf calculattion not found!\n")
             sys.exit(1)
-
+        
+        self.control.set_params(control)
+        self.system.set_params(system)
+        self.electrons.set_params(electrons)
         self.control.calculation('bands')
-        self.arts.set_kpoints(option="crystal_b")
-        #self.arts.set_kpoints([6, 6, 6, 0, 0, 0])
+        # ===========
+        # set kpoints
+        # ===========
+        if kptopt == "automatic":
+            self.arts.set_kpoints(kpoints_mp)
+        elif kptopt == "crystal_b":
+            self.arts.set_kpoints(option="crystal_b")
+
         with open(os.path.join(directory, inpname1), 'w') as fout:
             self.control.to_in(fout)
             self.system.to_in(fout)
@@ -396,8 +514,13 @@ class static_run:
         os.chdir("../")
         
 
-    def projwfc(self, directory="tmp-qe-static", inpname="static-projwfc.in", output="static-projwfc.out", mpi=""):
+    def projwfc(self, directory="tmp-qe-static", inpname="static-projwfc.in", output="static-projwfc.out", 
+            mpi="", filpdos="output.pdos",
+            ):
         """
+        Reference:
+            http://www.quantum-espresso.org/Doc/INPUT_PROJWFC.html
+
         &projwfc can using projwfc.x to calculate Lowdin charges, spilling 
         parameter, projected DOS
         """
@@ -413,7 +536,7 @@ class static_run:
             fout.write("&PROJWFC\n")
             fout.write("prefix = '%s'\n" % self.control.params["prefix"])
             fout.write("outdir = '%s'\n" % self.control.params["outdir"])
-            fout.write("filpdos = 'output.projwfc'\n")
+            fout.write("filpdos = '%s'\n" % filpdos)
             fout.write("/\n")
             fout.write("\n")
         os.chdir(directory)
@@ -796,42 +919,6 @@ class static_run:
         self.phx_qmesh()
         self.dynmat()
 
-    def elf(self, directory="tmp-qe-static", inpname="elf.in", output="elf.out", mpi=""):
-        """
-        """
-        # first check whether there is a previous scf running
-        if not os.path.exists(directory):
-            print("===================================================\n")
-            print("                 Warning !!!\n")
-            print("===================================================\n")
-            print("dynmat.x calculation:\n")
-            print("  directory of previous scf or nscf calculattion not found!\n")
-            sys.exit(1)
-        with open(os.path.join(directory, inpname), 'w') as fout:
-            fout.write("&inputpp\n")
-            fout.write("prefix = '%s'\n" % self.control.params["prefix"])
-            fout.write("outdir = '%s'\n" % self.control.params["outdir"])
-            fout.write("filplot = '%s'\n" % ("pwscf.rho"))
-            fout.write("plot_num = 8\n")
-            fout.write("/\n")
-            fout.write("&plot\n")
-            fout.write("nfile = 1\n")
-            fout.write("filepp(1) = '%s'\n" % ("pwscf.rho"))
-            fout.write("weight(1) = 1.0\n")
-            fout.write("iflag = 3\n")
-            fout.write("output_format = 3\n")
-            fout.write("e1(1) = 2, e1(2) = 0, e1(3) = 0\n")
-            fout.write("e2(1) = 0, e2(2) = 2, e2(3) = 0\n")
-            fout.write("e3(1) = 0, e3(2) = 0, e3(3) = 3.982131\n")
-            fout.write("x0(1) = 0.0, x0(2) = 0.0, x0(3) = 0.0\n")
-            fout.write("nx = 50, ny = 50, nz = 50\n")
-            fout.write("fileout = '%s'\n" % ("xxx.elf.xsf"))
-            fout.write("/\n")
-            fout.write("\n")
-        os.chdir(directory)
-        os.system("%s pp.x < %s | tee %s" % (mpi, inpname, output))
-        os.chdir("../")
-
     def fermi_surface(self, directory="tmp-qe-static", inpname="fermi-surface.in", output="fermi-surface.out", mpi=""):
         """
         scf->nscf(with denser k points)->fs.x
@@ -854,6 +941,27 @@ class static_run:
         os.system("%s fs.x < %s | tee %s" % (mpi, inpname, output))
         os.chdir("../")
 
+    def elf(self, directory="tmp-qe-static", inpname="elf.in", output="elf.out", mpi="", fileout="elf.xsf"):
+        """
+        """
+        # first check whether there is a previous scf running
+        if not os.path.exists(directory):
+            print("===================================================\n")
+            print("                 Warning !!!\n")
+            print("===================================================\n")
+            print("pp.x calculation:\n")
+            print("  directory of previous scf or nscf calculattion not found!\n")
+            sys.exit(1)
+        with open(os.path.join(directory, inpname), 'w') as fout:
+            self.pp_inputpp(fout, plot_num=8, filplot="elf.rho")
+            self.pp_plot(fout, filepp="elf.rho", fileout="elf.xsf")
+
+
+        os.chdir(directory)
+        os.system("%s pp.x < %s | tee %s" % (mpi, inpname, output))
+        os.chdir("../")
+
+
     def difference_charge_density(self, directory="tmp-qe-static", inpname="difference-charge-density.in", output="difference-charge-density.out", mpi=""):
         """
         """
@@ -862,66 +970,100 @@ class static_run:
             print("===================================================\n")
             print("                 Warning !!!\n")
             print("===================================================\n")
-            print("dynmat.x calculation:\n")
+            print("ppd.x calculation:\n")
             print("  directory of previous scf or nscf calculattion not found!\n")
             sys.exit(1)
         with open(os.path.join(directory, inpname), 'w') as fout:
-            fout.write("&inputpp\n")
-            fout.write("prefix = '%s'\n" % self.control.params["prefix"])
-            fout.write("outdir = '%s'\n" % self.control.params["outdir"])
-            fout.write("filplot = '%s'\n" % ("difference-charge-density.rho"))
-            fout.write("plot_num = 9\n")
-            fout.write("/\n")
-            fout.write("&plot\n")
-            fout.write("nfile = 1\n")
-            fout.write("filepp(1) = '%s'\n" % ("difference-charge-density.rho"))
-            fout.write("weight(1) = 1.0\n")
-            fout.write("iflag = 3\n")
-            fout.write("output_format = 3\n")
-            fout.write("e1(1) = 2, e1(2) = 0, e1(3) = 0\n")
-            fout.write("e2(1) = 0, e2(2) = 2, e2(3) = 0\n")
-            fout.write("e3(1) = 0, e3(2) = 0, e3(3) = 3.982131\n")
-            fout.write("x0(1) = -1.0, x0(2) = -1.0, x0(3) = 0.0\n")
-            fout.write("nx = 50, ny = 50, nz = 50\n")
-            fout.write("fileout = '%s'\n" % ("difference-charge-density.dcd.xsf"))
-            fout.write("/\n")
-            fout.write("\n")
+            self.pp_inputpp(fout, plot_num=9, filplot="dcd.rho")
+            self.pp_plot(fout, filepp="dcd.rho", fileout="dcd.xsf")
+
         os.chdir(directory)
         os.system("%s pp.x < %s | tee %s" % (mpi, inpname, output))
         os.chdir("../")
 
     def electron_density(self, directory="tmp-qe-static", inpname="electron-density.in", output="electron-density.out", mpi=""):
         """
+        electron (pseudo-)charge density
         """
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
             print("===================================================\n")
             print("                 Warning !!!\n")
             print("===================================================\n")
-            print("dynmat.x calculation:\n")
+            print("pp.x calculation:\n")
             print("  directory of previous scf or nscf calculattion not found!\n")
             sys.exit(1)
         with open(os.path.join(directory, inpname), 'w') as fout:
-            fout.write("&inputpp\n")
-            fout.write("prefix = '%s'\n" % self.control.params["prefix"])
-            fout.write("outdir = '%s'\n" % self.control.params["outdir"])
-            fout.write("filplot = '%s'\n" % ("electron-density.rho"))
-            fout.write("plot_num = 8\n")
-            fout.write("/\n")
-            fout.write("&plot\n")
-            fout.write("nfile = 1\n")
-            fout.write("filepp(1) = '%s'\n" % ("electron-density.rho"))
-            fout.write("weight(1) = 1.0\n")
-            fout.write("iflag = 3\n")
-            fout.write("output_format = 3\n")
-            fout.write("e1(1) = 2, e1(2) = 0, e1(3) = 0\n")
-            fout.write("e2(1) = 0, e2(2) = 2, e2(3) = 0\n")
-            fout.write("e3(1) = 0, e3(2) = 0, e3(3) = 3.982131\n")
-            fout.write("x0(1) = 0.0, x0(2) = 0.0, x0(3) = 0.0\n")
-            fout.write("nx = 50, ny = 50, nz = 50\n")
-            fout.write("fileout = '%s'\n" % ("electron-density.rho.xsf"))
-            fout.write("/\n")
-            fout.write("\n")
+            self.pp_inputpp(fout, plot_num=0, filplot="ed.rho")
+            self.pp_plot(fout, filepp="ed.rho", fileout="ed.xsf")
+
         os.chdir(directory)
         os.system("%s pp.x < %s | tee %s" % (mpi, inpname, output))
         os.chdir("../")
+
+    def pp_inputpp(self, fout, plot_num, filplot):
+        """ 
+        fout: a file stream for writing
+        Note:
+            plot_num -> selects what to save in filplot:
+             0  = electron (pseudo-)charge density
+             1  = total potential V_bare + V_H + V_xc
+             2  = local ionic potential V_bare
+             3  = local density of states at specific energy or grid of energies
+                  (number of states per volume, in bohr^3, per energy unit, in Ry)
+             4  = local density of electronic entropy
+             5  = STM images
+                  Tersoff and Hamann, PRB 31, 805 (1985)
+             8  = electron localization function (ELF)
+             9  = charge density minus superposition of atomic densities
+             13 = the noncollinear magnetization.
+
+            About other value of plot_num, refere to the the input manual
+            of pp.x: 
+                http://www.quantum-espresso.org/Doc/INPUT_PP.html
+
+        """
+        fout.write("&inputpp\n")
+        fout.write("prefix = '%s'\n" % self.control.params["prefix"])
+        fout.write("outdir = '%s'\n" % self.control.params["outdir"])
+        fout.write("filplot = '%s'\n" % (filplot))
+        fout.write("plot_num = %d\n" % plot_num)
+        fout.write("/\n")
+
+    def pp_plot(self, fout, filepp, fileout, iflag=3, output_format=5, 
+            e1=[2.0, 0.0, 0.0], e2=[0.0, 2.0, 0.0], e3=[0.0, 0.0, 2.0],
+            x0=[0.0, 0.0, 0.0], nx=1000, ny=1000, nz=1000):
+        """
+        fout: a file stream for writing
+        """
+        #fout.write("&inputpp\n")
+        #fout.write("/\n\n")
+        fout.write("&plot\n")
+        fout.write("nfile = 1\n")
+        fout.write("filepp(1) = '%s'\n" % (filepp))
+        fout.write("weight(1) = 1.0\n")
+        fout.write("iflag = %d\n" % iflag)
+        fout.write("output_format = %d\n" % output_format)
+        if iflag == 0 or iflag == 1:
+            fout.write("e1(1) = %f, e1(2) = %f, e1(3) = %f\n" % (e1[0], e1[1], e1[2]))
+            fout.write("x0(1) = %f, x0(2) = %f, x0(3) = %f\n" % (x0[0], x0[1], x0[2]))
+            fout.write("nx = %d\n", nx)
+        elif iflag == 2:
+            fout.write("e1(1) = %f, e1(2) = %f, e1(3) = %f\n" % (e1[0], e1[1], e1[2]))
+            fout.write("e2(1) = %f, e2(2) = %f, e2(3) = %f\n" % (e2[0], e2[1], e2[2]))
+            fout.write("x0(1) = %f, x0(2) = %f, x0(3) = %f\n" % (x0[0], x0[1], x0[2]))
+            fout.write("nx = %d, ny = %d\n" % (nx, ny))
+        elif iflag == 3:
+            fout.write("e1(1) = %f, e1(2) = %f, e1(3) = %f\n" % (e1[0], e1[1], e1[2]))
+            fout.write("e2(1) = %f, e2(2) = %f, e2(3) = %f\n" % (e2[0], e2[1], e2[2]))
+            fout.write("e3(1) = %f, e3(2) = %f, e3(3) = %f\n" % (e3[0], e3[1], e3[2]))
+            fout.write("x0(1) = %f, x0(2) = %f, x0(3) = %f\n" % (x0[0], x0[1], x0[2]))
+            fout.write("nx = %d, ny = %d, nz = %d\n" % (nx, ny, nz))
+        elif iflag == 4:
+            fout.write("radius = %f\n" % radius)
+            fout.write("nx = %d, ny = %d\n" (nx, ny))
+        fout.write("fileout = '%s'\n" % fileout)
+        fout.write("/\n")
+        fout.write("\n")
+
+
