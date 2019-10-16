@@ -100,6 +100,7 @@ setup(
         "emuhelper/qe/scripts/qe-ed.py",
         "emuhelper/qe/scripts/qe-relax.py",
         "emuhelper/qe/scripts/qe-vc-relax.py",
+        "emuhelper/qe/scripts/qe-neb.py",
         "emuhelper/qe/post/scripts/post-qe-dos.py",
         "emuhelper/siesta/scripts/band_new_scf_siesta.py",
         "emuhelper/siesta/scripts/charge-density_potentials_siesta.py",
