@@ -24,7 +24,7 @@ class opt_run:
         self.arts = qe_arts(xyz_f)
    
         
-    def relax(self, directory="tmp-qe-relax", inpname="relax.in", output="realx.out", 
+    def relax(self, directory="tmp-qe-relax", inpname="relax.in", output="relax.out", 
             mpi="", runopt="gen", control={}, system={}, electrons={}, ions={}, kpoints_mp=[1, 1, 1, 0, 0, 0]):
         """
         directory: a place for all the generated files
@@ -54,7 +54,7 @@ class opt_run:
             os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
     
-    def vc_relax(self, directory="tmp-qe-vc-relax", inpname="vc-relax.in", output="vc-realx.out", 
+    def vc_relax(self, directory="tmp-qe-vc-relax", inpname="vc-relax.in", output="vc-relax.out", 
             mpi="", runopt="gen", control={}, system={}, electrons={}, ions={}, kpoints_mp=[1, 1, 1, 0, 0, 0]):
         """
         directory: a place for all the generated files
