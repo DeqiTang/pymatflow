@@ -16,5 +16,5 @@ if __name__ == "__main__":
     
     os.chdir(args.directory)
     task = opt_post(output=args.file, run_type="vc-relax")
-    task.to_xyz(args.output)
+    task.export()
     os.chdir("../")

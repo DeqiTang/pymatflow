@@ -18,10 +18,15 @@ if __name__ == "__main__":
     parser.add_argument("--ecutwfc", help="ecutwfc", type=int, default=100)
     parser.add_argument("-k", "--kpoints", help="set kpoints like '1 1 1 0 0 0'", type=str, default="1 1 1 0 0 0")
     parser.add_argument("--conv_thr", help="conv_thr of scf", type=float, default=1.e-6)
-    
+    parser.add_argument("--occupations", help="occupation type", type=str, default="smearing")
+    parser.add_argument("--smearing", help="smearing type", type=str, default="gaussian")
+    parser.add_argument("--degauss", help="value of the gaussian spreading (Ry) for brillouin-zone integration in metals.", type=float, default=0.001)   
     args = parser.parse_args()
     xyzfile = args.file
     system_params["ecutwfc"] = args.ecutwfc
+    system_params["occupations"] = args.occupations
+    system_params["smearing"] = args.smearing
+    system_params["degauss"] = args.degauss
     electrons_params["conv_thr"] = args.conv_thr
     kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
  

@@ -36,6 +36,11 @@ class md_run:
             os.system("cp *.UPF %s/" % directory)
             
             self.set_md()
+            # check if user try to set occupations and smearing and degauss
+            # through system. if so, use self.set_occupations() which uses
+            # self.system.set_occupations() to set them, as self.system.set_params() 
+            # is suppressed from setting occupations related parameters
+            self.set_occupations(system)
             self.control.set_params(control)
             self.system.set_params(system)
             self.electrons.set_params(electrons)
@@ -64,6 +69,11 @@ class md_run:
             os.system("cp *.UPF %s/" % directory)
             
             self.set_vc_md()
+            # check if user try to set occupations and smearing and degauss
+            # through system. if so, use self.set_occupations() which uses
+            # self.system.set_occupations() to set them, as self.system.set_params() 
+            # is suppressed from setting occupations related parameters
+            self.set_occupations(system)
             self.control.set_params(control)
             self.system.set_params(system)
             self.electrons.set_params(electrons)
@@ -96,3 +106,30 @@ class md_run:
         self.electrons.basic_setting()
         self.ions.basic_setting('vc-md') 
 
+    def set_occupations(self, system):
+        """
+            # check if user try to set occupations and smearing and degauss
+            # through system. if so, use self.system.set_occupations() to 
+            # set them, as self.system.set_params() is suppressed from setting
+            # occupations related parameters
+            # if occupations == None, use default smearing occupation. and 
+            # if occupations == "tetrahedra" the value set for smearing and degauss is ignored.
+            # if occupations == "smearing", the value of smearing and degauss
+            # should be legacy, not None or other illegal values.
+        """
+        if "occupations" in system:
+            if system["occupations"] == None: # user default setting of set_occupations()
+                self.system.set_occupations()
+            elif system["occupations"] == "tetrahedra":
+                self.system.set_occupations(occupations="tetrahedra")
+            elif system["occupations"] == "smearing":
+                if "smearing" in system and "degauss" in system:
+                    self.system.set_occupations(occupations="smearing", smearing=system["smearing"], degauss=system["degauss"])
+                elif "smearing" in system:
+                    self.system.set_occupations(occupations="smearing", smearing=system["smearing"])
+                elif "degauss" in system:
+                    self.system.set_occupations(occupations="smearing", degauss=system["degauss"])
+                else:
+                    self.system.set_occupations(occupations="smearing")
+            else:
+                pass

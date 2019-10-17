@@ -159,13 +159,28 @@ class qe_system:
 
         self.params["ecutwfc"] = 100
         self.params["input_dft"] = 'PBE'
-        self.params["occupations"] = "smearing"
-        self.params["smearing"] = "gaussian"
-        self.params["degauss"] = 0.0001
-    
+
+        self.set_occupations() # default use gaussian smearing with degauss = 0.001
+   
+    def set_occupations(self, occupations="smearing", smearing="gaussian", degauss=0.001):
+        self.params["occupations"] = occupations
+        if occupations == "smearing":
+            self.params["smearing"] = smearing
+            self.params["degauss"] = degauss
+        if occupations == "tetrahedra":
+            self.params["smearing"] = None
+            self.params["degauss"] = None
+
     def set_params(self, params):
         """
         params: a dict storing the parameters and values
+
+        Note:
+            set_params() will ignore the setting of occupations
+            related parameters(occupations, smearing, degauss),
+            as they are handled by set_occupations()
         """
+
         for item in params:
-            self.params[item] = params[item]
+            if item != "occupations" and item != "smearing" and item != "degauss":
+                self.params[item] = params[item]

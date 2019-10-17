@@ -68,6 +68,11 @@ class static_run:
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
             
+            # check if user try to set occupations and smearing and degauss
+            # through system. if so, use self.set_occupations() which uses
+            # self.system.set_occupations() to set them, as self.system.set_params() 
+            # is suppressed from setting occupations related parameters
+            self.set_occupations(system)
             self.control.set_params(control)
             self.system.set_params(system)
             self.electrons.set_params(electrons)
@@ -105,6 +110,12 @@ class static_run:
             print("  directory of previous scf calculattion not found!\n")
             sys.exit(1)
         if runopt == 'gen' or runopt == 'genrun':
+
+            # check if user try to set occupations and smearing and degauss
+            # through system. if so, use self.set_occupations() which uses
+            # self.system.set_occupations() to set them, as self.system.set_params() 
+            # is suppressed from setting occupations related parameters
+            self.set_occupations(system)
             self.control.set_params(control)
             self.system.set_params(system)
             self.electrons.set_params(electrons)
@@ -120,6 +131,35 @@ class static_run:
             os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
     
+
+    def set_occupations(self, system):
+        """
+            # check if user try to set occupations and smearing and degauss
+            # through system. if so, use self.system.set_occupations() to 
+            # set them, as self.system.set_params() is suppressed from setting
+            # occupations related parameters
+            # if occupations == None, use default smearing occupation. and 
+            # if occupations == "tetrahedra" the value set for smearing and degauss is ignored.
+            # if occupations == "smearing", the value of smearing and degauss
+            # should be legacy, not None or other illegal values.
+        """
+        if "occupations" in system:
+            if system["occupations"] == None: # user default setting of set_occupations()
+                self.system.set_occupations()
+            elif system["occupations"] == "tetrahedra":
+                self.system.set_occupations(occupations="tetrahedra")
+            elif system["occupations"] == "smearing":
+                if "smearing" in system and "degauss" in system:
+                    self.system.set_occupations(occupations="smearing", smearing=system["smearing"], degauss=system["degauss"])
+                elif "smearing" in system:
+                    self.system.set_occupations(occupations="smearing", smearing=system["smearing"])
+                elif "degauss" in system:
+                    self.system.set_occupations(occupations="smearing", degauss=system["degauss"])
+                else:
+                    self.system.set_occupations(occupations="smearing")
+            else:
+                pass
+
     def converge_ecutwfc(self, emin, emax, step, directory="tmp-qe-ecutwfc", 
             mpi="", runopt="gen", control={}, system={}, electrons={}, kpoints_mp=[1, 1, 1, 0, 0, 0]):
         if runopt == "gen" or runopt == "genrun":
@@ -128,6 +168,11 @@ class static_run:
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
     
+            # check if user try to set occupations and smearing and degauss
+            # through system. if so, use self.set_occupations() which uses
+            # self.system.set_occupations() to set them, as self.system.set_params() 
+            # is suppressed from setting occupations related parameters
+            self.set_occupations(system)
             self.control.set_params(control)
             self.system.set_params(system)
             self.electrons.set_params(electrons)
@@ -184,6 +229,11 @@ class static_run:
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
 
+            # check if user try to set occupations and smearing and degauss
+            # through system. if so, use self.set_occupations() which uses
+            # self.system.set_occupations() to set them, as self.system.set_params() 
+            # is suppressed from setting occupations related parameters
+            self.set_occupations(system)
             self.control.set_params(control)
             self.system.set_params(system)
             self.electrons.set_params(electrons)
@@ -250,6 +300,11 @@ class static_run:
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
 	    
+            # check if user try to set occupations and smearing and degauss
+            # through system. if so, use self.set_occupations() which uses
+            # self.system.set_occupations() to set them, as self.system.set_params() 
+            # is suppressed from setting occupations related parameters
+            self.set_occupations(system)
             self.control.set_params(control)
             self.system.set_params(system)
             self.electrons.set_params(electrons)
@@ -478,6 +533,11 @@ class static_run:
             print("  directory of previous scf or nscf calculattion not found!\n")
             sys.exit(1)
         
+        # check if user try to set occupations and smearing and degauss
+        # through system. if so, use self.set_occupations() which uses
+        # self.system.set_occupations() to set them, as self.system.set_params() 
+        # is suppressed from setting occupations related parameters
+        self.set_occupations(system)
         self.control.set_params(control)
         self.system.set_params(system)
         self.electrons.set_params(electrons)
@@ -515,7 +575,8 @@ class static_run:
         
 
     def projwfc(self, directory="tmp-qe-static", inpname="static-projwfc.in", output="static-projwfc.out", 
-            mpi="", filpdos="output.pdos",
+            mpi="", filpdos="projwfc", ngauss='default', degauss='default', emin='default', emax='default',
+            deltae='default'
             ):
         """
         Reference:
@@ -523,6 +584,25 @@ class static_run:
 
         &projwfc can using projwfc.x to calculate Lowdin charges, spilling 
         parameter, projected DOS
+
+        ngauss:
+            'default': read from saved input for pw.x
+                    0: Simple Gaussian (default)
+                    1: Methfessel-Paxton of order 1
+                   -1: Marzari-Vanderbilt "cold smearing"
+                  -99: Fermi-Dirac function
+        degauss:
+            gaussian broadening, Ry (not eV!)
+            'default': 
+            a floating number
+
+        Note:
+            the degauss in projwfc.x can significantly affect
+            the  plotting of dos,
+            but I don't know whether the degauss in scf
+            and nscf also has such significant effect. if
+            so, I might need provdie more ability to set
+            appropriate degauss in scf and nscf running.
         """
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
@@ -537,8 +617,31 @@ class static_run:
             fout.write("prefix = '%s'\n" % self.control.params["prefix"])
             fout.write("outdir = '%s'\n" % self.control.params["outdir"])
             fout.write("filpdos = '%s'\n" % filpdos)
+            if ngauss == 'default':
+                fout.write("! use ngauss read from input for pw.x store in xxx.save\n")
+            else:
+                fout.write("ngauss = %d\n" % ngauss)
+            if degauss == 'default':
+                fout.write("! use degauss read from input for pw.x stored in xxx.save\n")
+                fout.write("! or degauss = DeltaE, if DeltaE is specified\n")
+                fout.write("! we better set degauss and ngauss ourselves!\n")
+            else:
+                fout.write("degauss = %f\n" % degauss)
+            if emin == 'default':
+                fout.write("!using default Emin: lower band value plus 3 times gauss smearing value\n")
+            else:
+                fout.write("emin = %f\n" % emin)
+            if emax == 'default':
+                fout.write("!using default Emax: upper band value minus 3 times gauss smearing value\n")
+            else:
+                fout.write("emax = %f\n" % emax)
+            if deltae == 'default':
+                fout.write("!using default DeltaE value\n")
+            else:
+                fout.write("deltae = %f\n" % deltae)
             fout.write("/\n")
             fout.write("\n")
+
         os.chdir(directory)
         os.system("%s projwfc.x < %s | tee %s" % (mpi, inpname, output))
         os.chdir("../")
@@ -607,6 +710,9 @@ class static_run:
 
         turbo_spectrum.x:
             post-processing calculation of the spectrum
+        Note:
+            turboTDDFT is not extended to metals, so we can only
+            deal with insulators or semiconductors with turbo now.
         """
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
@@ -620,6 +726,7 @@ class static_run:
             fout.write("&lr_input\n")
             fout.write("prefix = '%s'\n" % self.control.params["prefix"])
             fout.write("outdir = '%s'\n" % self.control.params["outdir"])
+            #fout.write("wfcdir = ''")
             fout.write("/\n")
             fout.write("\n")
             fout.write("&lr_dav\n")

@@ -38,4 +38,19 @@ class neb_post:
             os.system("gnuplot %s" % inpname)
             os.chdir("../")
 
+    def md_report(self, md):
+        """
+        when writing Chinese to a file you must specify
+        encoding='utf-8' when open the file for writing
+        """
+        with open(md, 'w', encoding='utf-8') as fout:
+            fout.write("# Neb实验统计\n")
+            fout.write("## 输入参数\n")
+            for item in self.opt_params:
+                fout.write("- %s: %s\n" % (item, str(self.opt_params[item])))
+            fout.write("## 运行信息\n")
+            for item in self.run_info:
+                fout.write("- %s: %s\n" % (item, str(self.run_info[item])))
 
+            fout.write("## 运行信息图示\n")
+            fout.write("\n")
