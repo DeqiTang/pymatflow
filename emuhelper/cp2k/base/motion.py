@@ -286,26 +286,25 @@ class cp2k_motion:
 
         self.run_type = "GEO_OPT"
 
-    def to_input(self, fname):
-        with open(fname, 'a') as fout:
-            fout.write("&MOTION\n")
-            for item in self.params:
-                fout.write("\t%s %s\n" % (item, self.params[item]))
-            if self.run_type == "GEO_OPT":
-                self.geo_opt.to_motion(fout)
-            elif self.run_type == "CELL_OPT":
-                self.cell_opt.to_motion(fout)
-            elif self.run_type == "MC":
-                self.mc.to_motion(fout)
-            elif self.run_type == "MD":
-                self.md.to_motion(fout)
-            elif self.run_type == "PINT":
-                self.pint.to_motion(fout)
-            elif self.run_type == "SHELL_OPT":
-                self.shell_opt.to_motion(fout)
-            self.printout.to_motion(fout)
-            fout.write("&END MOTION\n")
-            fout.write("\n")
+    def to_input(self, fout):
+        fout.write("&MOTION\n")
+        for item in self.params:
+            fout.write("\t%s %s\n" % (item, self.params[item]))
+        if self.run_type == "GEO_OPT":
+            self.geo_opt.to_motion(fout)
+        elif self.run_type == "CELL_OPT":
+            self.cell_opt.to_motion(fout)
+        elif self.run_type == "MC":
+            self.mc.to_motion(fout)
+        elif self.run_type == "MD":
+            self.md.to_motion(fout)
+        elif self.run_type == "PINT":
+            self.pint.to_motion(fout)
+        elif self.run_type == "SHELL_OPT":
+            self.shell_opt.to_motion(fout)
+        self.printout.to_motion(fout)
+        fout.write("&END MOTION\n")
+        fout.write("\n")
     
     def set_type(self, run_type):
         """

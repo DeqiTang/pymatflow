@@ -30,19 +30,33 @@ class cp2k_force_eval:
                 }
         self.check_spin()
 
-    def to_input(self, fname):
-        with open(fname, 'a') as fout:
-            fout.write("&FORCE_EVAL\n")
-            for item in self.params:
-                if self.params[item] is not None:
-                    fout.write("\t%s %s\n" % (item, self.params[item]))
-            self.subsys.to_subsys(fout)
-            self.dft.to_dft(fout)
-            fout.write("&END FORCE_EVAL\n") 
-            fout.write("\n")
+    def to_input(self, fout):
+        fout.write("&FORCE_EVAL\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t%s %s\n" % (item, self.params[item]))
+        self.subsys.to_subsys(fout)
+        self.dft.to_dft(fout)
+        fout.write("&END FORCE_EVAL\n") 
+        fout.write("\n")
     
     def check_spin(self):
         """
         调用self.dft的check_spin()函数
         """
         self.dft.check_spin(self.subsys.xyz)
+
+    def basic_setting(self):
+        self.dft.mgrid.params["CUTOFF"] = 100
+        self.dft.mgrid.params["REL_CUTOFF"]= 60
+
+    def set_params(self, params):
+        """
+        parameters for sub section(like dft), are handled over 
+        to sub section controllers.
+        """
+        self.dft.set_params(params)
+        # dealing with params belonging to this class
+        for item in params:
+            if item in self.params:
+                self.params[item] = params[item]

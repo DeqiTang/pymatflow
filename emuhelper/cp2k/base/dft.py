@@ -69,6 +69,8 @@ class cp2k_dft_kg_method:
 # CP2K / FORCE_EVAL / DFT / KPOINTS
 # =================================
 class cp2k_dft_kpoints:
+    """
+    """
     def __init__(self):
         self.params = {
                 "EPS_GEO": None,
@@ -81,15 +83,26 @@ class cp2k_dft_kpoints:
                 "VERBOSE": None,
                 "WAVEFUNCTIONS": None,
                 }
+        self.kpoints_mp = [1, 1, 1]
+        self.basic_setting()
+
     def to_dft(self, fout):
         """
         fout: a file stream for writing
         """
         fout.write("\t\t&KPOINTS\n")
-        for item in self.params:
-            if self.params[item] is not None:
-                fout.write("\t\t\t%s %s\n" % (item, str(self.params[item])))
+        if self.params["SCHEME"] == "MONKHORST-PACK":
+            fout.write("\t\t\tSCHEME MONKHORST-PACK %d %d %d\n" % (self.kpoints_mp[0], self.kpoints_mp[1], self.kpoints_mp[2]))
+        elif self.params["SCHEME"] == "GAMMA":
+            fout.write("\t\t\tSCHEME GAMMA\n")
         fout.write("\t\t&END KPOINTS\n")
+
+    def set_kpoints(self, scheme="MONKHORST-PACK", kpoints_mp=[1, 1, 1]):
+        self.kpoints_mp = kpoints_mp
+        self.params["SCHEME"] = scheme
+
+    def basic_setting(self):
+        self.params["SCHEME"] = "GAMMA"
 
 # =================================
 # CP2K / FORCE_EVAL /DFT / LOCALIZE
@@ -195,8 +208,8 @@ class cp2k_dft_ls_scf:
 class cp2k_dft_mgrid:
     def __init__(self):
         self.params = {
-                "CUTOFF": 280,
-                "REL_CUTOFF": 40,
+                "CUTOFF": None,
+                "REL_CUTOFF": None,
                 "NGRIDS": 4,
                 "COMMENSURATE": None,
                 "MULTIGRID_CUTOFF": None,
@@ -204,6 +217,7 @@ class cp2k_dft_mgrid:
                 "PROGRESSION_FACTOR": None,
                 "SKIP_LOAD_BALANCE_DISTRIBUTED": None,
                 }
+
     def to_dft(self, fout):
         """
         fout: a file stream for writing
@@ -214,7 +228,11 @@ class cp2k_dft_mgrid:
                 fout.write("\t\t\t%s %s\n" % (item, str(self.params[item])))
         fout.write("\t\t&END MGRID\n")
 
-
+    def set_params(self, params):
+        for item in params:
+            if item in self.params:
+                self.params[item] = params[item]
+        
 # ================================
 # ================================
 class cp2k_dft_periodic_efield:
@@ -310,6 +328,8 @@ class cp2k_dft_qs:
                 fout.write("\t\t\t%s %s\n" % (item, str(self.params[item])))
         fout.write("\t\t&END QS\n")
 
+    def set_params(self, params):
+        pass
 
 # ==================================
 # ==================================
@@ -370,6 +390,11 @@ class cp2k_dft_scf_diagonalization:
                fout.write("\t\t\t\t%s %s\n" % (item, str(self.params[item])))
        fout.write("\t\t\t&END DIAGONALIZATION\n")
 
+    def set_params(self, params):
+        for item in params:
+            if item in self.params:
+                self.params[item] = params[item]
+
 class cp2k_dft_scf_mixing:
     def __init__(self):
         self.section = '.TRUE.'
@@ -388,22 +413,48 @@ class cp2k_dft_scf_mixing:
                 fout.write("\t\t\t\t%s %s\n" % (item, str(self.params[item])))
         fout.write("\t\t\t&END MIXING\n")
 
+    def set_params(self, params):
+        for item in params:
+            if item in self.params:
+                self.params[item] = params[item]
+
 class cp2k_dft_scf_smear:
     def __init__(self):
-        self.section = '.TRUE.'
+        self.section = True # True or False or '.TRUE.' or '.FALSE.'
         self.params = {
-                "METHOD": 'FERMI_DIRAC',
+                "METHOD": None,
                 "ELECTRONIC_TEMPERATURE": None,
+                "WINDOW_SIZE": None
                 }
+        self.basic_setting()
+
     def to_scf(self, fout):
         """
         fout: a file stream for writing
         """
-        fout.write("\t\t\t&SMEAR %s\n" % self.section)
-        for item in self.params:
-            if self.params[item] is not None:
-                fout.write("\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t&SMEAR %s\n" % str(self.section))
+        if self.section == True or self.section == '.TRUE.':
+            fout.write("\t\t\t\tMETHOD %s\n" % self.params["METHOD"])
+            if self.params["METHOD"] == "ENERGY_WINDOW":
+                fout.write("\t\t\t\tWINDOW_SIZE %f\n" % self.params["WINDOW_SIZE"])
+            elif self.params["METHOD"] == "FERMI_DIRAC":
+                fout.write("\t\t\t\tELECTRONIC_TEMPERATURE %f\n" % self.params["ELECTRONIC_TEMPERATURE"])
         fout.write("\t\t\t&END SMEAR\n")
+
+    def basic_setting(self):
+        self.section = True
+        self.params["METHOD"] = 'FERMI_DIRAC'
+        self.params["ELECTRONIC_TEMPERATURE"] = 300.0
+
+    def set_smear(self, method="FERMI_DIRAC", electronic_temperature=300.0, window_size=0.0):
+        self.params["METHOD"] = method
+        self.params["ELECTRONIC_TEMPERATURE"] = electronic_temperature
+        self.params["WINDOW_SIZE"] = window_size
+
+    def set_params(self, params):
+        for item in params:
+            if item in self.params:
+                self.params[item] = params[item]
 
 class cp2k_dft_scf_print:
     def __init__(self):
@@ -452,11 +503,18 @@ class cp2k_dft_scf:
         if self.ifsmear == True:
             if self.params["ADDED_MOS"] == None or self.params["ADDED_MOS"] == 0:
                 print("If you are using smearing, you should set ADDED_MOS too!!!\n")
-                sys.exit()
+                sys.exit(1)
             self.smear.to_scf(fout)
         self.printout.to_scf(fout)
         fout.write("\t\t&END SCF\n")
 
+    def set_params(self, params):
+        self.diagonalization.set_params(params)
+        self.smear.set_params(params)
+        self.mixing.set_params(params)
+        for item in params:
+            if item in self.params:
+                self.params[item] = params[item]
 
 # ===================
 # ===================
@@ -528,13 +586,26 @@ class cp2k_dft_xc_xc_functional:
         fout.write("\t\t\t&XC_FUNCTIONAL %s\n" % self.section)
         fout.write("\t\t\t&END XC_FUNCTIONAL\n")
 
+    def set_params(self, params):
+        """
+        set_params for xc_functional is different from many other
+        set_params, as it deal with the key 'XC_FUNCTIONAL' only
+        """
+        if "XC_FUNCTIONAL" in params:
+            if params["XC_FUNCTIONAL"] != None:
+                self.section = params["XC_FUNCTIONAL"]
 
 class cp2k_dft_xc:
     def __init__(self):
         self.params = {
-                
+                "DENSITY_CUTOFF": None,
+                "DENSITY_SMOOTH_CUTOFF_RANGE": None,
+                "FUNCTIONAL_ROUTINE": None,
+                "GRADIENT_CUTOFF": None,
+                "TAU_CUTOFF": None,
                 }
         self.xc_functional = cp2k_dft_xc_xc_functional()
+
     def to_dft(self, fout):
         """
         fout: a file stream for writing
@@ -546,6 +617,11 @@ class cp2k_dft_xc:
         self.xc_functional.to_xc(fout)
         fout.write("\t\t&END XC\n")
 
+    def set_params(self, params):
+        self.xc_functional.set_params(params)
+        for item in params:
+            if item in self.params:
+                self.params[item] = params[item]
 
 # ============================================
 # CP2K / DFT
@@ -661,3 +737,37 @@ class cp2k_dft:
             self.params["LSD"] = ".TRUE."
         else:
             self.params["LSD"] = None
+
+    def set_params(self, params):
+        #self.almo_scf.set_params(params)
+        #self.auxiliary_density_matrix_method.set_params(params)
+        #self.density_fitting.set_params(params)
+        #self.efield.set_params(params)
+        #self.external_density.set_params(params)
+        #self.external_potential.set_params(params)
+        #self.external_vxc.set_params(params)
+        #self.kg_method.set_params(params)
+        #self.kpoints.set_params(params)
+        #self.localize.set_params(params)
+        #self.low_spin_roks.set_params(params)
+        #self.ls_scf.set_params(params)
+        self.mgrid.set_params(params)
+        #self.periodic_efield.set_params(params)
+        #self.poisson.set_params(params)
+        #self.printout.set_params(params)
+        self.qs.set_params(params)
+        #self.real_time_propagation.set_params(params)
+        #self.relativistic.set_params(params) 
+        #self.sccs.set_params(params)
+        self.scf.set_params(params)
+        #self.scrf.set_params(params)
+        #self.sic.set_params(params) 
+        #self.tddfpt.set_params(params)
+        #self.transport.set_params(params)
+        #self.xas.set_params(params)
+        self.xc.set_params(params)
+        # dealing with params that belong to this section(first level)
+        for item in params:
+            if item in self.params:
+                self.params[item] = params[item]
+    #

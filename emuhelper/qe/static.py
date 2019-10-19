@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 from emuhelper.qe.base.control import qe_control
 from emuhelper.qe.base.system import qe_system
 from emuhelper.qe.base.electrons import qe_electrons
-from emuhelper.qe.base.ions import qe_ions
 from emuhelper.qe.base.arts import qe_arts
 
 
@@ -18,7 +17,8 @@ class static_run:
     """
     About:
         static_run implements the control over scf, nscf and
-        calculations based on them, like dos, pdos, bands
+        calculations based on them, like dos, pdos, bands, epsilon
+        Phonon(DFPT)
     Status:
         currently implemented calculation including:
             scf, nscf, dos, bands, projwfc(pdos),
@@ -439,7 +439,7 @@ class static_run:
 
     
     def dos(self, directory="tmp-qe-static", inpname="static-dos.in", output="static-dos.out", mpi="",
-            fildos="output.dos", bz_sum='smearing', ngauss='default', degauss='default', emin='default', emax='default',
+            fildos="dosx.dos", bz_sum='smearing', ngauss='default', degauss='default', emin='default', emax='default',
             deltae='default'
             ):
         """
@@ -654,6 +654,8 @@ class static_run:
         epsilon.x:
             calculation of absorption spectra in IPA(Independent Particle 
             Approximation).
+        Note:
+            USPP rea not implemented now
         """
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
@@ -713,6 +715,8 @@ class static_run:
         Note:
             turboTDDFT is not extended to metals, so we can only
             deal with insulators or semiconductors with turbo now.
+            
+            ltetra are not implemented now
         """
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
@@ -779,6 +783,10 @@ class static_run:
 
         turnbo_spectrum.x:
             post-processing calculation of the spectrum
+            
+        Note:
+            turboTDDFT is not extended to metals
+            ltetra are not implemented now
         """
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
@@ -797,7 +805,7 @@ class static_run:
             fout.write("/\n")
             fout.write("\n")
             fout.write("&lr_control\n")
-            fout.write("intermax = 1500\n")
+            fout.write("itermax = 1500\n")
             fout.write("ipol = 1\n")
             fout.write("/\n")
             fout.write("\n")
@@ -1069,7 +1077,7 @@ class static_run:
         os.chdir("../")
 
 
-    def difference_charge_density(self, directory="tmp-qe-static", inpname="difference-charge-density.in", output="difference-charge-density.out", mpi=""):
+    def dcd(self, directory="tmp-qe-static", inpname="dcd.in", output="dcd.out", mpi=""):
         """
         """
         # first check whether there is a previous scf running
@@ -1077,7 +1085,7 @@ class static_run:
             print("===================================================\n")
             print("                 Warning !!!\n")
             print("===================================================\n")
-            print("ppd.x calculation:\n")
+            print("pp.x calculation:\n")
             print("  directory of previous scf or nscf calculattion not found!\n")
             sys.exit(1)
         with open(os.path.join(directory, inpname), 'w') as fout:
@@ -1088,7 +1096,7 @@ class static_run:
         os.system("%s pp.x < %s | tee %s" % (mpi, inpname, output))
         os.chdir("../")
 
-    def electron_density(self, directory="tmp-qe-static", inpname="electron-density.in", output="electron-density.out", mpi=""):
+    def ed(self, directory="tmp-qe-static", inpname="electron-density.in", output="electron-density.out", mpi=""):
         """
         electron (pseudo-)charge density
         """
@@ -1173,4 +1181,26 @@ class static_run:
         fout.write("/\n")
         fout.write("\n")
 
+    def xspectra(self, directory="tmp-qe-static", inpname="xspectra.in", output="xspectra.out", mpi=""):
+        """
+        Reference:
+            http://www.quantum-espresso.org/Doc/INPUT_XSpectra.txt
+        """
+        # first check whether there is a previous scf running
+        if not os.path.exists(directory):
+            print("===================================================\n")
+            print("                 Warning !!!\n")
+            print("===================================================\n")
+            print("xspectra.x calculation:\n")
+            print("  directory of previous scf or nscf calculattion not found!\n")
+            sys.exit(1)
+        with open(os.path.join(directory, inpname), 'w') as fout:
+            fout.write("&input_xspectra\n")
+            fout.write("/\n")
+            fout.write("&plot\n")
+            fout.write("/\n")
 
+        os.chdir(directory)
+        os.system("%s xspectra.x < %s | tee %s" % (mpi, inpname, output))
+        os.chdir("../")
+    #

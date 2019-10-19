@@ -3,24 +3,23 @@
 
 import argparse
 
-
-from emuhelper.cp2k.opt import opt_run
-
-"""
-Usage:
-    cp2k-geo-opt.py -f xxx.xyz
-    xxx.xyz is the input structure file
+from emuhelper.cp2k.static import static_run
 
 """
+usage:
+    cp2k-scf.py -f xxx.xyz
+"""
+
+
 force_eval = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-geo-opt")
+    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-static")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
     parser.add_argument("--cutoff", help="CUTOFF, default value: 100 Ry", type=int, default=100)
-    parser.add_argument("--rel-cutoff", help="REL_CUTOFF, default value: 60 Ry", type=int , default=60)
     parser.add_argument("--xc-functional", help="XC_FUNCTIONAL type", type=str, default="PBE")
+    parser.add_argument("--rel-cutoff", help="REL_CUTOFF, default value: 60 Ry", type=int , default=60)
     parser.add_argument("-k", "--kpoints", help="set kpoints like '3 3 3 0 0 0'", type=str, default="3 3 3 0 0 0")
     parser.add_argument("--added-mos", help="ADDED_MOS for SCF", type=int, default=0)
     parser.add_argument("--smear", help="smearing type", type=str, default="FERMI_DIRAC")
@@ -40,6 +39,5 @@ if __name__ == "__main__":
     force_eval["ELECTRONIC_TEMPERATURE"] = args.electronic_temp
     force_eval["WINDOW_SIZE"] = args.window_size
 
-    task = opt_run(xyzfile)
-    task.geo_opt(directory="tmp-cp2k-geo-opt", runopt="genrun", force_eval=force_eval)
-
+    task = static_run(xyzfile)
+    task.scf(directory=directory, runopt="genrun", force_eval=force_eval)

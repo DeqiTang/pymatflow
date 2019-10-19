@@ -22,4 +22,4 @@ if __name__ == "__main__":
     directory = args.directory
  
     task = static_run(xyzfile)
-    task.difference_charge_density()
+    task.dcd()

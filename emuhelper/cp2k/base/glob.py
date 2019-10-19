@@ -23,11 +23,15 @@ class cp2k_glob:
                 "FFTW_PLAN_TYPE": "ESTIMATE",
                 }
 
-    def to_input(self, fname):
-        with open(fname, 'a') as fout:
-            fout.write("&GLOBAL\n")
-            for item in self.params:
-                fout.write("\t%s %s\n" % (item, self.params[item]))
-            fout.write("&END GLOBAL\n")
-            fout.write("\n")
+    def to_input(self, fout):
+        fout.write("&GLOBAL\n")
+        for item in self.params:
+            fout.write("\t%s %s\n" % (item, self.params[item]))
+        fout.write("&END GLOBAL\n")
+        fout.write("\n")
 
+    def basic_setting(self, run_type="ENERGY_FORCE"):
+        """
+        """
+        if run_type == "ENERGY_FORCE":
+            self.params["RUN_TYPE"] = "ENERGY_FORCE"
