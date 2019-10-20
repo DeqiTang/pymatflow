@@ -3,11 +3,11 @@
 
 import argparse
 
-from emuhelper.cp2k.static import static_run
+from emuhelper.cp2k.vib import vib_run
 
 """
 usage:
-    cp2k-scf.py -f xxx.xyz
+    cp2k-vib.py -f xxx.xyz
 """
 
 
@@ -15,9 +15,8 @@ force_eval = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-static")
+    parser.add_argument("-d", "--directory", help="directory of the vib calculation", type=str, default="tmp-cp2k-vib")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
-    parser.add_argument("-p", "--printout-option", help="Properties printout option(0, 1, 2 implemented now)", type=int, default=0)
     parser.add_argument("--cutoff", help="CUTOFF, default value: 100 Ry", type=int, default=100)
     parser.add_argument("--xc-functional", help="XC_FUNCTIONAL type", type=str, default="PBE")
     parser.add_argument("--rel-cutoff", help="REL_CUTOFF, default value: 60 Ry", type=int , default=60)
@@ -39,7 +38,6 @@ if __name__ == "__main__":
     force_eval["SMEAR"] = args.smear
     force_eval["ELECTRONIC_TEMPERATURE"] = args.electronic_temp
     force_eval["WINDOW_SIZE"] = args.window_size
-    printout_option = args.printout_option
 
-    task = static_run(xyzfile)
-    task.scf(directory=directory, runopt="genrun", force_eval=force_eval, printout_option=printout_option)
+    task = vib_run(xyzfile)
+    task.vib(directory=directory, runopt="genrun", force_eval=force_eval)

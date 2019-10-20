@@ -27,7 +27,7 @@ class static_run:
 
 
     def scf(self, directory="tmp-cp2k-static", inpname="static-scf.inp", output="static-scf.out", 
-            force_eval={}, mpi="", runopt="gen"):
+            force_eval={}, mpi="", runopt="gen", printout_option=0):
         """
         directory: a place for all the generated files
         """
@@ -38,6 +38,7 @@ class static_run:
             shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, self.force_eval.subsys.xyz.file))
             # using force_eval
             self.force_eval.set_params(force_eval)
+            self.printout_option(printout_option)
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.glob.to_input(fout)
                 self.force_eval.to_input(fout)
@@ -48,7 +49,7 @@ class static_run:
            os.chdir("../")    
 
     def scf_restart(self, directory="tmp-cp2k-static", inpname="static-scf-restart.inp", output="static-scf-restart.out", 
-            force_eval={}, mpi="", runopt="gen"):
+            force_eval={}, mpi="", runopt="gen", printout_option=0):
         """
         scf_restart continue a scf calculation from previous scf
         or mimic a nscf calculation(there seems no official nscf
@@ -66,6 +67,7 @@ class static_run:
             self.force_eval.dft.scf.params["SCF_GUESS"] = "RESTART"
             # using force_eval
             self.force_eval.set_params(force_eval)
+            self.printout_option(printout_option)
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.glob.to_input(fout)
                 self.force_eval.to_input(fout)
@@ -171,11 +173,19 @@ class static_run:
             plt.show()
             os.chdir("../")
 
-    def print_electron_density(self):
-        self.force_eval.dft.printout.print_electron_density()
-    
-    def print_bands(self):
-        self.force_eval.dft.printout.print_bands()
-
-    def print_pdos(self):
-        self.force_eval.dft.printout.print_pdos()
+    def printout_option(self, option=0):
+        """
+        option:
+            0: do not printout properties
+            1: printout pdos
+            2: printout bands
+            3: printout electron densities
+        """
+        if option == 0:
+            pass
+        elif option == 1:
+            self.force_eval.dft.printout.print_pdos()
+        elif option == 2:
+            self.force_eval.dft.printout.print_bands()
+        elif option == 3:
+            self.force_eval.dft.printout.print_electron_density()

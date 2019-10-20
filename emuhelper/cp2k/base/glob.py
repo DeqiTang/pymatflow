@@ -35,3 +35,5 @@ class cp2k_glob:
         """
         if run_type == "ENERGY_FORCE":
             self.params["RUN_TYPE"] = "ENERGY_FORCE"
+        elif run_type == "VIBRATIONAL_ANALYSIS":
+            self.params["RUN_TYPE"] = "VIBRATIONAL_ANALYSIS"

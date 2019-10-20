@@ -268,6 +268,8 @@ class cp2k_dft_print:
         self.electron_density = False
         self.bands = False
         self.pdos = False
+        self.moments = False
+
     def to_dft(self, fout):
         """
         fout: a file stream for writing
@@ -299,6 +301,10 @@ class cp2k_dft_print:
             fout.write("\t\t\t\tNLUMO -1\n") # print all projected DOS available
             fout.write("\t\t\t\tCOMPONENTS\n") # split the density by quantum number
             fout.write("\t\t\t&END PDOS\n")
+        if self.moments == True:
+            fout.write("\t\t\t&MOMENTS\n")
+            fout.write("\t\t\t\tPERIODIC %s\n" % False)
+            fout.write("\t\t\t&END MOMENTS\n")
         fout.write("\t\t&END PRINT\n")
     def print_electron_density(self):
         self.electron_density = True
@@ -307,6 +313,8 @@ class cp2k_dft_print:
         self.bands = True
     def print_pdos(self):
         self.pdos = True
+    def print_moments(self):
+        self.moments = True
 
 # ============================
 # CP2K / FORCE_EVAL / DFT / QS
