@@ -14,6 +14,7 @@ electrons_params = {}
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+    parser.add_argument("--mpi", help="MPI command", type=str, default="")
     parser.add_argument("--ecutwfc", help="ecutwfc", type=int, default=100)
     parser.add_argument("-k", "--kpoints", help="set kpoints like '1 1 1 0 0 0'", type=str, default="1 1 1 0 0 0")
     parser.add_argument("--conv_thr", help="the conv_thr for scf", type=float, default=1.0e-6)
@@ -33,4 +34,4 @@ if __name__ == "__main__":
     kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
  
     task = opt_run(xyzfile)
-    task.relax(runopt="genrun", system=system_params, electrons=electrons_params, kpoints_mp=kpoints_mp)
+    task.relax(runopt="genrun", mpi=args.mpi, system=system_params, electrons=electrons_params, kpoints_mp=kpoints_mp)

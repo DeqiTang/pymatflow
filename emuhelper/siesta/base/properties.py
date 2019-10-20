@@ -16,20 +16,51 @@ Usage:
 
 class siesta_properties:
     """
+    self.option:
+        0: None
+        1: PDOS
+        2: LDOS
+        3: Bands
+        4: Charge Density
+        5: Chemical analysis
+        6: Macro Polarization
+        7: Net Charge Dipole Electric Field
+        8: Optical
+        9: Wannier90
+
+
     """
     def __init__(self):
         self.params = {
                 }
-        self.option = None
+        self.option = 0 
 
     def to_fdf(self, fout):
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("%s %s\n" % (item, str(self.params[item])))
         #
-        if self.option == "pdos":
+        if self.option == 0:
+            return
+        elif self.option == 1:
             self.to_fdf_pdos(fout)
-    
+        elif self.option == 2:
+            self.to_fdf_ldos(fout)
+        elif self.option == 3:
+            self.to_fdf_band(fout)
+        elif self.option == 4:
+            self.to_fdf_charge(fout)
+        elif self.option == 5:
+            self.to_fdf_chem(fout)
+        elif self.option == 6:
+            self.to_fdf_macro_polarization(fout)
+        elif self.option == 7:
+            self.to_fdf_net_charge_dipole_elec_field(fout)
+        elif self.option == 8:
+            self.to_fdf_optical(fout)
+        elif self.option == 9:
+            self.to_fdf_wannier90(fout)
+
     def to_fdf_pdos(self, fout, emin=-20.0, emax=20.0, peak_width=0.1, npoint=2000):
         # 输出pdos时会同时输出total dos
         fout.write("%block ProjectedDensityOfStates\n")
@@ -61,6 +92,16 @@ class siesta_properties:
 
     def to_fdf_charge(self, fout):
         # Output of charge densities and potentials on the grid
+        """
+        they can be processed by:
+            Util/Grid
+            Util/Contrib/APostnikov
+            Util/Denchar
+        Note:
+            The program denchar in Util/Denchar can generate charge-density and wavefunction information
+            in real space.
+        """
+        fout.write("Write.Denchar true\n")
         fout.write("SaveRho true\n")
         fout.write("SaveDeltaRho true\n")
         fout.write("SaveRhoXC true\n")
@@ -69,7 +110,14 @@ class siesta_properties:
         fout.write("SaveTotalPotential true\n")
         fout.write("SaveIonicCharge true\n")
         fout.write("SaveTotalCharge true\n")
-        fout.write("SaveBaderCharge true\n")
+        # generated SystemLabel.BADER can be converted to cube format 
+        # by Util/Grid/grid2cube(failed in my machine) or Util/Grid/g2c_ng
+        # use of g2c_ng tool:
+        # g2c_ng -g SystemLabel.BADER -s SystemLabel.STRUCT_OUT
+        # and the get cube file can be further analyzed using
+        # bader program: http://theory.cm.utexas.edu/bader/
+        # bader SystemLabel.RHO.cube -ref SystemLabel.BADER.cube
+        fout.write("SaveBaderCharge true\n") 
         fout.write("AnalyzeChargeDensityOnly false\n")
         fout.write("SaveInitialChargeDensity false\n")
         fout.write("\n")
@@ -125,10 +173,10 @@ class siesta_properties:
         fout.write("%block Optical.Mesh\n")
         fout.write("  5 5 5\n")
         fout.write("%endblock Optical.Mesh\n")
-        fout.write("Optical.OffsetMesh false\n")
-        fout.write("Optical.PolarizationType polycrystal\n") # polycrystal, polarized, unpolarized
+        fout.write("Optical.OffsetMesh true\n")
+        fout.write("Optical.PolarizationType unpolarized\n") # polycrystal, polarized, unpolarized
         fout.write("%block Optical.Vector\n")
-        fout.write("  1.0 0.0 0.5\n")
+        fout.write("  1.0 1.0 0.0\n")
         fout.write("%endblock Optical.Vector\n")
         fout.write("\n")
     

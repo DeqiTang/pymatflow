@@ -13,9 +13,9 @@ class element_pdos:
     def __init__(self, pdos_file):
         self.pdos_file = pdos_file
         self.kind = None
-        self.fermi = None
-        self.orbitals = {}
+        self.fermi = None # in a.u.
         self.data = None
+        self.orbitals = {}
         self.get_data()
 
     def get_data(self):
@@ -27,6 +27,10 @@ class element_pdos:
             for item in line.split()[5:]:
                 self.orbitals[item] = None
             self.data = np.loadtxt(fin)
+       
+        # shift the Fermi energy to 0 and onvert from a.u. to eV
+        self.data[:, 1] = self.data[:, 1] - self.fermi
+        self.data[:, 1] = self.data[:, 1] * 27.21138505
         #
         j = 3
         for orb in self.orbitals:
@@ -71,8 +75,12 @@ class pdos_post:
                 tdos += i.data[:, j]
         
         x, y = self.convolute(energy, tdos, step=self.step, sigma=self.sigma)
-        plt.plot(x, y)
+        plt.plot(x, y, label="TDOS")
+        plt.vlines(0, 0, 5, linestyle="dashed", label="Fermi Energy")
         plt.title("Total DOS(conv)")
+        plt.xlabel("Energy (eV)")
+        plt.ylabel("Densit of States")
+        plt.legend()
         plt.savefig("tdos.png")
         plt.close()
 

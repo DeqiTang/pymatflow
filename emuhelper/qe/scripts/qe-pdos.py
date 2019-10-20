@@ -13,6 +13,7 @@ usage:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()    
     parser.add_argument("-d", "--directory", help="directory for the calculation", type=str, default="tmp-qe-static")
+    parser.add_argument("--mpi", help="MPI commadn", type=str, default="")
     parser.add_argument("-f", "--file", help="the xyz file", type=str)
     parser.add_argument("--filpdos", help="output projected dos file name", type=str, default="projwfc")
     parser.add_argument("--ngauss", help="gaussian broadening type", type=str, default='default')
@@ -51,4 +52,4 @@ if __name__ == "__main__":
 
 
     task = static_run(xyzfile)
-    task.projwfc(directory=directory, filpdos=filpdos, ngauss=ngauss, degauss=degauss, emin=emin, emax=emax, deltae=deltae)
+    task.projwfc(directory=directory, mpi=args.mpi, filpdos=filpdos, ngauss=ngauss, degauss=degauss, emin=emin, emax=emax, deltae=deltae)
