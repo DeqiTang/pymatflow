@@ -25,7 +25,7 @@ class out:
                     self.electronic_temperature = float(line.split()[3])
     def get_energy_info(self):
         self.get_input_info()
-        if self.run_type == "ENERGY_FORCE"
+        if self.run_type == "ENERGY_FORCE":
             with open(self.f, 'r') as fin:
                 for line in fin:
                     if re.match("\sENERGY| Total FORCE_EVAL ( QS  ) energy (a.u.):", line) is not None:

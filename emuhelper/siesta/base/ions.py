@@ -57,3 +57,16 @@ class siesta_ions:
                     fout.write("MD.%s %s\n" % (item, str(self.md[item])))
         #
         fout.write("\n")
+
+    def basic_setting(self):
+        self.md["TypeOfRun"] = "CG"   # CG, Broyden, 
+        self.md["VariableCell"] = "false"
+        self.md["ConstantVolume"] = "true"
+        self.md["MaxForceTol"] = 0.001 # eV/Ang
+        self.md["MaxStressTol"] = 0.01 # GPa
+        self.md["Steps"] = 60
+        self.md["MaxDispl"] = 0.2 # Bohr
+        self.md["PreconditionVariableCell"] = 5 # Ang
+
+        self.params["WriteCoorXmol"] = "true"
+        self.params["WriteMDXmol"] = "true"

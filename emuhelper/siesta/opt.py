@@ -20,49 +20,33 @@ class opt_run:
         self.system = siesta_system(xyz_f)
         self.electrons = siesta_electrons()
         self.ions = siesta_ions()
-        
-        self.electrons.xc["functional"] = "GGA"
-        self.electrons.xc["authors"] = "PBE"
-        self.electrons.dm["Tolerance"] = "1.d-6"
-        self.electrons.dm["MixingWight"] = 0.1
-        self.electrons.dm["NumberPulay"] = 5
-        self.electrons.dm["AllowExtrapolation"] = "true"
-        self.electrons.dm["UseSaveDM"] = "true"
-        self.electrons.params["SolutionMethod"] = "diagon"
-        self.electrons.params["MeshCutoff"] = 300 #100
-        
-        self.ions.md["TypeOfRun"] = "CG"   # CG, Broyden, 
-        self.ions.md["VariableCell"] = "false"
-        self.ions.md["ConstantVolume"] = "true"
-        self.ions.md["MaxForceTol"] = 0.001 # eV/Ang
-        self.ions.md["MaxStressTol"] = 0.01 # GPa
-        self.ions.md["Steps"] = 60
-        self.ions.md["MaxDispl"] = 0.2 # Bohr
-        self.ions.md["PreconditionVariableCell"] = 5 # Ang
 
-        self.ions.params["WriteCoorXmol"] = "true"
-        self.ions.params["WriteMDXmol"] = "true"
+        self.electrons.basic_setting()
+        self.ions.basic_setting()
 
-    def gen_input(self, directory="tmp-siesta-opt", inpname="geometric-optimization.fdf"):
+    def opt(self, directory="tmp-siesta-opt", inpname="geometric-optimization.fdf", output="geometric-optimization.out",
+            mpi="", runopt="gen", mode=0, electrons={}, kpoints_mp=[1, 1, 1]):
         
-        if os.path.exists(directory):
-            shutil.rmtree(directory)
-        os.mkdir(directory)
+        if runopt == "gen" or runopt == "genrun":
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
         
-        for element in self.system.xyz.specie_labels:
-            shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
+            for element in self.system.xyz.specie_labels:
+                shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
 
-                
-        with open(os.path.join(directory, inpname), 'w') as fout:
-            self.system.to_fdf(fout)
-            self.electrons.to_fdf(fout)
-            self.ions.to_fdf(fout)
-    
-    def run(self, directory="tmp-siesta-opt", inpname="geometric-optimization.fdf", output="geometric-optimization.out"):
-        # run the simulation
-        os.chdir(directory)
-        os.system("siesta < %s | tee %s" % (inpname, output))
-        os.chdir("../")
+            self.electrons.kpoints_mp = kpoints_mp
+            self.electrons.set_params(electrons)
+            self.set_opt_mode(mode=mode)
+            with open(os.path.join(directory, inpname), 'w') as fout:
+                self.system.to_fdf(fout)
+                self.electrons.to_fdf(fout)
+                self.ions.to_fdf(fout)
+        if runopt == "run" or runopt == "genrun":
+            # run the simulation
+            os.chdir(directory)
+            os.system("%s siesta < %s | tee %s" % (mpi, inpname, output))
+            os.chdir("../")
 
 
     def analysis(self, directory="tmp-siesta-opt", inpname="geometric-optimization.fdf", output="geometric-optimization.out"):
@@ -81,3 +65,21 @@ class opt_run:
         plt.plot(steps, energies)
         plt.show()
         os.chdir("../")
+
+    def set_opt_mode(self, mode=0):
+        """
+        mode:
+            0: do not variable cell
+            1: variable cell
+        """
+        if mode == 0:
+            self.ions.md["VariableCell"] = "false"
+        elif mode == 1:
+            self.ions.md["VariableCell"] = "false"
+        else:
+            print("==========================================\n")
+            print("             WARNING !!!\n")
+            print("opt mode can only be 0 or 1\n")
+            print("where 0 is: MD.VariableCell = flase\n")
+            print("and 1 is : MD.VariableCell = true\n")
+            sys.exit(1)

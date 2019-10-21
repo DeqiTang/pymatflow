@@ -35,4 +35,4 @@ if __name__ == "__main__":
     kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
 
     task = opt_run(xyzfile)
-    task.vc_relax(runopt="genrun", mpi=args.mpi system=system_params, electrons=electrons_params, kpoints_mp=kpoints_mp)
+    task.vc_relax(runopt="genrun", mpi=args.mpi, system=system_params, electrons=electrons_params, kpoints_mp=kpoints_mp)
