@@ -52,6 +52,9 @@ class md_run:
                 self.electrons.to_in(fout)
                 self.ions.to_in(fout)
                 self.arts.to_in(fout)
+            # gen yhbatch script
+            self.gen_yh(directory=directory, inpname=inpname, output=output)
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
@@ -85,6 +88,9 @@ class md_run:
                 self.electrons.to_in(fout)
                 self.ions.to_in(fout)
                 self.arts.to_in(fout)
+            # gen yhbatch script
+            self.gen_yh(directory=directory, inpname=inpname, output=output)
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
@@ -133,3 +139,12 @@ class md_run:
                     self.system.set_occupations(occupations="smearing")
             else:
                 pass
+    #
+    def gen_yh(self, directory, inpname, output):
+        """
+        generating yhbatch job script for calculation
+        """
+        with open(os.path.join(directory, inpname+".bash"), 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inpname, output))
+

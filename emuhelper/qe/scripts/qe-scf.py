@@ -19,6 +19,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-qe-static")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+    parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
     parser.add_argument("--mpi", help="MPI command", type=str, default="")
     parser.add_argument("--ecutwfc", help="ecutwfc, default value: 100 Ry", type=int, default=100)
     parser.add_argument("-k", "--kpoints", help="set kpoints like '3 3 3 0 0 0'", type=str, default="3 3 3 0 0 0")
@@ -39,4 +40,4 @@ if __name__ == "__main__":
     
 
     task = static_run(xyzfile)
-    task.scf(directory=directory, runopt="genrun", mpi=args.mpi, control=control_params, system=system_params, electrons=electrons_params, kpoints_mp=kpoints_mp)
+    task.scf(directory=directory, runopt=args.runopt, mpi=args.mpi, control=control_params, system=system_params, electrons=electrons_params, kpoints_mp=kpoints_mp)

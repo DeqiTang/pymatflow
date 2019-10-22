@@ -76,6 +76,8 @@ class neb_run:
                 self.arts_to_neb(fout)
                 fout.write("END_ENGINE_INPUT\n")
                 fout.write("END\n")
+            # gen yhbatch script
+            self.gen_yh(directory=directory, inpname=inpname, output=output)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -152,4 +154,12 @@ class neb_run:
             else:
                 pass
     #
+
+    def gen_yh(self, directory, inpname, output):
+        """
+        generating yhbatch job script for calculation
+        """
+        with open(os.path.join(directory, inpname+".bash"), 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inpname, output))
 

@@ -19,6 +19,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
     parser.add_argument("-d", "--directory", help="directory for the calculation", type=str, default="tmp-qe-static")
+    parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
     parser.add_argument("--fildos", help="output dos file name", type=str, default="dosx.dos")
     parser.add_argument("--bzsum", help="brillouin summation type", type=str, default="smearing")
     parser.add_argument("--ngauss", help="gaussian broadening type", type=str, default='default')
@@ -58,4 +59,4 @@ if __name__ == "__main__":
 
 
     task = static_run(xyzfile)
-    task.dos(directory=directory, fildos=fildos, bz_sum=bzsum, ngauss=ngauss, degauss=degauss, emin=emin, emax=emax, deltae=deltae)
+    task.dos(directory=directory, runopt=args.runopt, fildos=fildos, bz_sum=bzsum, ngauss=ngauss, degauss=degauss, emin=emin, emax=emax, deltae=deltae)

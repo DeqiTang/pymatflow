@@ -18,6 +18,7 @@ electrons_params = {}
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-qe-neb")
+    parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
     parser.add_argument("--image1", help="the first image xyz file", type=str)
     parser.add_argument("--image2", help="the intermediate image xyz file", type=str)
     parser.add_argument("--image3", help="the last image xyz file", type=str)
@@ -42,4 +43,4 @@ if __name__ == "__main__":
     
 
     task = neb_run(image1, image2, image3)
-    task.neb(directory=directory, runopt="genrun", control=control_params, system=system_params, electrons=electrons_params, kpoints_mp=kpoints_mp)
+    task.neb(directory=directory, runopt=args.runopt, control=control_params, system=system_params, electrons=electrons_params, kpoints_mp=kpoints_mp)

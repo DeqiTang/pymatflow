@@ -16,6 +16,7 @@ system_params = {
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+    parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
     parser.add_argument("--mpi", help="MPI command", type=str, default="")
     parser.add_argument("--ecutwfc", help="ecutwfc", type=int, default=100)
     parser.add_argument("-k", "--kpoints", help="set kpoints like '1 1 1 0 0 0'", type=str, default="1 1 1 0 0 0")
@@ -33,4 +34,4 @@ if __name__ == "__main__":
     kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
  
     task = md_run(xyzfile)
-    task.vc_md(runopt="genrun", mpi=args.mpi, system=system_params, kpoints_mp=kpoints_mp)
+    task.vc_md(runopt=args.runopt, mpi=args.mpi, system=system_params, kpoints_mp=kpoints_mp)

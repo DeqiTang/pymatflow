@@ -14,6 +14,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-qe-static")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+    parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================   
@@ -22,4 +23,4 @@ if __name__ == "__main__":
     directory = args.directory
 
     task = static_run(xyzfile)
-    task.epsilon(directory=directory)
+    task.epsilon(directory=directory, runopt=args.runopt)
