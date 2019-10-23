@@ -25,13 +25,16 @@ class neb_run:
         self.arts1 = qe_arts(image1)
         self.arts2 = qe_arts(image2)
         self.arts3 = qe_arts(image3)
+        self.path = {} # Namelist: &PATH
+        self.set_basic_path()
         
         self.control.basic_setting("scf") 
         self.system.basic_setting(self.arts1)
         self.electrons.basic_setting()
         
     def neb(self, directory="tmp-qe-neb", inpname="neb.in", output="neb.out", 
-            mpi="", runopt="gen", control={}, system={}, electrons={}, kpoints_mp=[1, 1, 1, 0, 0, 0]):
+            mpi="", runopt="gen", control={}, system={}, electrons={}, kpoints_mp=[1, 1, 1, 0, 0, 0],
+            path={}):
         """
         directory: a place for all the generated files
         """
@@ -55,18 +58,18 @@ class neb_run:
             # error while reading from file ./tmp/pwscf_2/pwscf.wfc1
             self.control.params["wf_collect"] = False
 
+            self.set_path(path=path)
             with open(os.path.join(directory, inpname), 'w') as fout:
                 fout.write("BEGIN\n")
                 fout.write("BEGIN_PATH_INPUT\n")
                 fout.write("&PATH\n")
-                fout.write("string_method = 'neb'\n")
-                fout.write("nstep_path = 100\n")
-                fout.write("opt_scheme = 'broyden'\n")
-                fout.write("num_of_images = 5\n")
-                fout.write("k_max = 0.3\n")
-                fout.write("k_min = 0.2\n")
-                fout.write("CI_scheme = 'auto'\n")
-                fout.write("path_thr = %f\n" % 0.05e0)
+                for item in self.path:
+                    if self.path[item] is not None:
+                        if type(self.path[item]) == str:
+                            fout.write("%s = '%s'\n" % (item, self.path[item]))
+                        else:
+                            fout.write("%s = %s\n" % (item, str(self.path[item])))
+
                 fout.write("/\n")
                 fout.write("END_PATH_INPUT\n")
                 fout.write("BEGIN_ENGINE_INPUT\n")
@@ -161,5 +164,19 @@ class neb_run:
         """
         with open(os.path.join(directory, inpname+".bash"), 'w') as fout:
             fout.write("#!/bin/bash\n")
-            fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inpname, output))
+            fout.write("yhrun -N 1 -n 24 neb.x -inp %s > %s\n" % (inpname, output))
 
+    def set_basic_path(self):
+        self.path["string_method"] = 'neb'
+        self.path["nstep_path"] = 100
+        self.path["opt_scheme"] = 'broyden'
+        self.path["num_of_images"] = 5
+        self.path["k_max"] = 0.3
+        self.path["k_min"] = 0.2
+        self.path["CI_scheme"] = 'auto'
+        self.path["path_thr"] = 0.05e0
+        self.path["ds"] = 1.0e0
+
+    def set_path(self, path={}):
+        for item in path:
+            self.path[item] = path[item]

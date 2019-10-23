@@ -15,7 +15,9 @@ electrons_params = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-qe-ecutwfc")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+    parser.add_argument("--runopt", help="gen run genrun", type=str, default="genrun")
     parser.add_argument("--range", help="ecutwfc test range", nargs='+', type=int)
     parser.add_argument("-k", "--kpoints", help="set kpoints like '1 1 1 0 0 0'", type=str, default="1 1 1 0 0 0")
     parser.add_argument("--occupations", help="occupation type", type=str, default="smearing")
@@ -32,4 +34,4 @@ if __name__ == "__main__":
     kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
 
     task = static_run(xyzfile)
-    task.converge_ecutwfc(args.range[0], args.range[1], args.range[2], control=control_params, system=system_params, electrons=electrons_params, runopt="genrun")
+    task.converge_ecutwfc(args.range[0], args.range[1], args.range[2], directory=args.directory, control=control_params, system=system_params, electrons=electrons_params, runopt=args.runopt)

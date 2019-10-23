@@ -115,6 +115,7 @@ setup(
         "emuhelper/qe/post/scripts/post-qe-relax.py",
         "emuhelper/qe/post/scripts/post-qe-vc-relax.py",
         "emuhelper/qe/post/scripts/post-qe-scf.py",
+        "emuhelper/qe/post/scripts/post-qe-ecutwfc.py",
         "emuhelper/siesta/scripts/band_new_scf_siesta.py",
         "emuhelper/siesta/scripts/charge-density_potentials_siesta.py",
         "emuhelper/siesta/scripts/chem_analysis_siesta.py",

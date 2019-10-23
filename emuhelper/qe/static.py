@@ -196,6 +196,15 @@ class static_run:
                     self.system.to_in(fout)
                     self.electrons.to_in(fout)
                     self.arts.to_in(fout)
+            # gen yhbatch running script
+            with open("converge-ecutwfc.job.sh", 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                for i in range(n_test + 1):
+                    ecut_wfc = int(emin + i * step)
+                    inp_name = "ecutwfc-%d.in" % ecut_wfc
+                    out_f_name = "ecutwfc-%d.out" % ecut_wfc
+                    fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inp_name, out_f_name))
+
         if runopt == "run" or runopt == "genrun":
             # run the simulation
             for i in range(n_test + 1):
@@ -1309,7 +1318,7 @@ class static_run:
             os.chdir("../")
     #
 
-    def gen_yh(self, directory="tmp-qe-static", inpname, output):
+    def gen_yh(self,inpname, output, directory="tmp-qe-static"):
         """
         generating yhbatch job script for calculation
         """
