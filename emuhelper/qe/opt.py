@@ -22,10 +22,13 @@ class opt_run:
         self.electrons = qe_electrons()
         self.ions = qe_ions()
         self.arts = qe_arts(xyz_f)
+
+        self.arts.basic_setting(ifstatic=False)
    
         
     def relax(self, directory="tmp-qe-relax", inpname="relax.in", output="relax.out", 
-            mpi="", runopt="gen", control={}, system={}, electrons={}, ions={}, kpoints_mp=[1, 1, 1, 0, 0, 0]):
+            mpi="", runopt="gen", control={}, system={}, electrons={}, ions={}, 
+            kpoints_option="automatic", kpoints_mp=[1, 1, 1, 0, 0, 0]):
         """
         directory: a place for all the generated files
         """
@@ -34,6 +37,7 @@ class opt_run:
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
+            os.system("cp %s %s/" % (self.arts.xyz.file, directory))
             
             self.set_relax()
             # check if user try to set occupations and smearing and degauss
@@ -45,7 +49,7 @@ class opt_run:
             self.system.set_params(system)
             self.electrons.set_params(electrons)
             self.ions.set_params(ions)
-            self.arts.set_kpoints(kpoints_mp)
+            self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
 
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
@@ -62,7 +66,8 @@ class opt_run:
             os.chdir("../")
     
     def vc_relax(self, directory="tmp-qe-vc-relax", inpname="vc-relax.in", output="vc-relax.out", 
-            mpi="", runopt="gen", control={}, system={}, electrons={}, ions={}, kpoints_mp=[1, 1, 1, 0, 0, 0]):
+            mpi="", runopt="gen", control={}, system={}, electrons={}, ions={}, 
+            kpoints_option="automatic", kpoints_mp=[1, 1, 1, 0, 0, 0]):
         """
         directory: a place for all the generated files
         """
@@ -71,6 +76,7 @@ class opt_run:
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
+            os.system("cp %s %s/" % (self.arts.xyz.file, directory))
 
             self.set_vc_relax()
             # check if user try to set occupations and smearing and degauss
@@ -82,7 +88,7 @@ class opt_run:
             self.system.set_params(system)
             self.electrons.set_params(electrons)
             self.ions.set_params(ions)
-            self.arts.set_kpoints(kpoints_mp)
+            self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
 
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
@@ -147,7 +153,7 @@ class opt_run:
         """
         generating yhbatch job script for calculation
         """
-        with open(os.path.join(directory, inpname+".bash"), 'w') as fout:
+        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
             fout.write("#!/bin/bash\n")
             fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inpname, output))
 

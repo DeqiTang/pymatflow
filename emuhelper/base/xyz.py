@@ -36,6 +36,23 @@ class base_xyz:
             while i < self.natom:
                 line = fin.readline()
                 atom = Atom(line.split()[0], float(line.split()[1]), float(line.split()[2]), float(line.split()[3]))
+                # get information about the fix of this atom for opt and md
+                if len(line.split()) == 4:
+                    atom.fix = [False, False, False]
+                elif line.split()[4][0] == '#':
+                    atom.fix = [False, False, False] # the first char after coordinates is # , so cannpt set T or F
+                else:
+                    for j in range(3):
+                        if line.split()[j+4] == 'T':
+                            atom.fix[j] = True
+                        elif line.split()[j+4] == 'F':
+                            atom.fix[j] = False
+                        else:
+                            print("===============================\n")
+                            print("warning: while read xyz file\n")
+                            print("can only set T or F after coords\n")
+                            sys.exit(1)
+                # end get the information about the fix of this atom for opt and md
                 self.atoms.append(atom)
                 i += 1
         self.set_species_number()

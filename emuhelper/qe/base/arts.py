@@ -36,6 +36,8 @@ class qe_arts:
 
         self.nks = 4
 
+        self.ifstatic = True # used to determine how to put atomic coordinates to input file
+
     def to_in(self, fout):
         # fout: a file stream for writing
         fout.write("&cell\n")
@@ -56,13 +58,28 @@ class qe_arts:
         fout.write("\n")
         cell = self.xyz.cell
         fout.write("CELL_PARAMETERS angstrom\n")
-        fout.write("%f %f %f\n" % (cell[0], cell[1], cell[2]))
-        fout.write("%f %f %f\n" % (cell[3], cell[4], cell[5]))
-        fout.write("%f %f %f\n" % (cell[6], cell[7], cell[8]))
+        fout.write("%.9f %.9f %.9f\n" % (cell[0], cell[1], cell[2]))
+        fout.write("%.9f %.9f %.9f\n" % (cell[3], cell[4], cell[5]))
+        fout.write("%.9f %.9f %.9f\n" % (cell[6], cell[7], cell[8]))
         fout.write("\n")
         fout.write("ATOMIC_POSITIONS angstrom\n")
-        for atom in self.xyz.atoms:
-            fout.write("%s\t%f\t%f\t%f\n" % (atom.name, atom.x, atom.y, atom.z))
+        if self.ifstatic == True:
+            for atom in self.xyz.atoms:
+                fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
+        elif self.ifstatic == False:
+            for atom in self.xyz.atoms:
+                fout.write("%s\t%.9f\t%.9f\t%.9f" % (atom.name, atom.x, atom.y, atom.z))
+                for fix in atom.fix:
+                    if fix == True:
+                        fout.write("\t0")
+                    elif fix == False:
+                        fout.write("\t1")
+                fout.write("\n")
+        else:
+            print("===============================================\n")
+            print("warning: qe.base.arts.to_in():\n")
+            print("arts.ifstatic could only be True or False\n")
+            sys.exit(1)
         fout.write("\n")
         
         # writing KPOINTS to the fout
@@ -81,6 +98,8 @@ class qe_arts:
                 self.kpoints_mp[4],
                 self.kpoints_mp[5]
                 ))
+        elif self.kpoints_option == "gamma":
+            fout.write("K_POINTS gamma\n")
         elif self.kpoints_option == "crystal_b":
             fout.write("K_POINTS %s\n" % self.kpoints_option)
             fout.write("%d\n" % self.nks)
@@ -98,7 +117,16 @@ class qe_arts:
             https://github.com/giovannipizzi/seekpath/tree/develop/seekpath
         """
         if option == "automatic":
+            self.kpoints_option = option
             self.kpoints_mp = kpoints_mp
+        if option == "gamma":
+            self.kpoints_option = option
         if option == "crystal_b":
             self.kpoints_option = option
             return
+    
+    def basic_setting(self, ifstatic=True):
+        self.ifstatic = ifstatic
+
+    #
+

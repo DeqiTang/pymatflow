@@ -22,10 +22,12 @@ class md_run:
         self.electrons = qe_electrons()
         self.ions = qe_ions()
         self.arts = qe_arts(xyz_f)
-        
+
+        self.arts.basic_setting(ifstatic=False)
         
     def md(self, directory="tmp-qe-md", inpname="md.in", output="md.out", mpi="", runopt="gen",
-            control={}, system={}, electrons={}, ions={}, kpoints_mp=[1, 1, 1, 0, 0, 0]):
+            control={}, system={}, electrons={}, ions={}, 
+            kpoints_option="automatic", kpoints_mp=[1, 1, 1, 0, 0, 0]):
         """
         directory: a place for all the generated files
         """
@@ -45,7 +47,7 @@ class md_run:
             self.system.set_params(system)
             self.electrons.set_params(electrons)
             self.ions.set_params(ions)
-            self.arts.set_kpoints(kpoints_mp)
+            self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)
@@ -61,7 +63,8 @@ class md_run:
             os.chdir("../")
 
     def vc_md(self, directory="tmp-qe-vc-md", inpname="vc-md.in", output="vc-md.out", mpi="", runopt="gen", 
-            control={}, system={}, electrons={}, ions={}, kpoints_mp=[1, 1, 1, 0, 0, 0]):
+            control={}, system={}, electrons={}, ions={}, 
+            kpoints_option="automatic", kpoints_mp=[1, 1, 1, 0, 0, 0]):
         """
         directory: a place for all the generated files
         """
@@ -81,7 +84,7 @@ class md_run:
             self.system.set_params(system)
             self.electrons.set_params(electrons)
             self.ions.set_params(ions)
-            self.arts.set_kpoints(kpoints_mp)
+            self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)

@@ -82,7 +82,6 @@ setup(
         "emuhelper/qe/scripts/phonon_with_phonopy_pwscf.py",
         "emuhelper/qe/scripts/phonon_with_phx_pwscf.py",
         "emuhelper/qe/scripts/converge-ecutwfc-pwscf.py",
-        "emuhelper/qe/scripts/qe-opt.py",
         "emuhelper/qe/scripts/qe-md.py",
         "emuhelper/qe/scripts/qe-vc-md.py",
         "emuhelper/qe/scripts/qe-converge-ecutwfc.py",
@@ -115,7 +114,7 @@ setup(
         "emuhelper/qe/post/scripts/post-qe-relax.py",
         "emuhelper/qe/post/scripts/post-qe-vc-relax.py",
         "emuhelper/qe/post/scripts/post-qe-scf.py",
-        "emuhelper/qe/post/scripts/post-qe-ecutwfc.py",
+        "emuhelper/qe/post/scripts/post-qe-converge.py",
         "emuhelper/siesta/scripts/band_new_scf_siesta.py",
         "emuhelper/siesta/scripts/charge-density_potentials_siesta.py",
         "emuhelper/siesta/scripts/chem_analysis_siesta.py",
@@ -140,7 +139,8 @@ setup(
         "emuhelper/siesta/scripts/siesta-scf-restart.py",
         "emuhelper/siesta/post/scripts/post-siesta-pdos.py",
         "emuhelper/tools/build_supercell.py",
-        "emuhelper/tools/cluster_sphere.py"
+        "emuhelper/tools/cluster_sphere.py",
+        "emuhelper/tools/qe-fix-atoms.py",
         ],
     #entry_points = {
     #    'console_scripts': [

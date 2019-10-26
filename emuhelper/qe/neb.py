@@ -17,33 +17,67 @@ class neb_run:
     """
     Reference:
         http://www.quantum-espresso.org/Doc/INPUT_NEB.html
+    Note:
+        check the official manual for neb for some knowledge 
+        about using neb.x (which is helpfule!)
+
+        A gross estimate of the required number of iterations is 
+        (number of images) * (number of atoms) * 3. 
+        Atoms that do not move should not be counted
+    Q&A:
+        can we fix some atoms when doing neb calculation?
+
     """
-    def __init__(self, image1, image2, image3):
+    def __init__(self, images):
+        """
+        images:
+            ["first.xyz", "intermediate-1.xyz", "intermediate-2.xyz", ...,"last.xyz"]
+        """
         self.control = qe_control()
         self.system = qe_system()
         self.electrons = qe_electrons()
-        self.arts1 = qe_arts(image1)
-        self.arts2 = qe_arts(image2)
-        self.arts3 = qe_arts(image3)
+        self.arts = []
+        for image in images:
+            self.arts.append(qe_arts(image))
+
         self.path = {} # Namelist: &PATH
         self.set_basic_path()
         
         self.control.basic_setting("scf") 
-        self.system.basic_setting(self.arts1)
+        self.system.basic_setting(self.arts[0])
         self.electrons.basic_setting()
+        for image in self.arts:
+            image.basic_setting(ifstatic=True)
         
     def neb(self, directory="tmp-qe-neb", inpname="neb.in", output="neb.out", 
-            mpi="", runopt="gen", control={}, system={}, electrons={}, kpoints_mp=[1, 1, 1, 0, 0, 0],
-            path={}):
+            mpi="", runopt="gen", control={}, system={}, electrons={}, kpoints_option="automatic", kpoints_mp=[1, 1, 1, 0, 0, 0],
+            path={}, restart_mode="from_scratch"):
         """
         directory: a place for all the generated files
         """
         if runopt == "gen" or runopt == "genrun":
-            if os.path.exists(directory):
-                shutil.rmtree(directory)
-            os.mkdir(directory)
-            os.system("cp *.UPF %s/" % directory)
- 
+            if restart_mode == "from_scratch":
+                self.path["restart_mode"] = restart_mode
+                if os.path.exists(directory):
+                    shutil.rmtree(directory)
+                os.mkdir(directory)
+                os.system("cp *.UPF %s/" % directory)
+                for art in self.arts:
+                    os.system("cp %s %s/" % (art.xyz.file, directory))
+            elif restart_mode == "restart":
+                self.path["restart_mode"] = restart_mode
+                # first check whether there is a previous neb running
+                if not os.path.exists(directory):
+                    print("===================================================\n")
+                    print("                 Warning !!!\n")
+                    print("===================================================\n")
+                    print("restart neb calculation:\n")
+                    print("  directory of previous neb calculattion not found!\n")
+                    sys.exit(1)
+                # this assumes the previous neb run and the current neb run are using the same inpname
+                os.chdir(directory)
+                os.system("mv %s %s.old" % (inpname, inpname)) 
+                os.chdir("../")
             # check if user try to set occupations and smearing and degauss
             # through system. if so, use self.set_occupations() which uses
             # self.system.set_occupations() to set them, as self.system.set_params() 
@@ -52,7 +86,7 @@ class neb_run:
             self.control.set_params(control)
             self.system.set_params(system)
             self.electrons.set_params(electrons)
-            self.arts1.set_kpoints(kpoints_mp) # use arts1 to set kpoints and cells and species
+            self.arts[0].set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp) # use arts1 to set kpoints and cells and species
             # must set "wf_collect = False", or it will come across with erros in davcio
             # Error in routine davcio (10): 
             # error while reading from file ./tmp/pwscf_2/pwscf.wfc1
@@ -90,7 +124,7 @@ class neb_run:
     def arts_to_neb(self, fout):
         # fout: a file stream for writing
         fout.write("ATOMIC_SPECIES\n")
-        for element in self.arts1.xyz.specie_labels:
+        for element in self.arts[0].xyz.specie_labels:
             tmp = os.listdir("./")
             pseudo_file = ""
             for f in tmp:
@@ -101,31 +135,33 @@ class neb_run:
                     break
             fout.write("%s %f %s\n" % (element, mg.Element(element).atomic_mass, pseudo_file))
         fout.write("\n")
-        cell = self.arts1.xyz.cell
+        cell = self.arts[0].xyz.cell
         fout.write("CELL_PARAMETERS angstrom\n")
-        fout.write("%f %f %f\n" % (cell[0], cell[1], cell[2]))
-        fout.write("%f %f %f\n" % (cell[3], cell[4], cell[5]))
-        fout.write("%f %f %f\n" % (cell[6], cell[7], cell[8]))
+        fout.write("%.9f %.9f %.9f\n" % (cell[0], cell[1], cell[2]))
+        fout.write("%.9f %.9f %.9f\n" % (cell[3], cell[4], cell[5]))
+        fout.write("%.9f %.9f %.9f\n" % (cell[6], cell[7], cell[8]))
         fout.write("\n")
         # writing KPOINTS to the fout
-        self.arts1.write_kpoints(fout)
+        self.arts[0].write_kpoints(fout)
         fout.write("\n")
         # =========================
         fout.write("BEGIN_POSITIONS\n")
+        fout.write("\n")
         fout.write("FIRST_IMAGE\n")
         fout.write("ATOMIC_POSITIONS angstrom\n")
-        for atom in self.arts1.xyz.atoms:
-            fout.write("%s\t%f\t%f\t%f\n" % (atom.name, atom.x, atom.y, atom.z))
+        for atom in self.arts[0].xyz.atoms:
+            fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
         fout.write("\n")
-        fout.write("INTERMEDIATE_IMAGE\n")
-        fout.write("ATOMIC_POSITIONS angstrom\n")
-        for atom in self.arts2.xyz.atoms:
-            fout.write("%s\t%f\t%f\t%f\n" % (atom.name, atom.x, atom.y, atom.z))
-        fout.write("\n")
+        for i in range(1, len(self.arts) - 1):
+            fout.write("INTERMEDIATE_IMAGE\n")
+            fout.write("ATOMIC_POSITIONS angstrom\n")
+            for atom in self.arts[i].xyz.atoms:
+                fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
+            fout.write("\n")
         fout.write("LAST_IMAGE\n")
         fout.write("ATOMIC_POSITIONS angstrom\n")
-        for atom in self.arts3.xyz.atoms:
-            fout.write("%s\t%f\t%f\t%f\n" % (atom.name, atom.x, atom.y, atom.z))
+        for atom in self.arts[-1].xyz.atoms:
+            fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
         fout.write("\n")
         fout.write("END_POSITIONS\n")
 

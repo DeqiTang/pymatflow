@@ -19,12 +19,13 @@ path_params = {}
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-qe-neb")
+    parser.add_argument("--restart-mode", help="restart_mode", type=str, default="from_scratch")
     parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
-    parser.add_argument("--image1", help="the first image xyz file", type=str)
-    parser.add_argument("--image2", help="the intermediate image xyz file", type=str)
-    parser.add_argument("--image3", help="the last image xyz file", type=str)
+    parser.add_argument("--images", help="the image xyz file(--images=first.xyz imtermediate-1.xyz intermediate-2.xyz ... last.xyz)", nargs='+', type=str)
     parser.add_argument("--ecutwfc", help="ecutwfc, default value: 100 Ry", type=int, default=100)
+    parser.add_argument("--kpoints-option", help="kpoints option", type=str, default="automatic")
     parser.add_argument("-k", "--kpoints", help="set kpoints like '1 1 1 0 0 0'", type=str, default="1 1 1 0 0 0")
+    parser.add_argument("--conv-thr", help="conv_thr", type=float, default=1.0e-6)
     parser.add_argument("--occupations", help="occupation type", type=str, default="smearing")
     parser.add_argument("--smearing", help="smearing type", type=str, default="gaussian")
     parser.add_argument("--degauss", help="value of the gaussian spreading (Ry) for brillouin-zone integration in metals.", type=float, default=0.001)
@@ -44,13 +45,12 @@ if __name__ == "__main__":
     # ==========================================================   
     args = parser.parse_args()
     directory = args.directory
-    image1 = args.image1
-    image2 = args.image2
-    image3 = args.image3
+    
     system_params["ecutwfc"] = args.ecutwfc
     system_params["occupations"] = args.occupations
     system_params["smearing"] = args.smearing
     system_params["degauss"] = args.degauss
+    electrons_params["conv_thr"] = args.conv_thr
     kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
     path_params["string_method"] = args.string_method
     path_params["nstep_path"] = args.nstep_path
@@ -62,5 +62,5 @@ if __name__ == "__main__":
     path_params["path_thr"] = args.path_thr
     path_params["ds"] = args.ds
 
-    task = neb_run(image1, image2, image3)
-    task.neb(directory=directory, runopt=args.runopt, control=control_params, system=system_params, electrons=electrons_params, kpoints_mp=kpoints_mp, path=path_params)
+    task = neb_run(images=args.images)
+    task.neb(directory=directory, runopt=args.runopt, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=kpoints_mp, path=path_params, restart_mode=args.restart_mode)

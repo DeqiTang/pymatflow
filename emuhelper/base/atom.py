@@ -22,6 +22,9 @@ class Atom:
         self.x = float(x)
         self.y = float(y)
         self.z = float(z)
+
+        self.fix = [False, False, False] # whether fix the atom when doing geo opt or md
+
     def set_name(self, name):
         self.name = name
     def set_x(self, x):
@@ -30,5 +33,4 @@ class Atom:
         self.y = float(y)
     def set_z(self, z):
         self.z = float(z)
-
 

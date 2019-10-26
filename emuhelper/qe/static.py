@@ -40,6 +40,8 @@ class static_run:
         self.control.basic_setting("scf") 
         self.system.basic_setting(self.arts)
         self.electrons.basic_setting()
+        self.arts.basic_setting(ifstatic=True)
+
 
     def scf(self, directory="tmp-qe-static", inpname="static-scf.in", output="static-scf.out", 
             mpi="", runopt="gen", control={}, system={}, electrons={}, kpoints_mp=[2, 2, 2, 0, 0, 0]):
@@ -67,6 +69,7 @@ class static_run:
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
+            os.system("cp %s %s/" % (self.arts.xyz.file, directory))
             
             # check if user try to set occupations and smearing and degauss
             # through system. if so, use self.set_occupations() which uses
@@ -84,7 +87,7 @@ class static_run:
                 self.electrons.to_in(fout)
                 self.arts.to_in(fout)
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pw.x")
 
         if runopt == 'genrun' or runopt == 'run':
             os.chdir(directory)
@@ -130,7 +133,7 @@ class static_run:
                 self.arts.to_in(fout)            
             
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pw.x")
 
         if runopt == 'genrun' or runopt == 'run':
             os.chdir(directory)
@@ -173,6 +176,7 @@ class static_run:
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
+            os.system("cp %s %s/" % (self.arts.xyz.file, directory))
     
             # check if user try to set occupations and smearing and degauss
             # through system. if so, use self.set_occupations() which uses
@@ -197,7 +201,7 @@ class static_run:
                     self.electrons.to_in(fout)
                     self.arts.to_in(fout)
             # gen yhbatch running script
-            with open("converge-ecutwfc.job.sh", 'w') as fout:
+            with open("converge-ecutwfc.sub", 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 for i in range(n_test + 1):
                     ecut_wfc = int(emin + i * step)
@@ -267,6 +271,15 @@ class static_run:
                     self.system.to_in(fout)
                     self.electrons.to_in(fout)
                     self.arts.to_in(fout)
+            # gen yhbatch running script
+            with open("converge-ecutrho.sub", 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                for i in range(n_test + 1):
+                    ecut_rho = int(emin + i * step)
+                    inp_name = "ecutrho-%d.in" % ecut_rho
+                    out_f_name = "ecutrho-%d.out" % ecut_rho
+                    fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inp_name, out_f_name))
+
         if runopt == "run" or runopt == "genrun":
             # run the simulation
             for i in range(n_test + 1):
@@ -335,6 +348,15 @@ class static_run:
                     self.system.to_in(fout)
                     self.electrons.to_in(fout)
                     self.arts.to_in(fout)
+ 
+            # gen yhbatch running script
+            with open("converge-kpoints.sub", 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                for i in range(n_test + 1):
+                    nk = nk_min + i * step # nk1 = nk2 = nk3 = nk
+                    inp_name = "kpoints-%d.in" % nk
+                    out_f_name = "kpoints-%d.out" % nk
+                    fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inp_name, out_f_name))                   
 
         if runopt == "run" or runopt == "genrun":
             # run the simulation
@@ -422,6 +444,15 @@ class static_run:
                     self.system.to_in(fout)
                     self.electrons.to_in(fout)
                     self.arts.to_in(fout)
+
+            # gen yhbatch running script
+            with open("converge-degauss.sub", 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                for i in range(n_test + 1):
+                    degauss = degauss_min + i * step
+                    inp_name = "degauss-%f.in" % degauss
+                    out_f_name = "degauss-%f.out" % degauss
+                    fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inp_name, out_f_name))                   
         if runopt == "run" or runopt == "genrun":
             # run the simulation
             for i in range(n_test + 1):
@@ -526,7 +557,7 @@ class static_run:
                 fout.write("\n")
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="dos.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -577,7 +608,7 @@ class static_run:
                 self.arts.to_in(fout)
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pw.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -595,7 +626,7 @@ class static_run:
                 fout.write("\n")
             
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="bands.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -674,7 +705,7 @@ class static_run:
                 fout.write("\n")
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="projwfc.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -718,7 +749,7 @@ class static_run:
                 fout.write("\n")
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="epsilon.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -789,7 +820,7 @@ class static_run:
                 fout.write("/\n")
                 fout.write("\n")
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname1, output=output1, cmd="turbo_davidson.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -810,7 +841,7 @@ class static_run:
                 fout.write("/\n")
                 fout.write("\n")
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname2, output=output2, cmd="turbo_spectrum.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -862,7 +893,7 @@ class static_run:
                 fout.write("/\n")
                 fout.write("\n")
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname1, output=output1, cmd="turbo_lanczos.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -885,7 +916,7 @@ class static_run:
                 fout.write("/\n")
                 fout.write("\n")
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname2, output=output2, cmd="turbo_spectrum.x")
         
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -949,7 +980,7 @@ class static_run:
                 fout.write("/\n")
                 fout.write("\n")
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="ph.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -980,7 +1011,7 @@ class static_run:
                 fout.write("/\n")
                 fout.write("\n")
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="q2r.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -1017,7 +1048,7 @@ class static_run:
                 for i in range(nqpoints):
                     fout.write("%f %f %f\n" % (qpoints[i][0], qpoints[i][1], qpoints[i][2]))
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="matdyn.x")
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s matdyn.x < %s | tee %s" % (mpi, inpname, output))
@@ -1045,7 +1076,7 @@ class static_run:
                 fout.write("0.0\n") # Fermi level (needed only for band structure plot)
                 fout.write("100.0 0.0\n") # Freq. step and reference freq. on the plot freq.ps
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="plotband.x")
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s plotband.x < %s | tee %s" % (mpi, inpname, output))
@@ -1076,7 +1107,7 @@ class static_run:
                 fout.write("0.0 0.0 0.0\n")
                 fout.write("\n")
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="ph.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -1107,7 +1138,7 @@ class static_run:
                 fout.write("/\n")
                 fout.write("\n")
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="dynmat.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -1148,7 +1179,7 @@ class static_run:
                 fout.write("/\n")
                 fout.write("\n")
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="fs.x")
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s fs.x < %s | tee %s" % (mpi, inpname, output))
@@ -1170,7 +1201,7 @@ class static_run:
                 self.pp_inputpp(fout, plot_num=8, filplot="elf.rho")
                 self.pp_plot(fout, filepp="elf.rho", fileout="elf.xsf")
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pp.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -1194,7 +1225,7 @@ class static_run:
                 self.pp_inputpp(fout, plot_num=9, filplot="dcd.rho")
                 self.pp_plot(fout, filepp="dcd.rho", fileout="dcd.xsf")
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pp.x")
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s pp.x < %s | tee %s" % (mpi, inpname, output))
@@ -1218,7 +1249,7 @@ class static_run:
                 self.pp_inputpp(fout, plot_num=0, filplot="ed.rho")
                 self.pp_plot(fout, filepp="ed.rho", fileout="ed.xsf")
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pp.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -1310,7 +1341,7 @@ class static_run:
                 fout.write("&plot\n")
                 fout.write("/\n")
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="xspectra.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -1318,11 +1349,11 @@ class static_run:
             os.chdir("../")
     #
 
-    def gen_yh(self,inpname, output, directory="tmp-qe-static"):
+    def gen_yh(self,inpname, output, directory="tmp-qe-static", cmd="pw.x"):
         """
         generating yhbatch job script for calculation
         """
-        with open(os.path.join(directory, inpname+".bash"), 'w') as fout:
+        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
             fout.write("#!/bin/bash\n")
-            fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inpname, output))
+            fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % (cmd, inpname, output))
 

@@ -16,6 +16,7 @@ electrons_params = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--directory", help="directory for the static running", type=str, default="tmp-qe-static")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
     parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
     parser.add_argument("-k", "--kptopt", help="kpoints schem option", type=str, default="automatic")
@@ -37,4 +38,4 @@ if __name__ == "__main__":
 
 
     task = static_run(xyzfile)
-    task.bands(kptopt=kptopt, runopt=args.runopt, control=control_params, system=system_params, electrons=electrons_params, kpoints_mp=kpoints_mp)
+    task.bands(directory=args.directory, kptopt=kptopt, runopt=args.runopt, control=control_params, system=system_params, electrons=electrons_params, kpoints_mp=kpoints_mp)

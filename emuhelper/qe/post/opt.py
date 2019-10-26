@@ -70,10 +70,10 @@ class opt_post:
 
         # get cell and coords
         self.cell = []
-        for i in range(begin_final_coord_line+4, begin_final_coord_line+7):
+        for i in range(begin_final_coord_line+5, begin_final_coord_line+8):
             for j in range(3):
                 self.cell.append(float(self.lines[i].split()[j]))
-        for i in range(begin_final_coord_line+9, end_final_coord_line):
+        for i in range(begin_final_coord_line+10, end_final_coord_line):
             self.atoms.append(Atom(self.lines[i].split()[0], float(self.lines[i].split()[1]), float(self.lines[i].split()[2]), float(self.lines[i].split()[3])))
    
 
@@ -119,11 +119,11 @@ class opt_post:
         with open(xyz, 'w') as fout:
             fout.write("%d\n" % len(self.atoms))
             if self.run_type == "vc-relax":
-                fout.write("cell: %f %f %f | %f %f %f | %f %f %f\n" % (cell[0], cell[1], cell[2], cell[3], cell[4], cell[5], cell[6], cell[7], cell[8]))
+                fout.write("cell: %.9f %.9f %.9f | %.9f %.9f %.9f | %.9f %.9f %.9f\n" % (cell[0], cell[1], cell[2], cell[3], cell[4], cell[5], cell[6], cell[7], cell[8]))
             else:
                 fout.write("type of opt run: relax -> the cell is not changed, so go and find the original cell\n")
             for atom in self.atoms:
-                fout.write("%s\t%f\t%f\t%f\n" % (atom.name, atom.x, atom.y, atom.z))
+                fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
     
     def plot_run_info(self):
         """

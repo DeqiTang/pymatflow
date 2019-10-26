@@ -43,7 +43,10 @@ class scf_post:
             if line.split()[0] == "mixing" and line.split()[1] == 'beta':
                 self.scf_params["mixing_beta"] = float(line.split()[3])
             if line.split()[0] == "number" and line.split()[2] == 'k':
-                self.scf_params["degauss"] = float(line.split()[9])
+                if line.split()[5] == "(tetrahedron":
+                    self.scf_params["degauss"] = "tetrahedron method: degauss not needed"
+                else:
+                    self.scf_params["degauss"] = float(line.split()[9])
                 self.run_info["number-of-k-points"] = int(line.split()[4])
             if line.split()[0] == "convergence" and line.split()[3] == "achieved":
                 self.run_info["iterations"] = int(line.split()[5])

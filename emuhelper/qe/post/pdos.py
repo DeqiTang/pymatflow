@@ -62,7 +62,17 @@ class pdos_post:
         plt.tight_layout()
         plt.savefig("pdos-projected-to-element-and-orbital.png")
         plt.close()
-    
+ 
+    def plot_tdos(self):
+        plt.plot(self.energies, self.tdos[:, 2], label="total-dos")
+        plt.title("Total Density of States")
+        plt.xlabel("Energy (eV)")
+        plt.ylabel("States")
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig("total-dos.png")
+        plt.close()   
+
     def get_elem_type(self, atmorb):
         """
         get element name from atmorb
@@ -99,6 +109,7 @@ class pdos_post:
     def export(self, directory="tmp-qe-static"):
         os.chdir(directory)
         self.plot_elem_orb_proj()
+        self.plot_tdos()
         self.markdown_report()
         os.chdir("../")
     #
