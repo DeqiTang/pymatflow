@@ -29,6 +29,7 @@ if __name__ == "__main__":
     parser.add_argument("--occupations", help="occupation type", type=str, default="smearing")
     parser.add_argument("--smearing", help="smearing type", type=str, default="gaussian")
     parser.add_argument("--degauss", help="value of the gaussian spreading (Ry) for brillouin-zone integration in metals.", type=float, default=0.001)
+    parser.add_argument("--vdw-corr", help="vdw_corr = dft-d, dft-d3, ts-vdw, xdm", type=str, default='none')
     # params for neb namelist &path
     parser.add_argument("--string-method", help="string_method", type=str, default="neb")
     parser.add_argument("--nstep-path", help="nstep_path", type=int, default=100)
@@ -50,6 +51,7 @@ if __name__ == "__main__":
     system_params["occupations"] = args.occupations
     system_params["smearing"] = args.smearing
     system_params["degauss"] = args.degauss
+    system_params["vdw_corr"] = args.vdw_corr
     electrons_params["conv_thr"] = args.conv_thr
     kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
     path_params["string_method"] = args.string_method
