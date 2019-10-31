@@ -24,12 +24,13 @@ if __name__ == "__main__":
     parser.add_argument("--ecutwfc", help="ecutwfc, default value: 100 Ry", type=int, default=100)
     parser.add_argument("--ecutrho", help="ecutrho, default value: 400 Ry", type=int, default=400)
     parser.add_argument("--kpoints-option", help="kpoints option", type=str, default="automatic")  
-    parser.add_argument("-k", "--kpoints", help="set kpoints like '3 3 3 0 0 0'", type=str, default="3 3 3 0 0 0")
+    parser.add_argument("-k", "--kpoints", help="set kpoints like '1 1 1 0 0 0'", type=str, default="1 1 1 0 0 0")
     parser.add_argument("--conv-thr", help="conv_thr", type=float, default=1.0e-6)
     parser.add_argument("--occupations", help="occupation type", type=str, default="smearing")
     parser.add_argument("--smearing", help="smearing type(gaussian, methfessel-paxton, mazari-vanderbilt, fermi-dirac), default: gaussian", type=str, default="gaussian")
     parser.add_argument("--degauss", help="value of the gaussian spreading (Ry) for brillouin-zone integration in metals.(defualt: 0.001 Ry)", type=float, default=0.001)
     parser.add_argument("--vdw-corr", help="vdw_corr = dft-d, dft-d3, ts-vdw, xdm", type=str, default="none")
+    parser.add_argument("--nbnd", help="Number of electronic states (bands) to be calculated", type=int, default=None)
     # ==========================================================
     # transfer parameters from the arg parser to static_run setting
     # ==========================================================   
@@ -41,6 +42,7 @@ if __name__ == "__main__":
     system_params["smearing"] = args.smearing
     system_params["degauss"] = args.degauss
     system_params["vdw_corr"] = args.vdw_corr
+    system_params["nbnd"] = args.nbnd
     electrons_params["conv_thr"] = args.conv_thr
     kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
     

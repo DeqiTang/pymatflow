@@ -44,7 +44,7 @@ class static_run:
 
 
     def scf(self, directory="tmp-qe-static", inpname="static-scf.in", output="static-scf.out", 
-            mpi="", runopt="gen", control={}, system={}, electrons={}, kpoints_mp=[2, 2, 2, 0, 0, 0]):
+            mpi="", runopt="gen", control={}, system={}, electrons={}, kpoints_option="automatic", kpoints_mp=[2, 2, 2, 0, 0, 0]):
         """
         directory: a place for all the generated files
 
@@ -79,7 +79,7 @@ class static_run:
             self.control.set_params(control)
             self.system.set_params(system)
             self.electrons.set_params(electrons)
-            self.arts.set_kpoints(kpoints_mp)
+            self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
             self.control.calculation("scf")
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
@@ -1185,6 +1185,33 @@ class static_run:
             os.system("%s fs.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
 
+    def pp(self, directory="tmp-qe-static", prefix="pp", plot_num=0, mpi="", runopt="gen"):
+        """
+        """
+        # first check whether there is a previous scf running
+        if not os.path.exists(directory):
+            print("===================================================\n")
+            print("                 Warning !!!\n")
+            print("===================================================\n")
+            print("pp.x calculation:\n")
+            print("  directory of previous scf or nscf calculattion not found!\n")
+            sys.exit(1)
+        if runopt == "gen" or runopt == "genrun":
+            table = {0: "charge-density", 1: "total-potential", 2: "local-ionic-potential", 3: "ldos", 
+                    4: "local-density-of-electronic-entropy", 5: "stm", 6: "spin-polar",
+                    7: ""}
+            with open(os.path.join(directory, inpname), 'w') as fout:
+                self.pp_inputpp(fout, plot_num=8, filplot="elf.rho")
+                self.pp_plot(fout, filepp="elf.rho", fileout="elf.xsf")
+            # gen yhbatch script
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pp.x")
+
+        if runopt == "run" or runopt == "genrun":
+            os.chdir(directory)
+            os.system("%s pp.x < %s | tee %s" % (mpi, inpname, output))
+            os.chdir("../")
+
+
     def elf(self, directory="tmp-qe-static", inpname="elf.in", output="elf.out", mpi="", fileout="elf.xsf", runopt="gen"):
         """
         """
@@ -1248,6 +1275,31 @@ class static_run:
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.pp_inputpp(fout, plot_num=0, filplot="ed.rho")
                 self.pp_plot(fout, filepp="ed.rho", fileout="ed.xsf")
+            # gen yhbatch script
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pp.x")
+
+        if runopt == "run" or runopt == "genrun":
+            os.chdir(directory)
+            os.system("%s pp.x < %s | tee %s" % (mpi, inpname, output))
+            os.chdir("../")
+
+    def orbitals(self, directory="tmp-qe-static", inpname="orbitals.in", output="orbitals.out", mpi="",
+            runopt="gen"):
+        """
+        orbitals
+        """
+        # first check whether there is a previous scf running
+        if not os.path.exists(directory):
+            print("===================================================\n")
+            print("                 Warning !!!\n")
+            print("===================================================\n")
+            print("pp.x calculation:\n")
+            print("  directory of previous scf or nscf calculattion not found!\n")
+            sys.exit(1)
+        if runopt == "gen" or runopt == "genrun":
+            with open(os.path.join(directory, inpname), 'w') as fout:
+                self.pp_inputpp(fout, plot_num=7, filplot="orbitals.dat")
+                self.pp_plot(fout, filepp="orbitals.dat", fileout="orbitals.cube")
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pp.x")
 

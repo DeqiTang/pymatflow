@@ -107,6 +107,7 @@ setup(
         "emuhelper/qe/scripts/qe-neb.py",
         "emuhelper/qe/scripts/qe-turbo-davidson-spectrum.py",
         "emuhelper/qe/scripts/qe-turbo-lanczos-spectrum.py",
+        "emuhelper/qe/scripts/qe-orbitals.py",
         "emuhelper/qe/scripts/qe-phx.py",
         "emuhelper/qe/post/scripts/post-qe-dos.py",
         "emuhelper/qe/post/scripts/post-qe-pdos.py",
