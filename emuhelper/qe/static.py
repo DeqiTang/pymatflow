@@ -1185,7 +1185,7 @@ class static_run:
             os.system("%s fs.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
 
-    def pp(self, directory="tmp-qe-static", prefix="pp", plot_num=0, output_format=5, mpi="", runopt="gen"):
+    def pp(self, directory="tmp-qe-static", prefix="pp", plot_num=0, iflag=3, output_format=5, mpi="", runopt="gen"):
         """
         """
         # first check whether there is a previous scf running
@@ -1220,7 +1220,7 @@ class static_run:
                     }
             with open(os.path.join(directory, prefix+"-"+table[plot_num]+".in"), 'w') as fout:
                 self.pp_inputpp(fout, plot_num=plot_num, filplot=table[plot_num]+".dat")
-                self.pp_plot(fout, output_format=output_format, filepp=table[plot_num]+".dat")
+                self.pp_plot(fout, output_format=output_format, iflag=iflag, filepp=table[plot_num]+".dat")
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=prefix+"-"+table[plot_num]+".in", output=prefix+"-"+table[plot_num]+".out", cmd="pp.x")
 

@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from emuhelper.abinit.base.electrons import abinit_electrons
 from emuhelper.abinit.base.system import abinit_system
 from emuhelper.abinit.base.properties import abinit_properties
+
 class static_run:
     """
     """
@@ -15,16 +16,12 @@ class static_run:
         self.system = abinit_system(xyz_f)
         self.electrons = abinit_electrons()
         self.properties = abinit_properties()
+
+        self.electrons.basic_setting()
+
         
-        self.electrons.params["ecut"] = 50 #50
-        #self.electrons.params["pawecutdg"] = 50
-        self.electrons.params["occopt"] = 3  # fermi dirac smearing of occupation
-        self.electrons.params["nstep"] = 100
-        self.electrons.params["diemac"] = 2.0
-        self.electrons.params["toldfe"] = 1.0e-6
-        
-    def scf(self, directory="tmp-abinit-static", inpname="static.in", mpi="", runopt="gen",
-            electrons={}):
+    def scf(self, directory="tmp-abinit-static", inpname="static-scf.in", mpi="", runopt="gen",
+            electrons={}, kpoints={}, properties=[]):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -32,6 +29,10 @@ class static_run:
             os.system("cp *.psp8 %s/" % directory)
             os.system("cp *.GGA_PBE-JTH.xml %s/" % directory)
 
+            self.electrons.set_scf_nscf("scf")
+            self.electrons.set_params(electrons)
+            self.electrons.kpoints.set_kpoints(kpoints)
+            self.properties.get_option(option=properties)
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.electrons.to_in(fout)
                 self.properties.to_in(fout)
@@ -50,16 +51,53 @@ class static_run:
             os.chdir(directory)
             os.system("abinit < %s" % inpname.split(".")[0]+".files")
             os.chdir("../")
-    
+ 
+    def nscf(self, directory="tmp-abinit-static", inpname="static-nscf.in", mpi="", runopt="gen",
+            electrons={}, kpoints={}, properties=[]):
+        # first check whether there is a previous scf running
+        if not os.path.exists(directory):
+            print("===================================================\n")
+            print("                 Warning !!!\n")
+            print("===================================================\n")
+            print("non-scf calculation:\n")
+            print("  directory of previous scf calculattion not found!\n")
+            sys.exit(1)
+        if runopt == "gen" or runopt == "genrun":
+
+            self.electrons.set_scf_nscf("nscf")
+            self.electrons.set_params(electrons)
+            self.electrons.kpoints.set_kpoints(kpoints)
+            self.properties.get_option(option=properties)
+            with open(os.path.join(directory, inpname), 'w') as fout:
+                self.electrons.to_in(fout)
+                self.properties.to_in(fout)
+                self.system.to_in(fout)
+
+            with open(os.path.join(directory, inpname.split(".")[0]+".files"), 'w') as fout:
+                fout.write("%s\n" % inpname)
+                fout.write("%s.out\n" % inpname.split(".")[0])
+                fout.write("static-scfo\n")
+                fout.write("%so\n" % inpname.split(".")[0])
+                fout.write("temp\n")
+                for element in self.system.xyz.specie_labels:
+                    fout.write("%s\n" % (element + ".psp8"))
+                    #fout.write("%s\n" % (element + ".GGA_PBE-JTH.xml"))
+        if runopt == "run" or runopt == "genrun":
+            os.chdir(directory)
+            os.system("abinit < %s" % inpname.split(".")[0]+".files")
+            os.chdir("../")
+   
 
     def converge_ecut(self, emin, emax, step, directory="tmp-abinit-ecut", mpi="", runopt="gen",
-            electrons={}):
+            electrons={}, kpoints={}):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.psp8 %s/" % directory)
-    
+   
+            self.electrons.set_params(electrons)
+            self.electrons.kpoints.set_kpoints(kpoints)
             os.chdir(directory)
             n_test = int((emax - emin) / step)
             for i in range(n_test + 1):
@@ -92,6 +130,7 @@ class static_run:
             os.chdir("../")
 
             # analyse the result
+            os.chdir(directory)
             for i in range(n_test + 1):
                 cutoff = int(emin + i * step)
                 out_f_name = "ecut-%d.out" % cutoff
@@ -113,18 +152,6 @@ class static_run:
             os.chdir("../")
         #
 
-    def print_dos(self):
-        self.properties.params["prtdos"] = 1
-        self.electrons.kpoints.ngkpt = [6, 6, 6]
-
-    def print_bands(self):
-        self.properties.params["nband"] = 8
-        self.electrons.params["nband"] = 8
-        self.electrons.kpoints.ngkpt = [6, 6, 6]
-        self.electrons.params["enunit"] = 1
-
-    def berry_phase(self):
-        self.properties.berry_phase()
 
     def dft_plus_u(self):
         self.electrons.dft_plus_u()

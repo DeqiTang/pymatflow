@@ -17,40 +17,48 @@ class kpoints:
         https://docs.abinit.org/variables/basic/#kptopt
     """
     def __init__(self):
-        self.kptopt = 1
-        self.ngkpt = [1, 1, 1]
+        self.params = {
+                "kptopt": None,
+                "ngkpt": None,
+                "nshiftk": None,
+                "shiftk": None,
+                }
+        self.basic_setting()
 
-        self.nshiftk = 1 
-        #self.shiftk = np.zeros([self.nshiftk, 3])
-        self.shiftk = np.full([self.nshiftk, 3], 0.5)
+    def basic_setting(self):
+        self.params["kptopt"] = 1
+        self.params["ngkpt"] = [1, 1, 1]
+        self.params["nshiftk"] = 1
+        self.params["shiftk"] = np.full([self.params["nshiftk"], 3], 0.5)
+        #self.params["shfitk"] = np.zeros([self.nshiftk, 3])
     
     def to_in(self, fout):
         # fout: a file stream for writing
         fout.write("# kpoints setting\n")
         #
-        if self.kptopt == 1:
-            fout.write("kptopt 1\n")
-            fout.write("ngkpt %d %d %d\n" %(self.ngkpt[0], self.ngkpt[1], self.ngkpt[2]))
-            fout.write("nshiftk %d\n" % self.nshiftk)
+        if self.params["kptopt"] == 1:
+            fout.write("kptopt 1\n\n")
+            fout.write("ngkpt %d %d %d\n\n" %(self.params["ngkpt"][0], self.params["ngkpt"][1], self.params["ngkpt"][2]))
+            fout.write("nshiftk %d\n\n" % self.params["nshiftk"])
             fout.write("shiftk\n")
-            for i in range(self.nshiftk):
-                fout.write("%f %f %f\n" % (self.shiftk[i][0], self.shiftk[i][1], self.shiftk[i][2]))
+            for i in range(self.params["nshiftk"]):
+                fout.write("%f %f %f\n" % (self.params["shiftk"][i][0], self.params["shiftk"][i][1], self.params["shiftk"][i][2]))
         #
-        if self.kptopt == 0:
-            fout.write("kptopt 0\n")
-            fout.write("nkpt \n")
-            fout.write("kpt \n")
-            fout.write("kptnrm \n")
-            fout.write("wtk \n")
+        if self.params["kptopt"] == 0:
+            fout.write("kptopt 0\n\n")
+            fout.write("nkpt \n\n")
+            fout.write("kpt \n\n")
+            fout.write("kptnrm \n\n")
+            fout.write("wtk \n\n")
         #
-        if self.kptopt == 2:
+        if self.params["kptopt"] == 2:
             pass
         #
         fout.write("\n")
 
-    def set_kpoints(self, kptopt=1, ngkpt=[1, 1, 1]):
-        self.kptopt = koptopt
-        self.ngkpt = ngkpt
+    def set_kpoints(self, kpoints):
+        for item in kpoints:
+            self.params[item] = kpoints[item]
 
 class abinit_electrons:
     """
@@ -72,10 +80,14 @@ class abinit_electrons:
         self.check_all_params()
         # ---------------
         # 检查输入参数结束
-        fout.write("# electronic structure setting\n")
+        fout.write("# =====================================\n")
+        fout.write("# electronic structure related setting\n")
+        fout.write("# =====================================\n")
+        fout.write("\n")
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("%s %s\n" % (item, str(self.params[item])))
+                fout.write("\n")
         #fout.write("\n")
         # 输入k点
         self.kpoints.to_in(fout)
@@ -136,3 +148,31 @@ class abinit_electrons:
         self.params["lpawu"] = '-1 -1 -1 2'
         self.params["upawu"] = "4.0 4.0 4.0 4.0"
         self.params["jpawu"] = "0.8 0.8 0.8 0.8"
+
+    def basic_setting(self):
+        self.params["ecut"] = 50 #50
+        #self.params["pawecutdg"] = 50
+        self.params["occopt"] = 3  # fermi dirac smearing of occupation
+        self.params["nstep"] = 100
+        self.params["diemac"] = 2.0
+        self.params["toldfe"] = 1.0e-6
+        self.params["ixc"] = 11
+
+    def set_params(self, params):
+        for item in params:
+            self.params[item] = params[item]
+
+    def set_scf_nscf(self, mode="scf"):
+        if mode == "scf":
+            if "usepaw" in self.params and self.params["usepaw"] == 1:
+                self.params["iscf"] = 17
+            else:
+                self.params["iscf"] = 7
+            self.params["prtden"] = 1
+        if mode == "nscf":
+            # -3 is good for band structure calculation
+            # -2 is good for dos calculation
+            self.params["iscf"] = -3 
+            self.params["nstep"] = 0
+
+

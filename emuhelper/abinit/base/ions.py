@@ -14,8 +14,25 @@ class abinit_ions:
                 }
     def to_in(self, fout):
         # fout: a file stream for writing
+        fout.write("# ============================\n")
+        fout.write("# ions moving related settting\n")
+        fout.write("# ============================\n")
+        fout.write("\n")
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("%s %s\n" % (item ,str(self.params[item])))
-        fout.write("\n")
+                fout.write("\n")
+        fout.write("\n\n")
         #
+
+    def basic_setting(self):
+        self.params["ionmov"] = 3
+        self.params["optcell"] = 0
+        self.params["ntime"] = 100
+        #self.params["nctime"] = 1 # for netcdf writing
+        self.params["tolmxf"] = 0 #5.0e-4 # Ha/Bohr
+        self.params["tolmxde"] = "0.0001 eV"
+
+    def set_params(self, params):
+        for item in params:
+            self.params[item] = params[item]

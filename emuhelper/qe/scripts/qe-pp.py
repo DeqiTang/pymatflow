@@ -16,6 +16,10 @@ if __name__ == "__main__":
     parser.add_argument("--plot-num", type=int, default=0,
             choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 17, 18, 19, 20, 21],
             help="type of analysis stored in the filplot file for later plot")
+    parser.add_argument("--iflag", type=int,
+            default=3,
+            choices=[0, 1, 2, 3, 4],
+            help="dimension of the plot")
     parser.add_argument("--output-format", type=int, default=5,
             help="output file format for visualization")
  
@@ -24,6 +28,7 @@ if __name__ == "__main__":
     # ==========================================================   
     args = parser.parse_args()
     xyzfile = args.file
+
  
     task = static_run(xyzfile)
-    task.pp(directory=args.directory, runopt=args.runopt, plot_num=args.plot_num, output_format=args.output_format)
+    task.pp(directory=args.directory, runopt=args.runopt, plot_num=args.plot_num, iflag=args.iflag, output_format=args.output_format)

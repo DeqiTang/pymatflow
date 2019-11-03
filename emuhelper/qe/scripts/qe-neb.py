@@ -21,7 +21,7 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-qe-neb")
     parser.add_argument("--restart-mode", help="restart_mode", type=str, default="from_scratch")
     parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
-    parser.add_argument("--images", help="the image xyz file(--images=first.xyz imtermediate-1.xyz intermediate-2.xyz ... last.xyz)", nargs='+', type=str)
+    parser.add_argument("--images", help="the image xyz file(--images first.xyz imtermediate-1.xyz intermediate-2.xyz ... last.xyz)", nargs='+', type=str)
     parser.add_argument("--ecutwfc", help="ecutwfc, default value: 100 Ry", type=int, default=100)
     parser.add_argument("--ecutrho", help="ecutrho, default value: 400 Ry", type=int, default=400)
     parser.add_argument("--kpoints-option", help="kpoints option", type=str, default="automatic")
