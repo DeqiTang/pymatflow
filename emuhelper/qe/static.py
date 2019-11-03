@@ -1185,7 +1185,7 @@ class static_run:
             os.system("%s fs.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
 
-    def pp(self, directory="tmp-qe-static", prefix="pp", plot_num=0, mpi="", runopt="gen"):
+    def pp(self, directory="tmp-qe-static", prefix="pp", plot_num=0, output_format=5, mpi="", runopt="gen"):
         """
         """
         # first check whether there is a previous scf running
@@ -1197,116 +1197,38 @@ class static_run:
             print("  directory of previous scf or nscf calculattion not found!\n")
             sys.exit(1)
         if runopt == "gen" or runopt == "genrun":
-            table = {0: "charge-density", 1: "total-potential", 2: "local-ionic-potential", 3: "ldos", 
-                    4: "local-density-of-electronic-entropy", 5: "stm", 6: "spin-polar",
-                    7: ""}
-            with open(os.path.join(directory, inpname), 'w') as fout:
-                self.pp_inputpp(fout, plot_num=8, filplot="elf.rho")
-                self.pp_plot(fout, filepp="elf.rho", fileout="elf.xsf")
+            table = {
+                    0: "electron-pseudo-charge-density", 
+                    1: "total-potential", 
+                    2: "local-ionic-potential", 
+                    3: "ldos", 
+                    4: "local-density-of-electronic-entropy", 
+                    5: "stm", 
+                    6: "spin-polar",
+                    7: "molecular-orbitals", 
+                    8: "electron-local-function", 
+                    9: "charge-density-minus-superposition-of-atomic-densities", 
+                    10: "ILDOS",
+                    11: "v_bare+v_H-potential",
+                    12: "sawtooth-electric-field-potential",
+                    13: "nocollinear-magnetization",
+                    17: "all-electron-charge-density-paw-only",
+                    18: "exchage-correlation-magnetic-field-noncollinear-case",
+                    19: "reduced-density-gradient",
+                    20: "product-of-charge-density-with-hessian",
+                    21: "all-electron-density-paw-only",
+                    }
+            with open(os.path.join(directory, prefix+"-"+table[plot_num]+".in"), 'w') as fout:
+                self.pp_inputpp(fout, plot_num=plot_num, filplot=table[plot_num]+".dat")
+                self.pp_plot(fout, output_format=output_format, filepp=table[plot_num]+".dat")
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pp.x")
+            self.gen_yh(directory=directory, inpname=prefix+"-"+table[plot_num]+".in", output=prefix+"-"+table[plot_num]+".out", cmd="pp.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s pp.x < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s pp.x < %s | tee %s" % (mpi, prefix+"-"+table[plot_num]+".in", prefix+"-"+table[plot_num]+".out"))
             os.chdir("../")
 
-
-    def elf(self, directory="tmp-qe-static", inpname="elf.in", output="elf.out", mpi="", fileout="elf.xsf", runopt="gen"):
-        """
-        """
-        # first check whether there is a previous scf running
-        if not os.path.exists(directory):
-            print("===================================================\n")
-            print("                 Warning !!!\n")
-            print("===================================================\n")
-            print("pp.x calculation:\n")
-            print("  directory of previous scf or nscf calculattion not found!\n")
-            sys.exit(1)
-        if runopt == "gen" or runopt == "genrun":
-            with open(os.path.join(directory, inpname), 'w') as fout:
-                self.pp_inputpp(fout, plot_num=8, filplot="elf.rho")
-                self.pp_plot(fout, filepp="elf.rho", fileout="elf.xsf")
-            # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pp.x")
-
-        if runopt == "run" or runopt == "genrun":
-            os.chdir(directory)
-            os.system("%s pp.x < %s | tee %s" % (mpi, inpname, output))
-            os.chdir("../")
-
-
-    def dcd(self, directory="tmp-qe-static", inpname="dcd.in", output="dcd.out", mpi="", runopt="gen"):
-        """
-        """
-        # first check whether there is a previous scf running
-        if not os.path.exists(directory):
-            print("===================================================\n")
-            print("                 Warning !!!\n")
-            print("===================================================\n")
-            print("pp.x calculation:\n")
-            print("  directory of previous scf or nscf calculattion not found!\n")
-            sys.exit(1)
-        if runopt == "gen" or runopt == "genrun":
-            with open(os.path.join(directory, inpname), 'w') as fout:
-                self.pp_inputpp(fout, plot_num=9, filplot="dcd.rho")
-                self.pp_plot(fout, filepp="dcd.rho", fileout="dcd.xsf")
-            # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pp.x")
-        if runopt == "run" or runopt == "genrun":
-            os.chdir(directory)
-            os.system("%s pp.x < %s | tee %s" % (mpi, inpname, output))
-            os.chdir("../")
-
-    def ed(self, directory="tmp-qe-static", inpname="electron-density.in", output="electron-density.out", mpi="",
-            runopt="gen"):
-        """
-        electron (pseudo-)charge density
-        """
-        # first check whether there is a previous scf running
-        if not os.path.exists(directory):
-            print("===================================================\n")
-            print("                 Warning !!!\n")
-            print("===================================================\n")
-            print("pp.x calculation:\n")
-            print("  directory of previous scf or nscf calculattion not found!\n")
-            sys.exit(1)
-        if runopt == "gen" or runopt == "genrun":
-            with open(os.path.join(directory, inpname), 'w') as fout:
-                self.pp_inputpp(fout, plot_num=0, filplot="ed.rho")
-                self.pp_plot(fout, filepp="ed.rho", fileout="ed.xsf")
-            # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pp.x")
-
-        if runopt == "run" or runopt == "genrun":
-            os.chdir(directory)
-            os.system("%s pp.x < %s | tee %s" % (mpi, inpname, output))
-            os.chdir("../")
-
-    def orbitals(self, directory="tmp-qe-static", inpname="orbitals.in", output="orbitals.out", mpi="",
-            runopt="gen"):
-        """
-        orbitals
-        """
-        # first check whether there is a previous scf running
-        if not os.path.exists(directory):
-            print("===================================================\n")
-            print("                 Warning !!!\n")
-            print("===================================================\n")
-            print("pp.x calculation:\n")
-            print("  directory of previous scf or nscf calculattion not found!\n")
-            sys.exit(1)
-        if runopt == "gen" or runopt == "genrun":
-            with open(os.path.join(directory, inpname), 'w') as fout:
-                self.pp_inputpp(fout, plot_num=7, filplot="orbitals.dat")
-                self.pp_plot(fout, filepp="orbitals.dat", fileout="orbitals.cube")
-            # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pp.x")
-
-        if runopt == "run" or runopt == "genrun":
-            os.chdir(directory)
-            os.system("%s pp.x < %s | tee %s" % (mpi, inpname, output))
-            os.chdir("../")
 
     def pp_inputpp(self, fout, plot_num, filplot):
         """ 
@@ -1335,9 +1257,26 @@ class static_run:
         fout.write("outdir = '%s'\n" % self.control.params["outdir"])
         fout.write("filplot = '%s'\n" % (filplot))
         fout.write("plot_num = %d\n" % plot_num)
+        if plot_num == 0:
+            fout.write("spin_component = %d\n" % 0)
+        elif plot_num == 1:
+            fout.write("spin_component = %d\n" % 0)
+        elif plot_num == 3:
+            pass
+        elif plot_num == 5:
+            pass
+        elif plot_num == 7:
+            fout.write("kpoint(1) = 1\n")
+            fout.write("kpoint(2) = 2\n")
+            fout.write("kband(1) = 1\n")
+            fout.write('kband(2) = 2\n')
+        elif plot_num == 10:
+            pass
+        elif plot_num == 17:
+            pass
         fout.write("/\n")
 
-    def pp_plot(self, fout, filepp, fileout, iflag=3, output_format=5, 
+    def pp_plot(self, fout, filepp, iflag=3, output_format=5, 
             e1=[2.0, 0.0, 0.0], e2=[0.0, 2.0, 0.0], e3=[0.0, 0.0, 2.0],
             x0=[0.0, 0.0, 0.0], nx=1000, ny=1000, nz=1000):
         """
@@ -1369,7 +1308,18 @@ class static_run:
         elif iflag == 4:
             fout.write("radius = %f\n" % radius)
             fout.write("nx = %d, ny = %d\n" (nx, ny))
-        fout.write("fileout = '%s'\n" % fileout)
+        if output_format == 0:
+            fout.write("fileout = '%s'\n" % (filepp.split(".")[0]+".1d.gp"))
+        elif output_format == 2:
+            fout.write("fileout = '%s'\n" % (filepp.split(".")[0]+".plotrho"))
+        elif output_format == 3:
+            fout.write("fileout = '%s'\n" % (filepp.split(".")[0]+".2d.xsf"))
+        elif output_format == 5:
+            fout.write("fileout = '%s'\n" % (filepp.split(".")[0]+".3d.xsf"))
+        elif output_format == 6:
+            fout.write("fileout = '%s'\n" % (filepp.split(".")[0]+".cube"))
+        elif output_format == 7:
+            fout.write("fileout = '%s'\n" % (filepp.split(".")[0]+"2d.gp"))
         fout.write("/\n")
         fout.write("\n")
 

@@ -23,6 +23,7 @@ if __name__ == "__main__":
     parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
     parser.add_argument("--images", help="the image xyz file(--images=first.xyz imtermediate-1.xyz intermediate-2.xyz ... last.xyz)", nargs='+', type=str)
     parser.add_argument("--ecutwfc", help="ecutwfc, default value: 100 Ry", type=int, default=100)
+    parser.add_argument("--ecutrho", help="ecutrho, default value: 400 Ry", type=int, default=400)
     parser.add_argument("--kpoints-option", help="kpoints option", type=str, default="automatic")
     parser.add_argument("-k", "--kpoints", help="set kpoints like '1 1 1 0 0 0'", type=str, default="1 1 1 0 0 0")
     parser.add_argument("--conv-thr", help="conv_thr", type=float, default=1.0e-6)
@@ -40,6 +41,7 @@ if __name__ == "__main__":
     parser.add_argument("--ci-scheme", help="Specify the type of Climbing Image scheme(no-CI, auto, manual)", type=str, default="auto")
     parser.add_argument("--path_thr", help="path_thr", type=float, default=0.05)
     parser.add_argument("--ds", help="Optimisation step length ( Hartree atomic units )", type=float, default=1.e0)
+    parser.add_argument("--first-last-opt", type=bool, default=False)
     
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
@@ -63,6 +65,7 @@ if __name__ == "__main__":
     path_params["CI_scheme"] = args.ci_scheme
     path_params["path_thr"] = args.path_thr
     path_params["ds"] = args.ds
+    path_params["first_last_opt"] = args.first_last_opt
 
     task = neb_run(images=args.images)
     task.neb(directory=directory, runopt=args.runopt, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=kpoints_mp, path=path_params, restart_mode=args.restart_mode)

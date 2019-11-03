@@ -26,7 +26,11 @@ class opt_run:
 
     def opt(self, directory="tmp-siesta-opt", inpname="geometric-optimization.fdf", output="geometric-optimization.out",
             mpi="", runopt="gen", mode=0, electrons={}, kpoints_mp=[1, 1, 1]):
-        
+        """
+        mode:
+            0: do not vary the cell
+            1: vary the cell
+        """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)

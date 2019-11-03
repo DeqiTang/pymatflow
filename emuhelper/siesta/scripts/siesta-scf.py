@@ -18,7 +18,6 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-siesta-static")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
     parser.add_argument("--mpi", help="MPI command", type=str, default="")
-    parser.add_argument("-p", "--properties" ,help="Option for properties calculation", type=int, default=0)
     parser.add_argument("--meshcutoff", help="MeshCutoff (Ry)", type=int, default=200)
     parser.add_argument("--solution-method", help="SolutionMethod(diagon, OMM, OrderN, PEXSI)", type=str, default="diagon")
     parser.add_argument("--functional", help="XC.functional", type=str, default="GGA")
@@ -29,6 +28,44 @@ if __name__ == "__main__":
     parser.add_argument("-k", "--kpoints", help="set kpoints like '3 3 3'", type=str, default="3 3 3")
     parser.add_argument("--occupation", help="OccupationFunction(FD or MP)", type=str, default="FD")
     parser.add_argument("--electronic-temperature", help="Electronic Temperature", type=int, default=300)
+    # properties related parameter
+    parser.add_argument("-p", "--properties" ,help="Option for properties calculation", type=int, default=0)
+    parser.add_argument("--bandlines", nargs="+", type=str,
+            default=["1 0.0 0.0 0.0 \Gamma", "20 1.0 1.0 1.0 L", "20 2.0 0.0 0.0 X"],
+            help="BandLines for band structre calculation(either choose BandLines or BandPoints)")
+    parser.add_argument("--bandpoints", nargs="+", type=str,
+            default=["0.0 0.0 0.0", "1.0 0.0 0.0", "0.5 0.5 0.5"],
+            help="BandPoints for band structure calculation(either choose BandPoints or BandLines)")
+    parser.add_argument("--polarization-grids", nargs="+", type=str,
+            default=["10 3 3 no", "2 20 2 no", "4 4 15 no"],
+            help="PolarizationGrids")
+    parser.add_argument("--external-electric-field", nargs="+", type=float,
+            default=[0.0, 0.0, 0.5],
+            help="External Electric field")
+    parser.add_argument("--optical-energy-minimum", type=float,
+            default=0.0,
+            help="Optical.Energy.Minimum")
+    parser.add_argument("--optical-energy-maximum", type=float,
+            default=10.0,
+            help="Optical.Energy.Maximum")
+    parser.add_argument("--optical-broaden", type=float,
+            default=0.0,
+            help="Optical.Broaden")
+    parser.add_argument("--optical-scissor", type=float,
+            default=0.0,
+            help="Optical.Scissor")
+    parser.add_argument("--optical-mesh", nargs="+", type=int
+            default=[5, 5, 5],
+            help="Optical.Mesh")
+    parser.add_argument("--optical-polarization-type", type=str,
+            default="unpolarized",
+            help="Optical.PolarizationType")
+    parser.add_arguemnt("--optical-vector", nargs="+", type=float,
+            default=[1.0, 0.0, 0.5],
+            help="Optical.Vector")
+    parser.add_argument("--wannier90-unkgrid", nargs="+", type=int,
+            defualt=[10, 10, 10],
+            help="Siesta2Wannier90.UnkGrid[1-3]")
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================   
@@ -47,5 +84,22 @@ if __name__ == "__main__":
     electrons["OccupationFunction"] = args.occupation
     electrons["ElectronicTemperature"] = args.electronic_temperature
 
+
     task = static_run(xyzfile)
+
+    task.properties.set_params(
+        bandlines = args.bandlines
+        bandpoints = args.bandpoints
+        polarization_grids = args.polarization_grids
+        external_electric_field = args.external_electric_field
+        optical_energy_minimum = args.optical_energy_minimum
+        optical_energy_maximum = args.optical_energy_maximum
+        optical_broaden = args.optical_broaden
+        optical_scissor = args.optical_scissorr
+        optical_mesh = args.optical_mesh
+        optical_polarization_type = args.optical_polarization_type
+        optical_vector = args.optical_vector
+        wannier90_unkgrid = args.wannier90_unkgrid
+        )
+
     task.scf(directory=directory, runopt="genrun", mpi=args.mpi, electrons=electrons, properties=args.properties, kpoints_mp=kpoints_mp)
