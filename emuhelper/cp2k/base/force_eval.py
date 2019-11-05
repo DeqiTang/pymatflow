@@ -55,8 +55,13 @@ class cp2k_force_eval:
         parameters for sub section(like dft), are handled over 
         to sub section controllers.
         """
-        self.dft.set_params(params)
-        # dealing with params belonging to this class
         for item in params:
-            if item in self.params:
+            if len(item.split("-")) == 1:
                 self.params[item] = params[item]
+            elif item.split("-")[0] == "DFT":
+                self.dft.set_params({item: params[item]})
+        #self.dft.set_params(params)
+        # dealing with params belonging to this class
+        #for item in params:
+        #    if item in self.params:
+        #        self.params[item] = params[item]

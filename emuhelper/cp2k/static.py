@@ -173,7 +173,7 @@ class static_run:
             plt.show()
             os.chdir("../")
 
-    def printout_option(self, option=0):
+    def printout_option(self, option=[]):
         """
         option:
             0: do not printout properties
@@ -181,11 +181,9 @@ class static_run:
             2: printout bands
             3: printout electron densities
         """
-        if option == 0:
-            pass
-        elif option == 1:
+        if 1 in option:
             self.force_eval.dft.printout.print_pdos()
-        elif option == 2:
+        if 2 in option:
             self.force_eval.dft.printout.print_bands()
-        elif option == 3:
+        if 3 in option:
             self.force_eval.dft.printout.print_electron_density()

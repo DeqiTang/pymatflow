@@ -24,14 +24,14 @@ class md_run:
         self.force_eval = cp2k_force_eval(xyz_f)
         self.motion = cp2k_motion()
 
-        cutoff = 60
-        rel_cutoff = 30
-        self.glob.params["RUN_TYPE"] = "MD"
+        self.glob.basic_setting(run_type="MD")
+        self.force_eval.basic_setting()
 
         self.motion.set_type("MD")
         self.motion.md.params["STEPS"] = 20
 
-    def md(self, directory="tmp-cp2k-md", inpname="md.inp", output="md.out", mpi="", runopt="gen"):
+    def md(self, directory="tmp-cp2k-md", inpname="md.inp", output="md.out", mpi="", runopt="gen",
+            force_eval={}, motion={}):
         """
         directory: a place for all the generated files
         """
@@ -41,12 +41,16 @@ class md_run:
             os.mkdir(directory)
             shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, self.force_eval.subsys.xyz.file))
 
-            self.glob.to_input(os.path.join(directory, inpname))
-            self.force_eval.to_input(os.path.join(directory, inpname))
-            self.motion.to_input(os.path.join(directory, inpname))
+            self.force_eval.set_params(force_eval)
+            self.motion.set_params(motion)
+            with open(os.path.join(directory, inpname), 'w') as fout:
+                self.glob.to_input(fout)
+                self.force_eval.to_input(fout)
+                self.motion.to_input(fout)
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s cp2k.psmp < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s cp2k.psmp -in %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
     
 

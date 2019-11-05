@@ -1037,12 +1037,12 @@ class static_run:
             with open(os.path.join(directory, inpname), 'w') as fout:
                 fout.write("&input\n")
                 fout.write("asr = '%s'\n" % asr) # Acoustic sum rule
-                fout.write("flfrc = %s\n" % ifc_file) # File with IFC's
+                fout.write("flfrc = '%s'\n" % ifc_file) # File with IFC's
                 fout.write("flfrq = 'frequencies.freq'\n") # Output file with the frequencies
                 fout.write("/\n")
                 fout.write("%d\n" % nqpoints) # Number of q points
                 for i in range(nqpoints):
-                    fout.write("%f %f %f\n" % (qpoints[i][0], qpoints[i][1], qpoints[i][2], qpoints[i][3]))
+                    fout.write("%f %f %f %f\n" % (qpoints[i][0], qpoints[i][1], qpoints[i][2], qpoints[i][3]))
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="matdyn.x")
         if runopt == "run" or runopt == "genrun":
@@ -1066,7 +1066,7 @@ class static_run:
         if runopt == "gen" or runopt == "genrun":
             with open(os.path.join(directory, inpname), 'w') as fout:
                 fout.write("%s\n" % frequencies_file) # Input file with the frequencies at various q
-                fout.write("%f %f\n" % (freq_range_min, freq_range_max)) # Range of frequencies for a visualization
+                fout.write("%f %f\n" % (freq_min, freq_max)) # Range of frequencies for a visualization
                 fout.write("freq.plot\n") # Output file with frequencies which will be used for plot
                 fout.write("freq.ps\n") # Plot of the dispersion
                 fout.write("0.0\n") # Fermi level (needed only for band structure plot)

@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
     # for q2r
     parser.add_argument("--zasr", type=str, default="simple",
-            hep="sum rule")
+            help="sum rule")
 
     # for matdyn.x
     parser.add_argument("--asr", type=str, default='simple',
@@ -48,9 +48,9 @@ if __name__ == "__main__":
 
     matdyn_qpoints = []
     for i in range(0, len(args.matdyn_qpoints), 4):
-        matdyn_qpoints.append([args.matdyn_qpoints[i], args.matdyn_qpoints[i+1], args.matdyn_qpoints[i+2], args.matdyn_qpoints[i+3]])
+        matdyn_qpoints.append([float(args.matdyn_qpoints[i]), float(args.matdyn_qpoints[i+1]), float(args.matdyn_qpoints[i+2]), float(args.matdyn_qpoints[i+3])])
 
-
+    print(matdyn_qpoints)
 
     task = static_run(xyzfile)
     task.phx_qmesh(directory=args.directory, mpi=args.mpi, runopt=args.runopt, qpoints=args.phx_qpoints)

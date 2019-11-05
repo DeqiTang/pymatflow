@@ -185,6 +185,10 @@ class cp2k_motion_md:
                 fout.write("\t\t%s %s\n" % (item, str(self.params[item])))
         fout.write("\t&END MD\n")
 
+    def set_params(self, params):
+        for item in params:
+            if item in self.params:
+                self.params[item] = params[item]
 
 
 class cp2k_motion_pint:
@@ -311,3 +315,10 @@ class cp2k_motion:
         runtype: CELL_OPT, GEO_OPT, MC, MD, SHELL_OPT
         """
         self.run_type = run_type
+
+    def set_params(self, params):
+        """
+        parameters for sub section(like md), are handled over 
+        to sub section controllers.
+        """
+        self.md.set_params(params)
