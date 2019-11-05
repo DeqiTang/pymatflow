@@ -45,6 +45,7 @@ setup(
         "emuhelper/abinit/scripts/abinit-scf.py",
         "emuhelper/abinit/scripts/abinit-nscf.py",
         "emuhelper/abinit/scripts/abinit-neb.py",
+        "emuhelper/abinit/scripts/abinit-dfpt.py",
         "emuhelper/cp2k/scripts/cp2k-aimd.py",
         "emuhelper/cp2k/scripts/bands_cp2k.py",
         "emuhelper/cp2k/scripts/converge_cutoff_cp2k.py",

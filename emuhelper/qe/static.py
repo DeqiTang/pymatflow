@@ -924,7 +924,7 @@ class static_run:
             os.chdir("../")
 
     def phx_qmesh(self, directory="tmp-qe-static", inpname="phx-qmesh.in", output="phx-qmesh.out", 
-            dynamat_file="phx-qmesh.dyn", mpi="", runopt="gen"):
+            dynamat_file="phx-qmesh.dyn", mpi="", runopt="gen", qpoints=[2, 2, 2]):
         """
         Reference:
             https://gitlab.com/QEF/material-for-ljubljana-qe-summer-school/blob/master/Day-3/handson-day3-DFPT.pdf
@@ -970,10 +970,10 @@ class static_run:
             with open(os.path.join(directory, inpname), 'w') as fout:
                 fout.write("&inputph\n")
                 fout.write("tr2_ph = 1.0d-14\n")
-                fout.write("ldisp = .true.\n")
-                fout.write("nq1 = 2 \n") # 4
-                fout.write("nq2 = 2 \n") # 4
-                fout.write("nq3 = 2 \n") # 4
+                fout.write("ldisp = .true.\n") # option for the calculation on a grid
+                fout.write("nq1 = %d\n" % qpoints[0]) # 4
+                fout.write("nq2 = %d\n" % qpoints[1]) # 4
+                fout.write("nq3 = %d\n" % qpoints[2]) # 4
                 fout.write("prefix = '%s'\n" % self.control.params["prefix"])
                 fout.write("outdir = '%s'\n" % self.control.params["outdir"])
                 fout.write("fildyn = '%s'\n" % dynamat_file)
@@ -988,7 +988,7 @@ class static_run:
             os.chdir("../")
 
     def q2r(self, directory="tmp-qe-static", inpname="q2r.in", output="q2r.out", 
-            dynamat_file="phx-qmesh.dyn", ifc_file="ifc.fc", mpi="", runopt="gen"):
+            dynamat_file="phx-qmesh.dyn", ifc_file="ifc.fc", mpi="", runopt="gen", zasr='simple'):
         """
         q2r.x:
             calculation of Interatomic Force Constants(IFC) from 
@@ -1006,7 +1006,7 @@ class static_run:
             with open(os.path.join(directory, inpname), 'w') as fout:
                 fout.write("&input\n")
                 fout.write("fildyn = '%s'\n" % dynamat_file) # Dynamical matrices from the phonon calculation
-                fout.write("zasr = 'simple'\n") # A way to impose the acoustic sum rule
+                fout.write("zasr = '%s'\n" % zasr) # A way to impose the acoustic sum rule
                 fout.write("flfrc = '%s'\n" % ifc_file) # Output file of the interatomic force constants
                 fout.write("/\n")
                 fout.write("\n")
@@ -1019,16 +1019,12 @@ class static_run:
             os.chdir("../")
 
     def matdyn(self, directory="tmp-qe-static", inpname="matdyn.in", output="matdyn.out", 
-            ifc_file="ifc.fc", mpi="", runopt="gen"):
+            ifc_file="ifc.fc", mpi="", runopt="gen", asr='simple', 
+            nqpoints=2, qpoints = [[0.0, 0.0, 0.0, 0.0], [0.012658, 0.0, 0.0, 0.012658]]):
         """
         matdyn.x
             Calculate phonons at generic q points using IFC
         """
-        nqpoints = 2
-        qpoints = [
-                [0.0, 0.0, 0.0],
-                [0.012658, 0.0, 0.012658]
-                ]
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
             print("===================================================\n")
@@ -1040,13 +1036,13 @@ class static_run:
         if runopt == "gen" or runopt == "genrun":
             with open(os.path.join(directory, inpname), 'w') as fout:
                 fout.write("&input\n")
-                fout.write("asr = 'simple'\n") # Acoustic sum rule
+                fout.write("asr = '%s'\n" % asr) # Acoustic sum rule
                 fout.write("flfrc = %s\n" % ifc_file) # File with IFC's
                 fout.write("flfrq = 'frequencies.freq'\n") # Output file with the frequencies
                 fout.write("/\n")
                 fout.write("%d\n" % nqpoints) # Number of q points
                 for i in range(nqpoints):
-                    fout.write("%f %f %f\n" % (qpoints[i][0], qpoints[i][1], qpoints[i][2]))
+                    fout.write("%f %f %f\n" % (qpoints[i][0], qpoints[i][1], qpoints[i][2], qpoints[i][3]))
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="matdyn.x")
         if runopt == "run" or runopt == "genrun":
@@ -1054,7 +1050,7 @@ class static_run:
             os.system("%s matdyn.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
 
-    def plotband(self, directory="tmp-qe-static", inpname="plotband.in", output="plotband.out", mpi="", runopt="gen"):
+    def plotband(self, directory="tmp-qe-static", inpname="plotband.in", output="plotband.out", frequencies_file="frequencies.freq", mpi="", runopt="gen", freq_min=0, freq_max=600):
         """
         plotband.x
             Plot the phonon dispersion
