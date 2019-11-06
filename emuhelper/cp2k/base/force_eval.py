@@ -57,11 +57,6 @@ class cp2k_force_eval:
         """
         for item in params:
             if len(item.split("-")) == 1:
-                self.params[item] = params[item]
+                self.params[item.split("-")[-1]] = params[item]
             elif item.split("-")[0] == "DFT":
                 self.dft.set_params({item: params[item]})
-        #self.dft.set_params(params)
-        # dealing with params belonging to this class
-        #for item in params:
-        #    if item in self.params:
-        #        self.params[item] = params[item]

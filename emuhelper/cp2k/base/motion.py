@@ -36,6 +36,11 @@ class cp2k_motion_band:
                 fout.write("\t\t%s %s\n" % (item, str(self.params[item])))
         fout.write("\t&END BAND\n")
 
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 2:
+                self.params[item.split("-")[-1]] = params[item]
+
 # ========================
 # CP2K / MOTION / CELL_OPT
 # ========================
@@ -66,7 +71,12 @@ class cp2k_motion_cell_opt:
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("\t\t%s %s\n" % (item, str(self.params[item])))
-        fout.write("\t&END CELL_OPT\n")
+        fout.write("\t\t&PRINT\n")
+        fout.write("\t\t\t&CELL HIGH\n")
+        fout.write("\t\t\t\tFILENAME cell.xyz\n")
+        fout.write("\t\t\t&END CELL\n")
+        fout.write("\t\t&END PRINT\n")
+        fout.write("\t\t&END CELL_OPT\n")
     
     def default_set(self):
         self.params["CONSTRAINT"] = "NONE"
@@ -80,6 +90,12 @@ class cp2k_motion_cell_opt:
         self.params["RMS_DR"] = 1.5e-3
         self.params["RMS_FORCE"] = 3.0e-4
         self.params["TYPE"] = "DIRECT_CELL_OPT"
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 2:
+                self.params[item.split("-")[-1]] = params[item]
+
 
 class cp2k_motion_constraint:
     def __init__(self):
@@ -98,6 +114,11 @@ class cp2k_motion_constraint:
                 fout.write("\t\t%s %s\n" % (item, self.params[item]))
         fout.write("\t&END CONSTRAINT\n")
 
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 2:
+                self.params[item.split("-")[-1]] = params[item]
+
 # ========================
 # CP2K / MOTION / DRIVER
 # ========================
@@ -105,6 +126,10 @@ class cp2k_motion_driver:
     def __init__(self):
         pass
 
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 2:
+                self.params[item.split("-")[-1]] = params[item]
 
 class cp2k_motion_flexible_partitioning:
     def __init__(self):
@@ -113,6 +138,11 @@ class cp2k_motion_flexible_partitioning:
 class cp2k_motion_free_energy:
     def __init__(self):
         pass
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 2:
+                self.params[item.split("-")[-1]] = params[item]
 
 class cp2k_motion_geo_opt:
     def __init__(self):
@@ -147,9 +177,21 @@ class cp2k_motion_geo_opt:
         self.params["RMS_FORCE"] = 3.0e-4
         self.params["TYPE"] = "MINIMIZATION"
  
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 2:
+                self.params[item.split("-")[-1]] = params[item]
+
+
 class cp2k_motion_mc:
     def __init__(self):
         pass
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 2:
+                self.params[item.split("-")[-1]] = params[item]
+
 
 class cp2k_motion_md:
     def __init__(self):
@@ -185,11 +227,11 @@ class cp2k_motion_md:
                 fout.write("\t\t%s %s\n" % (item, str(self.params[item])))
         fout.write("\t&END MD\n")
 
+
     def set_params(self, params):
         for item in params:
-            if item in self.params:
-                self.params[item] = params[item]
-
+            if len(item.split("-")) == 2:
+                self.params[item.split("-")[-1]] = params[item]
 
 class cp2k_motion_pint:
     def __init__(self):
@@ -218,6 +260,10 @@ class cp2k_motion_pint:
                 fout.write("\t\t%s %s\n" % (item, self.params[item]))
         fout.write("\t&END PINT\n")
 
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 2:
+                self.params[item.split("-")[-1]] = params[item]
 
 class cp2k_motion_print:
     def __init__(self):
@@ -227,6 +273,11 @@ class cp2k_motion_print:
         # fout: a file stream for writing
         fout.write("\t&PRINT\n")
         fout.write("\t&END PRINT\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 2:
+                self.params[item.split("-")[-1]] = params[item]
 
 class cp2k_motion_shell_opt:
     def __init__(self):
@@ -249,10 +300,19 @@ class cp2k_motion_shell_opt:
                 fout.write("\t\t%s %s\n" % (item, self.params[item]))
         fout.write("\t&END SHELL_OPT\n")
 
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 2:
+                self.params[item.split("-")[-1]] = params[item]
+
 class cp2k_motion_tmc:
     def __init__(self):
         pass
 
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 2:
+                self.params[item.split("-")[-1]] = params[item]
 
 class cp2k_motion:
     """
@@ -321,4 +381,30 @@ class cp2k_motion:
         parameters for sub section(like md), are handled over 
         to sub section controllers.
         """
-        self.md.set_params(params)
+        for item in params:
+            if len(item.split("-")) == 1:
+                self.params[item.split("-")[-1]] = params[item]
+            elif item.split("-")[0] == "MD":
+                self.md.set_params({item: params[item]})
+            elif item.split("-")[0] == "BAND":
+                self.band.set_params({item: params[item]})
+            elif item.split("-")[0] == "CELL_OPT":
+                self.cell_opt.set_params({item: params[item]})
+            elif item.split("-")[0] == "GEO_OPT":
+                self.geo_opt.set_params({item: params[item]})
+            elif item.split("-")[0] == "MC":
+                self.mc.set_params({item: params[item]})
+            elif item.split("-")[0] == "TMC":
+                self.tmc.set_params({item: params[item]})
+            elif item.split("-")[0] == "SHELL_OPT":
+                self.shell_opt.set_params({item: params[item]})
+            elif item.split("-")[0] == "CONSTRAINT":
+                self.constraint.set_params({item: params[item]})
+            elif item.split("-")[0] == "DRIVER":
+                self.driver.set_params({item: params[item]})
+            elif item.split("-")[0] == "PINT":
+                self.pint.set_params({item: params[item]})
+            elif item.split("-")[0] == "FLEXIBLE_PARTITIONING":
+                self.flexible_partitioning.set_params({item: params[item]})
+            elif item.split("-")[0] == "FREE_ENERGY":
+                self.free_energy.set_params({item: params[item]})

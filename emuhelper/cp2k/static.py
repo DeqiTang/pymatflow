@@ -187,3 +187,21 @@ class static_run:
             self.force_eval.dft.printout.print_bands()
         if 3 in option:
             self.force_eval.dft.printout.print_electron_density()
+        if 4 in option:
+            self.force_eval.dft.printout.elf_cube = True
+        if 5 in option:
+            self.force_eval.dft.printout.mo = True
+        if 6 in option:
+            self.force_eval.dft.printout.mo_cubes = True
+        if 7 in option:
+            self.force_eval.dft.printout.mulliken = True
+        if 8 in option:
+            self.force_eval.dft.printout.stm = True
+        if 9 in option:
+            self.tot_density_cube = True
+        if 10 in option:
+            self.v_hartree_cube = True
+        if 11 in option:
+            self.v_xc_cube = True
+        if 12 in option:
+            self.xray_diffraction_spectrum = True

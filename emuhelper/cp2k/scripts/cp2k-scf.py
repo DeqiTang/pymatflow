@@ -27,6 +27,19 @@ if __name__ == "__main__":
     parser.add_argument("--rel-cutoff", type=int, default=60,
             help="REL_CUTOFF, default value: 60 Ry")
     parser.add_argument("-k", "--kpoints", help="set kpoints like '3 3 3 0 0 0'", type=str, default="3 3 3 0 0 0")
+    
+    parser.add_argument("--diag", type=str, default="TRUE",
+            choices=["TRUE", "FALSE", "true", "false"],
+            help="whether choosing tranditional diagonalization for SCF")
+
+    parser.add_argument("--ot", type=str, default="FALSE",
+            choices=["TRUE", "FALSE", "true", "false"],
+            help="whether choosing orbital transformation for SCF")
+
+    parser.add_argument("--smear", type=str, default="FALSE",
+            choices=["TRUE", "FALSE"],
+            help="switch on or off smearing for occupation")
+
     parser.add_argument("--added-mos", help="ADDED_MOS for SCF", type=int, default=0)
     parser.add_argument("--smear-method", help="smearing type: FERMI_DIRAC, ENERGY_WINDOW", type=str, default="FERMI_DIRAC")
     parser.add_argument("--electronic-temp", help="ELECTRON_TEMPERATURE for FERMI_DIRAC SMEAR", type=float, default=300)
@@ -42,9 +55,13 @@ if __name__ == "__main__":
     force_eval["DFT-MGRID-REL_CUTOFF"] = args.rel_cutoff
     force_eval["DFT-XC-XC_FUNCTIONAL"] = args.xc_functional
     force_eval["DFT-SCF-ADDED_MOS"] = args.added_mos
+    force_eval["DFT-SCF-SMEAR"] = args.smear
     force_eval["DFT-SCF-SMEAR-METHOD"] = args.smear_method
     force_eval["DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE"] = args.electronic_temp
     force_eval["DFT-SCF-SMEAR-WINDOW_SIZE"] = args.window_size
+    force_eval["DFT-SCF-DIAGONALIZATION"] = args.diag
+    force_eval["DFT-SCF-OT"] = args.ot
+
 
     task = static_run(xyzfile)
     task.scf(directory=directory, runopt="genrun", force_eval=force_eval, printout_option=args.printout_option)

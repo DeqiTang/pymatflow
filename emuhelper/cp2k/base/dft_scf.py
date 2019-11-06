@@ -8,7 +8,7 @@ import sys
 # =============================
 class cp2k_dft_scf_diagonalization:
     def __init__(self):
-        self.section = '.TRUE.'
+        self.section = "TRUE"
         self.params = {
                 "ALGORITHM": "STANDARD",
                 "EPS_ADAPT": None,
@@ -21,7 +21,7 @@ class cp2k_dft_scf_diagonalization:
        """
        fout: a file stream for writing
        """
-       fout.write("\t\t\t&DIAGONALIZATION\n")
+       fout.write("\t\t\t&DIAGONALIZATION %s\n" % str(self.section))
        for item in self.params:
            if self.params[item] is not None:
                fout.write("\t\t\t\t%s %s\n" % (item, str(self.params[item])))
@@ -33,9 +33,30 @@ class cp2k_dft_scf_diagonalization:
                 self.params[item.split("-")[-1]] = params[item]
 
 
+
+class cp2k_dft_scf_ot:
+    def __init__(self):
+        self.section = "FALSE"
+        self.params = {
+                "MINIMIZER": "DIIS",
+                "PRECONDITIONER": "FULL_ALL",
+                "ENERGY_GAP": 0.001,
+                }
+
+    def to_scf(self, fout):
+        fout.write("\t\t\t&OT %s\n" % (str(self.section)))
+        for item in self.params:
+            fout.write("\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t&END OT\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 4:
+                self.params[item.split("-")[-1]] = params[item]
+
 class cp2k_dft_scf_mixing:
     def __init__(self):
-        self.section = '.TRUE.'
+        self.section = 'TRUE'
         self.params = {
                 "ALPHA": 0.4,
                 "BETA": None,
@@ -45,7 +66,7 @@ class cp2k_dft_scf_mixing:
         """
         fout: a file stream for writing
         """
-        fout.write("\t\t\t&MIXING\n")
+        fout.write("\t\t\t&MIXING %s\n" % str(self.section))
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("\t\t\t\t%s %s\n" % (item, str(self.params[item])))
@@ -56,10 +77,9 @@ class cp2k_dft_scf_mixing:
             if len(item.split("-")) == 4:
                 self.params[item.split("-")[-1]] = params[item]
 
-
 class cp2k_dft_scf_smear:
     def __init__(self):
-        self.section = True # True or False or '.TRUE.' or '.FALSE.'
+        self.section = "FALSE" # 'TRUE' or 'FALSE'
         self.params = {
                 "METHOD": None,
                 "ELECTRONIC_TEMPERATURE": None,
@@ -81,14 +101,9 @@ class cp2k_dft_scf_smear:
         fout.write("\t\t\t&END SMEAR\n")
 
     def basic_setting(self):
-        self.section = True
+        self.section = False
         self.params["METHOD"] = 'FERMI_DIRAC'
         self.params["ELECTRONIC_TEMPERATURE"] = 300.0
-
-    def set_smear(self, method="FERMI_DIRAC", electronic_temperature=300.0, window_size=0.0):
-        self.params["METHOD"] = method
-        self.params["ELECTRONIC_TEMPERATURE"] = electronic_temperature
-        self.params["WINDOW_SIZE"] = window_size
 
     def set_params(self, params):
         for item in params:
@@ -128,10 +143,11 @@ class cp2k_dft_scf:
                 "ROKS_SCHEME": None,
                 }
         self.diagonalization = cp2k_dft_scf_diagonalization()
+        self.ot = cp2k_dft_scf_ot()
         self.mixing = cp2k_dft_scf_mixing()
         self.smear = cp2k_dft_scf_smear()
         self.printout = cp2k_dft_scf_print()
-        self.ifsmear = True
+        #self.ifsmear = True
 
     def to_dft(self, fout):
         """
@@ -141,9 +157,23 @@ class cp2k_dft_scf:
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("\t\t\t%s %s\n" % (item, str(self.params[item])))
-        self.diagonalization.to_scf(fout)
-        self.mixing.to_scf(fout)
-        if self.ifsmear == True:
+        if self.diagonalization.section == "TRUE" and self.ot.section == "FALSE":
+            self.diagonalization.to_scf(fout)
+            self.mixing.to_scf(fout)
+        elif self.ot.section == "TRUE" and self.diagonalization.section == "FALSE":
+            self.ot.to_scf(fout)
+            #self.mixing.to_scf(fout)
+        else:
+            print("======================================\n")
+            print("             WARNING !!!\n")
+            print("your setting:\n")
+            print("DFT/SCF/DIAGONALIZATION %s\n" % str(self.diagonalization.section))
+            print("DFT/SCF/OT %s\n" % str(self.ot.section))
+            print("you can choose either DIAGONALIZATION\n")
+            print("or ORBITAL TRANSFORMATION for SCF\n")
+            print("======================================\n")
+            sys.exit(1)
+        if self.smear.section == "TRUE":
             if self.params["ADDED_MOS"] == None or self.params["ADDED_MOS"] == 0:
                 print("If you are using smearing, you should set ADDED_MOS too!!!\n")
                 sys.exit(1)
@@ -152,17 +182,21 @@ class cp2k_dft_scf:
         fout.write("\t\t&END SCF\n")
 
     def set_params(self, params):
-        #self.diagonalization.set_params(params)
-        #self.smear.set_params(params)
-        #self.mixing.set_params(params)
+        #
         for item in params:
             if len(item.split("-")) == 3:
                 if item.split("-")[-1] == "SMEAR":
                     self.smear.section = params[item]
+                elif item.split("-")[-1] == "DIAGONALIZATION":
+                    self.diagonalization.section = params[item]
+                elif item.split("-")[-1] == "OT":
+                    self.ot.section = params[item]
                 else:
                     self.params[item.split("-")[-1]] = params[item]
             elif item.split("-")[2] == "DIAGONALIZATION":
                 self.diagonalization.set_params({item: params[item]})
+            elif item.split("-")[2] == "OT":
+                self.ot.set_params({item: params[item]})
             elif item.split("-")[2] == "MIXING":
                 self.mixing.set_params({item: params[item]})
             elif item.split("-")[2] == "SMEAR" and len(item.split("-")) > 3:
