@@ -23,7 +23,7 @@ class cp2k_dft_qs:
 
     def set_params(self, params):
         for item in params:
-            if len(item.spit("-")) == 3:
+            if len(item.split("-")) == 3:
                 self.params[item.split("-")[-1]] = params[item]
             else:
                 pass

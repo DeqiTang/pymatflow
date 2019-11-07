@@ -2,6 +2,39 @@
 
 With scripts to provide preparing and/or post-processing for your Emulations(DFT, MD, FEM).
 
+
+## TODO
+### CP2K
+* implementing Linear Scaling SCF [OK]
+* implementing VDW correction
+* implementing setting of kpoints for band structure and dos calculation
+* implementing neb calculation script module
+* implementing `MULTI_FORCE_EVALS
+* implementing classic mocular dynamics
+* implementing QMMM
+* implementing Metadynamics
+* implementing VIBRATIONAL ANALYSIS
+* implementing Excited States calculation using TDDFPT
+* develop post processing module
+### Quantum Espresso
+* improving Phonon calculation using ph.x
+* implementing kpoints setting for band structure calculation
+* develop post processing module
+### SIESTA
+* improving code base structure
+* develop post processing module
+### Abinit
+* considering reconstructing the code for multi-dataset using
+* develop post processing module
+### ORCA
+* build the base structure
+* develop post processing module
+### dalton
+* build the base structure
+* develop post processing module
+
+
+
 ## Features
 * Automated surface cut: not implemented yet
 * Slab Builder: not implemented yet

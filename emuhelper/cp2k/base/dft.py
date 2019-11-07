@@ -133,6 +133,8 @@ class cp2k_dft:
             if self.params[item] is not None:                    
                 fout.write("\t\t%s %s\n" % (item, self.params[item]))
         self.qs.to_dft(fout)
+        if self.ls_scf.section.upper() == "TRUE":
+            self.ls_scf.to_dft(fout)
         self.mgrid.to_dft(fout)
         self.xc.to_dft(fout)
         #self.kpoints.to_dft(fout)
@@ -157,7 +159,10 @@ class cp2k_dft:
     def set_params(self, params):
         for item in params:
             if len(item.split("-")) == 2:
-                self.params[item.split("-")[-1]] = params[item]
+                if item.split("-")[-1] == "LS_SCF":
+                    self.ls_scf.section = params[item]
+                else:
+                    self.params[item.split("-")[-1]] = params[item]
             elif item.split("-")[1] == "QS":
                 self.qs.set_params({item: params[item]})
             elif item.split("-")[1] == "MGRID":
@@ -168,3 +173,5 @@ class cp2k_dft:
                 self.scf.set_params({item: params[item]})
             elif item.split("-")[1] == "PRINT":
                 self.printout.set_params({item: params[item]})
+            elif item.split("-")[1] == "LS_SCF":
+                self.ls_scf.set_params({item: params[item]})

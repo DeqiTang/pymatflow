@@ -28,9 +28,9 @@ class cp2k_subsys_cell:
         fout: a file stream for writing
         """
         fout.write("\t\t&CELL\n")
-        fout.write("\t\t\tA %f %f %f\n" % (xyz.cell[0], xyz.cell[1], xyz.cell[2]))
-        fout.write("\t\t\tB %f %f %f\n" % (xyz.cell[3], xyz.cell[4], xyz.cell[5]))
-        fout.write("\t\t\tC %f %f %f\n" % (xyz.cell[6], xyz.cell[7], xyz.cell[8]))
+        fout.write("\t\t\tA %.9f %.9f %.9f\n" % (xyz.cell[0], xyz.cell[1], xyz.cell[2]))
+        fout.write("\t\t\tB %.9f %.9f %.9f\n" % (xyz.cell[3], xyz.cell[4], xyz.cell[5]))
+        fout.write("\t\t\tC %.9f %.9f %.9f\n" % (xyz.cell[6], xyz.cell[7], xyz.cell[8]))
         fout.write("\t\t&END CELL\n")
 
 

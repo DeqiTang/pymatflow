@@ -8,7 +8,7 @@ import sys
 # =============================
 class cp2k_dft_scf_diagonalization:
     def __init__(self):
-        self.section = "TRUE"
+        self.section = "TRUE" # TRUE, FALSE, true, false, True, False, actually regardness of uppercase or lowercase
         self.params = {
                 "ALGORITHM": "STANDARD",
                 "EPS_ADAPT": None,
@@ -36,7 +36,7 @@ class cp2k_dft_scf_diagonalization:
 
 class cp2k_dft_scf_ot:
     def __init__(self):
-        self.section = "FALSE"
+        self.section = "FALSE" # TRUE, FALSE, true, false, True, False, actually regardness of uppercase or lowercase
         self.params = {
                 "MINIMIZER": "DIIS",
                 "PRECONDITIONER": "FULL_ALL",
@@ -56,7 +56,7 @@ class cp2k_dft_scf_ot:
 
 class cp2k_dft_scf_mixing:
     def __init__(self):
-        self.section = 'TRUE'
+        self.section = 'TRUE' # TRUE, FALSE, true, false, True, False, actually regardness of uppercase or lowercase
         self.params = {
                 "ALPHA": 0.4,
                 "BETA": None,
@@ -79,7 +79,7 @@ class cp2k_dft_scf_mixing:
 
 class cp2k_dft_scf_smear:
     def __init__(self):
-        self.section = "FALSE" # 'TRUE' or 'FALSE'
+        self.section = "FALSE" # TRUE, FALSE, true, false, True, False, actually regardness of uppercase or lowercase
         self.params = {
                 "METHOD": None,
                 "ELECTRONIC_TEMPERATURE": None,
@@ -92,7 +92,7 @@ class cp2k_dft_scf_smear:
         fout: a file stream for writing
         """
         fout.write("\t\t\t&SMEAR %s\n" % str(self.section))
-        if self.section == True or self.section == '.TRUE.':
+        if self.section.upper() == "TURE":
             fout.write("\t\t\t\tMETHOD %s\n" % self.params["METHOD"])
             if self.params["METHOD"] == "ENERGY_WINDOW":
                 fout.write("\t\t\t\tWINDOW_SIZE %f\n" % self.params["WINDOW_SIZE"])
@@ -147,7 +147,6 @@ class cp2k_dft_scf:
         self.mixing = cp2k_dft_scf_mixing()
         self.smear = cp2k_dft_scf_smear()
         self.printout = cp2k_dft_scf_print()
-        #self.ifsmear = True
 
     def to_dft(self, fout):
         """
@@ -157,10 +156,10 @@ class cp2k_dft_scf:
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("\t\t\t%s %s\n" % (item, str(self.params[item])))
-        if self.diagonalization.section == "TRUE" and self.ot.section == "FALSE":
+        if self.diagonalization.section.upper() == "TRUE" and self.ot.section.upper() == "FALSE":
             self.diagonalization.to_scf(fout)
             self.mixing.to_scf(fout)
-        elif self.ot.section == "TRUE" and self.diagonalization.section == "FALSE":
+        elif self.ot.section.upper() == "TRUE" and self.diagonalization.section.upper() == "FALSE":
             self.ot.to_scf(fout)
             #self.mixing.to_scf(fout)
         else:
@@ -173,7 +172,7 @@ class cp2k_dft_scf:
             print("or ORBITAL TRANSFORMATION for SCF\n")
             print("======================================\n")
             sys.exit(1)
-        if self.smear.section == "TRUE":
+        if self.smear.section.upper() == "TRUE":
             if self.params["ADDED_MOS"] == None or self.params["ADDED_MOS"] == 0:
                 print("If you are using smearing, you should set ADDED_MOS too!!!\n")
                 sys.exit(1)

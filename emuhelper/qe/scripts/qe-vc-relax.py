@@ -15,7 +15,7 @@ electrons_params = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory for the vc-relax running", type=str, default="vc-relax")
+    parser.add_argument("-d", "--directory", help="directory for the vc-relax running", type=str, default="tmp-qe-vc-relax")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
     parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
     parser.add_argument("--mpi", help="MPI command", type=str, default="")

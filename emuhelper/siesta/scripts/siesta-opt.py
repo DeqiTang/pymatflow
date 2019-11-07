@@ -16,7 +16,7 @@ if __name__ == "__main__":
     # ===========================
     # general parameters
     # ===========================
-    parser.add_argument("-d", "--directory", type=str, default="tmp-siesta-opt"
+    parser.add_argument("-d", "--directory", type=str, default="tmp-siesta-opt",
             help="directory of the calculation")
     parser.add_argument("-f", "--file", type=str,
             help="the xyz file name")
@@ -24,7 +24,7 @@ if __name__ == "__main__":
             help="MPI command")
     #parser.add_argument("-p", "--properties" ,help="Option for properties calculation", type=int, default=0)
     parser.add_argument("-m", "--mode", type=int, default=0,
-            choices=[0, 1]
+            choices=[0, 1],
             help="Optimization mode: 0(not-variable-cell), 1(variable-cell)")
     # =========================
     #      Electrons

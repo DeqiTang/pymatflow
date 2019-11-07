@@ -108,6 +108,8 @@ class cp2k_dft_print:
 
         if self.mo_cubes == True:
             fout.write("\t\t\t&MO_CUBES\n")
+            fout.write("\t\t\t\tNHOMO -1\n")
+            fout.write("\t\t\t\tNLUMO -1\n")
             fout.write("\t\t\t&END MO_CUBES\n")
  
         if self.mulliken == True:

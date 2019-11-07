@@ -7,316 +7,27 @@ import os
 import shutil
 import pymatgen as mg
 
+from emuhelper.cp2k.base.motion_print import cp2k_motion_print
+from emuhelper.cp2k.base.motion_band import cp2k_motion_band
+from emuhelper.cp2k.base.motion_cell_opt import cp2k_motion_cell_opt
+from emuhelper.cp2k.base.motion_geo_opt import cp2k_motion_geo_opt
+from emuhelper.cp2k.base.motion_constraint import cp2k_motion_constraint
+from emuhelper.cp2k.base.motion_driver import cp2k_motion_driver
+from emuhelper.cp2k.base.motion_free_energy import cp2k_motion_free_energy
+from emuhelper.cp2k.base.motion_mc import cp2k_motion_mc
+from emuhelper.cp2k.base.motion_md import cp2k_motion_md
+from emuhelper.cp2k.base.motion_pint import cp2k_motion_pint
+from emuhelper.cp2k.base.motion_shell_opt import cp2k_motion_shell_opt
+from emuhelper.cp2k.base.motion_tmc import cp2k_motion_tmc
+from emuhelper.cp2k.base.motion_flexible_partitioning import cp2k_motion_flexible_partitioning
+
+
 """
 Usage:
 """
-# ====================
-# CP2K / MOTION / BAND
-# ====================
-class cp2k_motion_band:
-    def __init__(self):
-        self.params = {
-                "ALIGN_FRAMES": None,
-                "BAND_TYPE": None, # CI-NEB, IT-NEB, SM
-                "K_SPRING": None,
-                "NPROC_REP": None,
-                "NUMBER_OF_REPLICA": None,
-                "POT_TYPE": None,
-                "PROC_DIST_TYPE": None,
-                "ROTATE_FRAMES": None,
-                "USE_COLVARS": None,
-                }
-    def to_motion(self, fout):
-        """
-        fout: a file stream for writing
-        """
-        fout.write("\t&BAND\n")
-        for item in self.params:
-            if self.params[item] is not None:
-                fout.write("\t\t%s %s\n" % (item, str(self.params[item])))
-        fout.write("\t&END BAND\n")
-
-    def set_params(self, params):
-        for item in params:
-            if len(item.split("-")) == 2:
-                self.params[item.split("-")[-1]] = params[item]
-
-# ========================
-# CP2K / MOTION / CELL_OPT
-# ========================
-class cp2k_motion_cell_opt:
-    def __init__(self):
-        self.params = {
-                "CONSTRAINT": None,
-                "EXTERNAL_PRESSURE": None,
-                "KEEP_ANGLES": None,
-                "KEEP_SYMMETRY": None,
-                "MAX_DR": None,
-                "MAX_FORCE": None,
-                "MAX_ITER": None,
-                "RMS_DR": None,
-                "RMS_FORCE": None,
-                "OPTIMIZER": None,
-                "PRESSURE_TOLLERANCE": None,
-                "STEP_START_VAL": None,
-                "TYPE": None,  # DIRECT_CELL_OPT, GEO_OPT, MD
-                }
-        self.default_set()
-
-    def to_motion(self, fout):
-        """
-        fout: a file stream for writing
-        """
-        fout.write("\t&CELL_OPT\n")
-        for item in self.params:
-            if self.params[item] is not None:
-                fout.write("\t\t%s %s\n" % (item, str(self.params[item])))
-        fout.write("\t\t&PRINT\n")
-        fout.write("\t\t\t&CELL HIGH\n")
-        fout.write("\t\t\t\tFILENAME cell.xyz\n")
-        fout.write("\t\t\t&END CELL\n")
-        fout.write("\t\t&END PRINT\n")
-        fout.write("\t\t&END CELL_OPT\n")
-    
-    def default_set(self):
-        self.params["CONSTRAINT"] = "NONE"
-        self.params["KEEP_ANGLES"] = ".FALSE."
-        self.params["KEEP_SYMMETRY"] = ".FALSE."
-        self.params["MAX_DR"] = 3.0E-3
-        self.params["MAX_FORCE"] = 4.5e-4
-        self.params["MAX_ITER"] = 200
-        self.params["OPTIMIZER"] = "BFGS"
-        self.params["PRESSURE_TOLERANCE"] = 1.0E2
-        self.params["RMS_DR"] = 1.5e-3
-        self.params["RMS_FORCE"] = 3.0e-4
-        self.params["TYPE"] = "DIRECT_CELL_OPT"
-
-    def set_params(self, params):
-        for item in params:
-            if len(item.split("-")) == 2:
-                self.params[item.split("-")[-1]] = params[item]
-
-
-class cp2k_motion_constraint:
-    def __init__(self):
-        self.params = {
-                "CONSTRAINT_INIT": None,
-                "ROLL_TOLERANCE": None,
-                "SHAKE_TOLERANCE": None,
-                }
-    def to_motion(self, fout):
-        """
-        fout: a file stream for writing
-        """
-        fout.write("\t&CONSTRAINT\n")
-        for item in self.params:
-            if self.params[item] is not None:
-                fout.write("\t\t%s %s\n" % (item, self.params[item]))
-        fout.write("\t&END CONSTRAINT\n")
-
-    def set_params(self, params):
-        for item in params:
-            if len(item.split("-")) == 2:
-                self.params[item.split("-")[-1]] = params[item]
-
-# ========================
-# CP2K / MOTION / DRIVER
-# ========================
-class cp2k_motion_driver:
-    def __init__(self):
-        pass
-
-    def set_params(self, params):
-        for item in params:
-            if len(item.split("-")) == 2:
-                self.params[item.split("-")[-1]] = params[item]
-
-class cp2k_motion_flexible_partitioning:
-    def __init__(self):
-        pass
-
-class cp2k_motion_free_energy:
-    def __init__(self):
-        pass
-
-    def set_params(self, params):
-        for item in params:
-            if len(item.split("-")) == 2:
-                self.params[item.split("-")[-1]] = params[item]
-
-class cp2k_motion_geo_opt:
-    def __init__(self):
-        self.params = {
-                "MAX_DR": None,
-                "MAX_FORCE": None,
-                "MAX_ITER": None,
-                "RMS_DR": None,
-                "RMS_FORCE": None,
-                "OPTIMIZER": None, # BFGS(default), CG, LBFGS
-                "STEP_START_VAL": None,
-                "TYPE": None, # MINIMIZATION(default), TRANSITION_STATE
-                }
-        self.default_set()
-
-    def to_motion(self, fout):
-        """
-        fout: a file stream for writing
-        """
-        fout.write("\t&GEO_OPT\n")
-        for item in self.params:
-            if self.params[item] is not None:
-                fout.write("\t\t%s %s\n" % (item, str(self.params[item])))
-        fout.write("\t&END GEO_OPT\n")
-    
-    def default_set(self):
-        self.params["MAX_DR"] = 3.0e-3
-        self.params["MAX_FORCE"] = 4.5e-4
-        self.params["MAX_ITER"] = 200
-        self.params["OPTIMIZER"] = "BFGS"
-        self.params["RMS_DR"] = 1.5e-3
-        self.params["RMS_FORCE"] = 3.0e-4
-        self.params["TYPE"] = "MINIMIZATION"
- 
-    def set_params(self, params):
-        for item in params:
-            if len(item.split("-")) == 2:
-                self.params[item.split("-")[-1]] = params[item]
-
-
-class cp2k_motion_mc:
-    def __init__(self):
-        pass
-
-    def set_params(self, params):
-        for item in params:
-            if len(item.split("-")) == 2:
-                self.params[item.split("-")[-1]] = params[item]
-
-
-class cp2k_motion_md:
-    def __init__(self):
-        self.params = {
-                "ANGVEL_TOL": None,
-                "ANGVEL_ZERO": None,
-                "ANNEALING": None,
-                "ANNEALING_CELL": None,
-                "COMVEL_TOL": None,
-                "DISPLACEMENT_TOL": None,
-                "ECONS_START_VAL": None,
-                "ENSEMBLE": None,
-                "INITIAL_METHOD": None,
-                "MAX_STEPS": None,
-                "SCALE_TEMP_KIND": None,
-                "STEPS": None,
-                "STEP_START_VAL": None,
-                "TEMPERATURE": None,
-                "TEMPERATURE_ANNEALING": None,
-                "TEMP_KIND": None,
-                "TEMP_TOL": None,
-                "TIMESTEP": None,
-                "TIME_START_VAL": None,
-                }
-
-    def to_motion(self, fout):
-        """
-        fout: a file stream for writing
-        """
-        fout.write("\t&MD\n")
-        for item in self.params:
-            if self.params[item] is not None:
-                fout.write("\t\t%s %s\n" % (item, str(self.params[item])))
-        fout.write("\t&END MD\n")
-
-
-    def set_params(self, params):
-        for item in params:
-            if len(item.split("-")) == 2:
-                self.params[item.split("-")[-1]] = params[item]
-
-class cp2k_motion_pint:
-    def __init__(self):
-        self.params = {
-                "DT": None,
-                "FIX_CENTROID_POS": None,
-                "HARM_INT": None,
-                "ITERATION": None,
-                "MAX_STEP": None,
-                "NRESPA": None,
-                "NUM_STEPS": None,
-                "P": None,
-                "PROC_PER_REPLICA": None,
-                "PROPAGATOR": None,
-                "TEMP": None,
-                "TRANSFORMATION": None,
-                "T_TOL": None,
-                }
-    def to_motion(self, fout):
-        """
-        fout: a file stream for writing
-        """
-        fout.write("\t&PINT\n")
-        for item in self.params:
-            if self.params[item] is not None:
-                fout.write("\t\t%s %s\n" % (item, self.params[item]))
-        fout.write("\t&END PINT\n")
-
-    def set_params(self, params):
-        for item in params:
-            if len(item.split("-")) == 2:
-                self.params[item.split("-")[-1]] = params[item]
-
-class cp2k_motion_print:
-    def __init__(self):
-        pass
-    
-    def to_motion(self, fout):
-        # fout: a file stream for writing
-        fout.write("\t&PRINT\n")
-        fout.write("\t&END PRINT\n")
-
-    def set_params(self, params):
-        for item in params:
-            if len(item.split("-")) == 2:
-                self.params[item.split("-")[-1]] = params[item]
-
-class cp2k_motion_shell_opt:
-    def __init__(self):
-        self.params = {
-                "MAX_DR": None,
-                "MAX_FORCE": None,
-                "MAX_ITER": None,
-                "RMS_DR": None,
-                "RMS_FORCE": None,
-                "OPTIMIZER": None,
-                "STEP_START_VAL": None,
-                }
-    def to_motion(self, fout):
-        """
-        fout: a file stream for writing
-        """
-        fout.write("\t&SHELL_OPT\n")
-        for item in self.params:
-            if self.params[item] is not None:
-                fout.write("\t\t%s %s\n" % (item, self.params[item]))
-        fout.write("\t&END SHELL_OPT\n")
-
-    def set_params(self, params):
-        for item in params:
-            if len(item.split("-")) == 2:
-                self.params[item.split("-")[-1]] = params[item]
-
-class cp2k_motion_tmc:
-    def __init__(self):
-        pass
-
-    def set_params(self, params):
-        for item in params:
-            if len(item.split("-")) == 2:
-                self.params[item.split("-")[-1]] = params[item]
 
 class cp2k_motion:
     """
-
     """
     def __init__(self, project_name="Ab-initio", run_type="NONE"):
         self.params = {
@@ -366,7 +77,9 @@ class cp2k_motion:
             self.pint.to_motion(fout)
         elif self.run_type == "SHELL_OPT":
             self.shell_opt.to_motion(fout)
+
         self.printout.to_motion(fout)
+
         fout.write("&END MOTION\n")
         fout.write("\n")
     
@@ -408,3 +121,5 @@ class cp2k_motion:
                 self.flexible_partitioning.set_params({item: params[item]})
             elif item.split("-")[0] == "FREE_ENERGY":
                 self.free_energy.set_params({item: params[item]})
+            elif item.split("-")[0] == "PRINT":
+                self.printout.set_params({item: params[item]})

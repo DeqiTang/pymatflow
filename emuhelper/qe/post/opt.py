@@ -20,10 +20,12 @@ class opt_post:
         self.atoms = None  # optimized atoms
         self.opt_params = {}
         self.run_info = {}
+        self.trajectory = None
 
         with open(self.file, 'r') as fout:
             self.lines = fout.readlines()
         self.get_info()
+        self.get_trajectory()
 
     def get_info(self):
         """
@@ -78,7 +80,19 @@ class opt_post:
    
 
     #
-    
+
+    def get_trajectory(self):
+        self.trajectory = []
+        for i in range(len(self.lines)):
+            if len(self.lines[i].split()) > 0 and self.lines[i].split()[0] == "ATOMIC_POSITIONS":
+                atm = []
+                j = i + 1
+                while len(self.lines[j].split()) == 4:
+                    atm.append(Atom(self.lines[j].split()[0], float(self.lines[j].split()[1]), float(self.lines[j].split()[2]), float(self.lines[j].split()[3])))
+                    j = j + 1
+                self.trajectory.append(atm)
+                
+
     def get_opt_params_and_run_info(self):
         """
         """
@@ -124,7 +138,15 @@ class opt_post:
                 fout.write("type of opt run: relax -> the cell is not changed, so go and find the original cell\n")
             for atom in self.atoms:
                 fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
-    
+
+    def print_trajectory(self, xyz="trajectory.xyz"):
+        with open(xyz, 'w') as fout:
+            for i in range(len(self.trajectory)):
+                fout.write("%d\n" % len(self.trajectory[i]))
+                fout.write("i = %d\n" % i)
+                for atom in self.trajectory[i]:
+                    fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
+
     def plot_run_info(self):
         """
         """
@@ -191,5 +213,6 @@ class opt_post:
 
     def export(self):
         self.to_xyz()
+        self.print_trajectory()
         self.plot_run_info()
         self.markdown_report("OptimizationReport.md")

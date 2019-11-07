@@ -53,15 +53,15 @@ class siesta_system:
         fout.write("\n")
             
         fout.write("%block LatticeVectors\n")
-        fout.write("%f %f %f\n" % (cell[0], cell[1], cell[2]))
-        fout.write("%f %f %f\n" % (cell[3], cell[4], cell[5]))
-        fout.write("%f %f %f\n" % (cell[6], cell[7], cell[8]))
+        fout.write("%.9f %.9f %.9f\n" % (cell[0], cell[1], cell[2]))
+        fout.write("%.9f %.9f %.9f\n" % (cell[3], cell[4], cell[5]))
+        fout.write("%.9f %.9f %.9f\n" % (cell[6], cell[7], cell[8]))
         fout.write("%endblock LatticeVectors\n")
         fout.write("\n")
 
         fout.write("%block AtomicCoordinatesAndAtomicSpecies\n")
         for atom in self.xyz.atoms:
-            fout.write("%f\t%f\t%f\t" % (atom.x, atom.y, atom.z))
+            fout.write("%.9f\t%.9f\t%.9f\t" % (atom.x, atom.y, atom.z))
             fout.write(str(self.xyz.specie_labels[atom.name]))
             fout.write("\n")
         fout.write("%endblock AtomicCoordinatesAndAtomicSpecies\n")

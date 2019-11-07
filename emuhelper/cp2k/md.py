@@ -28,7 +28,6 @@ class md_run:
         self.force_eval.basic_setting()
 
         self.motion.set_type("MD")
-        self.motion.md.params["STEPS"] = 20
 
     def md(self, directory="tmp-cp2k-md", inpname="md.inp", output="md.out", mpi="", runopt="gen",
             force_eval={}, motion={}):
@@ -69,26 +68,6 @@ class md_run:
 
         os.chdir("../")
 
-    #fout.write("\t&MD\n")
-    #fout.write("\t\tENSEMBLE NVT\n")
-    #fout.write("\t\tSTEPS 100\n")
-    #fout.write("\t\tTIMESTEP 0.5\n")
-    #fout.write("\t\t&THERMOSTAT\n")
-    #fout.write("\t\t\tTYPE NOSE\n")
-    #fout.write("\t\t\t&NOSE\n")
-    #fout.write("\t\t\t\tTIMECON 10.0\n")
-    #fout.write("\t\t\t&END NOSE\n")
-    #fout.write("\t\t&END THERMOSTAT\n")
-    #fout.write("\t\tTEMPERATURE 300.0\n")
-    #fout.write("\t&END MD\n")
-    #fout.write("\t&PRINT\n")
-    #fout.write("\t\t&RESTART\n")
-    #fout.write("\t\t\t&EACH\n")
-    #fout.write("\t\t\t\tMD 0\n")
-    #fout.write("\t\t\t&END EACH\n")
-    #fout.write("\t\t&END RESTART\n")
-    #fout.write("\t&END PRINT\n")
-    #fout.write("&END MOTION\n")
     def ir_spectra(self):
         """
         if you are calculating ir spectra, you have to
