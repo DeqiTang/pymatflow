@@ -6,6 +6,13 @@
 # CP2K / FORCE_EVAL / DFT / PRINT
 # ===============================
 class cp2k_dft_print:
+    """
+    analysis toos:
+        cubecruncher:
+            the cubecruncher is a tool to do various operations on cube files.
+            eg. it can help with analysis of charge density cube files.
+            it lies in cp2k/tool/cubecruncher
+    """
     def __init__(self):
         self.params = {
                 }
@@ -134,7 +141,7 @@ class cp2k_dft_print:
         
         if self.xray_diffraction_spectrum == True:
             fout.write("\t\t\t&XRAY_DIFFRACTION_SPECTRUM\n")
-            fout.write("\t\t\t&END XRAY_DIFFRACTION_SPECTRUM")
+            fout.write("\t\t\t&END XRAY_DIFFRACTION_SPECTRUM\n")
 
         fout.write("\t\t&END PRINT\n")
 

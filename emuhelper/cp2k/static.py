@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 
 from emuhelper.cp2k.base.glob import cp2k_glob
 from emuhelper.cp2k.base.force_eval import cp2k_force_eval
+#from emuhelper.cp2k.base.atom import cp2k_atom
 
 """
 Usage:
@@ -21,6 +22,7 @@ class static_run:
     def __init__(self, xyz_f):
         self.glob = cp2k_glob()
         self.force_eval = cp2k_force_eval(xyz_f)
+ #       self.atom = cp2k_atom()
         
         self.glob.basic_setting(run_type="ENERGY_FORCE")
         self.force_eval.basic_setting()
@@ -38,10 +40,12 @@ class static_run:
             shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, self.force_eval.subsys.xyz.file))
             # using force_eval
             self.force_eval.set_params(force_eval)
+            #self.atom.set_params(atom)
             self.printout_option(printout_option)
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.glob.to_input(fout)
                 self.force_eval.to_input(fout)
+                #self.atom.to_input(fout)
     
         if runopt == "run" or runopt == "genrun":
            os.chdir(directory)
@@ -198,10 +202,12 @@ class static_run:
         if 8 in option:
             self.force_eval.dft.printout.stm = True
         if 9 in option:
-            self.tot_density_cube = True
+            self.force_eval.dft.printout.tot_density_cube = True
         if 10 in option:
-            self.v_hartree_cube = True
+            self.force_eval.dft.printout.v_hartree_cube = True
         if 11 in option:
-            self.v_xc_cube = True
+            self.force_eval.dft.printout.v_xc_cube = True
         if 12 in option:
-            self.xray_diffraction_spectrum = True
+            self.force_eval.dft.printout.xray_diffraction_spectrum = True
+        if 13 in option:
+            self.force_eval.properties.resp.status = True

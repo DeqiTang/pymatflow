@@ -39,3 +39,5 @@ class cp2k_glob:
             self.params["RUN_TYPE"] = "VIBRATIONAL_ANALYSIS"
         elif run_type == "MD":
             self.params["RUN_TYPE"] = "MD"
+        elif run_type == "LINEAR_RESPONSE":
+            self.params["RUN_TYPE"] = "LINEAR_RESPONSE"

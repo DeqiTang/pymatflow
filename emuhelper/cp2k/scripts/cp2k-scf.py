@@ -66,6 +66,22 @@ if __name__ == "__main__":
 
     parser.add_argument("--window-size", help="Size of the energy window centred at the Fermi level for ENERGY_WINDOW type smearing", type=float, default=0)
 
+    # vdw correction related
+    parser.add_argument("--vdw", type=str, default="FALSE",
+            choices=["TRUE", "FALSE", "true", "false"],
+            help="whether to use VDW correction")
+
+    parser.add_argument("--vdw-potential-type", type=str, default="PAIR_POTENTIAL",
+            choices=["PAIR_POTENTIAL", "NON_LOCAL", "NONE"],
+            help="type of VDW POTENTIAL: PAIR_POTENTIAL, NON_LOCAL")
+
+    parser.add_argument("--pair-type", type=str, default="DFTD3",
+            choices=["DFTD2", "DFTD3", "DFTD3(BJ)"],
+            help="VDW PAIR_POTENTIAL type: DFTD2, DFTD3, DFTD3(BJ)")
+
+    parser.add_argument("--r-cutoff", type=float, default=1.05835442E+001,
+            help="Range of potential. The cutoff will be 2 times this value")
+
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================   
@@ -87,6 +103,10 @@ if __name__ == "__main__":
     force_eval["DFT-SCF-DIAGONALIZATION"] = args.diag
     force_eval["DFT-SCF-OT"] = args.ot
 
+    force_eval["DFT-XC-VDW_POTENTIAL"] = args.vdw
+    force_eval["DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"] = args.vdw_potential_type
+    force_eval["DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-TYPE"] = args.pair_type
+    force_eval["DFT-XC-VDW_POTENTIAL-PAIR-POTENTIAL-R_CUTOFF"] = args.r_cutoff
 
     task = static_run(xyzfile)
     task.scf(directory=directory, runopt="genrun", force_eval=force_eval, printout_option=args.printout_option)

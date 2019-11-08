@@ -11,6 +11,28 @@ import pymatgen as mg
 Usage:
 """
 
+class cp2k_vibrational_analysis_mode_selection:
+    """
+    """
+    def __init__(self):
+        self.params = {
+                "ATOMS": None,
+                "EPS_MAX_VAL": None,
+                "EPS_NORM": None,
+                "FREQUENCY": None,
+                "INITIAL_GUESS": None,
+                "LOWEST_FREQUENCY": None,
+                "RANGE": None,
+                "RESTART_FILE_NAME": None,
+                }
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 2:
+                self.params[item.split("-")[-1]] = params[item]
+
+
+
 class cp2k_vibrational_analysis:
     """
     Note:
@@ -40,6 +62,7 @@ class cp2k_vibrational_analysis:
                 "TC_TEMPERATURE": None,
                 "THERMOCHEMISTRY": None,
                 }
+        self.mode_selection = cp2k_vibrational_analysis_mode_selection()
 
     def to_input(self, fout):
         # fout: a file stream for writing
@@ -56,3 +79,14 @@ class cp2k_vibrational_analysis:
         self.params["TC_PRESSURE"] = 1.01325e5  # Pa
         self.params["TC_TEMPERATURE"] = 2.7315e2 # K
         self.params["THERMOCHEMISTRY"] = False # Calculation of the thermochemical data. Valid for molecules in the gas phase.
+
+    def set_params(self, params):
+        """
+        parameters for sub section(like), are handled over 
+        to sub section controllers.
+        """
+        for item in params:
+            if len(item.split("-")) == 1:
+                self.params[item.split("-")[-1]] = params[item]
+            elif item.split("-")[0] == "MODE_SELECTION":
+                self.mode_selection.set_params({item: params[item]})

@@ -77,6 +77,8 @@ class cp2k_motion:
             self.pint.to_motion(fout)
         elif self.run_type == "SHELL_OPT":
             self.shell_opt.to_motion(fout)
+        elif self.run_type == "BAND":
+            self.band.to_motion(fout)
 
         self.printout.to_motion(fout)
 

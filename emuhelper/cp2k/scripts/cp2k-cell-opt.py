@@ -91,10 +91,10 @@ if __name__ == "__main__":
     force_eval["DFT-SCF-OT"] = args.ot
 
     motion["CELL_OPT-MAX_ITER"] = args.max_iter
-    motion["CELL_OPT-OPTIMIZAER"] = args.optimizer
+    motion["CELL_OPT-OPTIMIZER"] = args.optimizer
     motion["CELL_OPT-TYPE"] = args.type
 
     task = opt_run(xyzfile)
-    task.cell_opt(directory=directory, runopt="genrun", force_eval=force_eval)
+    task.cell_opt(directory=directory, runopt="genrun", force_eval=force_eval, motion=motion)
 
 

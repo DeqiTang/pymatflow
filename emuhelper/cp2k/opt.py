@@ -30,7 +30,7 @@ class opt_run:
         self.force_eval.basic_setting()
         
     def geo_opt(self, directory="tmp-cp2k-geo-opt", inpname="geo-opt.inp", output="geo-opt.out", 
-            mpi="", runopt="gen", force_eval={}):
+            mpi="", runopt="gen", force_eval={}, motion={}):
         """
         directory: a place for all the generated files
         """
@@ -42,6 +42,7 @@ class opt_run:
 
             self.set_geo_opt()
             self.force_eval.set_params(force_eval)
+            self.motion.set_params(motion)
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.glob.to_input(fout)
                 self.force_eval.to_input(fout)
@@ -53,7 +54,7 @@ class opt_run:
             os.chdir("../")
     
     def cell_opt(self, directory="tmp-cp2k-cell-opt", inpname="cell-opt.inp", output="cell-opt.out", 
-            mpi="", runopt="gen", force_eval={}):
+            mpi="", runopt="gen", force_eval={}, motion={}):
         """
         directory: a place for all the generated files
         """
@@ -65,6 +66,7 @@ class opt_run:
             
             self.set_cell_opt()
             self.force_eval.set_params(force_eval)
+            self.motion.set_params(motion)
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.glob.to_input(fout)
                 self.force_eval.to_input(fout)

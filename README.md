@@ -5,16 +5,31 @@ With scripts to provide preparing and/or post-processing for your Emulations(DFT
 
 ## TODO
 ### CP2K
+* implementing DFTB calculation
+* implementing Quantum Espresso type calculation by using SIRIUS in cp2k
 * implementing Linear Scaling SCF [OK]
-* implementing VDW correction
+* implementing VDW correction [OK]
 * implementing setting of kpoints for band structure and dos calculation
-* implementing neb calculation script module
+* implementing neb calculation script module [OK]
 * implementing `MULTI_FORCE_EVALS
+    * we can run optimization, neb, md based on MULTI_FORCE_EVALS
+    * Reference: [Nanostructures and adsorption on metallic surfaces](https://www.cp2k.org/exercises:2015_cecam_tutorial:neb)
 * implementing classic mocular dynamics
 * implementing QMMM
 * implementing Metadynamics
-* implementing VIBRATIONAL ANALYSIS
+* implementing Monte Carlo simulation
+* implementing EHRENFEST_DYN
+* implementing LINEAR_RESPONSE [OK]
+* implementing NEGF
+* implementing MC
+* implementing PINT
+* implementing SPECTRA
+* implementing MP2 method
+* implementing VIBRATIONAL ANALYSIS [OK]
 * implementing Excited States calculation using TDDFPT
+* implementing []TDDFT for XAS](https://www.cp2k.org/exercises:2019_conexs_newcastle:index)
+* implementing Transport calculations with NEGF
+* implementing RESP Charges analysis [OK]
 * develop post processing module
 ### Quantum Espresso
 * improving Phonon calculation using ph.x

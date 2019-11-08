@@ -3,22 +3,24 @@
 
 import argparse
 
-
-from emuhelper.cp2k.opt import opt_run
-
-"""
-Usage:
-    cp2k-geo-opt.py -f xxx.xyz
-    xxx.xyz is the input structure file
+from emuhelper.cp2k.neb import neb_run
 
 """
+usage:
+    cp2k-scf.py -f xxx.xyz
+"""
+
 
 force_eval = {}
 motion = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-geo-opt")
+    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-neb")
+
+    parser.add_argument("--runopt", type=str, default="genrun",
+            help="runopt: 'gen', 'run', 'genrun'")
+
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
 
     parser.add_argument("-p", "--printout-option", nargs="+", type=int,
@@ -68,13 +70,26 @@ if __name__ == "__main__":
 
     parser.add_argument("--window-size", help="Size of the energy window centred at the Fermi level for ENERGY_WINDOW type smearing", type=float, default=0)
 
-    # motion/geo_opt related
-    parser.add_argument("--optimizer", type=str, default="BFGS",
-            help="optimization algorithm for geometry optimization: BFGS, CG, LBFGS")
-    parser.add_argument("--max-iter", type=int, default=200,
-            help="maximum number of geometry optimization steps.")
-    parser.add_argument("--type", type=str, default="MINIMIZATION",
-            help="specify which kind of geometry optimization to perform: MINIMIZATION(default), TRANSITION_STATE")
+    # MOTION/BAND
+    parser.add_argument("--images", nargs="+", type=str,
+            help="specify the image xyz file(--images first.xyz imtermediate-1.xyz intermediate-2.xyz ... last.xyz)")
+
+    parser.add_argument("--band-type", type=str, default="CI-NEB",
+            help="specify the type of band calculation")
+
+    parser.add_argument("--n-replica", type=int, default=10,
+            help="number of replicas")
+
+    parser.add_argument("--k-spring", type=float, default=2.0e-2,
+            help="value of the spring constant")
+
+    parser.add_argument("--align-frames", type=str, default="TRUE",
+            choices=["TRUE", "FALSE", "true", "false"],
+            help="Enables the alignment of the frames at the beginning of a BAND calculation. This keyword does not affect the rotation of the replicas during a BAND calculation.")
+    
+    parser.add_argument("--rotate-frames", type=str, default="TRUE",
+            choices=["TRUE", "FALSE", "true", "false"],
+            help="Compute at each BAND step the RMSD and rotate the frames in order to minimize it.")
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
@@ -83,7 +98,6 @@ if __name__ == "__main__":
     directory = args.directory
     xyzfile = args.file
     kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
-    
     force_eval["DFT-LS_SCF"] = args.ls_scf
     force_eval["DFT-QS-METHOD"] = args.qs_method
     force_eval["DFT-MGRID-CUTOFF"] = args.cutoff
@@ -98,10 +112,12 @@ if __name__ == "__main__":
     force_eval["DFT-SCF-DIAGONALIZATION"] = args.diag
     force_eval["DFT-SCF-OT"] = args.ot
 
-    motion["GEO_OPT-MAX_ITER"] = args.max_iter
-    motion["GEO_OPT-OPTIMIZER"] = args.optimizer
-    motion["GEO_OPT-TYPE"] = args.type
+    motion["BAND-BAND_TYPE"] = args.band_type
+    motion["BAND-NUMBER_OF_REPLICA"] = args.n_replica
+    motion["BAND-ALIGN_FRAMES"] = args.align_frames
+    motion["BAND-ROTATE-FRAMES"] = args.rotate_frames
+    motion["BAND-K_SPRING"] = args.k_spring
 
-    task = opt_run(xyzfile)
-    task.geo_opt(directory="tmp-cp2k-geo-opt", runopt="genrun", force_eval=force_eval, motion=motion)
 
+    task = neb_run(images=args.images)
+    task.neb(directory=directory, runopt=args.runopt, force_eval=force_eval, motion=motion)

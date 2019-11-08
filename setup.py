@@ -63,6 +63,8 @@ setup(
         "emuhelper/cp2k/scripts/cp2k-scf.py",
         "emuhelper/cp2k/scripts/cp2k-scf-restart.py",
         "emuhelper/cp2k/scripts/cp2k-vib.py",
+        "emuhelper/cp2k/scripts/cp2k-neb.py",
+        "emuhelper/cp2k/scripts/cp2k-lr.py",
         "emuhelper/cp2k/post/scripts/post-single-point-cp2k.py",
         "emuhelper/cp2k/post/scripts/post-geo-opt-cp2k.py",
         "emuhelper/cp2k/post/scripts/post-pdos-without-convolute.py",

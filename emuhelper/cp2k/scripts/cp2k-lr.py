@@ -3,23 +3,24 @@
 
 import argparse
 
-
-from emuhelper.cp2k.opt import opt_run
-
-"""
-Usage:
-    cp2k-geo-opt.py -f xxx.xyz
-    xxx.xyz is the input structure file
+from emuhelper.cp2k.lr import lr_run
 
 """
+usage:
+    cp2k-scf.py -f xxx.xyz
+"""
+
 
 force_eval = {}
-motion = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-geo-opt")
+    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-lr")
+
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+
+    parser.add_argument("--runopt", type=str, default="genrun",
+            help="runopt: 'gen', 'run', 'genrun'")
 
     parser.add_argument("-p", "--printout-option", nargs="+", type=int,
             default=[],
@@ -68,14 +69,6 @@ if __name__ == "__main__":
 
     parser.add_argument("--window-size", help="Size of the energy window centred at the Fermi level for ENERGY_WINDOW type smearing", type=float, default=0)
 
-    # motion/geo_opt related
-    parser.add_argument("--optimizer", type=str, default="BFGS",
-            help="optimization algorithm for geometry optimization: BFGS, CG, LBFGS")
-    parser.add_argument("--max-iter", type=int, default=200,
-            help="maximum number of geometry optimization steps.")
-    parser.add_argument("--type", type=str, default="MINIMIZATION",
-            help="specify which kind of geometry optimization to perform: MINIMIZATION(default), TRANSITION_STATE")
-
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================   
@@ -83,7 +76,6 @@ if __name__ == "__main__":
     directory = args.directory
     xyzfile = args.file
     kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
-    
     force_eval["DFT-LS_SCF"] = args.ls_scf
     force_eval["DFT-QS-METHOD"] = args.qs_method
     force_eval["DFT-MGRID-CUTOFF"] = args.cutoff
@@ -98,10 +90,6 @@ if __name__ == "__main__":
     force_eval["DFT-SCF-DIAGONALIZATION"] = args.diag
     force_eval["DFT-SCF-OT"] = args.ot
 
-    motion["GEO_OPT-MAX_ITER"] = args.max_iter
-    motion["GEO_OPT-OPTIMIZER"] = args.optimizer
-    motion["GEO_OPT-TYPE"] = args.type
 
-    task = opt_run(xyzfile)
-    task.geo_opt(directory="tmp-cp2k-geo-opt", runopt="genrun", force_eval=force_eval, motion=motion)
-
+    task = lr_run(xyzfile)
+    task.lr(directory=directory, runopt=args.runopt, force_eval=force_eval, printout_option=args.printout_option)

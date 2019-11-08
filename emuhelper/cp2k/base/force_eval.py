@@ -9,6 +9,8 @@ import pymatgen as mg
 
 from emuhelper.cp2k.base.subsys import cp2k_subsys
 from emuhelper.cp2k.base.dft import cp2k_dft
+from emuhelper.cp2k.base.properties import cp2k_properties
+
 
 """
 Usage:
@@ -23,6 +25,7 @@ class cp2k_force_eval:
     def __init__(self, xyz_f):
         self.subsys = cp2k_subsys(xyz_f)
         self.dft = cp2k_dft()
+        self.properties = cp2k_properties()
         self.params = {
                 "METHOD": "QS",
                 "EMBED": None,
@@ -37,6 +40,7 @@ class cp2k_force_eval:
                 fout.write("\t%s %s\n" % (item, self.params[item]))
         self.subsys.to_subsys(fout)
         self.dft.to_dft(fout)
+        self.properties.to_force_eval(fout)
         fout.write("&END FORCE_EVAL\n") 
         fout.write("\n")
     
