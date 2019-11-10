@@ -25,6 +25,9 @@ if __name__ == "__main__":
     parser.add_argument("--occupations", help="occupation type", type=str, default="smearing")
     parser.add_argument("--smearing", help="smearing type", type=str, default="gaussian")
     parser.add_argument("--degauss", help="value of the gaussian spreading (Ry) for brillouin-zone integration in metals.", type=float, default=0.001)
+    parser.add_argument("--vdw-corr", type=str, default="none",
+            choices=["dft-d", "dft-d3", "ts", "xdm"],
+            help="Type of Van der Waals correction in the calculation")
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================
@@ -35,6 +38,7 @@ if __name__ == "__main__":
     system_params["occupations"] = args.occupations
     system_params["smearing"] = args.smearing
     system_params["degauss"] = args.degauss
+    system_params["vdw_corr"] = args.vdw_corr
     electrons_params["conv_thr"] = args.conv_thr
 
     task = static_run(xyzfile)

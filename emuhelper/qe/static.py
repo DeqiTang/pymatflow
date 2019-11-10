@@ -170,7 +170,7 @@ class static_run:
                 pass
 
     def converge_ecutwfc(self, emin, emax, step, directory="tmp-qe-ecutwfc", 
-            mpi="", runopt="gen", control={}, system={}, electrons={}, kpoints_mp=[1, 1, 1, 0, 0, 0]):
+            mpi="", runopt="gen", control={}, system={}, electrons={}, kpoints_option="automatic", kpoints_mp=[1, 1, 1, 0, 0, 0]):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -186,7 +186,7 @@ class static_run:
             self.control.set_params(control)
             self.system.set_params(system)
             self.electrons.set_params(electrons)
-            self.arts.set_kpoints(kpoints_mp)
+            self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
             os.chdir(directory)
             n_test = int((emax - emin) / step)
             for i in range(n_test + 1):
@@ -241,7 +241,7 @@ class static_run:
 
         
     def converge_ecutrho(self, emin, emax, step, ecutwfc, directory="tmp-qe-ecutrho", 
-            mpi="", runopt="gen", control={}, system={}, electrons={}, kpoints_mp=[1, 1, 1, 0, 0, 0]):
+            mpi="", runopt="gen", control={}, system={}, electrons={}, kpoints_option="automatic", kpoints_mp=[1, 1, 1, 0, 0, 0]):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -256,7 +256,7 @@ class static_run:
             self.control.set_params(control)
             self.system.set_params(system)
             self.electrons.set_params(electrons)
-            self.arts.set_kpoints(kpoints_mp)
+            self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
 
             os.chdir(directory)
             n_test = int((emax - emin) / step)

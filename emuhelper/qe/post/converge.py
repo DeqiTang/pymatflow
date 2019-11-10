@@ -2,6 +2,7 @@
 # _*_ coding: utf-8 _*_
 
 import os
+import re
 import matplotlib.pyplot as plt
 import sys
 
@@ -9,7 +10,7 @@ class converge_post:
     def __init__(self):
         # analyse the result
         self.criteria_for_ecutwfc = 7.35e-4 # 10 meV = 7.35e-4 Ry
-        self.criteria_for_ecutrho = 7.35e-4
+        self.criteria_for_ecutrho = 7.35e-5
         self.criteria_for_kpoints = 7.35e-3 # 7.35e-4
 
     def postprocess(self, directory, converge):
@@ -22,22 +23,45 @@ class converge_post:
         """
         os.chdir(directory)
         if converge == "ecutwfc":
-            os.system("ls | grep '.out' | grep 'ecutwfc-' > outfiles.data")
+            x_all = []
+            for f in os.listdir():
+                if f.split(".")[-1] == "out" and f[0:8] == "ecutwfc-":
+                    x_all.append(int(f.split(".")[0].split("-")[1]))
+            # we must sort the x_all
+            x_all.sort()
+
+            outfiles = []
+            for x in x_all:
+                outfiles.append("ecutwfc-%d.out" % x)
+
         elif converge == "ecutrho":
-            os.system("ls | grep '.out' | grep 'ecutrho-' > outfiles.data")
+            x_all = []
+            for f in os.listdir():
+                if f.split(".")[-1] == "out" and f[0:8] == "ecutrho-":
+                    x_all.append(int(f.split(".")[0].split("-")[1]))
+            # we must sort the x_all
+            x_all.sort()
+
+            outfiles = []
+            for x in x_all:
+                outfiles.append("ecutrho-%d.out" % x)
+
         elif converge == "kpoints":
-            os.system("ls | grep '.out' | grep 'kpoints-' > outfiles.data")
+            x_all = []
+            for f in os.listdir():
+                if f.split(".")[-1] == "out" and f[0:8] == "kpoints-":
+                    x_all.append(int(f.split(".")[0].split("-")[1]))
+            # we must sort the x_all
+            x_all.sort()
+
+            outfiles = []
+            for x in x_all:
+                outfiles.append("kpoints-%d.out" % x)
         else:
             print("qe.post.converge.converge_post class can only deal with\n")
             print("ecutwfc, ecutrho, kpoints now\n")
             sys.exit(1)
 
-        outfiles = []
-        x_all = []
-        with open("outfiles.data", 'r') as fin:
-            for line in fin:
-                outfiles.append(line.split("\n")[0])
-                x_all.append(int(line.split(".")[0].split("-")[1]))
         
         if os.path.exists("energy-x.data"):
             # there exists and old energy-x.data, remove it and generate the new one
@@ -108,3 +132,11 @@ class converge_post:
             fout.write("注意:\n")
             fout.write("- 这个推荐值是你的测试范围内的推荐值\n")
             fout.write("- 如果该值是测试范围的最后一个值, 可能意味着没有达到收敛判剧\n")
+            if converge == "ecutwfc":
+                fout.write("- 推荐值的依据为%s前后两值能量差小于%f[Ry]=%f[eV]\n" % (converge, self.criteria_for_ecutwfc, self.criteria_for_ecutwfc*13.6056923))
+            if converge == "ecutrho":
+                fout.write("- 推荐值的依据为%s前后两值能量差小于%f[Ry]=%f[eV]\n" % (converge, self.criteria_for_ecutrho, self.criteria_for_ecutrho*13.6056923))
+            if converge == "kpoints":
+                fout.write("- 推荐值的依据为%s前后两值能量差小于%f[Ry]=%f[eV]\n" % (converge, self.criteria_for_kpoints, self.criteria_for_kpoints*13.6056923))
+            fout.write("### 能量变化趋势图\n")
+            fout.write("![energy-x](energy-%s.png)\n" % converge)
