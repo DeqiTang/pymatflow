@@ -52,16 +52,16 @@ class qe_ions:
         """
         if calc == 'relax':
             self.params["ion_dynamics"] = "bfgs"
-            self.params["ion_temperature"] = 'not-controlled'
-            self.params["tempw"] = 300
+            #self.params["ion_temperature"] = 'not-controlled'
+            #self.params["tempw"] = 300
         elif calc == 'md':
             self.params["ion_dynamics"] = 'verlet'
             self.params["ion_temperature"] = 'not_controlled'
             self.params["tempw"] = 300
         elif calc == 'vc-relax':
             self.params["ion_dynamics"] = 'bfgs'
-            self.params["ion_temperature"] = 'notcontrolled'
-            self.params["tempw"] = 300
+            #self.params["ion_temperature"] = 'notcontrolled'
+            #self.params["tempw"] = 300
 
     def set_params(self, params):
         """

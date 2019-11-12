@@ -140,6 +140,10 @@ setup(
         "emuhelper/tools/build_supercell.py",
         "emuhelper/tools/cluster_sphere.py",
         "emuhelper/tools/qe-fix-atoms.py",
+        "emuhelper/remote/scripts/thq.py",
+        "emuhelper/remote/scripts/thcancel.py",
+        "emuhelper/remote/scripts/thpull.py",
+        "emuhelper/remote/scripts/thcmd.py",
         ],
     #entry_points = {
     #    'console_scripts': [
