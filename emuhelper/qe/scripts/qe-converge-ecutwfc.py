@@ -4,6 +4,8 @@
 import argparse 
 
 from emuhelper.qe.static import static_run
+from emuhelper.remote.ssh import ssh
+from emuhelper.remote.rsync import rsync
 
 """
 usage qe-converge-ecutwfc.py -f xxx.py --range emin emax step
@@ -32,6 +34,10 @@ if __name__ == "__main__":
     parser.add_argument("--vdw-corr", type=str, default="none",
             choices=["dft-d", "dft-d3", "ts", "xdm"],
             help="Type of Van der Waals correction in the calculation")
+
+    # for server
+    parser.add_argument("--auto", type=int, default=0,
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.emuhelper/server.conf")
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================
@@ -45,4 +51,20 @@ if __name__ == "__main__":
     kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
     
     task = static_run(xyzfile)
-    task.converge_ecutwfc(args.range[0], args.range[1], args.range[2], directory=args.directory, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=kpoints_mp, runopt=args.runopt)
+    task.converge_ecutwfc(args.range[0], args.range[1], args.range[2], directory=args.directory, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=kpoints_mp, runopt=args.runopt)   
+
+    # server handle
+    if args.auto == 0:
+        pass
+    elif args.auto == 1:
+        mover = rsync()
+        mover.get_info(os.path.join(os.path.expanduser("~"), ".emuhelper/server.conf"))
+        mover.copy_default(source=os.path.abspath(args.directory))
+    elif args.auto == 2:
+        mover = rsync()
+        mover.get_info(os.path.join(os.path.expanduser("~"), ".emuhelper/server.conf"))
+        mover.copy_default(source=os.path.abspath(args.directory))
+        ctl = ssh()
+        ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
+        ctl.login()
+        ctl.submit(workdir=args.directory, jobfile="relax.in.sub")

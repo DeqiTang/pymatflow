@@ -24,6 +24,9 @@ class neb_run:
         A gross estimate of the required number of iterations is 
         (number of images) * (number of atoms) * 3. 
         Atoms that do not move should not be counted
+
+        the neb calculation is usually difficult to converge,
+        and experience is needed.
     Q&A:
         can we fix some atoms when doing neb calculation?
 

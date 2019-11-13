@@ -7,6 +7,14 @@ from ssh2.session import Session
 
 
 class ssh:
+    """
+    format of the config file(eg. ~/.emuhelper/server.conf):
+    [server]
+    ip = xx.xx.xx.xx
+    user = xxx
+    serverdir = /xxx/xxx/xxx/
+    password = xxx
+    """
     def __init__(self):
         self.ip = None
         self.user = None

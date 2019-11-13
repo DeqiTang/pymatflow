@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     # for server
     parser.add_argument("--auto", type=int, default=0,
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing")
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.emuhelper/server.conf")
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================

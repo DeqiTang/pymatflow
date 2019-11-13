@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
+import os
 import argparse
 
 from emuhelper.qe.neb import neb_run
+from emuhelper.remote.ssh import ssh
+from emuhelper.remote.rsync import rsync
 
 """
 usage:
@@ -43,6 +46,9 @@ if __name__ == "__main__":
     parser.add_argument("--ds", help="Optimisation step length ( Hartree atomic units )", type=float, default=1.e0)
     parser.add_argument("--first-last-opt", type=bool, default=False)
     
+    # for server
+    parser.add_argument("--auto", type=int, default=0,
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.emuhelper/server.conf")
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================   
@@ -69,3 +75,19 @@ if __name__ == "__main__":
 
     task = neb_run(images=args.images)
     task.neb(directory=directory, runopt=args.runopt, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=kpoints_mp, path=path_params, restart_mode=args.restart_mode)
+
+    # server handle
+    if args.auto == 0:
+        pass
+    elif args.auto == 1:
+        mover = rsync()
+        mover.get_info(os.path.join(os.path.expanduser("~"), ".emuhelper/server.conf"))
+        mover.copy_default(source=os.path.abspath(args.directory))
+    elif args.auto == 2:
+        mover = rsync()
+        mover.get_info(os.path.join(os.path.expanduser("~"), ".emuhelper/server.conf"))
+        mover.copy_default(source=os.path.abspath(args.directory))
+        ctl = ssh()
+        ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
+        ctl.login()
+        ctl.submit(workdir=args.directory, jobfile="relax.in.sub")

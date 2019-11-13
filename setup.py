@@ -144,6 +144,7 @@ setup(
         "emuhelper/remote/scripts/thcancel.py",
         "emuhelper/remote/scripts/thpull.py",
         "emuhelper/remote/scripts/thcmd.py",
+        "emuhelper/remote/scripts/threport.py",
         ],
     #entry_points = {
     #    'console_scripts': [
