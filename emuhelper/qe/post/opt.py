@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
+import os
+import subprocess
 import matplotlib.pyplot as plt
 
 from emuhelper.base.atom import Atom
@@ -146,6 +148,10 @@ class opt_post:
                 fout.write("i = %d\n" % i)
                 for atom in self.trajectory[i]:
                     fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
+
+    def view_trajectory(self, trajfile="trajectory.xyz"):
+        #os.system("xcrysden --xyz %s" % trajfile)
+        subprocess.call(["xcrysden", "--xyz", trajfile])
 
     def plot_run_info(self):
         """

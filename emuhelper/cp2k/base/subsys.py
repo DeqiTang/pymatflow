@@ -116,7 +116,9 @@ class cp2k_subsys:
     """
     def __init__(self, xyz_f):
         #super().__init__(xyz_f)
-        self.xyz = base_xyz(xyz_f)
+        #self.xyz = base_xyz(xyz_f)
+        self.xyz = base_xyz()
+        self.xyz.get_info(xyz_f)
         self.params = {
                 "SEED": None,
                 }

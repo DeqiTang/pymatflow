@@ -10,7 +10,9 @@ class abinit_system:
     """
     """
     def __init__(self, xyz_f):
-        self.xyz = base_xyz(xyz_f)
+        #self.xyz = base_xyz(xyz_f)
+        self.xyz = base_xyz()
+        self.xyz.get_info(xyz_f)
 
     def to_in(self, fout):
         # fout: a file stream for writing

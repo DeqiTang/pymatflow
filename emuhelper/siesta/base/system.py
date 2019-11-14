@@ -20,7 +20,9 @@ class siesta_system:
     """
     """
     def __init__(self, xyz_f, name="Siesta Job", label="siesta"):
-        self.xyz = base_xyz(xyz_f)
+        #self.xyz = base_xyz(xyz_f)
+        self.xyz = base_xyz()
+        self.xyz.get_info(xyz_f)
 
         self.name = name
         self.label = label
