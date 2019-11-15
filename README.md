@@ -19,6 +19,8 @@ With scripts to provide preparing and/or post-processing for your Emulations(DFT
     ```
 * support for system visulization by third-party molecular visualizer like Avogadro, Vipster, paraview, vtk, vmd, xcrysden, vesta, blender
 * support for third-party structure generation tools, like mbuild, atomsk, msmbuilder,
+* using spgroup to get space group of crystals.
+* add Sphix docs and host it on readthedoc.org
 
 ## TODO
 ### CP2K
@@ -118,4 +120,3 @@ SOFTWARE.
 ```
 
 ## About
-其实有GUI的构建工具比如Avogadro、Pymol等可以用于构建一些模型。但是我想要构建一个自动化程度比较高的工具来实现简化模拟的准备工作。

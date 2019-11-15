@@ -1,0 +1,13 @@
+*.xyz
+*.pyc
+__pycache__
+tmp
+tmp-cutoff
+tmp-rel-cutoff
+tmp-pdos
+tmp-bands
+tmp-geo-opt
+tmp-aimd
+tmp-phonon
+tmp-mp2
+tmp-electron-density
