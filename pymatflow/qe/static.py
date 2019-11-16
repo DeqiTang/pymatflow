@@ -565,7 +565,7 @@ class static_run:
             os.chdir("../")
 
     def bands(self, directory="tmp-qe-static", inpname1="static-bands.in", output1="static-bands.out",
-            inpname2="bands.in", output2="bands.out", mpi="", kptopt="automatic",
+            inpname2="bands.in", output2="bands.out", mpi="", kpoints_option="automatic",
             control={}, system={}, electrons={}, kpoints_mp=[4, 4, 4, 0, 0, 0], runopt="gen"
             ):
         """
@@ -596,10 +596,7 @@ class static_run:
             # ===========
             # set kpoints
             # ===========
-            if kptopt == "automatic":
-                self.arts.set_kpoints(kpoints_mp)
-            elif kptopt == "crystal_b":
-                self.arts.set_kpoints(option="crystal_b")
+            self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
 
             with open(os.path.join(directory, inpname1), 'w') as fout:
                 self.control.to_in(fout)
@@ -608,7 +605,7 @@ class static_run:
                 self.arts.to_in(fout)
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pw.x")
+            self.gen_yh(directory=directory, inpname=inpname1, output=output1, cmd="pw.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -626,12 +623,13 @@ class static_run:
                 fout.write("\n")
             
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="bands.x")
+            self.gen_yh(directory=directory, inpname=inpname2, output=output2, cmd="bands.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s bands.x < %s | tee %s" % (mpi, inpname2, output2))
             os.chdir("../")
+
         
 
     def projwfc(self, directory="tmp-qe-static", inpname="static-projwfc.in", output="static-projwfc.out", 

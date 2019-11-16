@@ -19,6 +19,10 @@ if __name__ == "__main__":
 
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
 
+    parser.add_argument("--runopt", type=str, default="genrun", 
+            choices=["gen", "run", "genrun"],
+            help="Generate or run or both at the same time.")
+
     parser.add_argument("-p", "--printout-option", nargs="+", type=int,
             default=[],
             help="Properties printout option(0, 1, 2 implemented now), you can also activate multiple prinout-option at the same time")
@@ -109,4 +113,4 @@ if __name__ == "__main__":
     force_eval["DFT-XC-VDW_POTENTIAL-PAIR-POTENTIAL-R_CUTOFF"] = args.r_cutoff
 
     task = static_run(xyzfile)
-    task.scf(directory=directory, runopt="genrun", force_eval=force_eval, printout_option=args.printout_option)
+    task.scf(directory=directory, runopt=args.runopt, force_eval=force_eval, printout_option=args.printout_option)

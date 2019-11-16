@@ -67,21 +67,21 @@ class siesta_properties:
         #
         if 1 in self.options:
             self.to_fdf_pdos(fout)
-        elif 2 in self.options:
+        if 2 in self.options:
             self.to_fdf_ldos(fout)
-        elif 3 in self.options:
+        if 3 in self.options:
             self.to_fdf_band(fout)
-        elif 4 in self.options:
+        if 4 in self.options:
             self.to_fdf_charge(fout)
-        elif 5 in self.options:
+        if 5 in self.options:
             self.to_fdf_chem(fout)
-        elif 6 in self.options:
+        if 6 in self.options:
             self.to_fdf_macro_polarization(fout)
-        elif 7 in self.options:
+        if 7 in self.options:
             self.to_fdf_net_charge_dipole_elec_field(fout)
-        elif 8 in self.options:
+        if 8 in self.options:
             self.to_fdf_optical(fout)
-        elif 9 in self.options:
+        if 9 in self.options:
             self.to_fdf_wannier90(fout)
 
     def to_fdf_pdos(self, fout, emin=-20.0, emax=20.0, peak_width=0.1, npoint=2000, 

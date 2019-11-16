@@ -3,7 +3,7 @@
 
 import os
 import argparse
-from emuhelper.qe.post.scf import scf_post
+from pymatflow.qe.post.scf import scf_post
 
 
 if __name__ == "__main__":

@@ -21,8 +21,10 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--directory", help="directory for the static running", type=str, default="tmp-qe-static")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
     parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
-    parser.add_argument("-k", "--kptopt", help="kpoints schem option", type=str, default="automatic")
-    parser.add_argument("--kpointsmp", help="the automatic schem kpoints", type=str, default="4 4 4 0 0 0")
+    parser.add_argument("--kpoints-option", type=str, default="tpiba_b",
+            choices=["automatic", "gamma", "tpiba_b"],
+            help="kpoints schem option")
+    parser.add_argument("--kpoints", help="the automatic schem kpoints", type=str, default="4 4 4 0 0 0")
     parser.add_argument("--occupations", help="occupation type", type=str, default="smearing")
     parser.add_argument("--smearing", help="smearing type", type=str, default="gaussian")
     parser.add_argument("--degauss", help="value of the gaussian spreading (Ry) for brillouin-zone integration in metals.", type=float, default=0.001)
@@ -38,12 +40,11 @@ if __name__ == "__main__":
     system_params["occupations"] = args.occupations
     system_params["smearing"] = args.smearing
     system_params["degauss"] = args.degauss
-    kptopt = args.kptopt
-    kpoints_mp = [int(args.kpointsmp.split()[i]) for i in range(6)]
+    kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
 
 
     task = static_run(xyzfile)
-    task.bands(directory=args.directory, kptopt=kptopt, runopt=args.runopt, control=control_params, system=system_params, electrons=electrons_params, kpoints_mp=kpoints_mp)
+    task.bands(directory=args.directory, kpoints_option=args.kpoints_option, runopt=args.runopt, control=control_params, system=system_params, electrons=electrons_params, kpoints_mp=kpoints_mp)
 
     # server handle
     if args.auto == 0:
