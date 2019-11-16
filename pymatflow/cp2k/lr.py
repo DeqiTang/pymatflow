@@ -46,7 +46,10 @@ class lr_run:
                 self.glob.to_input(fout)
                 self.force_eval.to_input(fout)
                 #self.atom.to_input(fout)
-    
+ 
+            # gen server job comit file
+            self.gen_yh(cmd="cp2k.popt", inpname=inpname, output=output)   
+
         if runopt == "run" or runopt == "genrun":
            os.chdir(directory)
            os.system("cp2k.psmp -in %s | tee %s" % (inpname, output))
@@ -87,3 +90,12 @@ class lr_run:
             self.force_eval.dft.printout.xray_diffraction_spectrum = True
         if 13 in option:
             self.force_eval.properties.resp.status = True
+
+
+    def gen_yh(self,inpname, output, directory="tmp-cp2k-static", cmd="cp2k.psmp"):
+        """
+        generating yhbatch job script for calculation
+        """
+        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("yhrun -N 1 -n 24 %s -in %s | tee %s\n" % (cmd, inpname, output))

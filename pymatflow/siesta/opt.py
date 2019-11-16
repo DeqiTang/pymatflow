@@ -46,29 +46,15 @@ class opt_run:
                 self.system.to_fdf(fout)
                 self.electrons.to_fdf(fout)
                 self.ions.to_fdf(fout)
+
+            # gen yhbatch script
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="siesta")
+
         if runopt == "run" or runopt == "genrun":
             # run the simulation
             os.chdir(directory)
             os.system("%s siesta < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
-
-
-    def analysis(self, directory="tmp-siesta-opt", inpname="geometric-optimization.fdf", output="geometric-optimization.out"):
-        # analyse the results
-        import matplotlib.pyplot as plt
-
-        os.chdir(directory)
-        os.system("cat %s | grep 'siesta: E_KS(eV) =' > energy-per-ion-step.data" % (output))
-
-        energies = []
-        with open("energy-per-ion-step.data", 'r') as fin:
-            for line in fin:
-                energies.append(float(line.split()[3]))
-
-        steps = [i for i in range(len(energies))]
-        plt.plot(steps, energies)
-        plt.show()
-        os.chdir("../")
 
     def set_opt_mode(self, mode=0):
         """
@@ -87,3 +73,11 @@ class opt_run:
             print("where 0 is: MD.VariableCell = flase\n")
             print("and 1 is : MD.VariableCell = true\n")
             sys.exit(1)
+
+    def gen_yh(self, inpname, output, directory="tmp-siesta-static", cmd="siesta"):
+        """
+        generating yhbatch job script for calculation
+        """
+        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % (cmd, inpname, output))

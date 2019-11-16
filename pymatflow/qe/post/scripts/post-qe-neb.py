@@ -3,7 +3,7 @@
 
 import argparse
 
-from emuhelper.qe.post.neb import neb_post
+from pymatflow.qe.post.neb import neb_post
 
 
 

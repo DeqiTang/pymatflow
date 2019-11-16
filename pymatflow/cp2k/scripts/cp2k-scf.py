@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
+import os
 import argparse
 
 from pymatflow.cp2k.static import static_run
-
+from pymatflow.remote.ssh import ssh
+from pymatflow.remote.rsync import rsync
 """
 usage:
     cp2k-scf.py -f xxx.xyz
@@ -86,6 +88,9 @@ if __name__ == "__main__":
     parser.add_argument("--r-cutoff", type=float, default=1.05835442E+001,
             help="Range of potential. The cutoff will be 2 times this value")
 
+    # for server
+    parser.add_argument("--auto", type=int, default=0,
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.emuhelper/server.conf")
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================   
@@ -114,3 +119,19 @@ if __name__ == "__main__":
 
     task = static_run(xyzfile)
     task.scf(directory=directory, runopt=args.runopt, force_eval=force_eval, printout_option=args.printout_option)
+
+    # server handle
+    if args.auto == 0:
+        pass
+    elif args.auto == 1:
+        mover = rsync()
+        mover.get_info(os.path.join(os.path.expanduser("~"), ".emuhelper/server.conf"))
+        mover.copy_default(source=os.path.abspath(args.directory))
+    elif args.auto == 2:
+        mover = rsync()
+        mover.get_info(os.path.join(os.path.expanduser("~"), ".emuhelper/server.conf"))
+        mover.copy_default(source=os.path.abspath(args.directory))
+        ctl = ssh()
+        ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
+        ctl.login()
+        ctl.submit(workdir=args.directory, jobfile="static-scf.inp.sub")

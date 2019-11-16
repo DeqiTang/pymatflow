@@ -43,6 +43,9 @@ class static_run:
                 self.electrons.to_fdf(fout)
                 self.properties.to_fdf(fout)
 
+            # gen yhbatch script
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="siesta")
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s siesta < %s | tee %s" % (mpi, inpname, output))
@@ -70,6 +73,9 @@ class static_run:
                 self.system.to_fdf(fout)
                 self.electrons.to_fdf(fout)
                 self.properties.to_fdf(fout)
+           
+            # gen yhbatch script
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="siesta")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -77,27 +83,7 @@ class static_run:
             os.chdir("../")
 
 
-    def analysis(self, directory="tmp-siesta-static", inpname="static.fdf", output="static.out"):
-        # analyse the results
-        
-        if self.properties.option == "pdos":
-            self.dos_analysis(directory)
-
-
-    def dos_analysis(self, directory):
-        # plot dos
-        os.chdir(directory)
-        energy = []
-        states = []
-        with open(self.system.label+".DOS", 'r') as fin:
-            for line in fin:
-                energy.append(float(line.split()[0]))
-                states.append(float(line.split()[1]))
-        plt.plot(energy, states)
-        plt.show()
-        os.chdir("../")
-
-    def converge_cutoff(self, emin, emax, step, directory="tmp-siesta-converge-cutoff",
+    def converge_cutoff(self, emin, emax, step, directory="tmp-siesta-cutoff",
             mpi="", runopt="gen", electrons={}):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
@@ -119,6 +105,16 @@ class static_run:
                     self.system.to_fdf(fout)
                     self.electrons.to_fdf(fout)
                     #self.properties.to_fdf(fout)
+            
+            # gen yhbatch running script
+            with open("converge-cutoff.sub", 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                for i in range(n_test + 1):
+                    meshcutoff = int(emin + i * step)
+                    inp_name = "cutoff-%d.fdf" % meshcutoff
+                    out_f_name = "cutoff-%d.out" % meshcutoff
+                    fout.write("yhrun -N 1 -n 24 siesta < %s > %s\n" % (inp_name, out_f_name))
+
         if runopt == "run" or runopt == "genrun":
             # run
             os.chdir(directory)
@@ -126,25 +122,15 @@ class static_run:
                 meshcutoff = int(emin + i * step)
                 os.system("%s siesta < cutoff-%d.fdf | tee cutoff-%d.out" % (mpi, meshcutoff, meshcutoff))
             os.chdir("../")
-            # analysis
-            os.chdir(directory)
-            for i in range(n_test + 1):
-                meshcutoff = int(emin + i * step)
-                out_f_name = "cutoff-%d.out" % meshcutoff
-                os.system("cat %s | grep 'Total =' >> energy-cutoff.data" % out_f_name)
-            cutoff = [emin + i * step for i in range(n_test + 1) ]
-            energy = []
-            with open("energy-cutoff.data", 'r') as fin:
-                for line in fin:
-                    energy.append(float(line.split()[3]))
-            plt.plot(cutoff, energy, marker="o")
-            plt.title("Energy against MeshCutoff")
-            plt.xlabel("MeshCutoff (Ry)")
-            plt.ylabel("Energy (Ry)")
-            plt.show()
-            plt.savefig("energy-cutoff.png")
-            os.chdir("../")
     
     def set_spin(self, spin="non-polarized"):
         self.electrons.set_spin(spin)
+
+    def gen_yh(self, inpname, output, directory="tmp-siesta-static", cmd="siesta"):
+        """
+        generating yhbatch job script for calculation
+        """
+        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % (cmd, inpname, output))
 

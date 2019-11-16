@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
+import os
 import argparse
 
 from pymatflow.cp2k.lr import lr_run
+from pymatflow.remote.ssh import ssh
+from pymatflow.remote.rsync import rsync
 
 """
 usage:
@@ -69,6 +72,10 @@ if __name__ == "__main__":
 
     parser.add_argument("--window-size", help="Size of the energy window centred at the Fermi level for ENERGY_WINDOW type smearing", type=float, default=0)
 
+
+    # for server
+    parser.add_argument("--auto", type=int, default=0,
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.emuhelper/server.conf")
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================   
@@ -93,3 +100,19 @@ if __name__ == "__main__":
 
     task = lr_run(xyzfile)
     task.lr(directory=directory, runopt=args.runopt, force_eval=force_eval, printout_option=args.printout_option)
+
+    # server handle
+    if args.auto == 0:
+        pass
+    elif args.auto == 1:
+        mover = rsync()
+        mover.get_info(os.path.join(os.path.expanduser("~"), ".emuhelper/server.conf"))
+        mover.copy_default(source=os.path.abspath(args.directory))
+    elif args.auto == 2:
+        mover = rsync()
+        mover.get_info(os.path.join(os.path.expanduser("~"), ".emuhelper/server.conf"))
+        mover.copy_default(source=os.path.abspath(args.directory))
+        ctl = ssh()
+        ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
+        ctl.login()
+        ctl.submit(workdir=args.directory, jobfile="lr.inp.sub")

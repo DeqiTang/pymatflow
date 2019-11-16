@@ -46,6 +46,9 @@ class static_run:
                 self.glob.to_input(fout)
                 self.force_eval.to_input(fout)
                 #self.atom.to_input(fout)
+
+            # gen server job comit file
+            self.gen_yh(cmd="cp2k.popt", inpname=inpname, output=output)
     
         if runopt == "run" or runopt == "genrun":
            os.chdir(directory)
@@ -75,7 +78,8 @@ class static_run:
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.glob.to_input(fout)
                 self.force_eval.to_input(fout)
-    
+            # gen server job comit file
+            #self.gen_yh(cmd="cp2k.popt", inpname=inpname, output=output)   
         if runopt == "run" or runopt == "genrun":
            os.chdir(directory)
            os.system("cp2k.psmp -in %s | tee %s" % (inpname, output))
@@ -99,6 +103,16 @@ class static_run:
                 with open(os.path.join(directory, inpname), 'w') as fout:
                     self.glob.to_input(fout)
                     self.force_eval.to_input(fout)
+
+            # gen yhbatch running script
+            with open("converge-cutoff.sub", 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                for i in range(n_test + 1):
+                    cutoff = int(emin + i * step)
+                    inpname = "cutoff-%d.inp" % cutoff
+                    out_f_name = "cutoff-%d.out" % cutoff
+                    fout.write("yhrun -N 1 -n 24 cp2k.popt -in %s | tee %s\n" % (inpname, out_f_name))
+
         # run
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -107,26 +121,6 @@ class static_run:
                 inpname = "cutoff-%d.inp" % cutoff
                 output = "cutoff-%d.out" % cutoff
                 os.system("cp2k.psmp -in %s | tee %s" % (inpname, output))
-            os.chdir("../")
-            # analyse the result
-            os.chdir(directory)
-            for i in range(n_test + 1):
-                cutoff = int(emin + i * step)
-                out_f_name = "cutoff-%d.out" % cutoff
-                os.system("cat %s | grep 'Total energy:' >> energy-cutoff.data" % out_f_name)
-            cutoffs = [emin + i * step for i in range(n_test + 1)]
-            energy = []
-            with open("energy-cutoff.data", 'r') as fin:
-                for line in fin:
-                    energy.append(float(line.split()[2]))
-            plt.plot(cutoffs, energy, marker='o')
-            plt.title("CUTOFF Converge Test", fontweight='bold', color='red')
-            plt.xlabel("CUTOFF (Ry)")
-            plt.ylabel("Energy (a.u.)")
-            plt.tight_layout()
-            plt.grid(True)
-            plt.savefig("energy-cutoff.png")
-            plt.show()
             os.chdir("../")
 
     def converge_rel_cutoff(self, emin, emax, step, cutoff, directory="tmp-cp2k-rel-cutoff",
@@ -147,6 +141,16 @@ class static_run:
                 with open(os.path.join(directory, inpname), 'w') as fout:
                     self.glob.to_input(fout)
                     self.force_eval.to_input(fout)
+
+            # gen yhbatch running script
+            with open("converge-rel-cutoff.sub", 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                for i in range(n_test + 1):
+                    rel_cutoff = int(emin + i * step)
+                    inpname = "rel-cutoff-%d.inp" % rel_cutoff
+                    out_f_name = "rel-cutoff-%d.out" % rel_cutoff
+                    fout.write("yhrun -N 1 -n 24 cp2k.popt -in %s | tee %s\n" % (inpname, out_f_name))
+
         # run
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -155,26 +159,6 @@ class static_run:
                 inpname = "rel-cutoff-%d.inp" % rel_cutoff
                 output = "rel-cutoff-%d.out" % rel_cutoff
                 os.system("cp2k.psmp -in %s | tee %s" % (inpname, output))
-            os.chdir("../")
-            # analyse the result
-            os.chdir(directory)
-            for i in range(n_test + 1):
-                rel_cutoff = int(emin + i * step)
-                out_f_name = "rel-cutoff-%d.out" % rel_cutoff
-                os.system("cat %s | grep 'Total energy:' >> energy-rel-cutoff.data" % out_f_name)
-            rel_cutoffs = [emin + i * step for i in range(n_test + 1)]
-            energy = []
-            with open("energy-rel-cutoff.data", 'r') as fin:
-                for line in fin:
-                    energy.append(float(line.split()[2]))
-            plt.plot(rel_cutoffs, energy, marker='o')
-            plt.title("CUTOFF Converge Test", fontweight='bold', color='red')
-            plt.xlabel("CUTOFF (Ry)")
-            plt.ylabel("Energy (a.u.)")
-            plt.tight_layout()
-            plt.grid(True)
-            plt.savefig("energy-cutoff.png")
-            plt.show()
             os.chdir("../")
 
     def printout_option(self, option=[]):
@@ -211,3 +195,12 @@ class static_run:
             self.force_eval.dft.printout.xray_diffraction_spectrum = True
         if 13 in option:
             self.force_eval.properties.resp.status = True
+
+    def gen_yh(self,inpname, output, directory="tmp-cp2k-static", cmd="cp2k.psmp"):
+        """
+        generating yhbatch job script for calculation
+        """
+        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("yhrun -N 1 -n 24 %s -in %s | tee %s\n" % (cmd, inpname, output))
+

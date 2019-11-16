@@ -3,7 +3,7 @@
 
 import os
 import argparse
-from emuhelper.qe.post.opt import opt_post
+from pymatflow.qe.post.opt import opt_post
 
 
 if __name__ == "__main__":

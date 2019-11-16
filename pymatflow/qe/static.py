@@ -1345,7 +1345,7 @@ class static_run:
             os.chdir("../")
     #
 
-    def gen_yh(self,inpname, output, directory="tmp-qe-static", cmd="pw.x"):
+    def gen_yh(self, inpname, output, directory="tmp-qe-static", cmd="pw.x"):
         """
         generating yhbatch job script for calculation
         """

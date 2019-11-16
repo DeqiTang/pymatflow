@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
+
+import os
 import argparse
 
 
 from pymatflow.cp2k.opt import opt_run
+from pymatflow.remote.ssh import ssh
+from pymatflow.remote.rsync import rsync
 
 """
 Usage:
@@ -20,6 +24,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-geo-opt")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+
+    parser.add_argument("--runopt", type=str, default="genrun", 
+            choices=["gen", "run", "genrun"],
+            help="Generate or run or both at the same time.")
 
     parser.add_argument("-p", "--printout-option", nargs="+", type=int,
             default=[],
@@ -76,6 +84,9 @@ if __name__ == "__main__":
     parser.add_argument("--type", type=str, default="MINIMIZATION",
             help="specify which kind of geometry optimization to perform: MINIMIZATION(default), TRANSITION_STATE")
 
+    # for server
+    parser.add_argument("--auto", type=int, default=0,
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.emuhelper/server.conf")
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================   
@@ -103,5 +114,20 @@ if __name__ == "__main__":
     motion["GEO_OPT-TYPE"] = args.type
 
     task = opt_run(xyzfile)
-    task.geo_opt(directory="tmp-cp2k-geo-opt", runopt="genrun", force_eval=force_eval, motion=motion)
+    task.geo_opt(directory="tmp-cp2k-geo-opt", runopt=args.runopt, force_eval=force_eval, motion=motion)
 
+    # server handle
+    if args.auto == 0:
+        pass
+    elif args.auto == 1:
+        mover = rsync()
+        mover.get_info(os.path.join(os.path.expanduser("~"), ".emuhelper/server.conf"))
+        mover.copy_default(source=os.path.abspath(args.directory))
+    elif args.auto == 2:
+        mover = rsync()
+        mover.get_info(os.path.join(os.path.expanduser("~"), ".emuhelper/server.conf"))
+        mover.copy_default(source=os.path.abspath(args.directory))
+        ctl = ssh()
+        ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
+        ctl.login()
+        ctl.submit(workdir=args.directory, jobfile="geo-opt.inp.sub")

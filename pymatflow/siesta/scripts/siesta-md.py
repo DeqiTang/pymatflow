@@ -4,6 +4,8 @@
 import sys
 
 from pymatflow.siesta.md import md_run
+from pymatflow.remote.ssh import ssh
+from pymatflow.remote.rsync import rsync
 
 """
 usage:

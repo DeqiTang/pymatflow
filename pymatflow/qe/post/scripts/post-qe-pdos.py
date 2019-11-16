@@ -3,7 +3,7 @@
 
 import argparse
 
-from emuhelper.qe.post.pdos import pdos_post
+from pymatflow.qe.post.pdos import pdos_post
 
 """
 usage: post-qe-pdos.py 

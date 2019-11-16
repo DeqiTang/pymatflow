@@ -3,7 +3,7 @@
 
 import os
 import argparse
-from emuhelper.qe.post.converge import converge_post
+from pymatflow.qe.post.converge import converge_post
 
 
 if __name__ == "__main__":

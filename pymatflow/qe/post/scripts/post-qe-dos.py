@@ -3,7 +3,7 @@
 
 import argparse
 
-from emuhelper.qe.post.dos import dos_post
+from pymatflow.qe.post.dos import dos_post
 
 """
 usage: post-qe-dos.py xxx.dos

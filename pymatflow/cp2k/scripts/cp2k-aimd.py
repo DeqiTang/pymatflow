@@ -9,6 +9,8 @@ import pymatgen as mg
 
 import argparse
 from pymatflow.cp2k.md import md_run
+from pymatflow.remote.ssh import ssh
+from pymatflow.remote.rsync import rsync
 
 """
 Usage:
@@ -27,6 +29,10 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-md")
     
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+
+    parser.add_argument("--runopt", type=str, default="genrun", 
+            choices=["gen", "run", "genrun"],
+            help="Generate or run or both at the same time.")
 
 
     parser.add_argument("--ls-scf", type=str, default="FALSE",
@@ -84,6 +90,9 @@ if __name__ == "__main__":
     parser.add_argument("--traj-format", type=str, default="XMOL",
             help="type of output trajectory for MOTION, note: DCD format can be visualized by vmd")
 
+    # for server
+    parser.add_argument("--auto", type=int, default=0,
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.emuhelper/server.conf")
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================   
@@ -110,6 +119,21 @@ if __name__ == "__main__":
     motion["PRINT-TRAJECTORY-FORMAT"] = args.traj_format
 
     task = md_run(args.file)
-    task.md(directory=args.directory, runopt="genrun", force_eval=force_eval, motion=motion)
+    task.md(directory=args.directory, runopt=args.runopt, force_eval=force_eval, motion=motion)
     task.analysis(directory=args.directory)
 
+    # server handle
+    if args.auto == 0:
+        pass
+    elif args.auto == 1:
+        mover = rsync()
+        mover.get_info(os.path.join(os.path.expanduser("~"), ".emuhelper/server.conf"))
+        mover.copy_default(source=os.path.abspath(args.directory))
+    elif args.auto == 2:
+        mover = rsync()
+        mover.get_info(os.path.join(os.path.expanduser("~"), ".emuhelper/server.conf"))
+        mover.copy_default(source=os.path.abspath(args.directory))
+        ctl = ssh()
+        ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
+        ctl.login()
+        ctl.submit(workdir=args.directory, jobfile="md.inp.sub")

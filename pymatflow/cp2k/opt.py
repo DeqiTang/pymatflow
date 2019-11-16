@@ -47,7 +47,10 @@ class opt_run:
                 self.glob.to_input(fout)
                 self.force_eval.to_input(fout)
                 self.motion.to_input(fout)
-        
+ 
+            # gen server job comit file
+            self.gen_yh(cmd="cp2k.popt", directory=directory, inpname=inpname, output=output)       
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s cp2k.psmp -in %s | tee %s" % (mpi, inpname, output))
@@ -72,6 +75,9 @@ class opt_run:
                 self.force_eval.to_input(fout)
                 self.motion.to_input(fout)
         
+            # gen server job comit file
+            self.gen_yh(cmd="cp2k.popt", directory=directory, inpname=inpname, output=output)
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s cp2k.psmp -in %s | tee %s" % (mpi, inpname, output))
@@ -91,3 +97,12 @@ class opt_run:
         self.motion.set_type("CELL_OPT")
         if self.force_eval.params["STRESS_TENSOR"] is None:
             self.force_eval.params["STRESS_TENSOR"] = "ANALYTICAL" # NUMERICAL
+
+
+    def gen_yh(self, inpname, output, directory, cmd="cp2k.psmp"):
+        """
+        generating yhbatch job script for calculation
+        """
+        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("yhrun -N 1 -n 24 %s -in %s | tee %s\n" % (cmd, inpname, output))
