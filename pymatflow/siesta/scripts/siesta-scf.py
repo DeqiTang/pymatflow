@@ -65,11 +65,11 @@ if __name__ == "__main__":
     parser.add_argument("--optical-polarization-type", type=str,
             default="unpolarized",
             help="Optical.PolarizationType")
-    parser.add_arguemnt("--optical-vector", nargs="+", type=float,
+    parser.add_argument("--optical-vector", nargs="+", type=float,
             default=[1.0, 0.0, 0.5],
             help="Optical.Vector")
     parser.add_argument("--wannier90-unkgrid", nargs="+", type=int,
-            defualt=[10, 10, 10],
+            default=[10, 10, 10],
             help="Siesta2Wannier90.UnkGrid[1-3]")
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
@@ -93,18 +93,18 @@ if __name__ == "__main__":
     task = static_run(xyzfile)
 
     task.properties.set_params(
-        #bandlines = args.bandlines
-        #bandpoints = args.bandpoints
-        polarization_grids = args.polarization_grids
-        external_electric_field = args.external_electric_field
-        optical_energy_minimum = args.optical_energy_minimum
-        optical_energy_maximum = args.optical_energy_maximum
-        optical_broaden = args.optical_broaden
-        optical_scissor = args.optical_scissorr
-        optical_mesh = args.optical_mesh
-        optical_polarization_type = args.optical_polarization_type
-        optical_vector = args.optical_vector
-        wannier90_unkgrid = args.wannier90_unkgrid
+        #bandlines = args.bandlines,
+        #bandpoints = args.bandpoints,
+        polarization_grids = args.polarization_grids,
+        external_electric_field = args.external_electric_field,
+        optical_energy_minimum = args.optical_energy_minimum,
+        optical_energy_maximum = args.optical_energy_maximum,
+        optical_broaden = args.optical_broaden,
+        optical_scissor = args.optical_scissor,
+        optical_mesh = args.optical_mesh,
+        optical_polarization_type = args.optical_polarization_type,
+        optical_vector = args.optical_vector,
+        wannier90_unkgrid = args.wannier90_unkgrid,
         )
 
     task.scf(directory=directory, runopt="genrun", mpi=args.mpi, electrons=electrons, properties=args.properties, kpoints_mp=kpoints_mp)

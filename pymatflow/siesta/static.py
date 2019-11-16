@@ -18,7 +18,7 @@ class static_run:
     def __init__(self, xyz_f):
         self.system = siesta_system(xyz_f)
         self.electrons = siesta_electrons()
-        self.properties = siesta_properties()
+        self.properties = siesta_properties(self.system.xyz)
         
         self.electrons.basic_setting()
 

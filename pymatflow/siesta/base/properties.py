@@ -210,7 +210,7 @@ class siesta_properties:
         # inside PolarizationGrids.
         fout.write("%block PolarizationGrids\n")
         for item in self.polarization_grids:
-            fout.write("  %d %d %d %s\n" % (int(item.split()[0]), int(item.split()[1]), int(item.split()[2]), item.split()[3])
+            fout.write("  %d %d %d %s\n" % (int(item.split()[0]), int(item.split()[1]), int(item.split()[2]), item.split()[3]))
         fout.write("%endblock PolarizationGrids\n")
         fout.write("BornCharge true\n")
         fout.write("\n")
@@ -264,7 +264,7 @@ class siesta_properties:
 
     #
 
-def set_params(self,
+    def set_params(self,
         #bandlines = [
         #        "1 0.000 0.000 0.000 \Gamma",
         #        "20 1.000 1.000 1.000 L",
@@ -290,9 +290,9 @@ def set_params(self,
         optical_polarization_type = "unpolarized", # polarized, unpolarized, polycrystal
         optical_vector = [1.0, 0.0, 0.5],
         wannier90_unkgrid = [10, 10, 10]):
-    """
-    set params needed by various properties calculation
-    """
+        """
+        set params needed by various properties calculation
+        """
         #self.bandlines = bandlines
         #self.bandpoints = bandpoints
         self.polarization_grids = polarization_grids
@@ -300,7 +300,7 @@ def set_params(self,
         self.optical_energy_minimum = optical_energy_minimum
         self.optical_energy_maximum = optical_energy_maximum
         self.optical_broaden = optical_broaden
-        self.optical_scissor = optical_scissorr
+        self.optical_scissor = optical_scissor
         self.optical_mesh = optical_mesh
         self.optical_polarization_type = optical_polarization_type
         self.optical_vector = optical_vector

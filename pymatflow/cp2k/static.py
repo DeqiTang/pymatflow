@@ -29,7 +29,7 @@ class static_run:
 
 
     def scf(self, directory="tmp-cp2k-static", inpname="static-scf.inp", output="static-scf.out", 
-            force_eval={}, mpi="", runopt="gen", printout_option=0):
+            force_eval={}, mpi="", runopt="gen", printout_option=[]):
         """
         directory: a place for all the generated files
         """
@@ -53,7 +53,7 @@ class static_run:
            os.chdir("../")    
 
     def scf_restart(self, directory="tmp-cp2k-static", inpname="static-scf-restart.inp", output="static-scf-restart.out", 
-            force_eval={}, mpi="", runopt="gen", printout_option=0):
+            force_eval={}, mpi="", runopt="gen", printout_option=[]):
         """
         scf_restart continue a scf calculation from previous scf
         or mimic a nscf calculation(there seems no official nscf
@@ -182,13 +182,13 @@ class static_run:
         option:
             0: do not printout properties
             1: printout pdos
-            2: printout bands
+            2: printout band
             3: printout electron densities
         """
         if 1 in option:
             self.force_eval.dft.printout.print_pdos()
         if 2 in option:
-            self.force_eval.dft.printout.print_bands()
+            self.force_eval.dft.printout.print_band(self.force_eval.subsys.xyz)
         if 3 in option:
             self.force_eval.dft.printout.print_electron_density()
         if 4 in option:

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
+import numpy as np
+import seekpath
 
 # ===============================
 # CP2K / FORCE_EVAL / DFT / PRINT
@@ -70,17 +72,28 @@ class cp2k_dft_print:
                 fout.write("\t\t\t%s %s\n" % (item, self.params[item]))
 
         if self.band_structure == True:
+            # self.kpoints_seekpath is defined by self.print_band()
+            # so when you activate band calculation by self.print_band()
+            # you should also pass an instance of base_xyz to self.print_band()
+            # to set the kpoints path using seekpath program
             fout.write("\t\t\t&BAND_STRUCTURE\n")
             fout.write("\t\t\t\tADDED_MOS 10\n") 
             fout.write("\t\t\t\tFILE_NAME bands.bs\n")
             fout.write("\t\t\t\t&KPOINT_SET\n")
             fout.write("\t\t\t\t\tUNITS B_VECTOR\n")
-            fout.write("\t\t\t\t\tSPECIAL_POINT GAMA 0.0000000000     0.0000000000     0.0000000000\n") # GAMA
-            fout.write("\t\t\t\t\tSPECIAL_POINT X    0.5000000000     0.0000000000     0.5000000000\n") # X
-            fout.write("\t\t\t\t\tSPECIAL_POINT W    0.5000000000     0.2500000000     0.7500000000\n") # W
-            fout.write("\t\t\t\t\tSPECIAL_POINT GAMA 0.0000000000     0.0000000000     0.0000000000\n") # GAMA
-            fout.write("\t\t\t\t\tSPECIAL_POINT U    0.6250000000     0.2500000000     0.6250000000\n") # U
-            fout.write("\t\t\t\t\tSPECIAL_POINT W    0.5000000000     0.2500000000     0.7500000000\n") # W
+            point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][0][0]]
+            fout.write("\t\t\t\t\tSPECIAL_POINT %s %f %f %f\n" % (self.kpoints_seekpath["path"][0][0], point[0], point[1], point[2]))
+            point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][0][1]]
+            fout.write("\t\t\t\t\tSPECIAL_POINT %s %f %f %f\n" % (self.kpoints_seekpath["path"][0][1], point[0], point[1], point[2]))
+            for i in range(1, len(self.kpoints_seekpath["path"])):
+                if self.kpoints_seekpath["path"][i][0] == self.kpoints_seekpath["path"][i-1][1]:
+                    point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][1]]
+                    fout.write("\t\t\t\t\tSPECIAL_POINT %s %f %f %f\n" % (self.kpoints_seekpath["path"][i][1], point[0], point[1], point[2]))
+                else:
+                    point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][0]]
+                    fout.write("\t\t\t\t\tSPECIAL_POINT %s %f %f %f\n" % (self.kpoints_seekpath["path"][i][0], point[0], point[1], point[2]))
+                    point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][1]]
+                    fout.write("\t\t\t\t\tSPECIAL_POINT %s %f %f %f\n" % (self.kpoints_seekpath["path"][i][1], point[0], point[1], point[2]))
             fout.write("\t\t\t\t\tNPOINTS 20\n")
             fout.write("\t\t\t\t&END KPOINT_SET\n")
             fout.write("\t\t\t&END BAND_STRUCTURE\n")
@@ -148,12 +161,31 @@ class cp2k_dft_print:
     def print_electron_density(self):
         self.electron_density = True
 
-    def print_bands(self):
-        self.bands = True
     def print_pdos(self):
         self.pdos = True
     def print_moments(self):
         self.moments = True
+
+    def print_band(self, xyz):
+        """
+        xyz is an instance of base_xyz, it is used by seekpath to generate k-path
+        """
+        self.band_structure = True
+        # --------------
+        # using seekpath
+        # --------------
+        lattice = [xyz.cell[0:3], xyz.cell[3:6], xyz.cell[6:9]]
+        positions = []
+        numbers = []
+        a = np.sqrt(xyz.cell[0]**2 + xyz.cell[1]**2 + xyz.cell[2]**2)
+        b = np.sqrt(xyz.cell[3]**2 + xyz.cell[4]**2 + xyz.cell[5]**2)
+        c = np.sqrt(xyz.cell[6]**2 + xyz.cell[7]**2 + xyz.cell[8]**2)
+        for atom in xyz.atoms:
+            positions.append([atom.x / a, atom.y / b, atom.z / c])
+            numbers.append(xyz.specie_labels[atom.name])
+        structure = (lattice, positions, numbers)
+        self.kpoints_seekpath = seekpath.get_path(structure)
+
 
     def set_params(self, params):
         for item in params:

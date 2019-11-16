@@ -33,7 +33,7 @@ from pymatflow.cp2k.base.dft_xc import cp2k_dft_xc
 from pymatflow.cp2k.base.dft_print import cp2k_dft_print
 from pymatflow.cp2k.base.dft_kpoints import cp2k_dft_kpoints
 from pymatflow.cp2k.base.dft_localize import cp2k_dft_localize
-from pymatflowr.cp2k.base.dft_efield import cp2k_dft_efield
+from pymatflow.cp2k.base.dft_efield import cp2k_dft_efield
 
 """
 usage:
