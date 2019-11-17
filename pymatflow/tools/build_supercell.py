@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
-import sys
+import argparse
 
-from emuhelper.base.xyz import base_xyz
+from pymatflow.base.xyz import base_xyz
 
 """
 usage:
@@ -14,7 +14,20 @@ usage:
 
 
 if __name__ == '__main__':
-    xyz = base_xyz(sys.argv[1])
-    supern = [int(sys.argv[i]) for i in range(3, 6)]
-    xyz.build_supercell(supern)
-    xyz.to_xyz(sys.argv[2])
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-i", "--input", type=str, 
+            help="input xyz file")
+
+    parser.add_argument("-o", "--output", type=str,
+            help="output xyz file")
+
+    parser.add_argument("-n", "--supern", nargs="+", type=int,
+            help="bulid supern:[int, int, int] supercell")
+
+    args = parser.parse_args()
+
+    xyz = base_xyz()
+    xyz.get_info(args.input)
+    xyz.build_supercell(args.supern)
+    xyz.to_xyz(args.output)

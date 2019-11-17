@@ -21,61 +21,43 @@ class md_run:
         self.electrons = siesta_electrons()
         self.ions = siesta_ions()
 
+        self.electrons.basic_setting()
+        self.ions.basic_setting(option="md")
 
-    def gen_input(self, directory="tmp-siesta-md", inpname="molecular-dynamics.fdf"):
+    def md(self, directory="tmp-siesta-md", inpname="molecular-dynamics.fdf", output="molecular-dynamics.out",
+            mpi="", runopt="gen", electrons={}, kpoints_mp=[1, 1, 1]):
+        """
+        """
+        if runopt == "gen" or runopt == "genrun":
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
         
-        if os.path.exists(directory):
-            shutil.rmtree(directory)
-        os.mkdir(directory)
-        
-        for element in self.system.xyz.specie_labels:
-            shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
+            for element in self.system.xyz.specie_labels:
+                shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
 
-        self.electrons.xc["functional"] = "GGA"
-        self.electrons.xc["authors"] = "PBE"
-        self.electrons.dm["Tolerance"] = "1.d-6"
-        self.electrons.dm["MixingWight"] = 0.1
-        self.electrons.dm["NumberPulay"] = 5
-        self.electrons.dm["AllowExtrapolation"] = "true"
-        self.electrons.dm["UseSaveDM"] = "true"
-        self.electrons.params["SolutionMethod"] = "diagon"
-        self.electrons.params["MeshCutoff"] = 60
-        
-        self.ions.md["TypeOfRun"] = "Verlet" # Verlet, Nose, ParrinelloRahman, NoseParrinelloRahman, Anneal
-        self.ions.md["InitialTimeStep"] = 1
-        self.ions.md["FinalTimeStep"] = 20 # default is MD.Steps 
-        self.ions.md["LengthTimeStep"] = 1
-        self.ions.md["InitialTemperature"] = 0
-        self.ions.md["TargetTemperature"] = 0
+            self.electrons.kpoints_mp = kpoints_mp
+            self.electrons.set_params(electrons)
+            with open(os.path.join(directory, inpname), 'w') as fout:
+                self.system.to_fdf(fout)
+                self.electrons.to_fdf(fout)
+                self.ions.to_fdf(fout)
 
-        self.ions.params["WriteCoorXmol"] = "true"
-        self.ions.params["WriteMDXmol"] = "true"
-        
-        with open(os.path.join(directory, inpname), 'w') as fout:
-            self.system.to_fdf(fout)
-            self.electrons.to_fdf(fout)
-            self.ions.to_fdf(fout)
-    
-    def run(self, directory="tmp-siesta-md", inpname="molecular-dynamics.fdf", output="molecular-dynamics.out"):
-        # run the simulation
-        os.chdir(directory)
-        os.system("siesta < %s | tee %s" % (inpname, output))
-        os.chdir("../")
+            # gen yhbatch script
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="siesta")
+
+        if runopt == "run" or runopt == "genrun":
+            # run the simulation
+            os.chdir(directory)
+            os.system("siesta < %s | tee %s" % (inpname, output))
+            os.chdir("../")
 
 
-    def analysis(self, directory="tmp-siest-md", inpname="molecular-dynamics.fdf", output="molecular-dynamics.out"):
-        # analyse the results
-        import matplotlib.pyplot as plt
+    def gen_yh(self, inpname, output, directory="tmp-siesta-md", cmd="siesta"):
+        """
+        generating yhbatch job script for calculation
+        """
+        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % (cmd, inpname, output))
 
-        os.chdir(directory)
-        os.system("cat %s | grep 'siesta: E_KS(eV) =' > energy-per-ion-step.data" % (output))
-
-        energies = []
-        with open("energy-per-ion-step.data", 'r') as fin:
-            for line in fin:
-                energies.append(float(line.split()[3]))
-
-        steps = [i for i in range(len(energies))]
-        plt.plot(steps, energies)
-        plt.show()
-        os.chdir("../")

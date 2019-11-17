@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
-from emuhelper.base.xyz import base_xyz
+from pymatflow.base.xyz import base_xyz
 
 # ====================
 # CP2K / MOTION / BAND

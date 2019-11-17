@@ -144,6 +144,7 @@ setup(
         "pymatflow/siesta/post/scripts/post-siesta-bands.py",
         "pymatflow/siesta/post/scripts/post-siesta-converge.py",
         "pymatflow/siesta/post/scripts/post-siesta-opt.py",
+        "pymatflow/siesta/post/scripts/post-siesta-md.py",
         "pymatflow/tools/build_supercell.py",
         "pymatflow/tools/cluster_sphere.py",
         "pymatflow/tools/qe-fix-atoms.py",

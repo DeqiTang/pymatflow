@@ -8,7 +8,7 @@ import shutil
 import copy
 import pymatgen as mg
 
-from emuhelper.base.atom import Atom
+from pymatflow.base.atom import Atom
 
 """
 Usage:

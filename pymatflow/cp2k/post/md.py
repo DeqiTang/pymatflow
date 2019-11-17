@@ -23,12 +23,12 @@ class md_post:
         """
         self.get_final_structure()
 
-        self.get_opt_params_and_run_info()
+        self.get_md_params_and_run_info()
 
     def get_final_structure(self):
         pass
 
-    def get_opt_params_and_run_info(self):
+    def get_md_params_and_run_info(self):
         """
         """
         self.run_info["scf-steps-converged"] = []

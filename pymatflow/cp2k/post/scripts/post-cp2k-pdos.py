@@ -3,7 +3,7 @@
 
 import os
 import argparse
-from emuhelper.cp2k.post.pdos import pdos_post
+from pymatflow.cp2k.post.pdos import pdos_post
 
 
 if __name__ == "__main__":

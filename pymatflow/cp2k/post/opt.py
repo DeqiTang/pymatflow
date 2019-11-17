@@ -33,7 +33,7 @@ class opt_post:
     def get_opt_params_and_run_info(self):
         """
         """
-        self.run_info["scf-steps"] = []
+        self.run_info["scf-steps-converged"] = []
         self.run_info["total-energies"] = []
         self.run_info["fermi-energies"] = []
 
@@ -47,24 +47,30 @@ class opt_post:
                 self.opt_params["MIXING"] = line.split()[2]
             if line.split()[0] == "added" and line.split()[1] == "MOs":
                 self.opt_params["ADDED_MOS"] = int(line.split()[2])
+            # there might be scf cycles that are not converged
+            # so the total scf cycles might be more than the len(self.run_info["scf-steps-converged"])
             if line.split()[0] == "***" and line.split()[1] == "SCF" and line.split()[3] == "converged":
-                self.run_info["scf-steps"].append(int(line.split()[5]))
+                self.run_info["scf-steps-converged"].append(int(line.split()[5]))
+            # in every scf cycle, whether it converged or not, the ENERGY| Total FORCE_EVAL ( QS  ) energy (a.u.):
+            # will always be print out
+            # so len(self.run_info["total-energies"]) equal to the actually times for scf calculation
             if line.split()[0] == "ENERGY|" and line.split()[4] == "QS":
                 self.run_info["total-energies"].append(float(line.split()[8]))
-            if line.split()[0] ==  "Fermi" and line.split()[1] == "energy:":
-                self.run_info["fermi-energies"].append(float(line.split()[2]))
 
-        self.run_info["scf-cycles"] = len(self.run_info["scf-steps"])
+        #self.run_info["scf-cycles"] = len(self.run_info["scf-steps"])
+        # the total scf cycles might be more than the len(self.run_info["scf-steps"])
+        # so we should use self.run_info["total-energies"] to get the total number of scf cycles
+        self.run_info["scf-cycles-total"] = len(self.run_info["total-energies"])
 
     def plot_run_info(self):
         """
         """
-        plt.plot(self.run_info["scf-steps"])
-        plt.title("Iterations per SCF")
-        plt.xlabel("Scf cycle")
+        plt.plot(self.run_info["scf-steps-converged"])
+        plt.title("Iterations per SCF(converged)")
+        plt.xlabel("Scf cycle(converged)")
         plt.ylabel("Scf iterations")
         plt.tight_layout()
-        plt.savefig("iterations-per-scf.png")
+        plt.savefig("iterations-per-scf-converged.png")
         plt.close()
 
         plt.plot(self.run_info["total-energies"])
@@ -99,8 +105,8 @@ class opt_post:
                 fout.write("- %s: %s\n" % (item, str(self.run_info[item])))
 
             fout.write("## 运行信息图示\n")
-            fout.write("Iterations per SCF\n")
-            fout.write("![Iterations per SCF](iterations-per-scf.png)\n")
+            fout.write("Iterations per SCF(converged)\n")
+            fout.write("![Iterations per SCF](iterations-per-scf-converged.png)\n")
             
             fout.write("Total energies per SCF\n")
             fout.write("![Total energies per SCF](total-energies-per-scf.png)\n")

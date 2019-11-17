@@ -22,7 +22,7 @@ class opt_run:
         self.ions = siesta_ions()
 
         self.electrons.basic_setting()
-        self.ions.basic_setting()
+        self.ions.basic_setting(option="opt")
 
     def opt(self, directory="tmp-siesta-opt", inpname="geometric-optimization.fdf", output="geometric-optimization.out",
             mpi="", runopt="gen", mode=0, electrons={}, kpoints_mp=[1, 1, 1]):
