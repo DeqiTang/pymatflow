@@ -120,7 +120,6 @@ if __name__ == "__main__":
 
     task = md_run(args.file)
     task.md(directory=args.directory, runopt=args.runopt, force_eval=force_eval, motion=motion)
-    task.analysis(directory=args.directory)
 
     # server handle
     if args.auto == 0:

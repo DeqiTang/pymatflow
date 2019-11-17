@@ -13,18 +13,26 @@ from pymatflow.cp2k.base.force_eval import cp2k_force_eval
 from pymatflow.cp2k.base.motion import cp2k_motion
 
 """
-Usage:
 """
 
 class opt_run:
     """
+    Note:
+        opt_run is the calss an agent for geometric optimization, including GEO_OPT
+        and CELL_OPT.
     """
     def __init__(self, xyz_f):
+        """
+        xyz_f:
+            a modified xyz formatted file(the second line specifies the cell of the 
+            system).
+        TODO: 
+        """
         self.glob = cp2k_glob()
         self.force_eval = cp2k_force_eval(xyz_f)
         self.motion = cp2k_motion()
         
-        self.run_type = "GEO_OPT" # CELL_OPT
+        self.run_type = "GEO_OPT" # default is GEO_OPT, can also do CELL_OPT
 
         self.glob.basic_setting(run_type="ENERGY_FORCE")
         self.force_eval.basic_setting()
@@ -32,7 +40,16 @@ class opt_run:
     def geo_opt(self, directory="tmp-cp2k-geo-opt", inpname="geo-opt.inp", output="geo-opt.out", 
             mpi="", runopt="gen", force_eval={}, motion={}):
         """
-        directory: a place for all the generated files
+        directory:
+            where the calculation will happen
+        inpname:
+            input filename for the cp2k
+        output:
+            output filename for the cp2k
+        force_eval:
+            allowing control of FORCE_EVAL/... parameters by user
+        motion:
+            allowing control of MOTION/... parameters by user
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
@@ -59,7 +76,16 @@ class opt_run:
     def cell_opt(self, directory="tmp-cp2k-cell-opt", inpname="cell-opt.inp", output="cell-opt.out", 
             mpi="", runopt="gen", force_eval={}, motion={}):
         """
-        directory: a place for all the generated files
+        directory:
+            where the calculation will happen
+        inpname:
+            input filename for the cp2k
+        output:
+            output filename for the cp2k
+        force_eval:
+            allowing control of FORCE_EVAL/... parameters by user
+        motion:
+            allowing control of MOTION/... parameters by user
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
@@ -84,14 +110,23 @@ class opt_run:
             os.chdir("../")
 
     def set_geo_opt(self):
+        """
+        Note:
+            set basic parameters for GEO_OPT type running
+        """
         self.run_type = "GEO_OPT"
         self.glob.params["RUN_TYPE"] = "GEO_OPT"
         self.motion.set_type("GEO_OPT")
     
     def set_cell_opt(self):
-        # Note:
-        #   if you are doing CELL_OPT run, you must also enable
-        #   "STRESS_TENSOR" in FORCE_EVAL%STRESS_TENSOR
+        """
+        Note:
+            set basic parameters for CELL_OPT type running
+
+        Warning:
+            if you are doing CELL_OPT run, you must also enable
+            "STRESS_TENSOR" in FORCE_EVAL%STRESS_TENSOR
+        """
         self.run_type = "CELL_OPT" 
         self.glob.params["RUN_TYPE"] = "CELL_OPT"
         self.motion.set_type("CELL_OPT")

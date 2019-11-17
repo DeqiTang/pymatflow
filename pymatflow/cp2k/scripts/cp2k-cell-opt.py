@@ -73,7 +73,7 @@ if __name__ == "__main__":
             help="optimization algorithm for geometry optimization: BFGS, CG, LBFGS")
     parser.add_argument("--max-iter", type=int, default=200,
             help="maximum number of geometry optimization steps.")
-    parser.add_argument("--type", type=str, default="MINIMIZATION",
+    parser.add_argument("--type", type=str, default="DIRECT_CELL_OPT",
             choices=["DIRECT_CELL_OPT", "GEO_OPT", "MD"],
             help="specify which kind of geometry optimization to perform: DIRECT_CELL_OPT(default), GEO_OPT, MD")
 

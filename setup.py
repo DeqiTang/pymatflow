@@ -74,6 +74,7 @@ setup(
         "pymatflow/cp2k/post/scripts/post-cp2k-pdos.py",
         "pymatflow/cp2k/post/scripts/post-cp2k-bands.py",
         "pymatflow/cp2k/post/scripts/post-cp2k-converge.py",
+        "pymatflow/cp2k/post/scripts/post-cp2k-md.py",
         "pymatflow/cp2k/post/scripts/cp2k_bs2csv.py",
         "pymatflow/dalton/single_point_dalton.py",
         "pymatflow/orca/single_point_orca.py",

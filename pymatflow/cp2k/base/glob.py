@@ -15,7 +15,7 @@ class cp2k_glob:
     """
 
     """
-    def __init__(self, project_name="Ab-initio", run_type="NONE"):
+    def __init__(self, project_name="ab-initio", run_type="NONE"):
         self.params = {
                 "PROJECT": project_name,
                 "RUN_TYPE": run_type,

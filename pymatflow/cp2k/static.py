@@ -1,10 +1,10 @@
 #!/usr/bin/evn python
 # _*_ coding: utf-8 _*_
 
-import numpy as np
-import sys
 import os
+import sys
 import shutil
+import numpy as np
 import pymatgen as mg
 import matplotlib.pyplot as plt
 
@@ -13,13 +13,25 @@ from pymatflow.cp2k.base.force_eval import cp2k_force_eval
 #from emuhelper.cp2k.base.atom import cp2k_atom
 
 """
-Usage:
+
 """
 
 class static_run:
     """
+    Note:
+        static_run is the class as an agent for static type calculation, including
+        scf, CUTOFF converge test, REL_CUTOFF converge test. and it can control the
+        calculation of properties like electronic band structure, projected density
+        of states(pdos), electron density, elf, charge difference, etc.
     """
     def __init__(self, xyz_f):
+        """
+        xyz_f:
+            a modified xyz formatted file(the second line specifies the cell of the 
+            system).
+        TODO: 
+            include implement MP2 calculation through CP2K/ATOM
+        """
         self.glob = cp2k_glob()
         self.force_eval = cp2k_force_eval(xyz_f)
  #       self.atom = cp2k_atom()
@@ -31,7 +43,16 @@ class static_run:
     def scf(self, directory="tmp-cp2k-static", inpname="static-scf.inp", output="static-scf.out", 
             force_eval={}, mpi="", runopt="gen", printout_option=[]):
         """
-        directory: a place for all the generated files
+        directory:
+            directory is and path where the calculation will happen.
+        inpname:
+            input filename for the cp2k
+        output:
+            output filename for the cp2k
+        force_eval:
+            allowing control of FORCE_EVAL/... parameters by user
+        printout_option:
+            a list of integers, controlling the printout of properties, etc.
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
@@ -58,9 +79,20 @@ class static_run:
     def scf_restart(self, directory="tmp-cp2k-static", inpname="static-scf-restart.inp", output="static-scf-restart.out", 
             force_eval={}, mpi="", runopt="gen", printout_option=[]):
         """
-        scf_restart continue a scf calculation from previous scf
-        or mimic a nscf calculation(there seems no official nscf
-        in cp2k) by increasing kpoints from previous scf running
+        Note:
+            scf_restart continue a scf calculation from previous scf
+            or mimic a nscf calculation(there seems no official nscf
+            in cp2k) by increasing kpoints from previous scf running
+        directory:
+            directory is and path where the calculation will happen.
+        inpname:
+            input filename for the cp2k
+        output:
+            output filename for the cp2k
+        force_eval:
+            allowing control of FORCE_EVAL/... parameters by user
+        printout_option:
+            a list of integers, controlling the printout of properties, etc.
         """
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
@@ -87,6 +119,22 @@ class static_run:
     
     def converge_cutoff(self, emin, emax, step, rel_cutoff, directory="tmp-cp2k-cutoff", 
             runopt="gen", force_eval={}):
+        """
+        Note:
+            this function is used to do the converge test for CUTOFF
+        emin:
+            the minimum cutoff of the test range
+        emax:
+            the maximum cutoff of the test range
+        step:
+            the step for the converge test
+        rel_cutoff:
+            for the test of cutoff, rel_cutoff is set to an fixed value
+        directory:
+            where the converge test happens
+        force_eval:
+            allowing control of FORCE_EVAL/... parameters by user
+        """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -125,6 +173,22 @@ class static_run:
 
     def converge_rel_cutoff(self, emin, emax, step, cutoff, directory="tmp-cp2k-rel-cutoff",
             force_eval={}, runopt="gen"):
+        """
+        Note:
+            this function is used to do the converge test of REL_CUTOFF.
+        emin:
+            the minimum rel_cutoff of the test range
+        emax:
+            the maximum rel_cutoff of the test range
+        step:
+            the step for the converge test
+        cutoff:
+            for the test of rel_cutoff, cutoff is set to an fixed value
+        directory:
+            where the converge test happens
+        force_eval:
+            allowing control of FORCE_EVAL/... parameters by user
+        """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -163,11 +227,23 @@ class static_run:
 
     def printout_option(self, option=[]):
         """
+        Note:
+            responsible for the parseing of the printout_option like in self.scf()
+
         option:
-            0: do not printout properties
             1: printout pdos
             2: printout band
             3: printout electron densities
+            4: printout electron local function(ELF)
+            5: printout molecular orbitals
+            6: printout molecular orbital cube files
+            7: printout mulliken populaltion analysis
+            8: printout cubes for generation of STM images
+            9: printout cube file with total density(electrons+atomic core)
+           10: printout v_hartree_cube
+           11: printout v_xc_cube
+           12: printout xray_diffraction_spectrum
+           13: request a RESP fit of charges.
         """
         if 1 in option:
             self.force_eval.dft.printout.print_pdos()

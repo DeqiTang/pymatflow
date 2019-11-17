@@ -41,7 +41,15 @@ class bands_post:
                         break
                         # must break here to avoid set the next special kpoint with the same label and coord
         #
+        # get the number of bands
+        n_bands = 0
+        for i in range(len(lines)):
+            if len(lines[i].split()) == 0:
+                continue
+            if lines[i].split()[0] == "Nr.":
+                n_bands = int(lines[i+1].split()[0])
 
+        #
         if option == "gnuplot":
             os.system("cp2k_bs2csv.py %s" % bandsfile) 
             # cp2k_bs2csv.py is provided by cp2k.org and I put it in this library too.
@@ -57,7 +65,7 @@ class bands_post:
                 for point in specialk:
                     fout.write("'%s' %d, " % (point["label"], point["k-number"]-1)) # minus 1, because in gnuplot x start with 0
                 fout.write(")\n")
-                fout.write("plot for [i=4:18] '%s.set-1.csv' u 0:i w l \n" % (bandsfile))
+                fout.write("plot for [i=4:%d] '%s.set-1.csv' u 0:i w l \n" % (n_bands+3, bandsfile))
             os.system("gnuplot bandplot.gp")
 
         elif option == "matplotlib":

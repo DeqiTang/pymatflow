@@ -27,7 +27,21 @@ if __name__ == "__main__":
 
     parser.add_argument("-p", "--printout-option", nargs="+", type=int,
             default=[],
-            help="Properties printout option(0, 1, 2 implemented now), you can also activate multiple prinout-option at the same time")
+            choicies = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+            help="Properties printout option, you can also activate multiple prinout-option at the same time. 
+            1: printout pdos
+            2: printout band
+            3: printout electron densities
+            4: printout electron local function(ELF)
+            5: printout molecular orbitals
+            6: printout molecular orbital cube files
+            7: printout mulliken populaltion analysis
+            8: printout cubes for generation of STM images
+            9: printout cube file with total density(electrons+atomic core)
+           10: printout v_hartree_cube
+           11: printout v_xc_cube
+           12: printout xray_diffraction_spectrum
+           13: request a RESP fit of charges.")
 
     parser.add_argument("--ls-scf", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],

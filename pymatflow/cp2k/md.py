@@ -13,13 +13,22 @@ from pymatflow.cp2k.base.force_eval import cp2k_force_eval
 from pymatflow.cp2k.base.motion import cp2k_motion
 
 """
-Usage:
 """
 
 class md_run:
     """
+    Note:
+        md_run is the class as an agent for Molecular Dynamics running. currently 
+        implemented md type includes AIMD.
+    TODO:
+        implement QMMM and classic MD.
     """
     def __init__(self, xyz_f):
+        """
+        xyz_f:
+            a modified xyz formatted file(the second line specifies the cell of the 
+            system).
+        """
         self.glob = cp2k_glob()
         self.force_eval = cp2k_force_eval(xyz_f)
         self.motion = cp2k_motion()
@@ -32,7 +41,16 @@ class md_run:
     def md(self, directory="tmp-cp2k-md", inpname="md.inp", output="md.out", mpi="", runopt="gen",
             force_eval={}, motion={}):
         """
-        directory: a place for all the generated files
+        directory:
+            directory is and path where the calculation will happen.
+        inpname:
+            input filename for the cp2k
+        output:
+            output filename for the cp2k
+        force_eval:
+            allowing control of FORCE_EVAL/... parameters by user
+        motion:
+            allowing control of MOTION/... parameters by user
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
@@ -56,20 +74,6 @@ class md_run:
             os.chdir("../")
     
 
-    def analysis(self, directory="tmp-cp2k-md", output="md.out"):
-        # analyse the result
-        os.chdir(directory)
-        os.system("cat %s | grep 'ENERGY| Total FORCE_EVAL' > energy-per-ion-step.data" % (output))
-        energies = []
-        with open("energy-per-ion-step.data", 'r') as fin:
-            for line in fin:
-                energies.append(float(line.split()[8]))
-
-        steps = [i for i in range(len(energies))]
-        plt.plot(steps, energies)
-        plt.show()
-
-        os.chdir("../")
 
     def ir_spectra(self):
         """
