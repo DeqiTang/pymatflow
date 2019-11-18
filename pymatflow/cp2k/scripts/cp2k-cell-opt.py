@@ -22,6 +22,9 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-cell-opt")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
 
+    parser.add_argument("--mpi", type=str, default="",
+            help="MPI command: like 'mpirun -np 4'")
+
     parser.add_argument("--runopt", type=str, default="genrun", 
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
@@ -42,7 +45,7 @@ if __name__ == "__main__":
             help="XC_FUNCTIONAL type")
 
     parser.add_argument("--cutoff", type=int, default=100,
-            help="CUTOFF, default value: 100 Ry")
+            help="CUTOFF, default value: 100 Ry, if you find your SCF hard to converge, you can try increasing the CUTOFF")
 
     parser.add_argument("--rel-cutoff", type=int, default=60,
             help="REL_CUTOFF, default value: 60 Ry")
@@ -56,6 +59,9 @@ if __name__ == "__main__":
     parser.add_argument("--ot", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="whether choosing orbital transformation for SCF")
+
+    parser.add_argument("--alpha", type=float, default=0.4,
+            help="DFT-SCF-MIXING-ALPHA")
 
     parser.add_argument("--smear", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],
@@ -76,6 +82,17 @@ if __name__ == "__main__":
     parser.add_argument("--type", type=str, default="DIRECT_CELL_OPT",
             choices=["DIRECT_CELL_OPT", "GEO_OPT", "MD"],
             help="specify which kind of geometry optimization to perform: DIRECT_CELL_OPT(default), GEO_OPT, MD")
+    parser.add_argument("--max-dr", type=float, default=3e-3,
+            help="Convergence criterion for the maximum geometry change between the current and the last optimizer iteration.")
+    parser.add_argument("--max-force", type=float, default=4.50000000E-004,
+            help="Convergence criterion for the maximum force component of the current configuration.")
+    parser.add_argument("--rms-dr", type=float, default=1.50000000E-003,
+            help="Convergence criterion for the root mean square (RMS) geometry change between the current and the last optimizer iteration.")
+    parser.add_argument("--rms-force", type=float, default=3.00000000E-004,
+            help="Convergence criterion for the root mean square (RMS) force of the current configuration.")
+    parser.add_argument("--pressure-tolerance", type=float, default=1.00000000E+002,
+            help="Specifies the Pressure tolerance (compared to the external pressure) to achieve during the cell optimization.")
+
 
     # for server
     parser.add_argument("--auto", type=int, default=0,
@@ -100,13 +117,19 @@ if __name__ == "__main__":
     force_eval["DFT-SCF-SMEAR-WINDOW_SIZE"] = args.window_size
     force_eval["DFT-SCF-DIAGONALIZATION"] = args.diag
     force_eval["DFT-SCF-OT"] = args.ot
+    force_eval["DFT-SCF-MIXING-ALPHA"] = args.alpha
 
     motion["CELL_OPT-MAX_ITER"] = args.max_iter
     motion["CELL_OPT-OPTIMIZER"] = args.optimizer
     motion["CELL_OPT-TYPE"] = args.type
+    motion["CELL_OPT-MAX_DR"] = args.max_dr
+    motion["CELL_OPT-MAX_FORCE"] = args.max_force
+    motion["CELL_OPT-RMS_DR"] = args.rms_dr
+    motion["CELL_OPT-RMS_FORCE"] = args.rms_force
+    motion["CELL_OPT-PRESSURE_TOLERANCE"] = args.pressure_tolerance
 
     task = opt_run(xyzfile)
-    task.cell_opt(directory=directory, runopt=args.runopt, force_eval=force_eval, motion=motion)
+    task.cell_opt(directory=directory, mpi=args.mpi, runopt=args.runopt, force_eval=force_eval, motion=motion)
 
     # server handle
     if args.auto == 0:

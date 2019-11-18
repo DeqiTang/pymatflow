@@ -39,7 +39,16 @@ class neb_run:
     def neb(self, directory="tmp-cp2k-neb", inpname="neb.inp", output="neb.out", 
             mpi="", runopt="gen", force_eval={}, motion={}):
         """
-        directory: a place for all the generated files
+        directory:
+            where the calculation will happen
+        inpname:
+            input filename for the cp2k
+        output:
+            output filename for the cp2k
+        force_eval:
+            allowing control of FORCE_EVAL/... parameters by user
+        motion:
+            allowing control of MOTION/... parameters by user
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
@@ -63,7 +72,6 @@ class neb_run:
             os.system("%s cp2k.psmp -in %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
     
-   
     
     def gen_yh(self,inpname, output, directory="tmp-cp2k-static", cmd="cp2k.psmp"):
         """

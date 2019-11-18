@@ -201,7 +201,7 @@ class neb_run:
         """
         generating yhbatch job script for calculation
         """
-        with open(os.path.join(directory, inpname+".bash"), 'w') as fout:
+        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
             fout.write("#!/bin/bash\n")
             fout.write("yhrun -N 1 -n 24 neb.x -inp %s > %s\n" % (inpname, output))
 

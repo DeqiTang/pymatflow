@@ -32,8 +32,8 @@ class cp2k_motion_cell_opt:
             if self.params[item] is not None:
                 fout.write("\t\t%s %s\n" % (item, str(self.params[item])))
         fout.write("\t\t&PRINT\n")
-        fout.write("\t\t\t&CELL HIGH\n")
-        fout.write("\t\t\t\tFILENAME cell.xyz\n")
+        fout.write("\t\t\t&CELL LOW\n")
+        fout.write("\t\t\t\tFILENAME cell-every-ion-step\n")
         fout.write("\t\t\t&END CELL\n")
         fout.write("\t\t&END PRINT\n")
         fout.write("\t\t&END CELL_OPT\n")

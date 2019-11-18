@@ -65,4 +65,4 @@ if __name__ == "__main__":
         ctl = ssh()
         ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
         ctl.login()
-        ctl.submit(workdir=args.directory, jobfile="relax.in.sub")
+        ctl.submit(workdir=args.directory, jobfile="static-nscf.in.sub")

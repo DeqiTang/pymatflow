@@ -21,6 +21,9 @@ if __name__ == "__main__":
 
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
 
+    parser.add_argument("--mpi", type=str, default="",
+            help="MPI command: like 'mpirun -np 4'")
+
     parser.add_argument("--runopt", type=str, default="genrun", 
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
@@ -74,6 +77,9 @@ if __name__ == "__main__":
             #choices=["TRUE", "FALSE", "true", "false"],
             help="whether choosing orbital transformation for SCF")
 
+    parser.add_argument("--alpha", type=float, default=0.4,
+            help="DFT-SCF-MIXING-ALPHA")
+
     parser.add_argument("--smear", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="switch on or off smearing for occupation")
@@ -125,6 +131,7 @@ if __name__ == "__main__":
     force_eval["DFT-SCF-SMEAR-WINDOW_SIZE"] = args.window_size
     force_eval["DFT-SCF-DIAGONALIZATION"] = args.diag
     force_eval["DFT-SCF-OT"] = args.ot
+    force_eval["DFT-SCF-MIXING-ALPHA"] = args.alpha
 
     force_eval["DFT-XC-VDW_POTENTIAL"] = args.vdw
     force_eval["DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"] = args.vdw_potential_type
@@ -132,7 +139,7 @@ if __name__ == "__main__":
     force_eval["DFT-XC-VDW_POTENTIAL-PAIR-POTENTIAL-R_CUTOFF"] = args.r_cutoff
 
     task = static_run(xyzfile)
-    task.scf(directory=directory, runopt=args.runopt, force_eval=force_eval, printout_option=args.printout_option)
+    task.scf(directory=directory, mpi=args.mpi, runopt=args.runopt, force_eval=force_eval, printout_option=args.printout_option)
 
     # server handle
     if args.auto == 0:

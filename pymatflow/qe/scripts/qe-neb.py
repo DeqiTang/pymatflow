@@ -4,9 +4,9 @@
 import os
 import argparse
 
-from emuhelper.qe.neb import neb_run
-from emuhelper.remote.ssh import ssh
-from emuhelper.remote.rsync import rsync
+from pymatflow.qe.neb import neb_run
+from pymatflow.remote.ssh import ssh
+from pymatflow.remote.rsync import rsync
 
 """
 usage:
@@ -90,4 +90,4 @@ if __name__ == "__main__":
         ctl = ssh()
         ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
         ctl.login()
-        ctl.submit(workdir=args.directory, jobfile="relax.in.sub")
+        ctl.submit(workdir=args.directory, jobfile="neb.in.sub")

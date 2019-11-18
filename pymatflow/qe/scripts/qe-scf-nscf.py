@@ -2,7 +2,7 @@
 # _*_ coding: utf-8 _*_
 
 import argparse
-from emuhelper.qe.static import static_run
+from pymatflow.qe.static import static_run
 
 """
 usage:

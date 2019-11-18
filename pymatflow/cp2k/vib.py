@@ -18,6 +18,8 @@ Usage:
 
 class vib_run:
     """
+    Note:
+        vib_run is the calss as an agent for Vibrational Analysis running.
     """
     def __init__(self, xyz_f):
         self.glob = cp2k_glob()
@@ -34,7 +36,16 @@ class vib_run:
     def vib(self, directory="tmp-cp2k-vib", inpname="vib.inp", output="vib.out", 
             mpi="", runopt="gen", force_eval={}, vibrational={}):
         """
-        directory: a place for all the generated files
+        directory:
+            wheere the calculation will happen
+        inpname:
+            input filename for the cp2k
+        output:
+            output filename for the cp2k
+        force_eval:
+            allowing control of FORCE_EVAL/... parameters by user
+        vibrational:
+            allowing control of VIBRATIONAL_ANALYSIS/... parameters by user
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):

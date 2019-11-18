@@ -18,6 +18,8 @@ Usage:
 
 class lr_run:
     """
+    Note:
+        lr_run is the  class as an agent for Linear Response calculation.
     """
     def __init__(self, xyz_f):
         self.glob = cp2k_glob()
@@ -29,9 +31,18 @@ class lr_run:
 
 
     def lr(self, directory="tmp-cp2k-lr", inpname="lr.inp", output="lr.out", 
-            force_eval={}, mpi="", runopt="gen", printout_option=0):
+            force_eval={}, mpi="", runopt="gen", printout_option=[]):
         """
-        directory: a place for all the generated files
+        directory:
+            where the calculation will happen
+        inpname:
+            inputfile name for the cp2k
+        output:
+            output filename for the cp2k
+        force_eval:
+            allowing control of FORCE_EVAL/... parameters by user
+        printout_option:
+            a list of integers, controlling the printout of properties, etc.
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
@@ -58,16 +69,28 @@ class lr_run:
 
     def printout_option(self, option=[]):
         """
+        Note:
+            responsible for the parseing of the printout_option like in self.scf()
+
         option:
-            0: do not printout properties
             1: printout pdos
-            2: printout bands
+            2: printout band
             3: printout electron densities
+            4: printout electron local function(ELF)
+            5: printout molecular orbitals
+            6: printout molecular orbital cube files
+            7: printout mulliken populaltion analysis
+            8: printout cubes for generation of STM images
+            9: printout cube file with total density(electrons+atomic core)
+           10: printout v_hartree_cube
+           11: printout v_xc_cube
+           12: printout xray_diffraction_spectrum
+           13: request a RESP fit of charges.
         """
         if 1 in option:
             self.force_eval.dft.printout.print_pdos()
         if 2 in option:
-            self.force_eval.dft.printout.print_bands()
+            self.force_eval.dft.printout.print_band(self.force_eval.subsys.xyz)
         if 3 in option:
             self.force_eval.dft.printout.print_electron_density()
         if 4 in option:
@@ -90,7 +113,6 @@ class lr_run:
             self.force_eval.dft.printout.xray_diffraction_spectrum = True
         if 13 in option:
             self.force_eval.properties.resp.status = True
-
 
     def gen_yh(self,inpname, output, directory="tmp-cp2k-static", cmd="cp2k.psmp"):
         """

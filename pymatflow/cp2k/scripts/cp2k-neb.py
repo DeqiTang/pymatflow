@@ -61,6 +61,9 @@ if __name__ == "__main__":
             #choices=["TRUE", "FALSE", "true", "false"],
             help="whether choosing orbital transformation for SCF")
 
+    parser.add_argument("--alpha", type=float, default=0.4,
+            help="DFT-SCF-MIXING-ALPHA")
+
     parser.add_argument("--smear", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="switch on or off smearing for occupation")
@@ -117,6 +120,7 @@ if __name__ == "__main__":
     force_eval["DFT-SCF-SMEAR-WINDOW_SIZE"] = args.window_size
     force_eval["DFT-SCF-DIAGONALIZATION"] = args.diag
     force_eval["DFT-SCF-OT"] = args.ot
+    force_eval["DFT-SCF-MIXING-ALPHA"] = args.alpha
 
     motion["BAND-BAND_TYPE"] = args.band_type
     motion["BAND-NUMBER_OF_REPLICA"] = args.n_replica

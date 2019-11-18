@@ -22,9 +22,7 @@ class qe_arts:
              OCCUPATIONS, ATOMIC_FORCES
     """
     def __init__(self, xyz_f):
-        #self.xyz = base_xyz(xyz_f)
-        self.xyz = base_xyz()
-        self.xyz.get_info(xyz_f)
+        self.xyz = base_xyz(xyz_f)
 
         self.cell_params = {
                 "cell_dynamics": None,

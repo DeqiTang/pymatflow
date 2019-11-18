@@ -51,8 +51,9 @@ With scripts to provide preparing and/or post-processing for your Emulations(DFT
 * implementing RESP Charges analysis [OK]
 * develop post processing module
 ### Quantum Espresso
+* implementing automatical job submit for static_run.pp()
 * improving Phonon calculation using ph.x
-* implementing kpoints setting for band structure calculation
+* implementing kpoints setting for band structure calculation [OK]
 * develop post processing module
 ### SIESTA
 * improving code base structure

@@ -18,7 +18,7 @@ from pymatflow.cp2k.base.motion import cp2k_motion
 class opt_run:
     """
     Note:
-        opt_run is the calss an agent for geometric optimization, including GEO_OPT
+        opt_run is the calss as an agent for geometric optimization, including GEO_OPT
         and CELL_OPT.
     """
     def __init__(self, xyz_f):

@@ -19,25 +19,23 @@ class base_xyz:
     """
     a representation of xyz structure
     usage:
-        a = base_xyz()
-        a.get_info(xyzfile)
+        a = base_xyz(xyz_f)
     """
-    def __init__(self):
-        #self.file = xyz_f
+    def __init__(self, xyz_f):
+        self.file = xyz_f
         self.natom = 0
         self.nspecies = 0
         self.atoms = []
-        self.specie_labels = dict()
-        #self.get_info()
-        #self.cell = self.get_cell()
         self.cell = None
+        self.specie_labels = dict()
 
-    def get_info(self, xyz_f):
+        self.get_info()
+
+    def get_info(self):
         """
-        get info to construct the xyz from an xyz file
+        get info to construct the structure from an xyz file: self.file
         """
-        self.file = xyz_f
-        with open(xyz_f, 'r') as fin:
+        with open(self.file, 'r') as fin:
             self.natom = int(fin.readline())
             fin.readline()
             i = 0
@@ -64,7 +62,8 @@ class base_xyz:
                 self.atoms.append(atom)
                 i += 1
         self.set_species_number()
-        self.cell = self.get_cell(xyz_f)
+        #self.cell = self.get_cell(xyz_f)
+        self.cell = self.get_cell(self.file)
 
     def set_species_number(self):
         names = [self.atoms[x].name for x in range(self.natom)]
@@ -94,14 +93,12 @@ class base_xyz:
         return [float(line.split()[i]) for i in [1, 2, 3, 5, 6, 7, 9, 10, 11]]
 
     def update(self, newxyzfile):
-        #self.file = newxyzfile
+        self.file = newxyzfile
         self.natom = 0
         self.nspecies = 0
         self.atoms = []
         self.specie_labels = dict()
-        #self.get_info()
-        #self.cell = self.get_cell()
-        self.get_info(newxyzfile)
+        self.get_info()
     
     def build_supercell(self, n):
         """
