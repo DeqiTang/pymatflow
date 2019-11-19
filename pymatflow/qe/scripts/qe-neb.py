@@ -38,7 +38,9 @@ if __name__ == "__main__":
     parser.add_argument("--string-method", help="string_method", type=str, default="neb")
     parser.add_argument("--nstep-path", help="nstep_path", type=int, default=100)
     parser.add_argument("--opt-scheme", help="Specify the type of optimization scheme(sd, broyden, broyden2, quick-min, langevin)", type=str, default="broyden")
-    parser.add_argument("--num-of-images", help="number of total images(including the initial and final image)", type=int, default=5)
+
+    parser.add_argument("--num-of-images", help="number of total images(including the initial and final image). about how to set proper number of images: usually the inter-image distance between 1~2Bohr is OK", type=int, default=5)
+
     parser.add_argument("--k-max", help="Set them to use a Variable Elastic Constants scheme elastic constants are in the range [ k_min, k_max  ], this is useful to rise the resolution around the saddle point", type=float, default=0.3e0)
     parser.add_argument("--k-min", help="Set them to use a Variable Elastic Constants scheme elastic constants are in the range [ k_min, k_max  ], this is useful to rise the resolution around the saddle point", type=float, default=0.2e0)
     parser.add_argument("--ci-scheme", help="Specify the type of Climbing Image scheme(no-CI, auto, manual)", type=str, default="auto")

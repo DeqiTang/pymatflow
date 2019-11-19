@@ -603,16 +603,7 @@ class static_run:
                 self.system.to_in(fout)
                 self.electrons.to_in(fout)
                 self.arts.to_in(fout)
-
-            # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname1, output=output1, cmd="pw.x")
-
-        if runopt == "run" or runopt == "genrun":
-            os.chdir(directory)
-            os.system("%s pw.x < %s | tee %s" % (mpi, inpname1, output1))
-            os.chdir("../")
-
-        if runopt == "gen" or runopt == "genrun":
+            #
             with open(os.path.join(directory, inpname2), 'w') as fout:
                 fout.write("&BANDS\n")
                 fout.write("prefix = '%s'\n" % self.control.params["prefix"])
@@ -623,14 +614,17 @@ class static_run:
                 fout.write("\n")
             
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname2, output=output2, cmd="bands.x")
+            with open(os.path.join(directory, "band-structure.sub"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % ("pw.x", inpname1, output1))
+                fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % ("bands.x", inpname2, output2))
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
+            os.system("%s pw.x < %s | tee %s" % (mpi, inpname1, output1))
             os.system("%s bands.x < %s | tee %s" % (mpi, inpname2, output2))
             os.chdir("../")
 
-        
 
     def projwfc(self, directory="tmp-qe-static", inpname="static-projwfc.in", output="static-projwfc.out", 
             mpi="", filpdos="projwfc", ngauss='default', degauss='default', emin='default', emax='default',

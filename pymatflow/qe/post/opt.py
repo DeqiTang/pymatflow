@@ -5,16 +5,26 @@ import os
 import subprocess
 import matplotlib.pyplot as plt
 
-from emuhelper.base.atom import Atom
+from pymatflow.base.atom import Atom
 
 
 class opt_post:
     """
+    Note:
+        opt_post can extract information for the geometric optimization running,
+        including 'relax' and 'vc-relax'. 
+        it will printout the trajectory file(xyz format) and the final optimized
+        structure(if not relaxed, the final structure of the running).
+        so even when your ion step not converged within maximum steps, it can also
+        extract the structure in the final ion step and print it out.
     """
     def __init__(self, output, run_type):
         """
-        output is the output file of opt run. it could be a geo opt
-        or a cell opt
+        output:
+            the output file of opt run. it could be a geo opt or a cell opt
+        
+        relaxed:
+            whether the structure successfully relaxed.
         """
         self.file = output
         self.run_type = run_type 
@@ -23,6 +33,7 @@ class opt_post:
         self.opt_params = {}
         self.run_info = {}
         self.trajectory = None
+        self.relaxed = None # whether structure is relaxed or vcr-relaxed
 
         with open(self.file, 'r') as fout:
             self.lines = fout.readlines()
@@ -34,10 +45,18 @@ class opt_post:
         get the general information of opt run from opt run output file
         which is now stored in self.lines
         """
-        if self.run_type == "relax":
-            self.get_structure_relax()
-        elif self.run_type == "vc-relax":
-            self.get_structure_vc_relax()
+        # check whether successfully relaxed
+        self.relaxed = False
+        for line in self.lines:
+            if line == "Begin final coordinates\n":
+                self.relaxed = True
+                break
+        #
+        if self.relaxed == True:
+            if self.run_type == "relax":
+                self.get_structure_relax()
+            elif self.run_type == "vc-relax":
+                self.get_structure_vc_relax()
         
         self.get_opt_params_and_run_info()
 
@@ -131,6 +150,14 @@ class opt_post:
             self.run_info["ion-steps"] = len(self.run_info["iterations"]) - 2
 
     def to_xyz(self, xyz="optimized.xyz"):
+        if self.relaxed == False:
+            with open("final-structure(not-relaxed).xyz", 'w') as fout:
+                fout.write("%d\n" % len(self.trajectory[0]))
+                fout.write("Warning(%s): structure failed to be relaxed or vc-relaxed, this is the final structure(unrelaxed)\n" % self.run_type)
+                for atom in self.trajectory[-1]:
+                    fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
+            return
+        # printout relaxed structure
         cell = self.cell
         with open(xyz, 'w') as fout:
             fout.write("%d\n" % len(self.atoms))
@@ -196,6 +223,7 @@ class opt_post:
         with open(md, 'w', encoding='utf-8') as fout:
             fout.write("# 几何优化实验统计\n")
             fout.write("几何优化类型: %s\n" % self.run_type)
+            fout.write("是否成功优化: %s\n" % str(self.relaxed))
             fout.write("## 优化参数\n")
             for item in self.opt_params:
                 fout.write("- %s: %s\n" % (item, str(self.opt_params[item])))
