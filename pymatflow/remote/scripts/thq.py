@@ -4,7 +4,7 @@
 import os
 
 import argparse
-from emuhelper.remote.ssh import ssh
+from pymatflow.remote.ssh import ssh
 
 
 """

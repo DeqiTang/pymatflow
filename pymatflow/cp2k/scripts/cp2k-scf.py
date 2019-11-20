@@ -17,49 +17,40 @@ force_eval = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-static")
+    parser.add_argument("-d", "--directory",
+            type=str, default="tmp-cp2k-static",
+            help="directory where the calculation happens")
 
-    parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+    parser.add_argument("-f", "--file", 
+            type=str,
+            help="the xyz file containing the structure to be simulated")
 
-    parser.add_argument("--mpi", type=str, default="",
-            help="MPI command: like 'mpirun -np 4'")
 
     parser.add_argument("--runopt", type=str, default="genrun", 
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
-    parser.add_argument("-p", "--printout-option", nargs="+", type=int,
-            default=[],
-            choicies = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
-            help="Properties printout option, you can also activate multiple prinout-option at the same time. 
-            1: printout pdos
-            2: printout band
-            3: printout electron densities
-            4: printout electron local function(ELF)
-            5: printout molecular orbitals
-            6: printout molecular orbital cube files
-            7: printout mulliken populaltion analysis
-            8: printout cubes for generation of STM images
-            9: printout cube file with total density(electrons+atomic core)
-           10: printout v_hartree_cube
-           11: printout v_xc_cube
-           12: printout xray_diffraction_spectrum
-           13: request a RESP fit of charges.")
+    parser.add_argument("--mpi", type=str, default="",
+            help="MPI command: like 'mpirun -np 4'")
+
+    # ------------------------------------------------------------------
+    #                    FORCE_EVAL related parameters
+    # ------------------------------------------------------------------
 
     parser.add_argument("--ls-scf", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],
-            help="use linear scaling scf method")
+            help="DFT-LS_SCF: use linear scaling scf method")
     
     parser.add_argument("--qs-method", type=str, default="GPW",
             choices=["AM1", "DFTB", "GAPW", "GAPW_XC", "GPW", "LRIGPW", "MNDO", "MNDOD", 
                 "OFGPW", "PDG", "PM3", "PM6", "PM6-FM", "PNNL", "RIGPW", "RM1"],
-            help="specify the electronic structure method")
+            help="DFT-QS-METHOD: specify the electronic structure method")
 
     parser.add_argument("--eps-scf", type=float, default=1.0e-5,
             help="DFT-SCF-EPS_SCF")
 
     parser.add_argument("--xc-functional", type=str, default="PBE",
-            help="XC_FUNCTIONAL type")
+            help="DFT-XC-XC_FUNCTIONAL")
 
     parser.add_argument("--cutoff", type=int, default=100,
             help="CUTOFF, default value: 100 Ry")
@@ -108,7 +99,31 @@ if __name__ == "__main__":
     parser.add_argument("--r-cutoff", type=float, default=1.05835442E+001,
             help="Range of potential. The cutoff will be 2 times this value")
 
-    # for server
+    parser.add_argument("-p", "--printout-option", nargs="+", type=int,
+            default=[],
+            choices = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+            help=
+            """
+            Properties printout option, you can also activate multiple prinout-option at the same time.
+            1: printout pdos
+            2: printout band
+            3: printout electron densities
+            4: printout electron local function(ELF)
+            5: printout molecular orbitals
+            6: printout molecular orbital cube files
+            7: printout mulliken populaltion analysis
+            8: printout cubes for generation of STM images
+            9: printout cube file with total density(electrons+atomic core)
+           10: printout v_hartree_cube
+           11: printout v_xc_cube
+           12: printout xray_diffraction_spectrum
+           13: request a RESP fit of charges.
+           default is no printout of these properties.
+           """)
+
+    # ---------------------------------------------------------
+    #                  for server handling
+    # ---------------------------------------------------------
     parser.add_argument("--auto", type=int, default=0,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.emuhelper/server.conf")
     # ==========================================================

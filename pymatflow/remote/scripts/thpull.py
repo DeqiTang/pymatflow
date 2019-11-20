@@ -5,8 +5,8 @@ import os
 import sys
 
 import argparse
-from emuhelper.remote.ssh import ssh
-from emuhelper.remote.rsync import rsync
+from pymatflow.remote.ssh import ssh
+from pymatflow.remote.rsync import rsync
 
 
 """

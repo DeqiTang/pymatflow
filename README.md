@@ -24,6 +24,7 @@ With scripts to provide preparing and/or post-processing for your Emulations(DFT
 
 ## TODO
 ### CP2K
+* I found the cell opt result of cp2k is not reasonable(maybe inappropriate parameter setting), go and fix it!
 * implementing DFTB calculation
 * implementing Quantum Espresso type calculation by using SIRIUS in cp2k
 * implementing Linear Scaling SCF [OK]

@@ -19,8 +19,19 @@ Usage:
 class cp2k_force_eval:
     """
     Note:
-        注意cp2k_force_eval与cp2k_dft和cp2k_subsys的关系是have a
-        而不是is kind of a. 因此这里采用的是组合的方式.
+        cp2k_force_eval is the class to be responsible for CP2K/FORCE_EVAL
+        related settings.
+
+        FORCE_EVAL manage parameters that are needed to describe your system
+        and calculate energy and energy of the defined system. so it is actually
+        the core driver for other calculations, and as a result, we must set 
+        appropriate parameters here to guarantee a proper running for both
+        static calculation and other calculations including geometric optimization,
+        molecular dynamics, nudged elastic band, etc.
+
+        the relationship between cp2k_force_eval and cp2k_dft is 'have a',
+        rather than 'is kind of a', so here combination is used to organize
+        the these classes.
     """
     def __init__(self, xyz_f):
         self.subsys = cp2k_subsys(xyz_f)
@@ -46,7 +57,7 @@ class cp2k_force_eval:
     
     def check_spin(self):
         """
-        调用self.dft的check_spin()函数
+        call self.dft.check_spin()
         """
         self.dft.check_spin(self.subsys.xyz)
 

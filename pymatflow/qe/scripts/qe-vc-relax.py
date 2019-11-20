@@ -17,26 +17,68 @@ electrons_params = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory for the vc-relax running", type=str, default="tmp-qe-vc-relax")
-    parser.add_argument("-f", "--file", help="the xyz file name", type=str)
-    parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
-    parser.add_argument("--mpi", help="MPI command", type=str, default="")
-    parser.add_argument("--etot-conv-thr", type=float, default=1.0e-4)
-    parser.add_argument("--forc-conv-thr", type=float, default=1.0e-3)
-    parser.add_argument("--nstep", help="number of maximum optimization steps", type=int, default=50)
-    parser.add_argument("--ecutwfc", help="ecutwfc", type=int, default=100)
-    parser.add_argument("--ecutrho", help="ecutrho", type=int, default=400)
+
+    parser.add_argument("-d", "--directory", 
+            type=str, default="tmp-qe-vc-relax",
+            help="directory for the vc-relax running")
+
+    parser.add_argument("-f", "--file", 
+            type=str,
+            help="the xyz file containg the structure to be simulated")
+
+    parser.add_argument("--runopt",
+            type=str, default="genrun",
+            help="run option, could be: gen, run, genrun")
+
+    parser.add_argument("--mpi", 
+            type=str, default="",
+            help="the mpi command used")
+
+    # -------------------------------------------------------------------
+    #                       scf related parameters
+    # -------------------------------------------------------------------
+    parser.add_argument("--ecutwfc", 
+            type=int, default=100)
+
+    parser.add_argument("--ecutrho", 
+            type=int, default=400)
+
     parser.add_argument("--kpoints-option", help="kpoints option", type=str, default="automatic")
+
     parser.add_argument("-k", "--kpoints", help="set kpoints like '1 1 1 0 0 0'", type=str, default="1 1 1 0 0 0")
-    parser.add_argument("--conv-thr", help="conv_thr for scf", type=float, default=1.0e-6)
+
+    parser.add_argument("--conv-thr", type=float, default=1.0e-6,
+            help="the conv_thr for scf, when doing geometric optimization better use a strict covnergec for scf")
+
     parser.add_argument("--occupations", help="occupation type", type=str, default="smearing")
+
     parser.add_argument("--smearing", help="smearing type", type=str, default="gaussian")
+
     parser.add_argument("--degauss", help="value of the gaussian spreading (Ry) for brillouin-zone integration in metals.", type=float, default=0.001)
     parser.add_argument("--vdw-corr", help="vdw_corr = dft-d, dft-d3, ts-vdw, xdm", type=str, default="none")
 
-    # for server
+
+    # -------------------------------------------------------------------
+    #               geometric optimization related parameters
+    # -------------------------------------------------------------------
+    parser.add_argument("--etot-conv-thr", 
+            type=float, default=1.0e-4,
+            help="convergence threshold of energy for geometric optimization")
+
+    parser.add_argument("--forc-conv-thr", 
+            type=float, default=1.0e-3,
+            help="convergence threshold for force in optimization,(usually it is more important than energy)")
+
+    parser.add_argument("--nstep",
+            type=int, default=50,
+            help="maximum ion steps for geometric optimization")
+    # -------------------------------------------------------------------
+    #                       for server handling
+    # -------------------------------------------------------------------
     parser.add_argument("--auto", type=int, default=0,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.emuhelper/server.conf")
+
+
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================

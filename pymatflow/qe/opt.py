@@ -15,6 +15,10 @@ from pymatflow.qe.base.arts import qe_arts
 
 class opt_run:
     """
+    structural optimization uses both energies and forces to locate the minima
+    along serach directions. usually insufficient scf convergence will lead to
+    bad convergence of BFGS algorithm or even to errors. so when doing geometric
+    optimization, we better set parameters to get a good scf convergece.
     """
     def __init__(self, xyz_f):
         self.control = qe_control()
