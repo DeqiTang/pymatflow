@@ -31,29 +31,32 @@ class md_run:
         self.ions.params["tolmxf"] = 5.0e-4 # Ha/Bohr
         self.ions.params["toldfe"] = 1.0e-6
         
-    def gen_input(self, directory="tmp-abinit-md", inpname="molecular-dynamics.in"):
-        if os.path.exists(directory):
-            shutil.rmtree(directory)
-        os.mkdir(directory)
-        os.system("cp *.psp8 %s/" % directory) 
+    def md(self, directory="tmp-abinit-md", inpname="molecular-dynamics.in", mpi="", runopt="gen",
+            electrons={}, ions={}, kpoints={}):
+        if runopt == "gen" or runopt == "genrun":
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
+            os.system("cp *.psp8 %s/" % directory) 
+            os.system("cp %s %s/" % (self.system.xyz.file, directory))
 
-        with open(os.path.join(directory, inpname), 'w') as fout:
-            self.electrons.to_in(fout)
-            self.ions.to_in(fout)
-            self.system.to_in(fout)
+            with open(os.path.join(directory, inpname), 'w') as fout:
+                self.electrons.to_in(fout)
+                self.ions.to_in(fout)
+                self.system.to_in(fout)
 
-        with open(os.path.join(directory, inpname.split(".")[0]+".files"), 'w') as fout:
-            fout.write("%s\n" % inpname)
-            fout.write("%s.out\n" % inpname.split(".")[0])
-            fout.write("%si\n" % inpname.split(".")[0])
-            fout.write("%so\n" % inpname.split(".")[0])
-            fout.write("temp\n")
-            for element in self.system.xyz.specie_labels:
-                fout.write("%s\n" % (element + ".psp8"))
-    def run(self, directory="tmp-abinit-md", inpname="molecular-dynamics.in"):
-        os.chdir(directory)
-        os.system("abinit < %s" % inpname.split(".")[0]+".files")
-        os.chdir("../")
+            with open(os.path.join(directory, inpname.split(".")[0]+".files"), 'w') as fout:
+                fout.write("%s\n" % inpname)
+                fout.write("%s.out\n" % inpname.split(".")[0])
+                fout.write("%si\n" % inpname.split(".")[0])
+                fout.write("%so\n" % inpname.split(".")[0])
+                fout.write("temp\n")
+                for element in self.system.xyz.specie_labels:
+                    fout.write("%s\n" % (element + ".psp8"))
+        if runopt == "run" or runopt == "genrun":
+            os.chdir(directory)
+            os.system("abinit < %s" % inpname.split(".")[0]+".files")
+            os.chdir("../")
     
     def analysis(self, directory="tmp-abinit-md", inpname="molecular-dynamics.in"):
         pass

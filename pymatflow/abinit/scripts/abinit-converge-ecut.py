@@ -4,7 +4,7 @@
 import sys
 import argparse 
 
-from emuhelper.abinit.static import static_run
+from pymatflow.abinit.static import static_run
 
 """
 usage: abinit-converge-ecut.py xxx.xyz emin emax step

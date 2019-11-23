@@ -75,6 +75,9 @@ class bands_post:
             with open("bandplot.gp", 'w') as fout:
                 fout.write("set terminal gif\n")
                 fout.write("set output 'bandstructure.gif'\n")
+                fout.write("unset key\n")
+                fout.write("set parametric\n")
+                
                 fout.write("set title 'Bandstructure'\n")
                 fout.write("set xlabel 'K'\n")
                 fout.write("set ylabel 'Energy(eV)'\n")
@@ -82,7 +85,13 @@ class bands_post:
                 for point in self.specialk:
                     fout.write("'%s' %f, " % (point["label"], point["xcoord"]))
                 fout.write(")\n")
-                fout.write("plot '%s' w l \n" % (self.bandfile_gnu))
+                fout.write("plot ")
+                fout.write("'%s' w l " % (self.bandfile_gnu))
+
+                for i in range(len(self.specialk) - 1):
+                    fout.write(", %f, t" % (self.specialk[i]["xcoord"]))
+                fout.write(", %f, t\n" % self.specialk[-1]["xcoord"])
+                fout.write("\n")
             os.system("gnuplot bandplot.gp")
 
         elif option == "matplotlib":

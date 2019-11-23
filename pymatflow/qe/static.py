@@ -915,8 +915,8 @@ class static_run:
             os.system("%s turbo_spectrum.x < %s | tee %s" % (mpi, inpname2, output2))
             os.chdir("../")
 
-    def phx_qmesh(self, directory="tmp-qe-static", inpname="phx-qmesh.in", output="phx-qmesh.out", 
-            dynamat_file="phx-qmesh.dyn", mpi="", runopt="gen", qpoints=[2, 2, 2]):
+    def phx(self, directory="tmp-qe-static", inpname="phx.in", output="phx.out", mpi="", runopt="gen",
+            inputpp={}, qpoints=[2, 2, 2]):
         """
         Reference:
             https://gitlab.com/QEF/material-for-ljubljana-qe-summer-school/blob/master/Day-3/handson-day3-DFPT.pdf
@@ -936,10 +936,6 @@ class static_run:
             at a q-grid to get a phonon dispersion graph
             
         Note:
-            this function(phonon_phx_qmesh) do phonon calculation at 
-            a q-grid
-            another function(phonon_phx_gamma) do phonon calculation only
-            at \Gamma point
 
             PHonon: linear-response calculations(phonons, dielectric properties)
                 (1) phonon frequencies and eigenvectors at a generic wave vector
@@ -950,27 +946,58 @@ class static_run:
                 (6) third-order anharmonic phonon lifetimes cross sections
 
         """
+        inputpp = {
+                "outdir": self.control.params["outdir"],
+                "prefix": self.control.params["prefix"],
+                "fildyn": "matdyn",
+                "tr2_ph": 1.0e-14,
+                "epsil": None,
+                "lrpa": None,
+                "lnoloc": None,
+                "ldisp": None,
+                }
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
             print("===================================================\n")
             print("                 Warning !!!\n")
             print("===================================================\n")
-            print("ph.x with qmesh calculation:\n")
+            print("ph.x calculation:\n")
             print("  directory of previous scf or nscf calculattion not found!\n")
             sys.exit(1)
         if runopt == "gen" or runopt == "genrun":
             with open(os.path.join(directory, inpname), 'w') as fout:
                 fout.write("&inputph\n")
-                fout.write("tr2_ph = 1.0d-14\n")
-                fout.write("ldisp = .true.\n") # option for the calculation on a grid
-                fout.write("nq1 = %d\n" % qpoints[0]) # 4
-                fout.write("nq2 = %d\n" % qpoints[1]) # 4
-                fout.write("nq3 = %d\n" % qpoints[2]) # 4
-                fout.write("prefix = '%s'\n" % self.control.params["prefix"])
-                fout.write("outdir = '%s'\n" % self.control.params["outdir"])
-                fout.write("fildyn = '%s'\n" % dynamat_file)
+                for item in inputpp:
+                    if inputpp[item] is not None:
+                        if type(inputpp[item]) == str:
+                            fout.write("%s = '%s'\n" % (item, str(inputpp[item])))
+                        else:
+                            fout.write("%s = %s\n" % (item, str(inputpp[item])))
+                # get info about atom fixation
+                nat_todo = 0
+                for atom in self.arts.xyz.atoms:
+                    if False in atom.fix:
+                        nat_todo += 1
+                        
+                if nat_todo == self.arts.xyz.natom:
+                    fout.write("nat_todo = 0\n") # displace all atoms
+                    fout.write("nogg = .false.\n")
+                else:
+                    fout.write("nat_todo = %d\n" % nat_todo)
+                    fout.write("nogg = .true.\n") 
+                    # gamma_gamma tricks with nat_todo != 0 not available,
+                    # so we must use nogg = .true.
                 fout.write("/\n")
+                fout.write("0.0 0.0 0.0\n")
+                # indicies of atom to be used in the calculation
+                if nat_todo < self.arts.xyz.natom:
+                    for i in range(self.arts.xyz.natom):
+                        if False in self.arts.xyz.atoms[i].fix:
+                            fout.write("%d " % (i+1))
+                    fout.write("\n")
+                # end incicies for atoms to be used in the calculation
                 fout.write("\n")
+
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="ph.x")
 
@@ -1071,43 +1098,15 @@ class static_run:
             os.chdir("../")
 
 
-    def phx_gamma(self, directory="tmp-qe-static", inpname="phx-gamma.in", output="phx-gamma.out", 
-            dynamat_file="phx-gamma.dyn", mpi="", runopt="gen"):
-        """
-        do phonon calculation only at \Gamma point
-        """
-        # first check whether there is a previous scf running
-        if not os.path.exists(directory):
-            print("===================================================\n")
-            print("                 Warning !!!\n")
-            print("===================================================\n")
-            print("ph.x with gamma calculation:\n")
-            print("  directory of previous scf or nscf calculattion not found!\n")
-            sys.exit(1)
-        if runopt == "gen" or runopt == "genrun":
-            with open(os.path.join(directory, inpname), 'w') as fout:
-                fout.write("&inputph\n")
-                fout.write("tr2_ph = 1.0d-14\n")
-                fout.write("prefix = '%s'\n" % self.control.params["prefix"])
-                fout.write("outdir = '%s'\n" % self.control.params["outdir"])
-                fout.write("fildyn = '%s'\n" % dynamat_file)
-                fout.write("/\n")
-                fout.write("0.0 0.0 0.0\n")
-                fout.write("\n")
-            # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="ph.x")
-
-        if runopt == "run" or runopt == "genrun":
-            os.chdir(directory)
-            os.system("%s ph.x < %s | tee %s" % (mpi, inpname, output))
-            os.chdir("../")
-
-    def dynmat(self, directory="tmp-qe-static", inpname="dynmat.in", output="dynmat.out", 
-            dynamat_file="phx-qmesh.dyn", mpi="", runopt="gen"):
+    def dynmat(self, directory="tmp-qe-static", inpname="dynmat.in", output="dynmat.out", mpi="", runopt="gen",
+            fildyn="matdyn"):
         """
         imposing acoustic sum rule (ASR)
         extract the phonon information from ph.x output using dynmat.x(
         which can also be used to get IR and Raman.
+        the generated fildyn.axsf fildyn.mold can be visualized by xcrysden
+        and molden separately, and molden can visualize the vibration through
+        fildyn.mold
         )
         """
         # first check whether there is a previous scf running
@@ -1121,7 +1120,7 @@ class static_run:
         if runopt == "gen" or runopt == "genrun":
             with open(os.path.join(directory, inpname), 'w') as fout:
                 fout.write("&input\n")
-                fout.write("fildyn = '%s'\n" % dynamat_file) # File containing the dynamical matrix
+                fout.write("fildyn = '%s'\n" % fildyn) # File containing the dynamical matrix
                 fout.write("asr = 'simple'\n")
                 fout.write("/\n")
                 fout.write("\n")

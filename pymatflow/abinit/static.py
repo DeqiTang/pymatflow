@@ -11,6 +11,7 @@ from pymatflow.abinit.base.properties import abinit_properties
 
 class static_run:
     """
+    GOAL: support for both single dataset and multi-dataset mode in abinit
     """
     def __init__(self, xyz_f):
         self.system = abinit_system(xyz_f)

@@ -3,7 +3,7 @@
 
 import sys
 
-from emuhelper.abinit.phonopy import phonopy
+from pymatflow.abinit.phonopy import phonopy
 
 """
 usage:

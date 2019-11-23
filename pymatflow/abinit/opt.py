@@ -22,12 +22,13 @@ class opt_run:
         self.ions.basic_setting()
 
     def optimize(self, directory="tmp-abinit-opt", inpname="geometric-optimization.in", mpi="", runopt="gen",
-            electrons={}, kpoints={}, ions={}):
+            electrons={}, ions={}, kpoints={}):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.psp8 %s/" % directory) 
+            os.system("cp %s %s/" % (self.system.xyz.file, directory))
 
             self.electrons.set_params(electrons)
             self.electrons.kpoints.set_kpoints(kpoints)

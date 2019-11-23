@@ -38,9 +38,9 @@ if __name__ == "__main__":
     parser.add_argument("--ecutrho", type=int, default=400,
             help="Kinetic energy cutoff for charge density and potential in unit of Rydberg, default value: 400 Ry")
 
-    parser.add_argument("--kpoints-option", type=str, default="automatic", 
+    parser.add_argument("--kpoints-option", type=str, default="tpiba_b", 
             choices=["automatic", "gamma", "tpiba_b"],
-            help="Kpoints generation scheme option for the SCF or non-SCF calculation")
+            help="Kpoints generation scheme option for band calculation")
 
     parser.add_argument("-k", "--kpoints", type=str, default="1 1 1 0 0 0",
             help="Monkhorst-Pack kpoint grid, in format like '1 1 1 0 0 0'")

@@ -20,17 +20,8 @@ if __name__ == "__main__":
     parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
    
     # --------------------------------------------------------------
-    # for phx
+    # for matdyn
     # --------------------------------------------------------------
-    parser.add_argument("--phx-qpoints", type=int, nargs="+",
-            default=[2, 2, 2],
-            help="qpoints for ph.x")
-
-    # for q2r
-    parser.add_argument("--zasr", type=str, default="simple",
-            help="sum rule")
-
-    # for matdyn.x
     parser.add_argument("--asr", type=str, default='simple',
             help="type of sum rule")
     parser.add_argument("--nqpoints", type=int, default=2,
@@ -39,15 +30,12 @@ if __name__ == "__main__":
             default= [0.0, 0.0, 0.0, 0.0, 0.012658, 0.0, 0.0, 0.012658],
             help="matdyn qpoints")
 
-    # for plotband
-    parser.add_argument("--freq-min", type=float, default=0,
-            help="range of frequencies for visualization")
-    parser.add_argument("--freq-max", type=float, default=600,
-            help="range of frequencies for visualization")
-    
+    # ------------------------------------------------------------- 
     # for server
+    # -------------------------------------------------------------
     parser.add_argument("--auto", type=int, default=0,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.emuhelper/server.conf")
+
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================
@@ -61,7 +49,7 @@ if __name__ == "__main__":
     print(matdyn_qpoints)
 
     task = static_run(xyzfile)
-    task.phx(directory=args.directory, mpi=args.mpi, runopt=args.runopt, qpoints=args.phx_qpoints)
+    task.matdyn(directory=args.directory, mpi=args.mpi, runopt=args.runopt, asr=args.asr, nqpoints=args.nqpoints, qpoints=matdyn_qpoints)
 
     # server handle
     if args.auto == 0:

@@ -4,7 +4,7 @@
 import sys
 import argparse
 
-from emuhelper.abinit.opt import opt_run
+from pymatflow.abinit.opt import opt_run
 
 """
 usage:
@@ -43,9 +43,9 @@ if __name__ == "__main__":
     parser.add_argument("--vdw-tol", type=float,
             default=None,
             help="Van Der Waals tolerance, only work when vdw_xc == 5 or 6 or 7. to be included in the potential a pair of atom must have contribution to the energy larger than vdw_tol. default value is 1.0e-10")
-    parser.add_argument("--ionmov", type=int,
-            default=3,
-            help="type ov ionmov algorithm")
+    parser.add_argument("--ionmov", type=int, default=3,
+            choices=[2, 3, 4, 5],
+            help="type of ionmov algorithm")
     parser.add_argument("--optcell", type=int,
             default=0,
             help="whether to optimize the cell shape and dimension")

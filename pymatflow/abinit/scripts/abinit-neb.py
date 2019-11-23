@@ -3,7 +3,7 @@
 
 import sys
 import argparse
-from emuhelper.abinit.neb import neb_run
+from pymatflow.abinit.neb import neb_run
 
 """
 usage:

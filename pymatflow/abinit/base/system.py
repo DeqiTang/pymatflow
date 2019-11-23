@@ -3,16 +3,14 @@
 
 import pymatgen as mg
 
-from emuhelper.base.xyz import base_xyz
+from pymatflow.base.xyz import base_xyz
 
 
 class abinit_system:
     """
     """
     def __init__(self, xyz_f):
-        #self.xyz = base_xyz(xyz_f)
-        self.xyz = base_xyz()
-        self.xyz.get_info(xyz_f)
+        self.xyz = base_xyz(xyz_f)
 
     def to_in(self, fout):
         # fout: a file stream for writing

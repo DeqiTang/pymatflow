@@ -3,7 +3,7 @@
 
 import sys
 import argparse
-from emuhelper.abinit.dfpt import dfpt_run
+from pymatflow.abinit.dfpt import dfpt_run
 
 """
 usage:

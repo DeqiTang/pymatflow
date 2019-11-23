@@ -34,6 +34,8 @@ class neb_run:
             os.mkdir(directory)
             os.system("cp *.psp8 %s/" % directory)
             os.system("cp *.GGA_PBE-JTH.xml %s/" % directory)
+            for image in self.system:
+                os.system("cp %s %s/" % (image.xyz.file, directory))
 
             self.electrons.set_scf_nscf("scf")
             self.electrons.set_params(electrons)
