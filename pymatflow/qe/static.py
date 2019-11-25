@@ -1172,7 +1172,7 @@ class static_run:
             os.system("%s fs.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
 
-    def pp(self, directory="tmp-qe-static", prefix="pp", plot_num=0, iflag=3, output_format=5, mpi="", runopt="gen"):
+    def pp(self, directory="tmp-qe-static", prefix="pp", plot_num=[0], iflag=3, output_format=5, mpi="", runopt="gen"):
         """
         """
         # first check whether there is a previous scf running
@@ -1205,15 +1205,21 @@ class static_run:
                     20: "product-of-charge-density-with-hessian",
                     21: "all-electron-density-paw-only",
                     }
-            with open(os.path.join(directory, prefix+"-"+table[plot_num]+".in"), 'w') as fout:
-                self.pp_inputpp(fout, plot_num=plot_num, filplot=table[plot_num]+".dat")
-                self.pp_plot(fout, output_format=output_format, iflag=iflag, filepp=table[plot_num]+".dat")
+            for plot_num_i in plot_num:
+                with open(os.path.join(directory, prefix+"-"+table[plot_num_i]+".in"), 'w') as fout:
+                    self.pp_inputpp(fout, plot_num=plot_num_i, filplot=table[plot_num_i]+".dat")
+                    self.pp_plot(fout, output_format=output_format, iflag=iflag, filepp=table[plot_num_i]+".dat")
+
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=prefix+"-"+table[plot_num]+".in", output=prefix+"-"+table[plot_num]+".out", cmd="pp.x")
+            with open(os.path.join(directory, "pp.x.sub"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                for plot_num_i in plot_num:
+                    fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % ("pp.x", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))   
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s pp.x < %s | tee %s" % (mpi, prefix+"-"+table[plot_num]+".in", prefix+"-"+table[plot_num]+".out"))
+            for plot_num_i in plot_num:
+                os.system("%s pp.x < %s | tee %s" % (mpi, prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
             os.chdir("../")
 
 

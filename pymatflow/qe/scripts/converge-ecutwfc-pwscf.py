@@ -8,11 +8,11 @@ import shutil
 import re
 import pymatgen as mg
 
-from emuhelper.qe.base.control import qe_control
-from emuhelper.qe.base.system import qe_system
-from emuhelper.qe.base.electrons import qe_electrons
-from emuhelper.qe.base.ions import qe_ions
-from emuhelper.qe.base.arts import qe_arts
+from pymatflow.qe.base.control import qe_control
+from pymatflow.qe.base.system import qe_system
+from pymatflow.qe.base.electrons import qe_electrons
+from pymatflow.qe.base.ions import qe_ions
+from pymatflow.qe.base.arts import qe_arts
 
 """
 Usage:

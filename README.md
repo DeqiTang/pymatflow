@@ -1,6 +1,6 @@
 # emuhelper
 
-With scripts to provide preparing and/or post-processing for your Emulations(DFT, MD, FEM).
+With scripts to provide preparing and/or post-processing for your Emulations(DFT, MD).
 
 ## Goals
 * powerful and stable calculator supports for popular Ab initio programs

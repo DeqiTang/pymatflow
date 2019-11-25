@@ -2,7 +2,7 @@
 # _*_ coding: utf-8 _*_
 
 import sys
-from emuhelper.base.cluster import cluster_xyz
+from pymatflow.base.cluster import cluster_xyz
 
 """
 usage:

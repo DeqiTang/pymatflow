@@ -85,12 +85,14 @@ class bands_post:
                 for point in self.specialk:
                     fout.write("'%s' %f, " % (point["label"], point["xcoord"]))
                 fout.write(")\n")
+                fout.write("set grid xtics ytics\n")
                 fout.write("plot ")
                 fout.write("'%s' w l " % (self.bandfile_gnu))
-
-                for i in range(len(self.specialk) - 1):
-                    fout.write(", %f, t" % (self.specialk[i]["xcoord"]))
-                fout.write(", %f, t\n" % self.specialk[-1]["xcoord"])
+                # 
+                #for i in range(len(self.specialk) - 1):
+                #    fout.write(", %f, t" % (self.specialk[i]["xcoord"]))
+                #fout.write(", %f, t\n" % self.specialk[-1]["xcoord"])
+                #
                 fout.write("\n")
             os.system("gnuplot bandplot.gp")
 

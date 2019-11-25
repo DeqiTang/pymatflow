@@ -18,7 +18,7 @@ class rsync:
     def copy(self, source, target):
         print("=========================================\n")
         print("command line to execute:\n")
-        print("  rsync -av %s %s\n" % (source, target))
+        print("  rsync -av --progress %s %s\n" % (source, target))
         print("......\n")
         os.system("rsync -av %s %s" % (source, target))
 

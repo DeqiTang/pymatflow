@@ -8,7 +8,7 @@ import shutil
 import re
 import pymatgen as mg
 
-from emuhelper.qe.base.xyz import qe_xyz
+from pymatflow.qe.base.xyz import qe_xyz
 
 """
 Usage:

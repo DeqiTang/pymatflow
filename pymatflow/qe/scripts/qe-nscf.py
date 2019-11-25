@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
+import os
 import argparse
 
 from pymatflow.qe.static import static_run
