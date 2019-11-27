@@ -36,14 +36,42 @@ class cp2k_properties_resp:
         fout.write("\t\t\t&END PRINT\n")
         fout.write("\t\t&END RESP\n")
 
+
+class cp2k_properties_linres:
+    def __init__(self):
+        self.params = {
+                "ENERGY_GAP": None,
+                "EPS": None,
+                "MAX_ITER": None,
+                "PRECONDITIONER": None,
+                }
+        self.status = False
+
+    def to_properties(self, fout):
+        fout.write("\t\t&LINRES\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t&POLAR\n")
+        fout.write("\t\t\t\tDO_RAMAN .TRUE.\n")
+        fout.write("\t\t\t&END POLAR\n")
+
+        fout.write("\t\t\t&CURRENT\n")
+        fout.write("\t\t\t&END CURRENT\n")
+
+        fout.write("\t\t&END LINRES\n")
+
 class cp2k_properties:
     def __init__(self):
         self.params = {
                 }
         self.resp = cp2k_properties_resp()
+        self.linres = cp2k_properties_linres()
 
     def to_force_eval(self, fout):
         fout.write("\t&PROPERTIES\n")
         if self.resp.status == True:
             self.resp.to_properties(fout)
+        if self.linres.status == True:
+            self.linres.to_properties(fout)
         fout.write("\t&END PROPERTIES\n")

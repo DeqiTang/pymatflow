@@ -31,6 +31,7 @@ class kpoints:
         self.params["nshiftk"] = 1
         self.params["shiftk"] = np.full([self.params["nshiftk"], 3], 0.5)
         #self.params["shfitk"] = np.zeros([self.nshiftk, 3])
+
     
     def to_in(self, fout):
         # fout: a file stream for writing
@@ -43,6 +44,8 @@ class kpoints:
             fout.write("shiftk\n")
             for i in range(self.params["nshiftk"]):
                 fout.write("%f %f %f\n" % (self.params["shiftk"][i][0], self.params["shiftk"][i][1], self.params["shiftk"][i][2]))
+
+            #fout.write("istwfk 1\n") # for rf
         #
         if self.params["kptopt"] == 0:
             fout.write("kptopt 0\n\n")
@@ -50,9 +53,12 @@ class kpoints:
             fout.write("kpt \n\n")
             fout.write("kptnrm \n\n")
             fout.write("wtk \n\n")
+            fout.write("istwfk 1\n") # for rf
         #
         if self.params["kptopt"] == 2:
-            pass
+            fout.write("kptopt 2\n")
+            fout.write("ngkpt %d %d %d\n\n" %(self.params["ngkpt"][0], self.params["ngkpt"][1], self.params["ngkpt"][2]))
+            #fout.write("istwfk 1\n") # for rf
         #
         fout.write("\n")
 

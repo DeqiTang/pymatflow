@@ -4,7 +4,7 @@
 import os
 import argparse
 
-from pymatflow.qe.static import static_run
+from pymatflow.qe.phonopy import phonopy_run
 from pymatflow.remote.ssh import ssh
 from pymatflow.remote.rsync import rsync
 
@@ -22,8 +22,8 @@ electrons_params = {}
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-d", "--directory", type=str, default="tmp-qe-static",
-            help="Directory for the static running.")
+    parser.add_argument("-d", "--directory", type=str, default="tmp-qe-phonopy",
+            help="Directory for the phonopy running.")
     parser.add_argument("-f", "--file", type=str,
             help="The xyz file name.")
     parser.add_argument("--runopt", type=str, default="genrun", 
@@ -68,10 +68,6 @@ if __name__ == "__main__":
 
     parser.add_argument("--nbnd", type=int, default=None,
             help="Number of electronic states (bands) to be calculated")
-
-    parser.add_argument("--tstress", type=str, default=".false.",
-            choices=[".true.", ".false."],
-            help="calculate stress. default=.false.")
     
     # -----------------------------------------------------------------
     #                      for server handling
@@ -85,7 +81,6 @@ if __name__ == "__main__":
     # ==========================================================   
     args = parser.parse_args()
     xyzfile = args.file
-    control_params["tstress"] = args.tstress
     system_params["ecutwfc"] = args.ecutwfc
     system_params["ecutrho"] = args.ecutrho
     system_params["occupations"] = args.occupations
@@ -97,8 +92,8 @@ if __name__ == "__main__":
     kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
     
 
-    task = static_run(xyzfile)
-    task.scf(directory=args.directory, runopt=args.runopt, mpi=args.mpi, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=kpoints_mp)
+    task = phonopy_run(xyzfile)
+    task.phonopy(directory=args.directory, runopt=args.runopt, mpi=args.mpi, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=kpoints_mp)
 
     # server handle
     if args.auto == 0:

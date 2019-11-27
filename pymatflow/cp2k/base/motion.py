@@ -69,6 +69,10 @@ class cp2k_motion:
             self.geo_opt.to_motion(fout)
         elif self.run_type == "CELL_OPT":
             self.cell_opt.to_motion(fout)
+            # if the MOTION-CELL_OPT-TYPE == "GEO_OPT"
+            # we also need to provide GEO_OPT section
+            if self.cell_opt.params["TYPE"].upper() == "GEO_OPT":
+                self.geo_opt.to_motion(fout)
         elif self.run_type == "MC":
             self.mc.to_motion(fout)
         elif self.run_type == "MD":

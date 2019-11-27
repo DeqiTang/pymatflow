@@ -133,6 +133,7 @@ class cp2k_dft:
             if self.params[item] is not None:                    
                 fout.write("\t\t%s %s\n" % (item, self.params[item]))
         self.qs.to_dft(fout)
+        self.poisson.to_dft(fout)
         if self.ls_scf.section.upper() == "TRUE":
             self.ls_scf.to_dft(fout)
         self.mgrid.to_dft(fout)

@@ -59,7 +59,7 @@ class lr_run:
                 #self.atom.to_input(fout)
  
             # gen server job comit file
-            self.gen_yh(cmd="cp2k.popt", inpname=inpname, output=output)   
+            self.gen_yh(cmd="cp2k.popt", directory=directory, inpname=inpname, output=output)   
 
         if runopt == "run" or runopt == "genrun":
            os.chdir(directory)
@@ -86,6 +86,7 @@ class lr_run:
            11: printout v_xc_cube
            12: printout xray_diffraction_spectrum
            13: request a RESP fit of charges.
+           14: request a LINRES calculation
         """
         if 1 in option:
             self.force_eval.dft.printout.print_pdos()
@@ -113,8 +114,13 @@ class lr_run:
             self.force_eval.dft.printout.xray_diffraction_spectrum = True
         if 13 in option:
             self.force_eval.properties.resp.status = True
+        if 14 in option:
+            self.force_eval.properties.linres.status = True
+            # XC_DERIV method not implemented for GPW!
+            # so we try GAPW
+            self.force_eval.dft.qs.params["METHOD"] = "RIGPW"
 
-    def gen_yh(self,inpname, output, directory="tmp-cp2k-static", cmd="cp2k.psmp"):
+    def gen_yh(self,inpname, output, directory="tmp-cp2k-lr", cmd="cp2k.psmp"):
         """
         generating yhbatch job script for calculation
         """

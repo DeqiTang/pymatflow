@@ -24,9 +24,8 @@ class abinit_dfpt:
 
                 "asr": None,
                 "dfpt_sciss": None,
-                ""
                 }
-        self.kpoints = kpoints()
+        #self.kpoints = kpoints()
                 
     def to_in(self, fout):
         # fout: a file stream for writing
@@ -41,7 +40,13 @@ class abinit_dfpt:
         fout.write("\n")
         for item in self.params:
             if self.params[item] is not None:
-                fout.write("%s %s\n" % (item, str(self.params[item])))
+                if item == "rfdir":
+                    fout.write("rfdir %d %d %d\n" % (self.params[item][0], self.params[item][1], self.params[item][2]))
+                elif item == "rfatpol":
+                    #fout.write("rfatpol %d %d\n" % (self.params["rfatpol"][0], self.params["rfatpol"][1]))
+                    pass
+                else:
+                    fout.write("%s %s\n" % (item, str(self.params[item])))
                 fout.write("\n")
         fout.write("\n")
 
@@ -50,6 +55,8 @@ class abinit_dfpt:
         self.params["rfphon"] = 1
         self.params["rfdir"] = [1, 1, 1]
         self.params["rfelfd"] = 3
+        self.params["nqpt"] = 1
+        #self.params["qpt"] = [0, 0, 0]
 
     def set_params(self, params):
         for item in params:

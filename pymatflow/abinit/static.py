@@ -11,7 +11,8 @@ from pymatflow.abinit.base.properties import abinit_properties
 
 class static_run:
     """
-    GOAL: support for both single dataset and multi-dataset mode in abinit
+    GOAL: support for both single dataset and multi-dataset mode in abinit,
+          currently, only for single dataset mode
     """
     def __init__(self, xyz_f):
         self.system = abinit_system(xyz_f)
@@ -19,7 +20,7 @@ class static_run:
         self.properties = abinit_properties()
 
         self.electrons.basic_setting()
-
+        
         
     def scf(self, directory="tmp-abinit-static", inpname="static-scf.in", mpi="", runopt="gen",
             electrons={}, kpoints={}, properties=[]):
@@ -42,8 +43,8 @@ class static_run:
             with open(os.path.join(directory, inpname.split(".")[0]+".files"), 'w') as fout:
                 fout.write("%s\n" % inpname)
                 fout.write("%s.out\n" % inpname.split(".")[0])
-                fout.write("%si\n" % inpname.split(".")[0])
-                fout.write("%so\n" % inpname.split(".")[0])
+                fout.write("%s-input\n" % inpname.split(".")[0])
+                fout.write("%s-output\n" % inpname.split(".")[0])
                 fout.write("temp\n")
                 for element in self.system.xyz.specie_labels:
                     fout.write("%s\n" % (element + ".psp8"))
@@ -77,8 +78,8 @@ class static_run:
             with open(os.path.join(directory, inpname.split(".")[0]+".files"), 'w') as fout:
                 fout.write("%s\n" % inpname)
                 fout.write("%s.out\n" % inpname.split(".")[0])
-                fout.write("static-scfo\n")
-                fout.write("%so\n" % inpname.split(".")[0])
+                fout.write("static-scf-output\n")
+                fout.write("%s-output\n" % inpname.split(".")[0])
                 fout.write("temp\n")
                 for element in self.system.xyz.specie_labels:
                     fout.write("%s\n" % (element + ".psp8"))
@@ -109,8 +110,8 @@ class static_run:
                     fout.write(inp_name)
                     fout.write("\n")
                     fout.write("ecut-%d.out\n" % cutoff)
-                    fout.write("ecut-%di\n" % cutoff)
-                    fout.write("ecut-%do\n" % cutoff)
+                    fout.write("ecut-%d-input\n" % cutoff)
+                    fout.write("ecut-%d-output\n" % cutoff)
                     fout.write("temp\n")
                     for element in self.system.xyz.specie_labels:
                         fout.write("%s\n" % (element + ".psp8"))

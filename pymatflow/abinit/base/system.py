@@ -19,7 +19,7 @@ class abinit_system:
         fout.write("# system related setting\n")
         fout.write("# ==================================\n")
         fout.write("\n")
-        fout.write("acell 1 1 1\n\n")  # scaling with 1 means no actually scaling of rprim by acell
+        fout.write("acell 1 1 1 angstrom\n\n")  # scaling with 1 means no actually scaling of rprim by acell
         fout.write("rprim\n")
         fout.write("%.9f %.9f %.9f\n" % (cell[0], cell[1], cell[2]))
         fout.write("%.9f %.9f %.9f\n" % (cell[3], cell[4], cell[5]))

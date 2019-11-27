@@ -36,7 +36,7 @@ class cp2k_motion_cell_opt:
         fout.write("\t\t\t\tFILENAME cell-every-ion-step\n")
         fout.write("\t\t\t&END CELL\n")
         fout.write("\t\t&END PRINT\n")
-        fout.write("\t\t&END CELL_OPT\n")
+        fout.write("\t&END CELL_OPT\n")
     
     def default_set(self):
         self.params["CONSTRAINT"] = "NONE"

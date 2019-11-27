@@ -28,6 +28,10 @@ class md_post:
         for line in self.lines:
             if len(line.split()) == 0:
                 continue
+            if line.split()[0] == ">>" and line.split()[1] == "Start":
+                self.run_info["start-time"] = line.split("\n")[0]
+            if line.split()[0] == ">>" and line.split()[1] == "End":
+                self.run_info["stop-time"] = line.split("\n")[0]
             if line.split()[0] == "siesta:":
                 if len(line.split()) ==  4 and line.split()[1] == "E_KS(eV)":
                     self.run_info["total-energies"].append(float(line.split()[3]))
@@ -66,6 +70,13 @@ class md_post:
             for item in self.md_params:
                 fout.write("- %s: %s\n" % (item, str(self.md_params[item])))
             fout.write("## 运行信息\n")
+            # calculate the running time and print it out
+            start = datetime.datetime.strptime(self.run_info["start-time"].split()[4]+"-"+self.run_info["start-time"].split()[5], "%d-%b-%Y-%H:%M:%S")
+            stop = datetime.datetime.strptime(self.run_info["stop-time"].split()[4]+"-"+self.run_info["stop-time"].split()[5], "%d-%b-%Y-%H:%M:%S")
+            delta_t = stop -start
+            fout.write("- Time consuming:\n")
+            fout.write("  - totally %.1f seconds, or %.3f minutes or %.5f hours\n" % (delta_t.total_seconds(), delta_t.total_seconds()/60, delta_t.total_seconds()/3600))
+            # end the time information
             for item in self.run_info:
                 fout.write("- %s: %s\n" % (item, str(self.run_info[item])))
 

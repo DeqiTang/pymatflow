@@ -2,6 +2,7 @@
 # _*_ coding: utf-8 _*_
 
 import os
+import sys
 import shutil
 import matplotlib.pyplot as plt
 
@@ -16,6 +17,9 @@ class dfpt_run():
         1) ground-state calculation
         2) DFPT calculation
         3) post-processing
+    Reference:
+        https://docs.abinit.org/guide/respfn/
+        https://docs.abinit.org/tutorial/elastic/
     """
     def __init__(self, xyz_f):
         self.system = abinit_system(xyz_f)
@@ -24,7 +28,9 @@ class dfpt_run():
         self.dfpt = abinit_dfpt()
 
         self.electrons.basic_setting()
-
+        self.dfpt.basic_setting()
+        
+        self.electrons.kpoints.params["kptopt"] = 2
         
     def do_dfpt(self, directory="tmp-abinit-static", inpname="dfpt.in", mpi="", runopt="gen",
             electrons={}, kpoints={}, properties=[]):
@@ -51,8 +57,8 @@ class dfpt_run():
             with open(os.path.join(directory, inpname.split(".")[0]+".files"), 'w') as fout:
                 fout.write("%s\n" % inpname)
                 fout.write("%s.out\n" % inpname.split(".")[0])
-                fout.write("%si\n" % inpname.split(".")[0])
-                fout.write("%so\n" % inpname.split(".")[0])
+                fout.write("%s-output\n" % "static-scf")
+                fout.write("%s-output\n" % inpname.split(".")[0])
                 fout.write("temp\n")
                 for element in self.system.xyz.specie_labels:
                     fout.write("%s\n" % (element + ".psp8"))

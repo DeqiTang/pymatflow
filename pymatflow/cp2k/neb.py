@@ -73,7 +73,7 @@ class neb_run:
             os.chdir("../")
     
     
-    def gen_yh(self,inpname, output, directory="tmp-cp2k-static", cmd="cp2k.psmp"):
+    def gen_yh(self,inpname, output, directory="tmp-cp2k-neb", cmd="cp2k.psmp"):
         """
         generating yhbatch job script for calculation
         """

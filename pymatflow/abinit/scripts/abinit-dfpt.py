@@ -35,7 +35,7 @@ if __name__ == "__main__":
     parser.add_argument("--ixc", type=int, default=11,
             choices=[1, 2, 3 ,4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 27, 28, 40, 41, 42],
             help="type of exchage-correlation functional, refer to https://docs.abinit.org/variables/basic/#ixc for more information")
-    parser.add_argument("--kptopt", type=int, default=1,
+    parser.add_argument("--kptopt", type=int, default=2,
             help="Kpoints Generation scheme option: 0, 1, 2, 3, 4 or a negative value")
     parser.add_argument("--ngkpt", nargs="+", type=int,
             default=[1, 1, 1],
