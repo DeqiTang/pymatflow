@@ -48,6 +48,8 @@ setup(
         "pymatflow/abinit/scripts/abinit-dfpt.py",
         "pymatflow/abinit/post/scripts/post-abinit-neb.py",
         "pymatflow/abinit/post/scripts/post-abinit-opt.py",
+        "pymatflow/abinit/post/scripts/post-abinit-scf.py",
+        "pymatflow/abinit/post/scripts/post-abinit-md.py",
         "pymatflow/cp2k/scripts/cp2k-aimd.py",
         "pymatflow/cp2k/scripts/bands_cp2k.py",
         "pymatflow/cp2k/scripts/converge_cutoff_cp2k.py",

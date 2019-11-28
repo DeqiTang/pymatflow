@@ -10,24 +10,24 @@ import matplotlib.pyplot as plt
 from pymatflow.base.atom import Atom
 
 
-class opt_post:
+class md_post:
     """
     Note:
     """
     def __init__(self, output):
         """
         output:
-            the output file of optimization run.
+            the output file of molecular dynamics run.
         self.cells:
             a list of cell for every structure in self.trajectory.
             dimension: len(self.trajectory) * 9
         """
         self.file = output
-        self.cells = None #  optimized cell for every structure in trajectory
+        self.cells = None # ell for every structure in trajectory
         self.acells = None # 
         self.rprimds = None #
         self.trajectory = None
-        self.opt_params = {}
+        self.md_params = {}
         self.run_info = {}
         self.outvars_before = {}
         self.outvars_after = {}
@@ -44,7 +44,7 @@ class opt_post:
         """
         self.get_outvars_before_and_after()
         self.get_pseduo_info() # also get information about the type of atom and its name
-        self.get_opt_params_and_run_info()
+        self.get_md_params_and_run_info()
         self.get_trajectory()
         return
 
@@ -163,7 +163,7 @@ class opt_post:
         #
 
 
-    def get_opt_params_and_run_info(self):
+    def get_md_params_and_run_info(self):
         """
         run_info["iterations"]: scf iterations per scf step
         run_info["total-energies"]: total energies of every scf step
@@ -190,11 +190,11 @@ class opt_post:
             # note variable like ecut and ionmov and istwfk can appear twice in the output file
             # one in before the simulation, one after the simulation
             if self.lines[i].split()[0] == "ecut":
-                self.opt_params["ecut"] = self.lines[i].split()[1]
+                self.md_params["ecut"] = self.lines[i].split()[1]
             if self.lines[i].split()[0] == "ionmov":
-                self.opt_params["ionmov"] = self.lines[i].split()[1]
+                self.md_params["ionmov"] = self.lines[i].split()[1]
             if self.lines[i].split()[0] == "istwfk":
-                self.opt_params["istwfk"] = self.lines[i].split()[1]
+                self.md_params["istwfk"] = self.lines[i].split()[1]
 
     def get_trajectory(self):
         """
@@ -308,16 +308,16 @@ class opt_post:
         plt.close()
 
 
-    def markdown_report(self, md="GeometricOptimizationReport.md"):
+    def markdown_report(self, md="MolecularDynamicsReport.md"):
         """
         when writing Chinese to a file you must specify
         encoding='utf-8' when open the file for writing
         """
         with open(md, 'w', encoding='utf-8') as fout:
-            fout.write("# 几何优化实验统计\n")
-            fout.write("## 几何优化参数\n")
-            for item in self.opt_params:
-                fout.write("- %s: %s\n" % (item, str(self.opt_params[item])))
+            fout.write("# 分子动力学实验统计\n")
+            fout.write("## 分子动力学优化参数\n")
+            for item in self.md_params:
+                fout.write("- %s: %s\n" % (item, str(self.md_params[item])))
             fout.write("## 运行信息\n")
             # calculate the running time and print it out
 
@@ -338,4 +338,4 @@ class opt_post:
         self.print_trajectory()
         self.print_final_structure()
         self.plot_run_info()
-        self.markdown_report("GeometricOptimizationReport.md")
+        self.markdown_report("MolecularDynamicsReport.md")

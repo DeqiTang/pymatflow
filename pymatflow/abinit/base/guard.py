@@ -80,8 +80,9 @@ class abinit_guard:
             classes like static_run, and execute check_all when you finish setting
             in static_run, and decided to generate the input files.
         """
-        if self.queen == "opt":
+        if self.queen == "opt" or self.queen == "md":
             self.check_optcell()
+            self.check_ionmov()
 
     def check_optcell(self):
         if "optcell" not in self.ions.params:
@@ -103,4 +104,36 @@ class abinit_guard:
             print("ecutsm is automatically set to 0.5 Ha\n")
             #sys.exit(1)
             self.electrons.params["ecutsm"] = 0.5
+        #
+        if self.ions.params["optcell"] == 2:
+            # then ionmov must be equal to one of the following: 2 3 13 15 22 25
+            if self.ions.params["ionmov"] is not None and self.ions.params["ionmov"] not in [2, 3, 13, 15, 22, 25]:
+                print("===========================================================\n")
+                print("                        Warning !!!\n")
+                print("===========================================================\n")
+                print("the value of optcell is 2:\n")
+                print("so the value of ionmov can only be in:\n")
+                print("[2, 3, 13, 15, 22, 25]\n")
+                print("however your ionmov is %d\n" % self.ions.params["ionmov"])
+                print("-----------------------------------------------------------\n")
+                sys.exit(1)
+
+    def check_ionmov(self):
+        if "ionmov" not in self.ions.params:
+            return
+        if self.ions.params["ionmov"] == None or self.ions.params["optcell"] == 0:
+            return
+        #
+        if self.ions.params["ionmov"] == 13:
+            # then nnos must be larger or equal to 1
+            if "nnos" not in self.ions.params or self.ions.params["nnos"] == None or self.ions.params["nnos"] == 0:
+                print("===========================================================\n")
+                print("                        Warning !!!\n")
+                print("===========================================================\n")
+                print("the value of ionmov is 13:\n")
+                print("so the value of nnos must be larger or equal to 1\n")
+                print("so we automatically set nnos to 1 for you\n")
+                print("-----------------------------------------------------------\n")
+                #sys.exit(1)
+                self.ions.params["nnos"] = 1
         #

@@ -19,7 +19,7 @@ class opt_run:
         self.ions = abinit_ions()
 
         self.electrons.basic_setting()
-        self.ions.basic_setting()
+        self.ions.basic_setting(mode="opt")
 
         self.guard = abinit_guard(queen="opt", electrons=self.electrons, ions=self.ions, system=self.system)
 

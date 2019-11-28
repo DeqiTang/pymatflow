@@ -25,13 +25,25 @@ class abinit_ions:
         fout.write("\n\n")
         #
 
-    def basic_setting(self):
-        self.params["ionmov"] = 3
-        self.params["optcell"] = 0
-        self.params["ntime"] = 100
-        #self.params["nctime"] = 1 # for netcdf writing
-        self.params["tolmxf"] = 0 #5.0e-4 # Ha/Bohr
-        self.params["tolmxde"] = "0.0001 eV"
+    def basic_setting(self, mode="opt"):
+        """
+        mode: opt or md
+        """
+        if mode == "opt":
+            self.params["ionmov"] = 3
+            self.params["optcell"] = 0
+            self.params["ntime"] = 100
+            #self.params["nctime"] = 1 # for netcdf writing
+            self.params["tolmxf"] = 0 #5.0e-4 # Ha/Bohr
+            self.params["tolmxde"] = "0.0001 eV"
+        elif mode == "md":
+            self.params["ionmov"] = 8 #11
+            self.params["dtion"] = 100
+            self.params["ntime"] = 1000
+            self.params["nctime"] = 1
+            self.params["mdtemp(1)"] = 300 
+            self.params["mdtemp(2)"] = 300
+            self.params["tolmxf"] = 5.0e-4 # Ha/Bohr
 
     def set_params(self, params):
         for item in params:
