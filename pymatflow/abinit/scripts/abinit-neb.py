@@ -14,34 +14,45 @@ kpoints_params = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+
     parser.add_argument("-d", "--directory", type=str, default="tmp-abinit-neb",
-            help="Directory for the static running.")
+            help="Directory for the neb running.")
+
     parser.add_argument("--runopt", type=str, default="genrun",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
+
     parser.add_argument("--mpi", type=str, default="",
-            help="MPI command: like 'mpirun -np 4'")    
+            help="MPI command: like 'mpirun -np 4'")
+
     parser.add_argument("--images", help="the image xyz file(--images first.xyz imtermediate-1.xyz intermediate-2.xyz ... last.xyz)", nargs='+', type=str)
+
     parser.add_argument("--iscf", type=int, default=7,
             choices=[0, 1, 2, 3, 4, 5, 7, 12, 13, 14, 15, 17],
-            help="set scf or nscf type")
+            help="set scf or nscf type. for more information, refer to https://docs.abinit.org/variables/basic/#iscf")
+
     parser.add_argument("--ecut", type=int, default=15,
-            help="Kinetic energy cutoff for wave functions in unit of Hartree, default value: 15 Hartree")
+            help="Kinetic energy cutoff for wave functions in unit of Hartree, default value: 15 Hartree. for more information, refer to https://docs.abinit.org/variables/basic/#ecut")
+
     parser.add_argument("--ixc", type=int, default=11,
             choices=[1, 2, 3 ,4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 27, 28, 40, 41, 42],
-            help="type of exchage-correlation functional, refer to https://docs.abinit.org/variables/basic/#ixc for more information")
+            help="type of exchage-correlation functional. for more information, refer to https://docs.abinit.org/variables/basic/#ixc")
+
     parser.add_argument("--kptopt", type=int, default=1,
-            help="Kpoints Generation scheme option: 0, 1, 2, 3, 4 or a negative value")
+            help="Kpoints Generation scheme option: 0, 1, 2, 3, 4 or a negative value. for more information, refer to https://docs.abinit.org/variables/basic/#kptopt")
+
     parser.add_argument("--ngkpt", nargs="+", type=int,
             default=[1, 1, 1],
-            help="number of grid points for kpoints generation")
+            help="number of grid points for kpoints generation. for more information, refer to https://docs.abinit.org/variables/basic/#ngkpt")
+
     parser.add_argument("--vdw-xc", type=int,
             default=None,
             choices=[0, 1, 2, 5, 6, 7, 10, 11, 14],
-            help="Van Der Waals exchange-correlation functional. 5: DFT-D2, 6: DFT-D3, 7: DFT-D3(BJ). refer to https://docs.abinit.org/variables/vdw/#vdw_xc for more information.")
+            help="Van Der Waals exchange-correlation functional. 5: DFT-D2, 6: DFT-D3, 7: DFT-D3(BJ). for more information, refer to https://docs.abinit.org/variables/vdw/#vdw_xc")
+
     parser.add_argument("--vdw-tol", type=float,
             default=None,
-            help="Van Der Waals tolerance, only work when vdw_xc == 5 or 6 or 7. to be included in the potential a pair of atom must have contribution to the energy larger than vdw_tol. default value is 1.0e-10")
+            help="Van Der Waals tolerance, only work when vdw_xc == 5 or 6 or 7. to be included in the potential a pair of atom must have contribution to the energy larger than vdw_tol. default value is 1.0e-10. for more information, refer to https://docs.abinit.org/variables/vdw/#vdw_tol")
     
     # ==========================================================
     # transfer parameters from the arg parser to static_run setting

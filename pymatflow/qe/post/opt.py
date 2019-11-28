@@ -194,7 +194,7 @@ class opt_post:
         """
         plt.plot(self.run_info["iterations"])
         plt.title("Iterations per SCF")
-        plt.xlabel("Scf scycles")
+        plt.xlabel("Scf cycles")
         plt.ylabel("iterations")
         plt.tight_layout()
         plt.savefig("iterations-per-scf.png")

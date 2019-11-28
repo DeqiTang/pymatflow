@@ -7,8 +7,9 @@ import matplotlib.pyplot as plt
 
 from pymatflow.abinit.base.electrons import abinit_electrons
 from pymatflow.abinit.base.system import abinit_system
-from pymatflow.abinit.base.ions import abinit_ions
+#from pymatflow.abinit.base.ions import abinit_ions
 #from emuhelper.abinit.base.properties import abinit_properties
+from pymatflow.abinit.base.guard import abinit_guard
 
 class neb_run:
     """
@@ -24,7 +25,25 @@ class neb_run:
             self.system.append(abinit_system(image))
 
         self.electrons.basic_setting()
+        
+        self.guard = abinit_guard(queen="neb", electrons=self.electrons, system=self.system)
 
+        self.params = {
+                "imgmov": 5,
+                "nimage": 7,
+                "ntimimage": 30,
+                "mep_solver": None,
+                "tolimg": 5.0e-05,
+                "imgwfstor": None,
+                "mep_mxstep": None,
+                "neb_algo": None,
+                "neb_string": None,
+                "npimage": None,
+                "string_algo": None,
+                "cineb_start": 7,
+                "dynimage": "0 5*1 0",
+                "fxcartfactor": 1.0,
+                }
         
     def neb(self, directory="tmp-abinit-neb", inpname="neb.in", mpi="", runopt="gen",
             electrons={}, kpoints={}):
@@ -39,17 +58,20 @@ class neb_run:
 
             self.electrons.set_scf_nscf("scf")
             self.electrons.set_params(electrons)
-            self.electrons.kpoints.set_kpoints(kpoints)
+            self.electrons.kpoints.set_params(kpoints)
+            #
+            self.guard.check_all()
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.electrons.to_in(fout)
                 self.system_to_in(fout)
-                fout.write("nimage 7\n")
-                fout.write("imgmov 5\n")
-                fout.write("ntimimage 30\n")
-                fout.write("tolimg 0.001\n")
-                fout.write("dynimage 0 5*1 0\n")
-                fout.write("fxcartfactor 1.0\n")
-
+                fout.write("\n")
+                fout.write("# ===============================\n")
+                fout.write("# neb related setting\n")
+                fout.write("# ===============================\n")
+                for item in self.params:
+                    if self.params[item] is not None:
+                        fout.write("%s %s\n" % (item, str(self.params[item])))
+                
             with open(os.path.join(directory, inpname.split(".")[0]+".files"), 'w') as fout:
                 fout.write("%s\n" % inpname)
                 fout.write("%s.out\n" % inpname.split(".")[0])

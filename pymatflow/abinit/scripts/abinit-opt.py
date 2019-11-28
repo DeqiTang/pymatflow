@@ -16,39 +16,48 @@ ions_params = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+
     parser.add_argument("-d", "--directory", type=str, default="tmp-abinit-opt",
             help="Directory for the optimization running.")
+
     parser.add_argument("-f", "--file", type=str,
-            help="The xyz file name.")
+            help="The xyz file containing the structure to be simulated")
+
     parser.add_argument("--runopt", type=str, default="genrun",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
+
     parser.add_argument("--mpi", type=str, default="",
             help="MPI command: like 'mpirun -np 4'")
+
     parser.add_argument("--ecut", type=int, default=15,
-            help="Kinetic energy cutoff for wave functions in unit of Hartree, default value: 15 Hartree")
+            help="Kinetic energy cutoff for wave functions in unit of Hartree, default value: 15 Hartree. for more information refer to https://docs.abinit.org/variables/basic/#ecut")
+
     parser.add_argument("--ixc", type=int, default=11,
             choices=[1, 2, 3 ,4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 27, 28, 40, 41, 42],
-            help="type of exchage-correlation functional, refer to https://docs.abinit.org/variables/basic/#ixc for more information")
+            help="type of exchage-correlation functional. fore more information, refer to https://docs.abinit.org/variables/basic/#ixc for more information")
  
     parser.add_argument("--kptopt", type=int, default=1,
-            help="Kpoints Generation scheme option: 0, 1, 2, 3, 4 or a negative value")
+            help="Kpoints Generation scheme option: 0, 1, 2, 3, 4 or a negative value. for more information, refer to https://docs.abinit.org/variables/basic/#kptopt")
+
     parser.add_argument("--ngkpt", nargs="+", type=int,
             default=[1, 1, 1],
-            help="number of grid points for kpoints generation")   
+            help="number of grid points for kpoints generation. for more information, refer to https://docs.abinit.org/variables/basic/#ngkpt")
+
     parser.add_argument("--vdw-xc", type=int,
             default=None,
             choices=[0, 1, 2, 5, 6, 7, 10, 11, 14],
-            help="Van Der Waals exchange-correlation functional. 5: DFT-D2, 6: DFT-D3, 7: DFT-D3(BJ). refer to https://docs.abinit.org/variables/vdw/#vdw_xc for more information.")
+            help="Van Der Waals exchange-correlation functional. 5: DFT-D2, 6: DFT-D3, 7: DFT-D3(BJ). fore more information, refer to https://docs.abinit.org/variables/vdw/#vdw_xc")
     parser.add_argument("--vdw-tol", type=float,
             default=None,
-            help="Van Der Waals tolerance, only work when vdw_xc == 5 or 6 or 7. to be included in the potential a pair of atom must have contribution to the energy larger than vdw_tol. default value is 1.0e-10")
+            help="Van Der Waals tolerance, only work when vdw_xc == 5 or 6 or 7. to be included in the potential a pair of atom must have contribution to the energy larger than vdw_tol. default value is 1.0e-10. for more information, refer to https://docs.abinit.org/variables/vdw/#vdw_tol")
     parser.add_argument("--ionmov", type=int, default=3,
             choices=[2, 3, 4, 5],
-            help="type of ionmov algorithm")
+            help="type of ionmov algorithm. fore more information, refer to https://docs.abinit.org/variables/rlx/#ionmov")
     parser.add_argument("--optcell", type=int,
+            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
             default=0,
-            help="whether to optimize the cell shape and dimension")
+            help="whether to optimize the cell shape and dimension. fore more information, refer to https://docs.abinit.org/variables/rlx/#optcell")
     # ==========================================================
     # transfer parameters from the arg parser to static_run setting
     # ==========================================================   

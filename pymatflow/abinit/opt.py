@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from pymatflow.abinit.base.electrons import abinit_electrons
 from pymatflow.abinit.base.ions import abinit_ions
 from pymatflow.abinit.base.system import abinit_system
-
+from pymatflow.abinit.base.guard import abinit_guard
 
 class opt_run:
     """
@@ -21,6 +21,8 @@ class opt_run:
         self.electrons.basic_setting()
         self.ions.basic_setting()
 
+        self.guard = abinit_guard(queen="opt", electrons=self.electrons, ions=self.ions, system=self.system)
+
     def optimize(self, directory="tmp-abinit-opt", inpname="geometric-optimization.in", mpi="", runopt="gen",
             electrons={}, ions={}, kpoints={}):
         if runopt == "gen" or runopt == "genrun":
@@ -31,8 +33,10 @@ class opt_run:
             os.system("cp %s %s/" % (self.system.xyz.file, directory))
 
             self.electrons.set_params(electrons)
-            self.electrons.kpoints.set_kpoints(kpoints)
+            self.electrons.kpoints.set_params(kpoints)
             self.ions.set_params(ions)
+            #
+            self.guard.check_all()
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.electrons.to_in(fout)
                 self.ions.to_in(fout)

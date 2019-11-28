@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from pymatflow.abinit.base.electrons import abinit_electrons
 from pymatflow.abinit.base.system import abinit_system
 from pymatflow.abinit.base.properties import abinit_properties
+from pymatflow.abinit.base.guard import abinit_guard
 
 class static_run:
     """
@@ -21,6 +22,7 @@ class static_run:
 
         self.electrons.basic_setting()
         
+        self.guard = abinit_guard(queen="static", electrons=self.electrons, system=self.system)
         
     def scf(self, directory="tmp-abinit-static", inpname="static-scf.in", mpi="", runopt="gen",
             electrons={}, kpoints={}, properties=[]):
@@ -33,8 +35,10 @@ class static_run:
 
             self.electrons.set_scf_nscf("scf")
             self.electrons.set_params(electrons)
-            self.electrons.kpoints.set_kpoints(kpoints)
+            self.electrons.kpoints.set_params(kpoints)
             self.properties.get_option(option=properties)
+            #
+            self.guard.check_all()
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.electrons.to_in(fout)
                 self.properties.to_in(fout)
@@ -68,7 +72,7 @@ class static_run:
 
             self.electrons.set_scf_nscf("nscf")
             self.electrons.set_params(electrons)
-            self.electrons.kpoints.set_kpoints(kpoints)
+            self.electrons.kpoints.set_params(kpoints)
             self.properties.get_option(option=properties)
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.electrons.to_in(fout)
@@ -99,7 +103,7 @@ class static_run:
             os.system("cp *.psp8 %s/" % directory)
    
             self.electrons.set_params(electrons)
-            self.electrons.kpoints.set_kpoints(kpoints)
+            self.electrons.kpoints.set_params(kpoints)
             os.chdir(directory)
             n_test = int((emax - emin) / step)
             for i in range(n_test + 1):

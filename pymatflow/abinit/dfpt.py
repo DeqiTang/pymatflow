@@ -46,7 +46,7 @@ class dfpt_run():
 
             self.electrons.set_scf_nscf("scf")
             self.electrons.set_params(electrons)
-            self.electrons.kpoints.set_kpoints(kpoints)
+            self.electrons.kpoints.set_params(kpoints)
             self.properties.get_option(option=properties)
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.electrons.to_in(fout)

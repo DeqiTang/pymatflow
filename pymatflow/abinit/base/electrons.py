@@ -62,7 +62,7 @@ class kpoints:
         #
         fout.write("\n")
 
-    def set_kpoints(self, kpoints):
+    def set_params(self, kpoints):
         for item in kpoints:
             self.params[item] = kpoints[item]
 
