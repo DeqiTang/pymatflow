@@ -59,6 +59,7 @@ class abinit_guard:
             self.electrons = electrons
             self.system = system
             self.ions = ions
+
         if queen == "neb":
             if electrons == None or system == None:
                 print("==============================================\n")
@@ -71,6 +72,19 @@ class abinit_guard:
             self.electrons = electrons
             self.system = system
 
+        if queen == "dfpt":
+            if electrons == None or system == None or dfpt == None:
+                print("==============================================\n")
+                print("                warning !!!\n")
+                print("==============================================\n")
+                print("trouble while initialize abinit_guard:\n")
+                print("if queen == dfpt, you have to pass inelectrons\n")
+                print("and system and dfpt\n")
+                sys.exit(1)
+            self.electrons = electrons
+            self.system = system
+            self.dfpt = dfpt
+
     def check_all(self):
         """
         Note:
@@ -80,9 +94,16 @@ class abinit_guard:
             classes like static_run, and execute check_all when you finish setting
             in static_run, and decided to generate the input files.
         """
-        if self.queen == "opt" or self.queen == "md":
+        if self.queen == "opt":
             self.check_optcell()
             self.check_ionmov()
+
+        if self.queen == "md":
+            self.check_optcell()
+            self.check_ionmov()
+
+        if self.queen == "dfpt":
+            self.check_dfpt()
 
     def check_optcell(self):
         if "optcell" not in self.ions.params:
@@ -121,8 +142,6 @@ class abinit_guard:
     def check_ionmov(self):
         if "ionmov" not in self.ions.params:
             return
-        if self.ions.params["ionmov"] == None or self.ions.params["optcell"] == 0:
-            return
         #
         if self.ions.params["ionmov"] == 13:
             # then nnos must be larger or equal to 1
@@ -137,3 +156,6 @@ class abinit_guard:
                 #sys.exit(1)
                 self.ions.params["nnos"] = 1
         #
+
+    def check_dfpt(self):
+        pass

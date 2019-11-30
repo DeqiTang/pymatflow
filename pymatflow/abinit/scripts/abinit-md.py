@@ -60,11 +60,22 @@ if __name__ == "__main__":
     #                        ions moving related parameters
     # -----------------------------------------------------------
     parser.add_argument("--ionmov", type=int, default=6,
-            choices=[6, 7, 8, 9, 12, 13, 14, 24, 25],
-            help="type of molecular dynamics algorithm, can be:")
+            choices=[1, 6, 7, 8, 9, 12, 13, 14, 24, 25],
+            help="type of molecular dynamics algorithm, can be: 1 6 7 8 9 12 13 14 24 25. for more information, refer to https://docs.abinit.org/variables/rlx/#ionmov")
+
+    parser.add_argument("--dtion", type=float, default=100,
+            help="delta time for ions, in atom unit(One atomic time unit is 2.418884e-17 seconds), default=100. for more information, refer to https://docs.abinit.org/variables/rlx/#dtion.")
+
+    parser.add_argument("--ntime", type=int, default=1000,
+            help="number of time steps. for more information, refer to https://docs.abinit.org/variables/rlx/#ntime.")
+
+    parser.add_argument("--mdtemp", type=float, nargs="+", default=[300, 300],
+            help="molecular dynamics temperature. for more information, refer to https://docs.abinit.org/variables/rlx/#mdtemp.")
+
     parser.add_argument("--optcell", type=int,
             default=0,
             help="whether to optimize the cell shape and dimension")
+
     # ==========================================================
     # transfer parameters from the arg parser to static_run setting
     # ==========================================================   
@@ -79,6 +90,10 @@ if __name__ == "__main__":
     kpoints_params["ngkpt"] = args.ngkpt
 
     ions_params["ionmov"] = args.ionmov
+    ions_params["dtion"] = args.dtion
+    ions_params["ntime"] = args.ntime
+    ions_params["mdtemp(1)"] = args.mdtemp[0]
+    ions_params["mdtemp(2)"] = args.mdtemp[1]
     ions_params["optcell"] = args.optcell
 
     task = md_run(args.file)

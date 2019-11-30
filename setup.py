@@ -46,6 +46,7 @@ setup(
         "pymatflow/abinit/scripts/abinit-nscf.py",
         "pymatflow/abinit/scripts/abinit-neb.py",
         "pymatflow/abinit/scripts/abinit-dfpt.py",
+        "pymatflow/abinit/scripts/abinit-band.py",
         "pymatflow/abinit/post/scripts/post-abinit-neb.py",
         "pymatflow/abinit/post/scripts/post-abinit-opt.py",
         "pymatflow/abinit/post/scripts/post-abinit-scf.py",

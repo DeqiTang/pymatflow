@@ -48,9 +48,15 @@ if __name__ == "__main__":
             default=None,
             choices=[0, 1, 2, 5, 6, 7, 10, 11, 14],
             help="Van Der Waals exchange-correlation functional. 5: DFT-D2, 6: DFT-D3, 7: DFT-D3(BJ). fore more information, refer to https://docs.abinit.org/variables/vdw/#vdw_xc")
+
     parser.add_argument("--vdw-tol", type=float,
             default=None,
             help="Van Der Waals tolerance, only work when vdw_xc == 5 or 6 or 7. to be included in the potential a pair of atom must have contribution to the energy larger than vdw_tol. default value is 1.0e-10. for more information, refer to https://docs.abinit.org/variables/vdw/#vdw_tol")
+
+    # -----------------------------------------------------------
+    #                        ions moving related parameters
+    # -----------------------------------------------------------
+
     parser.add_argument("--ionmov", type=int, default=3,
             choices=[2, 3, 4, 5],
             help="type of ionmov algorithm. fore more information, refer to https://docs.abinit.org/variables/rlx/#ionmov")

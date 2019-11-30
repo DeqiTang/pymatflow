@@ -10,7 +10,6 @@ usage:
 """
 
 electrons_params = {}
-kpoints_params = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -43,14 +42,6 @@ if __name__ == "__main__":
             choices=[1, 2, 3 ,4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 27, 28, 40, 41, 42],
             help="type of exchage-correlation functional. for more information, refer to https://docs.abinit.org/variables/basic/#ixc")
 
-    parser.add_argument("--kptopt", type=int, default=1,
-            choices=[1],
-            help="Kpoints Generation scheme option: 0, 1, 2, 3, 4 or a negative value. for more information, refer to https://docs.abinit.org/variables/basic/#kptopt")
-
-    parser.add_argument("--ngkpt", nargs="+", type=int,
-            default=[1, 1, 1],
-            help="number of grid points for kpoints generation. for more information, refer to https://docs.abinit.org/variables/basic/#ngkpt")
-
     parser.add_argument("--vdw-xc", type=int,
             default=None,
             choices=[0, 1, 2, 5, 6, 7, 10, 11, 14],
@@ -69,8 +60,6 @@ if __name__ == "__main__":
     electrons_params["vdw_xc"] = args.vdw_xc
     electrons_params["vdw_tol"] = args.vdw_tol
 
-    kpoints_params["kptopt"] = args.kptopt
-    kpoints_params["ngkpt"] = args.ngkpt
 
     task = static_run(args.file)
-    task.scf(directory=args.directory, mpi=args.mpi, runopt=args.runopt, electrons=electrons_params, kpoints=kpoints_params, properties=args.properties)
+    task.band(directory=args.directory, mpi=args.mpi, runopt=args.runopt, electrons=electrons_params)

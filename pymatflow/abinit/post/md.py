@@ -21,6 +21,12 @@ class md_post:
         self.cells:
             a list of cell for every structure in self.trajectory.
             dimension: len(self.trajectory) * 9
+
+        Note:
+            md_post will deal with the output of molecular dynamics running.
+            
+            and even when the calculation is running or it is interrupted by
+            you, you can post-process it!
         """
         self.file = output
         self.cells = None # ell for every structure in trajectory
@@ -176,7 +182,7 @@ class md_post:
         for i in range(len(self.lines)):
             if len(self.lines[i].split()) == 0:
                 continue
-            if self.lines[i].split()[0] == "At" and self.lines[i].split()[1] == "SCF" and self.lines[i].split()[6] == "converged":
+            if self.lines[i].split()[0] == "At" and self.lines[i].split()[1] == "SCF" and self.lines[i].split()[2] == "step":
                 self.run_info["iterations"].append(int(self.lines[i].split()[3].split(",")[0]))
             if self.lines[i].split()[0] == "Total" and self.lines[i].split()[1] == "energy" and self.lines[i].split()[2] == "(etotal)":
                 self.run_info["total-energies"].append(float(self.lines[i].split()[4])) # in unit of Hartree

@@ -7,7 +7,13 @@ import numpy as np
 
 class abinit_dfpt:
     """
-    see: 
+    Reference:
+        https://docs.abinit.org/guide/respfn/
+        https://docs.abinit.org/tutorial/rf1/
+        https://docs.abinit.org/tutorial/rf2/
+        https://docs.abinit.org/tutorial/elastic/
+        https://docs.abinit.org/tutorial/ffield/
+        https://docs.abinit.org/tutorial/nlo/
         https://docs.abinit.org/topics/DFPT/
         https://docs.abinit.org/variables/dfpt/
     """
@@ -43,8 +49,12 @@ class abinit_dfpt:
                 if item == "rfdir":
                     fout.write("rfdir %d %d %d\n" % (self.params[item][0], self.params[item][1], self.params[item][2]))
                 elif item == "rfatpol":
-                    #fout.write("rfatpol %d %d\n" % (self.params["rfatpol"][0], self.params["rfatpol"][1]))
+                    fout.write("rfatpol %d %d\n" % (self.params["rfatpol"][0], self.params["rfatpol"][1]))
                     pass
+                elif item == "qpt":
+                    fout.write("qpt %f %f %f\n" % (self.params[item][0], self.params[item][1], self.params[item][2]))
+                elif item == "ngqpt":
+                    fout.write("ngqpt %d %d %d\n" % (self.params[item][0], self.params[item][1], self.params[item][2]))
                 else:
                     fout.write("%s %s\n" % (item, str(self.params[item])))
                 fout.write("\n")
@@ -52,10 +62,8 @@ class abinit_dfpt:
 
     
     def basic_setting(self):
-        self.params["rfphon"] = 1
         self.params["rfdir"] = [1, 1, 1]
-        self.params["rfelfd"] = 3
-        self.params["nqpt"] = 1
+        #self.params["nqpt"] = 1
         #self.params["qpt"] = [0, 0, 0]
 
     def set_params(self, params):

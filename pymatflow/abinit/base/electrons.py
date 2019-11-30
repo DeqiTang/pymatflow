@@ -30,7 +30,7 @@ class kpoints:
         self.params["ngkpt"] = [1, 1, 1]
         self.params["nshiftk"] = 1
         self.params["shiftk"] = np.full([self.params["nshiftk"], 3], 0.5)
-        #self.params["shfitk"] = np.zeros([self.nshiftk, 3])
+        #self.params["shiftk"] = np.zeros([self.params["nshiftk"], 3])
 
     
     def to_in(self, fout):
@@ -59,8 +59,61 @@ class kpoints:
             fout.write("kptopt 2\n")
             fout.write("ngkpt %d %d %d\n\n" %(self.params["ngkpt"][0], self.params["ngkpt"][1], self.params["ngkpt"][2]))
             #fout.write("istwfk 1\n") # for rf
+        if self.params["kptopt"] == 3:
+            # typically for rf calculation
+            fout.write("kptopt %d\n" % self.params["kptopt"])
+            fout.write("ngkpt %d %d %d\n\n" %(self.params["ngkpt"][0], self.params["ngkpt"][1], self.params["ngkpt"][2]))
+            fout.write("nshiftk %d\n\n" % self.params["nshiftk"])
+            fout.write("shiftk\n")
+            for i in range(self.params["nshiftk"]):
+                fout.write("%f %f %f\n" % (self.params["shiftk"][i][0], self.params["shiftk"][i][1], self.params["shiftk"][i][2]))
+        #
+        if self.params["kptopt"] < 0:
+            # for band structure calculation using kptbounds and ndivk(ndivsm), iscf must equal to -2
+            fout.write("kptopt %d\n" % self.params["kptopt"])
+            fout.write("ndivsm %d\n" % 10)
+            fout.write("kptbounds\n")
+            point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][0][0]]
+            fout.write("%f %f %f #%s\n" % (point[0], point[1], point[2], self.kpoints_seekpath["path"][0][0]))
+            point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][0][1]]
+            fout.write("%f %f %f #%s\n" % (point[0], point[1], point[2], self.kpoints_seekpath["path"][0][1]))
+            for i in range(1, len(self.kpoints_seekpath["path"])):
+                if self.kpoints_seekpath["path"][i][0] == self.kpoints_seekpath["path"][i-1][1]:
+                    point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][1]]
+                    fout.write("%f %f %f #%s\n" % (point[0], point[1], point[2], self.kpoints_seekpath["path"][i][1]))
+                else:
+                    point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][0]]
+                    fout.write("%f %f %f #%s\n" % (point[0], point[1], point[2], self.kpoints_seekpath["path"][i][0]))
+                    point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][1]]
+                    fout.write("%f %f %f #%s\n" % (point[0], point[1], point[2], self.kpoints_seekpath["path"][i][1]))
+        # end
         #
         fout.write("\n")
+
+    def set_band(self, system):
+        """
+        system is an instance of abinit.base.system.abinit_system
+        """
+        import seekpath
+        lattice = [system.xyz.cell[0:3], system.xyz.cell[3:6], system.xyz.cell[6:9]]
+        positions = []
+        numbers = []
+        a = np.sqrt(system.xyz.cell[0]**2 + system.xyz.cell[1]**2 + system.xyz.cell[2]**2)
+        b = np.sqrt(system.xyz.cell[3]**2 + system.xyz.cell[4]**2 + system.xyz.cell[5]**2)
+        c = np.sqrt(system.xyz.cell[6]**2 + system.xyz.cell[7]**2 + system.xyz.cell[8]**2)
+        for atom in system.xyz.atoms:
+            positions.append([atom.x / a, atom.y / b, atom.z / c])
+            numbers.append(system.xyz.specie_labels[atom.name])
+        structure = (lattice, positions, numbers)
+        self.kpoints_seekpath = seekpath.get_path(structure)
+        nks = 2
+        for i in range(1, len(self.kpoints_seekpath["path"])):
+            if self.kpoints_seekpath["path"][i][0] == self.kpoints_seekpath["path"][i-1][1]:
+                nks = nks + 1
+            else:
+                nks = nks + 2
+        self.params["kptopt"] = - (nks - 1)
+        #
 
     def set_params(self, kpoints):
         for item in kpoints:
@@ -116,8 +169,8 @@ class abinit_electrons:
         tols = ['toldfe', 'tolwfr', 'toldff', 'tolrff', 'tolvrs']
         nonzeros = 0
         for i in tols:
-            if i in self.params.keys():
-                if self.params[i] is not 0:
+            if i in self.params.keys() and self.params[i] is not None:
+                if self.params[i] != 0.0:
                     nonzeros += 1
         if nonzeros == 1:
             return True
@@ -128,6 +181,7 @@ class abinit_electrons:
             print("you must set one and only one of variables\n")
             print("below to differ from zero.\n")
             print("[toldfe, tolwfr, toldff, tolrff, tolvrs]\n")
+            #print(nonzeros)
             sys.exit(1)
     
     def check_kpoints(self):
@@ -156,12 +210,13 @@ class abinit_electrons:
         self.params["jpawu"] = "0.8 0.8 0.8 0.8"
 
     def basic_setting(self):
-        self.params["ecut"] = 50 #50
+        self.params["ecut"] = 15 #15
         #self.params["pawecutdg"] = 50
         self.params["occopt"] = 3  # fermi dirac smearing of occupation
         self.params["nstep"] = 100
         self.params["diemac"] = 2.0
-        self.params["toldfe"] = 1.0e-6
+        #self.params["toldfe"] = 1.0e-6
+        self.params["tolvrs"] = 1.0e-18
         self.params["ixc"] = 11
 
     def set_params(self, params):

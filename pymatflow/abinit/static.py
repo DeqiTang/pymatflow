@@ -74,6 +74,14 @@ class static_run:
             self.electrons.set_params(electrons)
             self.electrons.kpoints.set_params(kpoints)
             self.properties.get_option(option=properties)
+            self.electrons.params["irdwfk"] = 1
+            self.electrons.params["irdden"] = 1
+            # dos
+            self.electrons.params["nband"] = 10
+            self.electrons.params["dosdeltae"] = 0.00005
+            self.electrons.params["occopt"] = 7
+            self.electrons.params["tsmear"] = 0.0001
+            # end dos
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.electrons.to_in(fout)
                 self.properties.to_in(fout)
@@ -82,7 +90,7 @@ class static_run:
             with open(os.path.join(directory, inpname.split(".")[0]+".files"), 'w') as fout:
                 fout.write("%s\n" % inpname)
                 fout.write("%s.out\n" % inpname.split(".")[0])
-                fout.write("static-scf-output\n")
+                fout.write("%s-output\n" % "static-scf")
                 fout.write("%s-output\n" % inpname.split(".")[0])
                 fout.write("temp\n")
                 for element in self.system.xyz.specie_labels:
@@ -92,7 +100,54 @@ class static_run:
             os.chdir(directory)
             os.system("abinit < %s" % inpname.split(".")[0]+".files")
             os.chdir("../")
-   
+ 
+
+    def band(self, directory="tmp-abinit-static", inpname="static-band.in", mpi="", runopt="gen",
+            electrons={}):
+        """
+        we can use abiopen.py static-band-output_GSR.nc --expose -sns=talk to view the band structure.
+        """
+        # first check whether there is a previous scf running
+        if not os.path.exists(directory):
+            print("===================================================\n")
+            print("                 Warning !!!\n")
+            print("===================================================\n")
+            print("band structure calculation:\n")
+            print("  directory of previous scf calculattion not found!\n")
+            sys.exit(1)
+        if runopt == "gen" or runopt == "genrun":
+
+            self.electrons.set_params(electrons)
+            self.electrons.params["iscf"] = -2
+            self.electrons.params["nband"] = 8
+            self.electrons.params["tolwfr"] = 1.0e-12 # when kptopt < 0 namely band structure calculatin, we can only use tolwfr
+            self.electrons.params["tolvrs"] = None
+            self.electrons.params["toldfe"] = None
+            #self.electrons.params["irdden"] = 1 # actually irdden will be 1 by default if iscf < 0
+            # 
+            # set kpoints
+            # --------------
+            # using seekpath
+            # --------------
+            self.electrons.kpoints.set_band(self.system)
+
+            with open(os.path.join(directory, inpname), 'w') as fout:
+                self.electrons.to_in(fout)
+                self.system.to_in(fout)
+
+            with open(os.path.join(directory, inpname.split(".")[0]+".files"), 'w') as fout:
+                fout.write("%s\n" % inpname)
+                fout.write("%s.out\n" % inpname.split(".")[0])
+                fout.write("%s-output\n" % "static-scf")
+                fout.write("%s-output\n" % inpname.split(".")[0])
+                fout.write("temp\n")
+                for element in self.system.xyz.specie_labels:
+                    fout.write("%s\n" % (element + ".psp8"))
+                    #fout.write("%s\n" % (element + ".GGA_PBE-JTH.xml"))
+        if runopt == "run" or runopt == "genrun":
+            os.chdir(directory)
+            os.system("abinit < %s" % inpname.split(".")[0]+".files")
+            os.chdir("../") 
 
     def converge_ecut(self, emin, emax, step, directory="tmp-abinit-ecut", mpi="", runopt="gen",
             electrons={}, kpoints={}):

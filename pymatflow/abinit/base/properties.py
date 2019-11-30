@@ -26,7 +26,6 @@ class abinit_properties:
     def get_option(self, option=[]):
         """
         1: dos
-        2: bands
         3: elf
         4:
         """
@@ -42,11 +41,7 @@ class abinit_properties:
             pass
     
     def do_dos(self):
-        self.params["prtdos"] = 1
-    
-    def do_bands(self):
-        self.params["nband"] = 8
-        self.params["enunit"] = 1
+        self.params["prtdos"] = 2
 
     def do_elf(self):
         self.params["prtelf"] = 1

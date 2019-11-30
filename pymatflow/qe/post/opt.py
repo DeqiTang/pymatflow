@@ -2,6 +2,7 @@
 # _*_ coding: utf-8 _*_
 
 import os
+import sys
 import datetime
 import subprocess
 import matplotlib.pyplot as plt
@@ -238,8 +239,40 @@ class opt_post:
                 fout.write("- %s: %s\n" % (item, str(self.opt_params[item])))
             fout.write("## 运行信息\n")
             # calculate the running time and print it out
-            start = datetime.datetime.strptime(self.run_info["start-time"].split()[5]+"-"+self.run_info["start-time"].split()[7], "%d%b%Y-%H:%M:%S")
-            stop = datetime.datetime.strptime(self.run_info["stop-time"].split()[6]+"-"+self.run_info["stop-time"].split()[5], "%d%b%Y-%H:%M:%S")
+            # Importante: the length of the time string might be different, depending
+            # on the value of hours and minutes and seconds. if they are two digits
+            # number, they will be divided like: '11: 6: 2', only when they all are
+            # two digtis number, they will not be divided '11:16:12'
+            # so we have to preprocess it to build the right time string to pass into 
+            # datetime.datetime.strptime()
+            if len(self.run_info["start-time"].split()) == 8:
+                start_str = self.run_info["start-time"].split()[5]+"-"+self.run_info["start-time"].split()[7]
+            elif len(self.run_info["start-time"].split()) == 9:
+                start_str = self.run_info["start-time"].split()[5]+"-"+self.run_info["start-time"].split()[7]+self.run_info["start-time"].split()[8]
+            elif len(self.run_info["start-time"].split()) == 10:
+                start_str = self.run_info["start-time"].split()[5]+"-"+self.run_info["start-time"].split()[7]+self.run_info["start-time"].split()[8]+self.run_info["start-time"].split()[9]
+            else:
+                print("===============================================\n")
+                print("                  Warning !!!\n")
+                print("===============================================\n")
+                print("qe.post.opt.markdown_report:\n")
+                print("failed to parse start-time string\n")
+                sys.exit(1)
+            if len(self.run_info["stop-time"].split()) == 7:
+                stop_str = self.run_info["stop-time"].split()[6]+"-"+self.run_info["stop-time"].split()[5]
+            elif len(self.run_info["stop-time"].split()) == 8:
+                stop_str = self.run_info["stop-time"].split()[7]+"-"+self.run_info["stop-time"].split()[5]+self.run_info["stop-time"].split()[6]
+            elif len(self.run_info["stop-time"].split()) == 9:
+                stop_str = self.run_info["stop-time"].split()[8]+"-"+self.run_info["stop-time"].split()[5]+self.run_info["stop-time"].split()[6]+self.run_info["stop-time"].split()[7]
+            else:
+                print("===============================================\n")
+                print("                  Warning !!!\n")
+                print("===============================================\n")
+                print("qe.post.opt.markdown_report:\n")
+                print("failed to parse stop-time string\n")
+                sys.exit(1)
+            start = datetime.datetime.strptime(start_str, "%d%b%Y-%H:%M:%S")
+            stop = datetime.datetime.strptime(stop_str, "%d%b%Y-%H:%M:%S")
             delta_t = stop -start
             fout.write("- Time consuming:\n")
             fout.write("  - totally %.1f seconds, or %.3f minutes or %.5f hours\n" % (delta_t.total_seconds(), delta_t.total_seconds()/60, delta_t.total_seconds()/3600))

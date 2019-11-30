@@ -43,11 +43,14 @@ class ssh:
         print("=========================================\n")
         print("     information from remote server\n")
         print("=========================================\n")
+        all_data = b''
         size, data = channel.read()
         while size > 0:
-            print(data.decode())
+            #print(data.decode())
+            all_data = all_data + data
             size, data = channel.read()
         channel.close()
+        print(all_data.decode())
         print("Exit status: %s" % channel.get_exit_status())
 
     def execute(self, cmd):
@@ -57,22 +60,23 @@ class ssh:
         print("=========================================\n")
         print("     information from remote server\n")
         print("=========================================\n")
+        all_data = b''
         size, data = channel.read()
         while size > 0:
-            print(data.decode())
+            #print(data.decode())
+            all_data = all_data + data
             size, data = channel.read()
         channel.close()
+        print(all_data.decode())
         print("Exit status: %s" % channel.get_exit_status())
 
     def execute_silent(self, cmd):
         channel = self.session.open_session()
         channel.execute(cmd)
-        #size, data = channel.read()
-        #while size > 0:
-        #    print(data.decode())
-        #    size, data = channel.read()
-        out = channel.read()
-        # out is a tuple of length 2
-        # out[0] is the size of the bytes stored inf out[1]
+        all_data = b''
+        size, data = channel.read()
+        while size > 0:
+            all_data = all_data + data
+            size, data = channel.read()
         channel.close()
-        return out
+        return all_data

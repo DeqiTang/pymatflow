@@ -31,13 +31,14 @@ if __name__ == "__main__":
         ctl = ssh()
         ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
         ctl.login()
-        dirs = ctl.execute_silent("ls")[1].decode().split()
+        dirs = ctl.execute_silent("ls").decode().split()
         if args.directory not in dirs:
             print("====================================\n")
             print("           WARNING !!!\n")
             print("====================================\n")
             print("directory not found in remote server\n")
             print("make sure you type in the right one\n")
+            #
             sys.exit()
         ctl.execute_silent("mv %s/tmp ./%s.tmp" % (args.directory, args.directory))
         mover.copy(source=os.path.join(mover.user+"@"+mover.ip+":"+mover.serverdir, args.directory)+"/", target=args.directory)

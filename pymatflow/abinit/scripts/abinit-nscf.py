@@ -46,14 +46,19 @@ if __name__ == "__main__":
     parser.add_argument("--kptopt", type=int, default=1,
             help="Kpoints Generation scheme option: 0, 1, 2, 3, 4 or a negative value. for more information, refer to https://docs.abinit.org/variables/basic/#kptopt")
 
-    parser.add_argument("--ngkpt", nargs="+", type=int,
-            default=[1, 1, 1],
+    parser.add_argument("--ngkpt", nargs="+", type=int, default=[3, 3, 3],
             help="number of grid points for kpoints generation. for more information, refer to https://docs.abinit.org/variables/basic/#ngkpt")
+
+    
+    parser.add_argument("--prtdos", type=int, default=None,
+            choices=[1, 2],
+            help="prtdos. for more information, refer to https://docs.abinit.org/variables/files/#prtdos")
 
     parser.add_argument("--vdw-xc", type=int,
             default=None,
             choices=[0, 1, 2, 5, 6, 7, 10, 11, 14],
             help="Van Der Waals exchange-correlation functional. 5: DFT-D2, 6: DFT-D3, 7: DFT-D3(BJ). for more information, refer to https://docs.abinit.org/variables/vdw/#vdw_xc")
+
     parser.add_argument("--vdw-tol", type=float,
             default=None,
             help="Van Der Waals tolerance, only work when vdw_xc == 5 or 6 or 7. to be included in the potential a pair of atom must have contribution to the energy larger than vdw_tol. default value is 1.0e-10. fore more information, refer to https://docs.abinit.org/variables/vdw/#vdw_tol")
@@ -73,5 +78,7 @@ if __name__ == "__main__":
     kpoints_params["kptopt"] = args.kptopt
     kpoints_params["ngkpt"] = args.ngkpt
 
+    electrons_params["prtdos"] = args.prtdos
+    
     task = static_run(args.file)
     task.nscf(directory=args.directory, mpi=args.mpi, runopt=args.runopt, electrons=electrons_params, kpoints=kpoints_params, properties=args.properties)
