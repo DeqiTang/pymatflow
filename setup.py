@@ -81,7 +81,7 @@ setup(
         "pymatflow/cp2k/post/scripts/post-cp2k-converge.py",
         "pymatflow/cp2k/post/scripts/post-cp2k-md.py",
         "pymatflow/cp2k/post/scripts/cp2k_bs2csv.py",
-        "pymatflow/dalton/single_point_dalton.py",
+        "pymatflow/dalton/scripts/dalton-single-point.py",
         "pymatflow/orca/single_point_orca.py",
         "pymatflow/orca/geo_opt_orca.py",
         "pymatflow/orca/converge_multiplicity_orca.py",

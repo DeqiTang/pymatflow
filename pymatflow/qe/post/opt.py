@@ -19,6 +19,17 @@ class opt_post:
         structure(if not relaxed, the final structure of the running).
         so even when your ion step not converged within maximum steps, it can also
         extract the structure in the final ion step and print it out.
+        
+        plus now opt_post can also process the output file of geometric optimziation
+        even if the job is not finished yet and generate the Running information.
+
+        we must know when it is a relax geometric optimization, the number of scf
+        cycles equals to the length of the trajectory. but when it is a vc-relax
+        running, the program will do a final scf calculation on the relaxed structure
+        , and during that calculation it will not print out structure information.
+        so the length of trajectory of a vc-relax running might be one less than the
+        number of scf cycles.(will be euqal if the vc-relax is unrelxed, so there won't
+        be a final scf)
     """
     def __init__(self, output, run_type):
         """
@@ -30,79 +41,38 @@ class opt_post:
         """
         self.file = output
         self.run_type = run_type 
-        self.cell = None # optimized cell
-        self.atoms = None  # optimized atoms
         self.opt_params = {}
         self.run_info = {}
+        self.job_done = None # whether calculation has finished
+        self.relaxed = None # whether structure is relaxed or vc-relaxed
+        
+        self.cell = None # optimized cell now only used when run_type == vc-relax
         self.trajectory = None
-        self.relaxed = None # whether structure is relaxed or vcr-relaxed
 
         with open(self.file, 'r') as fout:
             self.lines = fout.readlines()
         self.get_info()
-        self.get_trajectory()
 
     def get_info(self):
         """
         get the general information of opt run from opt run output file
         which is now stored in self.lines
         """
+        # check whether calculation is finished
+        if len(self.lines[-2].split()) == 2 and self.lines[-2].split()[0] == "JOB" and self.lines[-2].split()[1] == "DONE.":
+            self.job_done = True
+        else:
+            self.job_done = False
         # check whether successfully relaxed
         self.relaxed = False
         for line in self.lines:
             if line == "Begin final coordinates\n":
                 self.relaxed = True
                 break
-        #
-        if self.relaxed == True:
-            if self.run_type == "relax":
-                self.get_structure_relax()
-            elif self.run_type == "vc-relax":
-                self.get_structure_vc_relax()
         
+        self.get_trajectory()
         self.get_opt_params_and_run_info()
 
-    def get_structure_relax(self):
-        """
-        """
-        self.atoms = []
-        # get the line number of the 'Begin final coordinates'
-        # and 'End final coordinates'
-        begin_final_coord_line = 0
-        end_final_coord_line = 0
-        while self.lines[begin_final_coord_line] != "Begin final coordinates\n":
-            begin_final_coord_line += 1
-        while self.lines[end_final_coord_line] != "End final coordinates\n":
-            end_final_coord_line += 1
-
-        # coords(in relax running it will not print the cell as it does not change)
-        for i in range(begin_final_coord_line+3, end_final_coord_line):
-            self.atoms.append(Atom(self.lines[i].split()[0], float(self.lines[i].split()[1]), float(self.lines[i].split()[2]), float(self.lines[i].split()[3])))
- 
-    def get_structure_vc_relax(self):
-        """
-        """
-        self.cell = []
-        self.atoms = []
-        # get the line number of the 'Begin final coordinates'
-        # and 'End final coordinates'
-        begin_final_coord_line = 0
-        end_final_coord_line = 0
-        while self.lines[begin_final_coord_line] != "Begin final coordinates\n":
-            begin_final_coord_line += 1
-        while self.lines[end_final_coord_line] != "End final coordinates\n":
-            end_final_coord_line += 1
-
-        # get cell and coords
-        self.cell = []
-        for i in range(begin_final_coord_line+5, begin_final_coord_line+8):
-            for j in range(3):
-                self.cell.append(float(self.lines[i].split()[j]))
-        for i in range(begin_final_coord_line+10, end_final_coord_line):
-            self.atoms.append(Atom(self.lines[i].split()[0], float(self.lines[i].split()[1]), float(self.lines[i].split()[2]), float(self.lines[i].split()[3])))
-   
-
-    #
 
     def get_trajectory(self):
         self.trajectory = []
@@ -114,7 +84,22 @@ class opt_post:
                     atm.append(Atom(self.lines[j].split()[0], float(self.lines[j].split()[1]), float(self.lines[j].split()[2]), float(self.lines[j].split()[3])))
                     j = j + 1
                 self.trajectory.append(atm)
-                
+        #
+        if self.relaxed == True and self.run_type == "vc-relax":
+            # get the line number of the 'Begin final coordinates'
+            # and 'End final coordinates'
+            begin_final_coord_line = 0
+            end_final_coord_line = 0
+            while self.lines[begin_final_coord_line] != "Begin final coordinates\n":
+                begin_final_coord_line += 1
+            while self.lines[end_final_coord_line] != "End final coordinates\n":
+                end_final_coord_line += 1
+            # get the optimized cell
+            self.cell = []
+            for i in range(begin_final_coord_line+5, begin_final_coord_line+8):
+                for j in range(3):
+                    self.cell.append(float(self.lines[i].split()[j]))        
+        #
 
     def get_opt_params_and_run_info(self):
         """
@@ -159,7 +144,7 @@ class opt_post:
         elif self.run_type == "vc-relax":
             self.run_info["ion-steps"] = len(self.run_info["iterations"]) - 2
 
-    def to_xyz(self, xyz="optimized.xyz"):
+    def print_final_structure(self, xyz="optimized.xyz"):
         if self.relaxed == False:
             with open("final-structure(not-relaxed).xyz", 'w') as fout:
                 fout.write("%d\n" % len(self.trajectory[0]))
@@ -170,12 +155,12 @@ class opt_post:
         # printout relaxed structure
         cell = self.cell
         with open(xyz, 'w') as fout:
-            fout.write("%d\n" % len(self.atoms))
+            fout.write("%d\n" % len(self.trajectory[-1]))
             if self.run_type == "vc-relax":
                 fout.write("cell: %.9f %.9f %.9f | %.9f %.9f %.9f | %.9f %.9f %.9f\n" % (cell[0], cell[1], cell[2], cell[3], cell[4], cell[5], cell[6], cell[7], cell[8]))
             else:
                 fout.write("type of opt run: relax -> the cell is not changed, so go and find the original cell\n")
-            for atom in self.atoms:
+            for atom in self.trajectory[-1]:
                 fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
 
     def print_trajectory(self, xyz="trajectory.xyz"):
@@ -233,7 +218,11 @@ class opt_post:
         with open(md, 'w', encoding='utf-8') as fout:
             fout.write("# 几何优化实验统计\n")
             fout.write("几何优化类型: %s\n" % self.run_type)
-            fout.write("是否成功优化: %s\n" % str(self.relaxed))
+            fout.write("几何优化任务是否结束:%s\n" % str(self.job_done))
+            if self.job_done == True:
+                fout.write("是否成功优化: %s\n" % str(self.relaxed))
+            else:
+                fout.write("是否成功优化: %s\n" % ("运行未结束, 结果未知"))
             fout.write("## 优化参数\n")
             for item in self.opt_params:
                 fout.write("- %s: %s\n" % (item, str(self.opt_params[item])))
@@ -258,24 +247,30 @@ class opt_post:
                 print("qe.post.opt.markdown_report:\n")
                 print("failed to parse start-time string\n")
                 sys.exit(1)
-            if len(self.run_info["stop-time"].split()) == 7:
-                stop_str = self.run_info["stop-time"].split()[6]+"-"+self.run_info["stop-time"].split()[5]
-            elif len(self.run_info["stop-time"].split()) == 8:
-                stop_str = self.run_info["stop-time"].split()[7]+"-"+self.run_info["stop-time"].split()[5]+self.run_info["stop-time"].split()[6]
-            elif len(self.run_info["stop-time"].split()) == 9:
-                stop_str = self.run_info["stop-time"].split()[8]+"-"+self.run_info["stop-time"].split()[5]+self.run_info["stop-time"].split()[6]+self.run_info["stop-time"].split()[7]
-            else:
-                print("===============================================\n")
-                print("                  Warning !!!\n")
-                print("===============================================\n")
-                print("qe.post.opt.markdown_report:\n")
-                print("failed to parse stop-time string\n")
-                sys.exit(1)
+            if self.job_done == True:
+                if len(self.run_info["stop-time"].split()) == 7:
+                    stop_str = self.run_info["stop-time"].split()[6]+"-"+self.run_info["stop-time"].split()[5]
+                elif len(self.run_info["stop-time"].split()) == 8:
+                    stop_str = self.run_info["stop-time"].split()[7]+"-"+self.run_info["stop-time"].split()[5]+self.run_info["stop-time"].split()[6]
+                elif len(self.run_info["stop-time"].split()) == 9:
+                    stop_str = self.run_info["stop-time"].split()[8]+"-"+self.run_info["stop-time"].split()[5]+self.run_info["stop-time"].split()[6]+self.run_info["stop-time"].split()[7]
+                else:
+                    print("===============================================\n")
+                    print("                  Warning !!!\n")
+                    print("===============================================\n")
+                    print("qe.post.opt.markdown_report:\n")
+                    print("failed to parse stop-time string\n")
+                    sys.exit(1)
+
             start = datetime.datetime.strptime(start_str, "%d%b%Y-%H:%M:%S")
-            stop = datetime.datetime.strptime(stop_str, "%d%b%Y-%H:%M:%S")
-            delta_t = stop -start
+            if self.job_done == True:
+                stop = datetime.datetime.strptime(stop_str, "%d%b%Y-%H:%M:%S")
+                delta_t = stop -start
             fout.write("- Time consuming:\n")
-            fout.write("  - totally %.1f seconds, or %.3f minutes or %.5f hours\n" % (delta_t.total_seconds(), delta_t.total_seconds()/60, delta_t.total_seconds()/3600))
+            if self.job_done == True:
+                fout.write("  - totally %.1f seconds, or %.3f minutes or %.5f hours\n" % (delta_t.total_seconds(), delta_t.total_seconds()/60, delta_t.total_seconds()/3600))
+            else:
+                fout.write("  - job is not finished yet, but it starts at %s\n" % start)
             # end the time information
             for item in self.run_info:
                 fout.write("- %s: %s\n" % (item, str(self.run_info[item])))
@@ -295,7 +290,12 @@ class opt_post:
 
 
     def export(self):
-        self.to_xyz()
+        """
+        Note:
+            * will only printout the final structure if the job is done
+        """
+        if self.job_done == True:
+            self.print_final_structure()
         self.print_trajectory()
         self.plot_run_info()
         self.markdown_report("OptimizationReport.md")

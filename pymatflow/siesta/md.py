@@ -25,7 +25,7 @@ class md_run:
         self.ions.basic_setting(option="md")
 
     def md(self, directory="tmp-siesta-md", inpname="molecular-dynamics.fdf", output="molecular-dynamics.out",
-            mpi="", runopt="gen", electrons={}, kpoints_mp=[1, 1, 1]):
+            mpi="", runopt="gen", electrons={}, ions={}, kpoints_mp=[1, 1, 1]):
         """
         """
         if runopt == "gen" or runopt == "genrun":
@@ -38,6 +38,7 @@ class md_run:
 
             self.electrons.kpoints_mp = kpoints_mp
             self.electrons.set_params(electrons)
+            self.ions.set_params(ions)
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.system.to_fdf(fout)
                 self.electrons.to_fdf(fout)

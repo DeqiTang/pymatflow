@@ -11,7 +11,9 @@ from pymatflow.remote.rsync import rsync
 usage:
    siesta-opt.py xxx.xyz
 """
+
 electrons = {}
+ions = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -56,8 +58,24 @@ if __name__ == "__main__":
             help="OccupationFunction(FD or MP)")
     parser.add_argument("--electronic-temperature", type=int ,default=300,
             help="Electronic Temperature")
-
+    
+    # ==================================================
+    #           ions relaed parameter
+    # ==================================================
+    parser.add_argument("--vc", type=str, default="false",
+            choices=["true", "false"],
+            help="MD.VariableCell")
+    parser.add_argument("--forcetol", type=float, default=0.04,
+            help="Force tolerance in coordinate optimization. default=0.04 eV/Ang")
+    parser.add_argument("--stresstol", type=float, default=1,
+            help="Stress tolerance in variable-cell CG optimization. default=1 GPa")
+    parser.add_argument("--targetpressure", type=float, default=0,
+            help="Target pressure for Parrinello-Rahman method, variable cell optimizations, and annealing op-
+            tions.")
+   
+    # -------------------------
     # for server
+    # -------------------------
     parser.add_argument("--auto", type=int, default=0,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.emuhelper/server.conf")
 
@@ -79,8 +97,13 @@ if __name__ == "__main__":
     electrons["OccupationFunction"] = args.occupation
     electrons["ElectronicTemperature"] = args.electronic_temperature
 
+    ions["MD.VariableCell"] = args.vc
+    ions["MD.MaxForceTol"] = args.forcetol
+    ions["MD.MaxStressTol"] = args.stresstol
+    ions["MD.TargetPressure"] = args.targetpressure
+
     task = opt_run(xyzfile)
-    task.opt(directory=directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, kpoints_mp=kpoints_mp, mode=args.mode)
+    task.opt(directory=directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, ions=ions, kpoints_mp=kpoints_mp, mode=args.mode)
 
 
     # server handle

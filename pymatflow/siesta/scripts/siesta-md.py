@@ -58,7 +58,24 @@ if __name__ == "__main__":
     parser.add_argument("--electronic-temperature", type=int ,default=300,
             help="Electronic Temperature")
 
+    # ==================================================
+    #           ions relaed parameter
+    # ==================================================
+    parser.add_argument("--mdstep", type=int, default=1000,
+            help="Final time step of the MD simulation.")
+    parser.add_argument("--timestep", type=float, default=1.0,
+            help="Length of the time step of the MD simulation.")
+    parser.add_argument("--initial-temp", type=float, default=0,
+            help="Initial temperature for the MD run.")
+    parser.add_argument("--target-temp", type=float, default=0,
+            help="arget temperature for Nose thermostat and annealing options.")
+    parser.add_argument("--vc", type=str, default="false",
+            choices=["true", "false"],
+            help="MD.VariableCell")
+
+    # --------------------------
     # for server
+    # --------------------------
     parser.add_argument("--auto", type=int, default=0,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.emuhelper/server.conf")
 
@@ -78,8 +95,14 @@ if __name__ == "__main__":
     electrons["OccupationFunction"] = args.occupation
     electrons["ElectronicTemperature"] = args.electronic_temperature
 
+    ions["MD.FinalTimeStep"] = args.mdstep
+    ions["MD.LengthTimeStep"] = args.timestep
+    ions["MD.InitialTemperature"] = args.initial_temp
+    ions["MD.TargetTemperature"] = args.target_temp
+    ions["MD.VariableCell"] = args.vc
+    
     task = md_run(args.file)
-    task.md(directory=args.directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, kpoints_mp=kpoints_mp)
+    task.md(directory=args.directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, ions=ions, kpoints_mp=kpoints_mp)
 
 
     # server handle

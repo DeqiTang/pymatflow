@@ -83,13 +83,17 @@ if __name__ == "__main__":
 
 
     # motion related parameters
-    parser.add_argument("--md-steps", type=int, default=20,
+    parser.add_argument("--md-steps", type=int, default=1000,
             help="MOTION/MD/STEPS")
+    parser.add_argument("--timestep", type=float, default=5.0e-3,
+            help="MOTION/MD/TIMESTEP")
     parser.add_argument("--ensemble", type=str, default="NVE",
             choices=["NVE",  "NVT","HYDROSTATICSHOCK", "ISOKIN", "LANGEVIN", "MSST", "MSST_DAMPED"],
             help="MOTION/MD/ENSEMBLE")
     parser.add_argument("--temperature", type=str, default=300,
             help="The temperature in K used to initialize the velocities with init and pos restart, and in the NPT/NVT simulations")
+    parser.add_argument("--temp-tol", type=float, default=0.0,
+            help="MOTION/MD/TEMP_TOL")
     parser.add_argument("--traj-format", type=str, default="XMOL",
             help="type of output trajectory for MOTION, note: DCD format can be visualized by vmd")
 
@@ -118,8 +122,10 @@ if __name__ == "__main__":
     force_eval["DFT-SCF-MIXING-ALPHA"] = args.alpha
 
     motion["MD-STEPS"] = args.md_steps
+    motion["MD-TIMESTEP"] = args.timestep
     motion["MD-ENSEMBLE"] = args.ensemble
     motion["MD-TEMPERATURE"] = args.temperature
+    motion["MD-TEMP_TOL"] = args.temp_tol
     motion["PRINT-TRAJECTORY-FORMAT"] = args.traj_format
 
     task = md_run(args.file)

@@ -2,6 +2,7 @@
 # _*_ coding: utf-8 _*_
 
 import datetime
+import subprocess
 import matplotlib.pyplot as plt
 
 class md_post:
@@ -10,6 +11,7 @@ class md_post:
     def __init__(self, output, run_type="MD"):
         self.file = output
         self.run_type = run_type
+        self.program_ended = None # whether calculation is finished
         self.md_params = {}
         self.run_info = {}
 
@@ -22,8 +24,21 @@ class md_post:
         get the general information of opt run from opt run output file
         which is now stored in self.lines
         """
+        # check whether calculation has finished
+        # cp2k will output the calculation directory on the last line
+        # and different length of directory string will affect the content
+        # of the last line, so we can't directly judge whether the calculation
+        # has stopped only from the last line. and the solution is to check
+        # the last several lines
+        self.program_ended = False
+        for line in self.lines[-9:]:
+            if len(line.split()) == 0:
+                continue
+            if line.split()[0] == "****" and line.split()[1] == "****" and line.split()[2] == "******" and line.split()[3] == "**" and line.split()[4] == "PROGRAM":
+                self.program_ended = True
+                break
+        #
         self.get_final_structure()
-
         self.get_md_params_and_run_info()
 
     def get_final_structure(self):
@@ -65,6 +80,10 @@ class md_post:
         # so we should use self.run_info["total-energies"] to get the total number of scf cycles
         self.run_info["scf-cycles-total"] = len(self.run_info["total-energies"])
 
+    def view_trajectory(self, trajfile="ab-initio-pos-1.xyz"):
+        #os.system("xcrysden --xyz %s" % trajfile)
+        subprocess.call(["xcrysden", "--xyz", trajfile])
+
     def plot_run_info(self):
         """
         """
@@ -94,6 +113,7 @@ class md_post:
         with open(md, 'w', encoding='utf-8') as fout:
             fout.write("# 分子动力学实验统计\n")
             fout.write("分子动力学类型: %s\n" % self.run_type)
+            fout.write("分子动力学是否结束: %s\n" % self.program_ended)
             fout.write("## 分子动力学参数\n")
             for item in self.md_params:
                 fout.write("- %s: %s\n" % (item, str(self.md_params[item])))
@@ -102,10 +122,14 @@ class md_post:
             # note that the accuracy for the seconds is not fully guranteed 
             # e.g. 2019-11-26 12:09:36.487 is read as 2019-11-26 12:09:36
             start = datetime.datetime.strptime(self.run_info["start-time"].split()[7]+"-"+self.run_info["start-time"].split()[8].split(".")[0], "%Y-%m-%d-%H:%M:%S")
-            stop = datetime.datetime.strptime(self.run_info["stop-time"].split()[7]+"-"+self.run_info["stop-time"].split()[8].split(".")[0], "%Y-%m-%d-%H:%M:%S")
-            delta_t = stop -start
+            if self.program_ended == True:
+                stop = datetime.datetime.strptime(self.run_info["stop-time"].split()[7]+"-"+self.run_info["stop-time"].split()[8].split(".")[0], "%Y-%m-%d-%H:%M:%S")
+                delta_t = stop -start
             fout.write("- Time consuming:\n")
-            fout.write("  - totally %.1f seconds, or %.3f minutes or %.5f hours\n" % (delta_t.total_seconds(), delta_t.total_seconds()/60, delta_t.total_seconds()/3600))
+            if self.program_ended == True:
+                fout.write("  - totally %.1f seconds, or %.3f minutes or %.5f hours\n" % (delta_t.total_seconds(), delta_t.total_seconds()/60, delta_t.total_seconds()/3600))
+            else:
+                fout.write("  - job is not finished yet, but it starts at %s\n" % start)
             # end the time information
             for item in self.run_info:
                 fout.write("- %s: %s\n" % (item, str(self.run_info[item])))

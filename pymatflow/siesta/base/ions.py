@@ -78,7 +78,7 @@ class siesta_ions:
         elif option == "md":
             self.md["TypeOfRun"] = "Verlet" # Verlet, Nose, ParrinelloRahman, NoseParrinelloRahman, Anneal
             self.md["InitialTimeStep"] = 1
-            self.md["FinalTimeStep"] = 20 # default is MD.Steps 
+            self.md["FinalTimeStep"] = 1000 # default is MD.Steps 
             self.md["LengthTimeStep"] = 1
             self.md["InitialTemperature"] = 0
             self.md["TargetTemperature"] = 0
@@ -87,4 +87,10 @@ class siesta_ions:
             self.params["WriteMDXmol"] = "true"
         #
 
-
+    def set_params(self, ions):
+        for item in ions:
+            if len(item.split(".")) == 1:
+                self.params[item] = ions[item]
+            elif len(item.split(".")) == 2 and item.split(".")[0] == "MD":
+                self.md[item.split(".")[1]] = ions[item]
+        #

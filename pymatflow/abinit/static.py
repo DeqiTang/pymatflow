@@ -32,6 +32,7 @@ class static_run:
             os.mkdir(directory)
             os.system("cp *.psp8 %s/" % directory)
             os.system("cp *.GGA_PBE-JTH.xml %s/" % directory)
+            os.system("cp %s %s/" % (self.system.xyz.file, directory))
 
             self.electrons.set_scf_nscf("scf")
             self.electrons.set_params(electrons)
@@ -156,6 +157,7 @@ class static_run:
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.psp8 %s/" % directory)
+            os.system("cp %s %s/" % (self.system.xyz.file, directory))
    
             self.electrons.set_params(electrons)
             self.electrons.kpoints.set_params(kpoints)

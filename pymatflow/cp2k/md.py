@@ -66,7 +66,7 @@ class md_run:
                 self.motion.to_input(fout)
 
             # gen server job comit file
-            self.gen_yh(cmd="cp2k.popt", inpname=inpname, output=output)
+            self.gen_yh(cmd="cp2k.popt", directory=directory, inpname=inpname, output=output)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -87,7 +87,7 @@ class md_run:
         """
         self.force_eval.dft.localize.status = True
 
-    def gen_yh(self,inpname, output, directory="tmp-cp2k-static", cmd="cp2k.psmp"):
+    def gen_yh(self,inpname, output, directory="tmp-cp2k-md", cmd="cp2k.psmp"):
         """
         generating yhbatch job script for calculation
         """

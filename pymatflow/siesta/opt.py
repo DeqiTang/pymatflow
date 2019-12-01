@@ -25,7 +25,7 @@ class opt_run:
         self.ions.basic_setting(option="opt")
 
     def opt(self, directory="tmp-siesta-opt", inpname="geometric-optimization.fdf", output="geometric-optimization.out",
-            mpi="", runopt="gen", mode=0, electrons={}, kpoints_mp=[1, 1, 1]):
+            mpi="", runopt="gen", mode=0, electrons={}, ions={}, kpoints_mp=[1, 1, 1]):
         """
         mode:
             0: do not vary the cell
@@ -41,6 +41,7 @@ class opt_run:
 
             self.electrons.kpoints_mp = kpoints_mp
             self.electrons.set_params(electrons)
+            self.ions.set_params(ions)
             self.set_opt_mode(mode=mode)
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.system.to_fdf(fout)

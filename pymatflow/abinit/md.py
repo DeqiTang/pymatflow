@@ -20,6 +20,7 @@ class md_run:
         self.ions = abinit_ions()
         
         self.electrons.basic_setting()
+
         self.ions.basic_setting(mode="md")
 
         self.guard = abinit_guard(queen="md", electrons=self.electrons, ions=self.ions, system=self.system)
@@ -36,6 +37,12 @@ class md_run:
             self.electrons.set_params(electrons)
             self.electrons.kpoints.set_params(kpoints)
             self.ions.set_params(ions)
+            #
+            self.electrons.params["tolvrs"] = 1.0e-10
+            self.electrons.params["tolwrf"] = None
+            self.electrons.params["toldff"] = None
+            self.electrons.params["tolrff"] = None
+            self.electrons.params["toldfe"] = None #1.0e-6
             #
             self.guard.check_all()
             with open(os.path.join(directory, inpname), 'w') as fout:

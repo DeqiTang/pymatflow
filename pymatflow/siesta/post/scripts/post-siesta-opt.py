@@ -10,10 +10,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", help="directory of geometric optimization running", type=str, default="tmp-siesta-opt")
     parser.add_argument("-f", "--file", help="output of opt running", type=str, default="geometric-optimization.out")
+    parser.add_argument("--view-traj", type=str, default="yes",
+            choices=["yes", "no"],
+            help="whether to view the trajectory.")
 
     args = parser.parse_args()
     
     os.chdir(args.directory)
     task = opt_post(outputfile=args.file)
     task.export()
+    if args.view_traj == "yes":
+        task.view_trajectory()
     os.chdir("../")
