@@ -101,7 +101,7 @@ class cp2k_dft_scf_smear:
         fout.write("\t\t\t&END SMEAR\n")
 
     def basic_setting(self):
-        self.section = False
+        self.section = "FALSE" #False
         self.params["METHOD"] = 'FERMI_DIRAC'
         self.params["ELECTRONIC_TEMPERATURE"] = 300.0
 
