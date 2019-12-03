@@ -6,14 +6,25 @@ import os
 import sys
 
 class neb_post:
-    def __init__(self):
+    def __init__(self, nebout="neb.out"):
         self.neb_params = {}
         self.run_info = {}
 
-    def get_info(self, nebout="neb.out"):
+        self.job_done = None # whether calculation has finished
         with open(nebout, 'r') as fin:
             self.lines = fin.readlines()
-            
+
+        self.get_info()
+
+    def get_info(self):
+        """
+        """
+        # check whether calculation is finished
+        if len(self.lines[-2].split()) == 2 and self.lines[-2].split()[0] == "JOB" and self.lines[-2].split()[1] == "DONE.":
+            self.job_done = True
+        else:
+            self.job_done = False
+        # 
         self.run_info["activation energy(->)"] = []
         self.run_info["activation eenrgy(<-)"] = []
         self.run_info["climbing image"] = []
@@ -107,6 +118,7 @@ class neb_post:
         """
         with open(md, 'w', encoding='utf-8') as fout:
             fout.write("# Neb实验统计\n")
+            fout.write("过渡态搜索任务是否结束: %s\n" % str(self.job_done))
             fout.write("## neb参数\n")
             for item in self.neb_params:
                 fout.write("- %s: %s\n" % (item, str(self.neb_params[item])))
@@ -121,6 +133,8 @@ class neb_post:
                 start_str = self.run_info["start-time"].split()[5]+"-"+self.run_info["start-time"].split()[7]
             elif len(self.run_info["start-time"].split()) == 9:
                 start_str = self.run_info["start-time"].split()[5]+"-"+self.run_info["start-time"].split()[7]+self.run_info["start-time"].split()[8]
+            elif len(self.run_info["start-time"].split()) == 10:
+                start_str = self.run_info["start-time"].split()[5]+"-"+self.run_info["start-time"].split()[7]+self.run_info["start-time"].split()[8]+self.run_info["start-time"].split()[9]
             else:
                 print("===============================================\n")
                 print("                  Warning !!!\n")
@@ -128,22 +142,30 @@ class neb_post:
                 print("qe.post.neb.markdown_report:\n")
                 print("failed to parse start-time string\n")
                 sys.exit(1)
-            if len(self.run_info["stop-time"].split()) == 7:
-                stop_str = self.run_info["stop-time"].split()[6]+"-"+self.run_info["stop-time"].split()[5]
-            elif len(self.run_info["stop-time"].split()) == 8:
-                stop_str = self.run_info["stop-time"].split()[7]+"-"+self.run_info["stop-time"].split()[5]+self.run_info["stop-time"].split()[6]
-            else:
-                print("===============================================\n")
-                print("                  Warning !!!\n")
-                print("===============================================\n")
-                print("qe.post.neb.markdown_report:\n")
-                print("failed to parse stop-time string\n")
-                sys.exit(1)
+            if self.job_done == True:
+                if len(self.run_info["stop-time"].split()) == 7:
+                    stop_str = self.run_info["stop-time"].split()[6]+"-"+self.run_info["stop-time"].split()[5]
+                elif len(self.run_info["stop-time"].split()) == 8:
+                    stop_str = self.run_info["stop-time"].split()[7]+"-"+self.run_info["stop-time"].split()[5]+self.run_info["stop-time"].split()[6]
+                elif len(self.run_info["stop-time"].split()) == 9:
+                    stop_str = self.run_info["stop-time"].split()[8]+"-"+self.run_info["stop-time"].split()[5]+self.run_info["stop-time"].split()[6]+self.run_info["stop-time"].split()[7]
+                else:
+                    print("===============================================\n")
+                    print("                  Warning !!!\n")
+                    print("===============================================\n")
+                    print("qe.post.neb.markdown_report:\n")
+                    print("failed to parse stop-time string\n")
+                    sys.exit(1)
+
             start = datetime.datetime.strptime(start_str, "%d%b%Y-%H:%M:%S")
-            stop = datetime.datetime.strptime(stop_str, "%d%b%Y-%H:%M:%S")
-            delta_t = stop -start
+            if self.job_done == True:
+                stop = datetime.datetime.strptime(stop_str, "%d%b%Y-%H:%M:%S")
+                delta_t = stop -start
             fout.write("- Time consuming:\n")
-            fout.write("  - totally %.1f seconds, or %.3f minutes or %.5f hours\n" % (delta_t.total_seconds(), delta_t.total_seconds()/60, delta_t.total_seconds()/3600))
+            if self.job_done == True:
+                fout.write("  - totally %.1f seconds, or %.3f minutes or %.5f hours\n" % (delta_t.total_seconds(), delta_t.total_seconds()/60, delta_t.total_seconds()/3600))
+            else:
+                fout.write("  - job is not finished yet, but it starts at %s\n" % start)
             # end the time information
             for item in self.run_info:
                 fout.write("- %s: %s\n" % (item, str(self.run_info[item])))
@@ -164,7 +186,6 @@ class neb_post:
             print("  directory of previous neb calculattion not found!\n")
             sys.exit(1)       
         os.chdir(directory)
-        self.get_info(nebout=nebout)
         self.min_energy_path_gp(nebint=nebint, nebdat=nebdat, inpname=inpname, runopt="genrun")
         self.md_report(md=md)
         os.chdir("../")

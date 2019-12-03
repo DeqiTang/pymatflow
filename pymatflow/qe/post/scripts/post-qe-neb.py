@@ -1,6 +1,7 @@
 #!/usr/bin/evn python
 # _*_ coding: utf-8 _*_
 
+import os
 import argparse
 
 from pymatflow.qe.post.neb import neb_post
@@ -18,5 +19,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    task = neb_post()
-    task.export(directory=args.directory, nebint=args.nebint, nebdat=args.nebdat, md=args.md, nebout=args.nebout)
+    os.chdir(args.directory)
+    task = neb_post(nebout=args.nebout)
+    os.chdir("../")
+    task.export(directory=args.directory, nebint=args.nebint, nebdat=args.nebdat, md=args.md)
