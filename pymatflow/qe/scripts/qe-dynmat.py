@@ -4,7 +4,8 @@
 import os
 import argparse
 
-from pymatflow.qe.static import static_run
+#from pymatflow.qe.static import static_run
+from pymatflow.qe.dfpt import dfpt_run
 from pymatflow.remote.ssh import ssh
 from pymatflow.remote.rsync import rsync
 
@@ -35,7 +36,8 @@ if __name__ == "__main__":
     xyzfile = args.file
 
 
-    task = static_run(xyzfile)
+    #task = static_run(xyzfile)
+    task = dfpt_run(xyzfile)
     task.dynmat(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
 
     # server handle

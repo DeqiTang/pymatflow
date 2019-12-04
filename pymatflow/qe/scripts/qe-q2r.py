@@ -4,7 +4,7 @@
 import os
 import argparse
 
-from pymatflow.qe.static import static_run
+from pymatflow.qe.dfpt import dfpt_run
 from pymatflow.remote.ssh import ssh
 from pymatflow.remote.rsync import rsync
 
@@ -36,13 +36,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     xyzfile = args.file
 
-    matdyn_qpoints = []
-    for i in range(0, len(args.matdyn_qpoints), 4):
-        matdyn_qpoints.append([float(args.matdyn_qpoints[i]), float(args.matdyn_qpoints[i+1]), float(args.matdyn_qpoints[i+2]), float(args.matdyn_qpoints[i+3])])
 
-    print(matdyn_qpoints)
 
-    task = static_run(xyzfile)
+    task = dfpt_run(xyzfile)
     task.q2r(directory=args.directory, mpi=args.mpi, runopt=args.runopt, zasr=args.zasr)
 
     # server handle
