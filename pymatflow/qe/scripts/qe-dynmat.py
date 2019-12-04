@@ -23,7 +23,14 @@ if __name__ == "__main__":
     # --------------------------------------------------------------
     # for dynmat
     # --------------------------------------------------------------
-   
+    parser.add_argument("--q", type=float, nargs="+",
+            default=[0, 0, 0],
+            help="calculate LO modes along the direction q.")
+
+    parser.add_argument("--asr", type=str, default="simple",
+            choices=["no", "simple", "crystal", "one-dim", "zero-dim"],
+            help="the type of Acoustic Sum Rule imposed")
+
     # --------------------------------------------------------------
     # for server
     # --------------------------------------------------------------
@@ -38,7 +45,7 @@ if __name__ == "__main__":
 
     #task = static_run(xyzfile)
     task = dfpt_run(xyzfile)
-    task.dynmat(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
+    task.dynmat(directory=args.directory, mpi=args.mpi, runopt=args.runopt, asr=args.asr, qi=args.q)
 
     # server handle
     if args.auto == 0:

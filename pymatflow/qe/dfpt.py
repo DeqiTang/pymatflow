@@ -23,7 +23,13 @@ class dfpt_run:
         currently implemented calculation including:
             phx, q2r, matdyn, plotband,
             dynmat, ir_raman, fermi_surface,
-    #
+    Note:
+        ph.x calculation cannot start from pw.x data using Gamma-point
+        tricks. so the static scf must be done not using Gamma kpoint
+        scheme.
+
+        ph.x calculation can not be going when the system is metallic, but I found even when my fermi energy is in the gap, ph.x can sometimes fail to run.
+
     """
     def __init__(self, xyz_f):
         self.control = qe_control()
@@ -105,6 +111,7 @@ class dfpt_run:
             sys.exit(1)
         if runopt == "gen" or runopt == "genrun":
             with open(os.path.join(directory, inpname), 'w') as fout:
+                fout.write("ph.x calculation\n")
                 fout.write("&inputph\n")
                 for item in self.inputph:
                     if self.inputph[item] is not None:
@@ -259,7 +266,7 @@ class dfpt_run:
 
 
     def dynmat(self, directory="tmp-qe-static", inpname="dynmat.in", output="dynmat.out", mpi="", runopt="gen",
-            fildyn="phx.dyn"):
+            fildyn="phx.dyn", asr="simple", qi=[0, 0, 0]):
         """
         imposing acoustic sum rule (ASR)
         extract the phonon information from ph.x output using dynmat.x(
@@ -268,6 +275,8 @@ class dfpt_run:
         and molden separately, and molden can visualize the vibration through
         fildyn.mold
         )
+        Note:
+            only used when the ph.x calculation was conducted using Gamma point but not the q mesh.
         """
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
@@ -281,7 +290,10 @@ class dfpt_run:
             with open(os.path.join(directory, inpname), 'w') as fout:
                 fout.write("&input\n")
                 fout.write("fildyn = '%s'\n" % fildyn) # File containing the dynamical matrix
-                fout.write("asr = 'simple'\n")
+                fout.write("asr = '%s'\n" % asr)
+                fout.write("q(1) = %f\n" % qi[0])
+                fout.write("q(2) = %f\n" % qi[1])
+                fout.write("q(3) = %f\n" % qi[2])
                 fout.write("/\n")
                 fout.write("\n")
             # gen yhbatch script
@@ -303,7 +315,7 @@ class dfpt_run:
             3. Extract the phonon information from ph.x output using dynmat.x
             4. Parse the dynmat.x output section that contains the spectra data (frequencies and intensities) and plot it with gnuplot, producing these two spectra:
         """
-        self.phx_qmesh(mpi=mpi, runopt=runopt)
+        self.phx(mpi=mpi, runopt=runopt)
         self.dynmat(mpi=mpi, runopt=runopt)
 
     #

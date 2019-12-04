@@ -129,7 +129,7 @@ setup(
         "pymatflow/siesta/scripts/net-charge_dipole_elec-field_siesta.py",
         "pymatflow/siesta/scripts/optical_siesta.py",
         "pymatflow/siesta/scripts/phonon_siesta.py",
-        "pymatflow/siesta/scripts/phonon_with_phonopy_siesta.py",
+        "pymatflow/siesta/scripts/siesta-phonopy.py",
         "pymatflow/siesta/scripts/wannier90_siesta.py",
         "pymatflow/siesta/scripts/xyz2fdf.py",
         "pymatflow/siesta/scripts/siesta-converge-cutoff.py",
