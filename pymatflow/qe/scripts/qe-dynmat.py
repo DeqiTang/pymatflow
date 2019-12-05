@@ -61,7 +61,7 @@ if __name__ == "__main__":
         ctl = ssh()
         ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
         ctl.login()
-        ctl.submit(workdir=args.directory, jobfile="ph-qmesh.in.sub")
+        ctl.submit(workdir=args.directory, jobfile="dynmat.in.sub")
         # cannot submit the following job before finishing the previous one
         #ctl.submit(wordir=args.directory, jobfile="q2r.in.sub")
         #ctl.submit(wordir=args.directory, jobfile="matdyn.in.sub")

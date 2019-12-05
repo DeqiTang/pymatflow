@@ -88,7 +88,7 @@ class cp2k_motion_md:
                 "INITIAL_METHOD": None,
                 "MAX_STEPS": None,
                 "SCALE_TEMP_KIND": None,
-                "STEPS": 50,
+                "STEPS": None,
                 "STEP_START_VAL": None,
                 "TEMPERATURE": None,
                 "TEMPERATURE_ANNEALING": None,
@@ -98,6 +98,9 @@ class cp2k_motion_md:
                 "TIME_START_VAL": None,
                 }
         self.thermostat = cp2k_motion_md_thermostat()
+        # basic default setting
+        self.params["TIMESTEP"] = 0.5
+        self.params["STEPS"] = 1000
 
     def to_motion(self, fout):
         """

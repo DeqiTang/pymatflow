@@ -1056,7 +1056,7 @@ class static_run:
         if iflag == 0 or iflag == 1:
             fout.write("e1(1) = %f, e1(2) = %f, e1(3) = %f\n" % (e1[0], e1[1], e1[2]))
             fout.write("x0(1) = %f, x0(2) = %f, x0(3) = %f\n" % (x0[0], x0[1], x0[2]))
-            fout.write("nx = %d\n", nx)
+            fout.write("nx = %d\n" % nx)
         elif iflag == 2:
             fout.write("e1(1) = %f, e1(2) = %f, e1(3) = %f\n" % (e1[0], e1[1], e1[2]))
             fout.write("e2(1) = %f, e2(2) = %f, e2(3) = %f\n" % (e2[0], e2[1], e2[2]))
@@ -1070,7 +1070,7 @@ class static_run:
             fout.write("nx = %d, ny = %d, nz = %d\n" % (nx, ny, nz))
         elif iflag == 4:
             fout.write("radius = %f\n" % radius)
-            fout.write("nx = %d, ny = %d\n" (nx, ny))
+            fout.write("nx = %d, ny = %d\n" % (nx, ny))
         if output_format == 0:
             fout.write("fileout = '%s'\n" % (filepp.split(".")[0]+".1d.gp"))
         elif output_format == 2:

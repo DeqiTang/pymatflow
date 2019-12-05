@@ -44,7 +44,7 @@ if __name__ == "__main__":
                 "OFGPW", "PDG", "PM3", "PM6", "PM6-FM", "PNNL", "RIGPW", "RM1"],
             help="specify the electronic structure method")
 
-    parser.add_argument("--eps-scf", type=float, default=1.0e-5,
+    parser.add_argument("--eps-scf", type=float, default=1.0e-6,
             help="DFT-SCF-EPS_SCF")
 
     parser.add_argument("--xc-functional", type=str, default="PBE",
@@ -85,8 +85,8 @@ if __name__ == "__main__":
     # motion related parameters
     parser.add_argument("--md-steps", type=int, default=1000,
             help="MOTION/MD/STEPS")
-    parser.add_argument("--timestep", type=float, default=5.0e-3,
-            help="MOTION/MD/TIMESTEP")
+    parser.add_argument("--timestep", type=float, default=5.0e-1,
+            help="MOTION/MD/TIMESTEP, default and also recommended is 0.5 fs.")
     parser.add_argument("--ensemble", type=str, default="NVE",
             choices=["NVE",  "NVT","HYDROSTATICSHOCK", "ISOKIN", "LANGEVIN", "MSST", "MSST_DAMPED"],
             help="MOTION/MD/ENSEMBLE")

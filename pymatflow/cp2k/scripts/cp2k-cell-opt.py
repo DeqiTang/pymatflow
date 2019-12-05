@@ -38,7 +38,7 @@ if __name__ == "__main__":
                 "OFGPW", "PDG", "PM3", "PM6", "PM6-FM", "PNNL", "RIGPW", "RM1"],
             help="specify the electronic structure method")
 
-    parser.add_argument("--eps-scf", type=float, default=1.0e-5,
+    parser.add_argument("--eps-scf", type=float, default=1.0e-6,
             help="DFT-SCF-EPS_SCF")
 
     parser.add_argument("--xc-functional", type=str, default="PBE",

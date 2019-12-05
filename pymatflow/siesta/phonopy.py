@@ -46,16 +46,16 @@ class phonopy_run:
             self.electrons.kpoints_mp = kpoints_mp
             self.electrons.set_params(electrons)
             
-            # OK now we can use XYZ class to extract information 
+            # ok now we can use xyz class to extract information 
             # from the xyz file: sys.argv[1]
 
             #xyz = siesta_xyz_phonopy()
 
 
-            head_fdf_name = "head.fdf"
+            head_fdf_name = "head.fdf" # without sele.electrons now
             with open(os.path.join(directory, head_fdf_name), 'w') as fout:
-                #self.system.to_fdf(fout)
-                self.electrons.to_fdf(fout)
+                # we will add self.electrons.to_fdf after the supercell structure was append
+                #self.electrons.to_fdf(fout)
                 fout.write("SystemName %s\n" % self.system.name)
                 fout.write("SystemLabel %s\n" % self.system.label)
                 fout.write("NumberOfSpecies %s\n" % self.system.xyz.nspecies)
@@ -73,6 +73,7 @@ class phonopy_run:
                     fout.write("\t%s\tDZP\n" % element)
                 fout.write("%endblock PAO.BasisSizes\n")
                 fout.write("\n")
+                fout.write("# =========================================================\n")
 
             pos_fdf_name = "pos.fdf"
             with open(os.path.join(directory, pos_fdf_name), 'w') as fout:
@@ -89,6 +90,12 @@ class phonopy_run:
             for disp in disp_dirs:
                 os.mkdir("disp-%s" % disp)
                 os.system("cat %s supercell-%s.fdf > ./disp-%s/supercell-%s.fdf" % (head_fdf_name, disp, disp, disp))
+                # add electrons related setting to get the complete input for siesta
+                with open("./disp-%s/supercell-%s.fdf" % (disp, disp), 'a') as fout:
+                    fout.write("# =========================================================\n")
+                    fout.write("\n\n")
+                    self.electrons.to_fdf(fout)
+                #
                 os.system("cp *.psf ./disp-%s/" % disp)
                 os.system("rm supercell-%s.fdf" % disp)
             os.chdir("../")

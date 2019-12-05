@@ -14,7 +14,18 @@ from pymatflow.cp2k.base.motion import cp2k_motion
 
 
 """
-Usage:
+Note:
+    we can check the official neb manual for some information on
+    how to run transition state search appropriately.
+    usually the inter-image distance between 1~2 Bohr is suggested,
+    but I am not sure now whether it is also OK when it is larger
+    than 2 Bohr.
+
+    at the beginning, we can use no-CI, and start with a compromised
+    scf setting, and restart with a higher precision when it is
+    converged(according to the manual, this might increase the
+    energy barrier).
+
 """
 
 class neb_run:

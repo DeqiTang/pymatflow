@@ -13,7 +13,6 @@ from pymatflow.cp2k.base.force_eval import cp2k_force_eval
 #from emuhelper.cp2k.base.atom import cp2k_atom
 
 """
-
 """
 
 class static_run:
@@ -121,7 +120,12 @@ class static_run:
             runopt="gen", force_eval={}):
         """
         Note:
-            this function is used to do the converge test for CUTOFF
+            this function is used to do the converge test for CUTOFF.
+            advices on CUTOFF converging:
+            we can first check the basis set file, and find the largest
+            value among all elements used. and we times it by 4. then
+            we can set the converge range convering that value, to find
+            the converged CUTOFF
         emin:
             the minimum cutoff of the test range
         emax:

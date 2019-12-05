@@ -8,7 +8,7 @@ class cp2k_dft_qs:
     def __init__(self):
         self.params = {
                 "METHOD": "GPW",
-                "EPS_DEFAULT": "1.0E-10",
+                "EPS_DEFAULT": 1.0E-14,
                 "FORCE_PAW": None,
                 }
     def to_dft(self, fout):

@@ -12,7 +12,15 @@ from pymatflow.cp2k.base.glob import cp2k_glob
 from pymatflow.cp2k.base.force_eval import cp2k_force_eval
 from pymatflow.cp2k.base.motion import cp2k_motion
 
+
 """
+Reference:
+    https://pc2.uni-paderborn.de/teaching/trainings/cp2k-tutorial/
+
+
+TODO: implementing VIBRATIONAL SPECTRA calculating following this tutorial:
+    https://pc2.uni-paderborn.de/teaching/trainings/cp2k-tutorial/
+    it will use cp2k and Travis tools.
 """
 
 class md_run:

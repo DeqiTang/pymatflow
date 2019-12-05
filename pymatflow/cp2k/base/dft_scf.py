@@ -135,7 +135,7 @@ class cp2k_dft_scf:
         self.params = {
                 "ADDED_MOS": 20,
                 "SCF_GUESS": "ATOMIC",
-                "EPS_SCF": "1.0E-06",
+                "EPS_SCF": 1.0E-07,
                 "MAX_SCF": 50,
                 "MAX_DIIS": None,
                 "MAX_ITER_LUMO": None,
