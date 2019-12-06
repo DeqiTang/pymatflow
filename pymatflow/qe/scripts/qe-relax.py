@@ -51,11 +51,17 @@ if __name__ == "__main__":
     parser.add_argument("--conv-thr", type=float, default=1.0e-6,
             help="the conv_thr for scf, when doing geometric optimization better use a strict covnergec for scf")
 
-    parser.add_argument("--occupations", help="occupation type", type=str, default="smearing")
+    parser.add_argument("--occupations", type=str, default="smearing",
+            choices=["smearing", "tetrahedra", "tetrahedra_lin", "tetrahedra_opt", "fixed", "from_input"],
+            help="Occupation method for the calculation.")
+    
+    parser.add_argument("--smearing", type=str, default="gaussian",
+            choices=["gaussian", "methfessel-paxton", "marzari-vanderbilt", "fermi-dirac"],
+            help="Smearing type for occupations by smearing, default is gaussian in this script")
 
-    parser.add_argument("--smearing", help="smearing type", type=str, default="gaussian")
+    parser.add_argument("--degauss", type=float, default=0.001,
+            help="Value of the gaussian spreading (Ry) for brillouin-zone integration in metals.(defualt: 0.001 Ry)")
 
-    parser.add_argument("--degauss", help="value of the gaussian spreading (Ry) for brillouin-zone integration in metals.", type=float, default=0.001)
     parser.add_argument("--vdw-corr", help="vdw_corr = dft-d, dft-d3, ts-vdw, xdm", type=str, default="none")
 
 

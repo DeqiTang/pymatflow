@@ -27,8 +27,25 @@ class dfpt_run:
         ph.x calculation cannot start from pw.x data using Gamma-point
         tricks. so the static scf must be done not using Gamma kpoint
         scheme.
+    
+    occupations setting:
+        
+        ph.x calculation can not be going when the system is metallic, 
 
-        ph.x calculation can not be going when the system is metallic, but I found even when my fermi energy is in the gap, ph.x can sometimes fail to run.
+        but I found even when my fermi energy is in the gap, ph.x can sometimes fail to run. 
+        this might result from use of smearing in the scf calculation. we should tray other type of occupation.
+
+        sometimes ph.x can run when I use smearing type occupation,
+        but somtimes it might warning it is metallic, and stop the calculation,
+        even thought I found the fermi energy is actually in the gap(insulator).
+
+        DFPT with the Blochl correction of occupation(tetrahedra) is not implemented
+        but tetrahedra_opt and fixed is ok.
+
+        for some systems if you do not use smearing occupations, during
+        the scf ground state calculation qe will stop, signaling:
+        'charge is wrong: smearing is needed'
+        but actually in reality we know the system is an insulator.
 
     """
     def __init__(self, xyz_f):

@@ -18,8 +18,7 @@ from pymatflow.qe.base.arts import qe_arts
 
 """
 Note:
-    现在只支持设置ATOMIC_POSITIONS 为crystal类型
-    而我喜欢用angstrom, 所以就暂且搁置, 等待以后其支持angstrom
+    现在phonopy只支持设置ATOMIC_POSITIONS 为crystal类型
     参考:
     https://atztogo.github.io/phonopy/qe.html
 """
@@ -34,14 +33,14 @@ class phonopy_run:
         self.control = qe_control()
         self.system = qe_system()
         self.electrons = qe_electrons()
-        self.ions = qe_ions()
+        #self.ions = qe_ions()
         self.arts = qe_arts(xyz_f)
 
-        self.arts.basic_setting(ifstatic=False)
-        
+        self.control.basic_setting("scf")
         self.system.basic_setting(self.arts)
+        self.arts.basic_setting(ifstatic=True)
 
-        self.supercell_n = "1 1 1"
+        self.supercell_n = [1, 1, 1]
         
     def phonopy(self, directory="tmp-qe-phonopy", pos_inpname="pos.in", head_inpname="head.in",
             mpi="", runopt="gen", control={}, system={}, electrons={}, 
@@ -65,6 +64,12 @@ class phonopy_run:
             self.system.set_params(system)
             self.electrons.set_params(electrons)
             self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
+            
+            # must print print out forces and stress after scf
+            # so that phonopy can parse the scf output file and
+            # construct the FORCE CONSTANT MATIRX
+            self.control.params["tprnfor"] = True
+            self.control.params["tstress"] = True
 
             with open(os.path.join(directory, head_inpname), 'w') as fout:
                 self.control.to_in(fout)
@@ -76,8 +81,8 @@ class phonopy_run:
             os.chdir(directory)
             os.system("cat %s > %s" % (head_inpname, pos_inpname))
             with open(pos_inpname, 'a') as fout:
-                self.arts.to_in(fout)
-            os.system("phonopy --qe -d --dim='%s' -c %s" % (self.supercell_n, pos_inpname))
+                self.arts.to_in(fout, coordtype="crystal")
+            os.system("phonopy --qe -d --dim='%d %d %d' -c %s" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2], pos_inpname))
             os.system("ls | grep 'supercell-' > pos.data")
             disp_dirs = []
             with open("pos.data", 'r') as fin:
@@ -112,9 +117,9 @@ class phonopy_run:
                 for element in self.arts.xyz.specie_labels:
                     fout.write(" %s" % element)
                 fout.write("\n")
-                fout.write("DIM = %s\n" % self.supercell_n)
+                fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
                 fout.write("BAND = 0.5 0.5 0.5 0.0 0.0 0.0 0.5 0.5 0.0 0.0 0.5 0.0\n")
-            os.system("phonopy --qe -c %s -p band.conf" % inpname)
+            os.system("phonopy --qe -c %s -p band.conf" % pos_inpname)
 
             os.chdir("../")
     
@@ -144,9 +149,14 @@ class phonopy_run:
                     self.system.set_occupations(occupations="smearing", degauss=system["degauss"])
                 else:
                     self.system.set_occupations(occupations="smearing")
-            else:
-                pass
-    #
+            elif system["occupations"] == "tetrahedra_lin":
+                self.system.set_occupations(occupations="tetrahedra_lin")
+            elif system["occupations"] == "tetrahedra_opt":
+                self.system.set_occupations(occupations="tetrahedra_opt")
+            elif system["occupations"] == "fixed":
+                self.system.set_occupations(occupations="fixed")
+            elif system["occupations"] == "from_input":
+                self.system.set_occupations(occupations="from_input")
 
     def gen_yh(self, directory, inpname, output):
         """

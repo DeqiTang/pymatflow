@@ -53,6 +53,8 @@ class siesta_ions:
                     fout.write("MD.%s %s Bohr\n" % (item, str(self.md[item])))
                 elif item == "PreconditionVariableCell":
                     fout.write("MD.%s %s Ang\n" % (item, str(self.md[item])))
+                elif item == "FCDispl":
+                    fout.write("MD.%s %f Bohr\n" % (item, self.md[item]))
                 else:
                     fout.write("MD.%s %s\n" % (item, str(self.md[item])))
         #
@@ -61,7 +63,7 @@ class siesta_ions:
     def basic_setting(self, option="opt"):
         """
         option:
-            opt or md
+            opt or md or phonon
         """
         if option == "opt":
             self.md["TypeOfRun"] = "CG"   # CG, Broyden, 
@@ -85,6 +87,13 @@ class siesta_ions:
 
             self.params["WriteCoorXmol"] = "true"
             self.params["WriteMDXmol"] = "true"
+        elif option == "phonon":
+            # Phonon Calculation SETTING
+            self.md["TypeOfRun"] = "FC"
+            self.md["FCDispl"] = 0.04
+            self.md["FCFirst"] = 1
+            self.md["FCLast"] = 1
+ 
         #
 
     def set_params(self, ions):

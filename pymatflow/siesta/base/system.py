@@ -60,10 +60,18 @@ class siesta_system:
         fout.write("\n")
 
         fout.write("%block AtomicCoordinatesAndAtomicSpecies\n")
-        for atom in self.xyz.atoms:
-            fout.write("%.9f\t%.9f\t%.9f\t" % (atom.x, atom.y, atom.z))
-            fout.write(str(self.xyz.specie_labels[atom.name]))
-            fout.write("\n")
+        #for atom in self.xyz.atoms:
+        #    fout.write("%.9f\t%.9f\t%.9f\t" % (atom.x, atom.y, atom.z))
+        #    fout.write(str(self.xyz.specie_labels[atom.name]))
+        #    fout.write("\n")
+        for i in range(len(self.xyz.atoms)):
+            fout.write("%.9f %.9f %.9f %d # %s %d\n" % (
+                self.xyz.atoms[i].x, self.xyz.atoms[i].y, self.xyz.atoms[i].z,
+                self.xyz.specie_labels[self.xyz.atoms[i].name],
+                self.xyz.atoms[i].name,
+                i+1))
+            #fout.write(str(self.xyz.specie_labels[self.xyz.atoms[i].name]))
+            #fout.write(" # %s %d\n" % (self.xyz.atoms[i].name, i+1))
         fout.write("%endblock AtomicCoordinatesAndAtomicSpecies\n")
         fout.write("\n")
 

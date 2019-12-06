@@ -41,3 +41,5 @@ class cp2k_glob:
             self.params["RUN_TYPE"] = "MD"
         elif run_type == "LINEAR_RESPONSE":
             self.params["RUN_TYPE"] = "LINEAR_RESPONSE"
+        elif run_type == "BAND":
+            self.params["RUN_TYPE"] = "BAND"

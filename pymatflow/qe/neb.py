@@ -193,9 +193,14 @@ class neb_run:
                     self.system.set_occupations(occupations="smearing", degauss=system["degauss"])
                 else:
                     self.system.set_occupations(occupations="smearing")
-            else:
-                pass
-    #
+            elif system["occupations"] == "tetrahedra_lin":
+                self.system.set_occupations(occupations="tetrahedra_lin")
+            elif system["occupations"] == "tetrahedra_opt":
+                self.system.set_occupations(occupations="tetrahedra_opt")
+            elif system["occupations"] == "fixed":
+                self.system.set_occupations(occupations="fixed")
+            elif system["occupations"] == "from_input":
+                self.system.set_occupations(occupations="from_input")
 
     def gen_yh(self, directory, inpname, output):
         """

@@ -39,7 +39,7 @@ class qe_arts:
 
         self.ifstatic = True # used to determine how to put atomic coordinates to input file
 
-    def to_in(self, fout):
+    def to_in(self, fout, coordtype="angstrom"):
         # fout: a file stream for writing
         fout.write("&cell\n")
         fout.write("/\n")
@@ -63,26 +63,58 @@ class qe_arts:
         fout.write("%.9f %.9f %.9f\n" % (cell[3], cell[4], cell[5]))
         fout.write("%.9f %.9f %.9f\n" % (cell[6], cell[7], cell[8]))
         fout.write("\n")
-        fout.write("ATOMIC_POSITIONS angstrom\n")
-        if self.ifstatic == True:
-            for atom in self.xyz.atoms:
-                fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
-        elif self.ifstatic == False:
-            for atom in self.xyz.atoms:
-                fout.write("%s\t%.9f\t%.9f\t%.9f" % (atom.name, atom.x, atom.y, atom.z))
-                for fix in atom.fix:
-                    if fix == True:
-                        fout.write("\t0")
-                    elif fix == False:
-                        fout.write("\t1")
-                fout.write("\n")
-        else:
-            print("===============================================\n")
-            print("warning: qe.base.arts.to_in():\n")
-            print("arts.ifstatic could only be True or False\n")
-            sys.exit(1)
-        fout.write("\n")
-        
+        if coordtype == "angstrom":
+            fout.write("ATOMIC_POSITIONS angstrom\n")
+            if self.ifstatic == True:
+                for atom in self.xyz.atoms:
+                    fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
+            elif self.ifstatic == False:
+                for atom in self.xyz.atoms:
+                    fout.write("%s\t%.9f\t%.9f\t%.9f" % (atom.name, atom.x, atom.y, atom.z))
+                    for fix in atom.fix:
+                        if fix == True:
+                            fout.write("\t0")
+                        elif fix == False:
+                            fout.write("\t1")
+                    fout.write("\n")
+            else:
+                print("===============================================\n")
+                print("warning: qe.base.arts.to_in():\n")
+                print("arts.ifstatic could only be True or False\n")
+                sys.exit(1)
+            fout.write("\n")
+        elif coordtype == "crystal":
+            # crystal namely fractional coordinate can be convert from cartesian coordinates
+            # the conversion process is like transformation of presentation in quantum mechanics
+            # the convmat is bulid to do the conversion
+            latcell = np.array(self.xyz.cell)
+            latcell = latcell.reshape(3, 3)
+            convmat = np.linalg.inv(latcell.T)
+            crystal_coord = np.zeros([self.xyz.natom, 3])
+            for i in range(self.xyz.natom):
+                crystal_coord[i] = convmat.dot(np.array([self.xyz.atoms[i].x, self.xyz.atoms[i].y, self.xyz.atoms[i].z]))
+            #
+            fout.write("ATOMIC_POSITIONS crystal\n")
+            if self.ifstatic == True:
+                for k in range(self.xyz.natom):
+                    fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (self.xyz.atoms[k].name, crystal_coord[k, 0], crystal_coord[k, 1], crystal_coord[k, 2]))
+            elif self.ifstatic == False:
+                for k in range(self.xyz.natom):
+                    fout.write("%s\t%.9f\t%.9f\t%.9f" % (self.xyz.atoms[k].name, crystal_coord[k, 0], crystal_coord[k, 1], crystal_coord[k, 2]))
+                    for fix in self.xyz.atoms[k].fix:
+                        if fix == True:
+                            fout.write("\t0")
+                        elif fix == False:
+                            fout.write("\t1")
+                    fout.write("\n")
+            else:
+                print("===============================================\n")
+                print("warning: qe.base.arts.to_in():\n")
+                print("arts.ifstatic could only be True or False\n")
+                sys.exit(1)
+            fout.write("\n")
+        # end crystal type ATOMIC_POSITIONS
+
         # writing KPOINTS to the fout
         self.write_kpoints(fout)
         # =========================

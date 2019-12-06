@@ -170,6 +170,19 @@ class qe_system:
         if occupations == "tetrahedra":
             self.params["smearing"] = None
             self.params["degauss"] = None
+        if occupations == "tetrahedra_lin":
+            self.params["smearing"] = None
+            self.params["degauss"] = None
+        if occupations == "tetrahedra_opt":
+            self.params["smearing"] = None
+            self.params["degauss"] = None
+        if occupations == "fixed":
+            self.params["smearing"] = None
+            self.params["degauss"] = None
+        if occupations == "from_input":
+            self.params["smearing"] = None
+            self.params["degauss"] = None
+
 
     def set_params(self, params):
         """

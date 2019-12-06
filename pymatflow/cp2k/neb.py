@@ -41,10 +41,8 @@ class neb_run:
         self.motion = cp2k_motion()
         self.motion.band.get_images(images)
 
-        self.run_type = "BAND"
         self.glob.basic_setting(run_type="BAND")
         self.force_eval.basic_setting()
-        self.glob.params["RUN_TYPE"] = "BAND"
         self.motion.set_type("BAND")
 
     def neb(self, directory="tmp-cp2k-neb", inpname="neb.inp", output="neb.out", 

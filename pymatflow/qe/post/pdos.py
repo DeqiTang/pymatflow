@@ -76,6 +76,13 @@ class pdos_post:
         # shift fermie energy to 0
         for i in range(len(self.energies)):
             self.energies[i] = self.energies[i] - efermi
+        print("===============================================\n")
+        print("qe.post.pdos:\n")
+        print("we automatically shift the fermi energy\n")
+        print("from %f to 0\n" % efermi)
+        print("efermi is read from static-nscf.out\n")
+        print("or statis-scf.out, if static-nscf.out is not available\n")
+        #
 
     def plot_elem_orb_proj(self):
         data = {}
