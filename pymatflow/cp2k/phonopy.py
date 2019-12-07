@@ -1,10 +1,11 @@
 #!/usr/bin/evn python
 # _*_ coding: utf-8 _*_
 
-import numpy as np
 import sys
 import os
 import shutil
+import seekpath
+import numpy as np
 import pymatgen as mg
 
 from pymatflow.cp2k.base.xyz import cp2k_xyz
@@ -28,6 +29,8 @@ Note:
     phonopy read the xxx.inp and it can only read the system structure
     by COORD specified in SUBSYS. So I can not use TOPOLOGY.
     PLUS: only scaled coordinates are currently supported!
+
+    phonopy and seekpath both use spglib to decide the space group.
 
 References:
     https://www.cp2k.org/exercises:2018_uzh_cmest:phonon_calculation
@@ -117,7 +120,7 @@ class phonopy_run:
                     break
                 os.system("cp2k.psmp -in %s | tee %s" % (in_name, in_name+".out"))
 
-
+            # get the FORCE_SETS
             base_project_name = "ab-initio"
             phonopy_command = "phonopy --cp2k -f "
             for disp in disps:
@@ -127,12 +130,112 @@ class phonopy_run:
                     break
                 phonopy_command = phonopy_command + f_name + " "
             os.system(phonopy_command)
+            
+            with open("mesh.conf", 'w') as fout:
+                fout.write("ATOM_NAME =")
+                for element in self.force_eval.subsys.xyz.specie_labels:
+                    fout.write(" %s" % element)
+                fout.write("\n")
+                fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
+                fout.write("MP = 8 8 8\n")
+        
+            # plot The density of states (DOS) 
+            os.system("phonopy --cp2k -p mesh.conf -c %s" % inp_name)
+            # Thermal properties are calculated with the sampling mesh by:
+            os.system("phonopy --cp2k -t mesh.conf -c %s" % inp_name)
+            # Thermal properties can be plotted by:
+            os.system("phonopy --cp2k -t -p mesh.conf -c %s" % inp_name)
+        
+            with open("pdos.conf", 'w') as fout:
+                fout.write("ATOM_NAME =")
+                for element in self.force_eval.subsys.xyz.specie_labels:
+                    fout.write(" %s" % element)
+                fout.write("\n")
+                fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
+                fout.write("MP = 8 8 8\n")
+                fout.write("PDOS = 1 2, 3 4 5 5\n")
 
+            # calculate Projected DOS and plot it
+            os.system("phonopy --cp2k -p pdos.conf -c %s" % inp_name)
             # get the band structure
-            # 注意--pa设置Primitive Axis要设置正确! --band 控制了声子谱的图示
-            os.system("phonopy --cp2k -c %s -p --dim='%d %d %d' --pa='1 0 0 0 1 0 0 0 1' --band='1/2 1/2 1/2 0 0 0 1/2 0 1/2'" % (inp_name, self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
+            # plot the phonon band
+            # 注意设置Primitive Axis要设置正确!
+            with open("band.conf", 'w') as fout:
+                fout.write("ATOM_NAME =")
+                for element in self.force_eval.subsys.xyz.specie_labels:
+                    fout.write(" %s" % element)
+                fout.write("\n")
+                # the use of PRIMITIVE_AXES will find the primitive cell of the structure
+                # and use it to analyse the phonon band structure
+                # however, the use of primitive cell will not affect the q path setting
+                # so whether we use PRIMITIVE cell or not, we can set the same q path
+                fout.write("PRIMITIVE_AXES = AUTO\n") # we can also specify a matrix, but AUTO is recommended now in phonopy
+                fout.write("GAMMA_CENTER = .TRUE.\n")
+                fout.write("BAND_POINTS = 101\n")
+                fout.write("BAND_CONNECTION = .TRUE.\n")
 
-            # analyse the result
+                fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
+                #fout.write("BAND = 0.5 0.5 0.5 0.0 0.0 0.0 0.5 0.5 0.0 0.0 0.5 0.0\n")
+                fout.write("BAND =")
+                # --------------
+                # using seekpath to set q path
+                # --------------
+                lattice = [self.force_eval.subsys.xyz.cell[0:3], self.force_eval.subsys.xyz.cell[3:6], self.force_eval.subsys.xyz.cell[6:9]]
+                positions = []
+                numbers = []
+                a = np.sqrt(self.force_eval.subsys.xyz.cell[0]**2 + self.force_eval.subsys.xyz.cell[1]**2 + self.force_eval.subsys.xyz.cell[2]**2)
+                b = np.sqrt(self.force_eval.subsys.xyz.cell[3]**2 + self.force_eval.subsys.xyz.cell[4]**2 + self.force_eval.subsys.xyz.cell[5]**2)
+                c = np.sqrt(self.force_eval.subsys.xyz.cell[6]**2 + self.force_eval.subsys.xyz.cell[7]**2 + self.force_eval.subsys.xyz.cell[8]**2)
+                for atom in self.force_eval.subsys.xyz.atoms:
+                    positions.append([atom.x / a, atom.y / b, atom.z / c])
+                    numbers.append(self.force_eval.subsys.xyz.specie_labels[atom.name])
+                structure = (lattice, positions, numbers)
+                kpoints_seekpath = seekpath.get_path(structure)
+                point = kpoints_seekpath["point_coords"][kpoints_seekpath["path"][0][0]]
+                fout.write(" %f %f %f" % (point[0], point[1], point[2])) #self.arts..kpoints_seekpath["path"][0][0]
+                point = kpoints_seekpath["point_coords"][kpoints_seekpath["path"][0][1]]
+                fout.write(" %f %f %f" % (point[0], point[1], point[2])) #self.arts.kpoints_seekpath["path"][0][1]
+                for i in range(1, len(kpoints_seekpath["path"])):
+                    if kpoints_seekpath["path"][i][0] == kpoints_seekpath["path"][i-1][1]:
+                        point = kpoints_seekpath["point_coords"][kpoints_seekpath["path"][i][1]]
+                        fout.write(" %f %f %f" % (point[0], point[1], point[2])) #self.arts.kpoints_seekpath["path"][i][1]))
+                    else:
+                        point = kpoints_seekpath["point_coords"][kpoints_seekpath["path"][i][0]]
+                        fout.write(" %f %f %f" % (point[0], point[1], point[2])) #self.arts.kpoints_seekpath["path"][i][0]))
+                        point = kpoints_seekpath["point_coords"][kpoints_seekpath["path"][i][1]]
+                        fout.write(" %f %f %f" % (point[0], point[1], point[2]))  #self.kpoints_seekpath["path"][i][1]))
+                fout.write("\n")
+                fout.write("BAND_LABELS =")
+                point = kpoints_seekpath["path"][0][0]
+                if point == "GAMMA":
+                    fout.write(" $\Gamma$")
+                else:
+                    fout.write(" %s" % point)
+                point = kpoints_seekpath["path"][0][1]
+                if point == "GAMMA":
+                    fout.write(" $\Gamma$")
+                else:
+                    fout.write(" %s" % point)
+                for i in range(1, len(kpoints_seekpath["path"])):
+                    if kpoints_seekpath["path"][i][0] == kpoints_seekpath["path"][i-1][1]:
+                        point = kpoints_seekpath["path"][i][1]
+                        if point == "GAMMA":
+                            fout.write(" $\Gamma$")
+                        else:
+                            fout.write(" %s" % point)
+                    else:
+                        point = kpoints_seekpath["path"][i][0]
+                        if point == "GAMMA":
+                            fout.write(" $\Gamma$")
+                        else:
+                            fout.write(" %s" % point)
+                        point = kpoints_seekpath["path"][i][1]
+                        if point == "GAMMA":
+                            fout.write(" $\Gamma$")
+                        else:
+                            fout.write(" %s" % point)
+                fout.write("\n")
+            os.system("phonopy --cp2k -c %s -p band.conf" % inp_name)
 
             import matplotlib.pyplot as plt
 

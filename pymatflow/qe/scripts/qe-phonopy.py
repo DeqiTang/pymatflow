@@ -68,6 +68,13 @@ if __name__ == "__main__":
 
     parser.add_argument("--nbnd", type=int, default=None,
             help="Number of electronic states (bands) to be calculated")
+
+    # ---------------------------------------------------------
+    # Phonopy
+    # ---------------------------------------------------------
+    parser.add_argument("--supercell-n", type=int, nargs="+",
+            default=[1, 1, 1],
+            help="supercell build for Phonopy.")
     
     # -----------------------------------------------------------------
     #                      for server handling
@@ -93,7 +100,7 @@ if __name__ == "__main__":
     
 
     task = phonopy_run(xyzfile)
-    task.phonopy(directory=args.directory, runopt=args.runopt, mpi=args.mpi, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=kpoints_mp)
+    task.phonopy(directory=args.directory, runopt=args.runopt, mpi=args.mpi, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=kpoints_mp, supercell_n=args.supercell_n)
 
     # server handle
     if args.auto == 0:
