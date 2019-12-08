@@ -65,6 +65,33 @@ class bands_post:
             if line.split()[0] == "Plottable":
                 self.bandfile_gnu = line.split()[6] # energy in eV
         #
+        # get fermi energy from nscf output
+        scfout = "static-scf.out"
+        nscfout = "static-nscf.out"
+        if os.path.exists(os.path.join("./", nscfout)):
+            with open(os.path.join("./", nscfout), 'r') as fin:
+                for line in fin:
+                    if len(line.split()) == 0:
+                        continue
+                    if line.split()[0] == "the" and line.split()[1] == "Fermi":
+                        self.efermi = float(line.split()[4])
+        elif os.path.exists(os.path.join("./", scfout)):
+            with open(os.path.join("./", scfout), 'r') as fin:
+                for line in fin:
+                    if len(line.split()) == 0:
+                        continue
+                    if line.split()[0] == "the" and line.split()[1] == "Fermi":
+                        self.efermi = float(line.split()[4])
+        else:
+            print("===========================================================\n")
+            print("                Warning !!!\n")
+            print("===========================================================\n")
+            print("BAND structure postprocessing:\n")
+            print("must provide nscfout or at least scfout to get Fermi energy\n")
+            sys.exit(1)
+        # we do not directly shift Efermi to zero in the dataset
+        # but only use it to set the gnuplot scripts so that gnuplot
+        # script will be responsible for shfiting Efermi to zero.
 
     def plot_band(self, option="gnuplot"):
         """
@@ -83,11 +110,17 @@ class bands_post:
                 fout.write("set ylabel 'Energy(eV)'\n")
                 fout.write("set xtics(")
                 for point in self.specialk:
-                    fout.write("'%s' %f, " % (point["label"], point["xcoord"]))
+                    if point["label"] == "GAMMA":
+                        fout.write("'%s' %f, " % ("{/symbol G}", point["xcoord"]))
+                    else:
+                        fout.write("'%s' %f, " % (point["label"], point["xcoord"]))
                 fout.write(")\n")
                 fout.write("set grid xtics ytics\n")
+                fout.write("set autoscale\n")
+                fout.write("# fermi energy shifted to zero by use using 1:($2-%f) in plot function\n" % self.efermi)
+                fout.write("# and data in %s file is not modified at all, and is as it is\n" % self.bandfile_gnu)
                 fout.write("plot ")
-                fout.write("'%s' w l " % (self.bandfile_gnu))
+                fout.write("'%s' using 1:($2-%f) w l" % (self.bandfile_gnu, self.efermi))
                 # 
                 #for i in range(len(self.specialk) - 1):
                 #    fout.write(", %f, t" % (self.specialk[i]["xcoord"]))
