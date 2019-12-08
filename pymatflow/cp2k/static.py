@@ -33,7 +33,7 @@ class static_run:
         """
         self.glob = cp2k_glob()
         self.force_eval = cp2k_force_eval(xyz_f)
- #       self.atom = cp2k_atom()
+        #self.atom = cp2k_atom()
         
         self.glob.basic_setting(run_type="ENERGY_FORCE")
         self.force_eval.basic_setting()

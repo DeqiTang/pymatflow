@@ -19,6 +19,10 @@ class opt_run:
     along serach directions. usually insufficient scf convergence will lead to
     bad convergence of BFGS algorithm or even to errors. so when doing geometric
     optimization, we better set parameters to get a good scf convergece.
+
+    when you structure is small, use a large kpoint set, or the optimization
+    will not be reliable. if you structure is big enough, a small kpoint set
+    will usually suffice the requirement.
     """
     def __init__(self, xyz_f):
         self.control = qe_control()

@@ -57,7 +57,9 @@ if __name__ == "__main__":
     parser.add_argument("--rel-cutoff", type=int, default=60,
             help="REL_CUTOFF, default value: 60 Ry")
 
-    parser.add_argument("-k", "--kpoints", help="set kpoints like '3 3 3 0 0 0'", type=str, default="3 3 3 0 0 0")
+    parser.add_argument("-k", "--kpoints-scheme", type=str,
+            default="GAMMA",
+            help="DFT-KPOINTS-SCHEME(str): can be NONE, GAMMA, MONKHORST-PACK, MACDONALD, GENERAL. when you set MONKHORST-PACK, you should also add the three integers like 'monkhorst-pack 3 3 3'")
     
     parser.add_argument("--diag", type=str, default="TRUE",
             #choices=["TRUE", "FALSE", "true", "false"],
@@ -105,9 +107,6 @@ if __name__ == "__main__":
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================   
     args = parser.parse_args()
-    directory = args.directory
-    xyzfile = args.file
-    kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
     
     force_eval["DFT-LS_SCF"] = args.ls_scf
     force_eval["DFT-QS-METHOD"] = args.qs_method
@@ -123,6 +122,7 @@ if __name__ == "__main__":
     force_eval["DFT-SCF-DIAGONALIZATION"] = args.diag
     force_eval["DFT-SCF-OT"] = args.ot
     force_eval["DFT-SCF-MIXING-ALPHA"] = args.alpha
+    force_eval["DFT-KPOINTS-SCHEME"] = args.kpoints_scheme
 
     motion["GEO_OPT-MAX_ITER"] = args.max_iter
     motion["GEO_OPT-OPTIMIZER"] = args.optimizer
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     motion["GEO_OPT-RMS_DR"] = args.rms_dr
     motion["GEO_OPT-RMS_FORCE"] = args.rms_force
 
-    task = opt_run(xyzfile)
+    task = opt_run(args.file)
     task.geo_opt(directory=args.directory, mpi=args.mpi, runopt=args.runopt, force_eval=force_eval, motion=motion)
 
     # server handle

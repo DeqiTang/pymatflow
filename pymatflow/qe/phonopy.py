@@ -29,6 +29,14 @@ Note:
 
 class phonopy_run:
     """
+    Note:
+        kpoints as well as energy cutoff both will have a significant
+        influence on the precision of phonopy running.
+        like when you have a small cell and use a small kpoints might
+        result in a really useless phonon band. this is just as what
+        we do in scf or opt running, generally a small structure requires
+        large kpoint sets, while the larger one requires smaller kpoint
+        sets.
     """
     def __init__(self, xyz_f):
         self.control = qe_control()

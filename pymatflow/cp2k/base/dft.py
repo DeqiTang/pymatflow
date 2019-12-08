@@ -138,7 +138,7 @@ class cp2k_dft:
             self.ls_scf.to_dft(fout)
         self.mgrid.to_dft(fout)
         self.xc.to_dft(fout)
-        #self.kpoints.to_dft(fout)
+        self.kpoints.to_dft(fout)
         self.scf.to_dft(fout)
         self.localize.to_dft(fout)
         self.printout.to_dft(fout)
@@ -176,3 +176,5 @@ class cp2k_dft:
                 self.printout.set_params({item: params[item]})
             elif item.split("-")[1] == "LS_SCF":
                 self.ls_scf.set_params({item: params[item]})
+            elif item.split("-")[1] == "KPOINTS":
+                self.kpoints.set_params({item: params[item]})

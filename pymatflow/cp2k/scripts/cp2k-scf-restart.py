@@ -34,7 +34,11 @@ if __name__ == "__main__":
             help="CUTOFF, default value: 100 Ry")
     parser.add_argument("--rel-cutoff", type=int, default=60,
             help="REL_CUTOFF, default value: 60 Ry")
-    parser.add_argument("-k", "--kpoints", help="set kpoints like '3 3 3 0 0 0'", type=str, default="3 3 3 0 0 0")
+
+    parser.add_argument("-k", "--kpoints-scheme", type=str,
+            default="GAMMA",
+            help="DFT-KPOINTS-SCHEME(str): can be NONE, GAMMA, MONKHORST-PACK, MACDONALD, GENERAL. when you set MONKHORST-PACK, you should also add the three integers like 'monkhorst-pack 3 3 3'")
+
     parser.add_argument("--added-mos", help="ADDED_MOS for SCF", type=int, default=0)
     parser.add_argument("--smear", type=bool, default=False,
             choices=[True, False],
@@ -50,9 +54,7 @@ if __name__ == "__main__":
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================   
     args = parser.parse_args()
-    directory = args.directory
-    xyzfile = args.file
-    kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
+
     force_eval["DFT-MGRID-CUTOFF"] = args.cutoff
     force_eval["DFT-MGRID-REL_CUTOFF"] = args.rel_cutoff
     force_eval["DFT-XC-XC_FUNCTIONAL"] = args.xc_functional
@@ -61,9 +63,10 @@ if __name__ == "__main__":
     force_eval["DFT-SCF-SMEAR-METHOD"] = args.smear_method
     force_eval["DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE"] = args.electronic_temp
     force_eval["DFT-SCF-SMEAR-WINDOW_SIZE"] = args.window_size
+    force_eval["DFT-KPOINTS-SCHEME"] = args.kpoints_scheme
 
-    task = static_run(xyzfile)
-    task.scf_restart(directory=directory, runopt=args.runopt, force_eval=force_eval)
+    task = static_run(args.file)
+    task.scf_restart(directory=args.directory, runopt=args.runopt, force_eval=force_eval)
 
     # server handle
     if args.auto == 0:
