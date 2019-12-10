@@ -103,22 +103,15 @@ class phonopy_run:
 
 
             # gen yhbatch script
-            #self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="siesta")
+            with open(os.path.join(directory, "phonopy-job.sub"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                for disp in disp_dirs:
+                    fout.write("cd disp-%s\n" % disp)
+                    fout.write("yhrun -N 1 -n 24 siesta < supercell-%s.fdf > supercell-%s.out\n" % (disp, disp))
+                    fout.write("cd ../\n")
 
-        if runopt == "run" or runopt == "genrun":
-            # run the simulation
+            # generate the result analysis bash scripts and necessary config files 
             os.chdir(directory)
-            # run every disp
-            for disp in disp_dirs:
-                os.chdir("disp-%s" % disp)
-                os.system("siesta < supercell-%s.fdf | tee supercell-%s.out" % (disp, disp))
-                os.chdir("../")
-
-            # analyse the result
-            import matplotlib.pyplot as plt
-            # create FORCE_SETS
-            os.system("phonopy --siesta -f disp-{001..%s}/%s.FA" % (disp_dirs[-1], "siesta"))
-            
             with open("mesh.conf", 'w') as fout:
                 fout.write("ATOM_NAME =")
                 for element in self.system.xyz.specie_labels:
@@ -126,14 +119,6 @@ class phonopy_run:
                 fout.write("\n")
                 fout.write("DIM = %d %d %d\n" % (self.supercelln[0], self.supercelln[1], self.supercelln[2]))
                 fout.write("MP = 8 8 8\n")
-        
-            # plot The density of states (DOS) 
-            os.system("phonopy --siesta -p mesh.conf -c %s" % pos_fdf_name)
-            # Thermal properties are calculated with the sampling mesh by:
-            os.system("phonopy --siesta -t mesh.conf -c %s" % pos_fdf_name)
-            # Thermal properties can be plotted by:
-            os.system("phonopy --siesta -t -p mesh.conf -c %s" % pos_fdf_name)
-        
             with open("pdos.conf", 'w') as fout:
                 fout.write("ATOM_NAME =")
                 for element in self.system.xyz.specie_labels:
@@ -142,10 +127,6 @@ class phonopy_run:
                 fout.write("DIM = %d %d %d\n" % (self.supercelln[0], self.supercelln[1], self.supercelln[2]))
                 fout.write("MP = 8 8 8\n")
                 fout.write("PDOS = 1 2, 3 4 5 5\n")
-
-            # calculate Projected DOS and plot it
-            os.system("phonopy --siesta -p pdos.conf -c %s" % pos_fdf_name)
-            # plot the phonon band
             with open("band.conf", 'w') as fout:
                 fout.write("ATOM_NAME =")
                 for element in self.system.xyz.specie_labels:
@@ -221,15 +202,34 @@ class phonopy_run:
                         else:
                             fout.write(" %s" % point)
                 fout.write("\n")
-            os.system("phonopy --siesta -c %s -p band.conf" % pos_fdf_name)
+            with open("phonopy-analysis.sh", 'w') as fout:
+                fout.write("# create FORCE_SETS\n")
+                fout.write("phonopy --siesta -f disp-{001..%s}/%s.FA\n" % (disp_dirs[-1], "siesta"))
+                fout.write("# plot The density of states (DOS)\n")
+                fout.write("phonopy --siesta -p mesh.conf -c %s\n" % pos_fdf_name)
+                fout.write("# Thermal properties are calculated with the sampling mesh by:\n")
+                fout.write("phonopy --siesta -t mesh.conf -c %s\n" % pos_fdf_name)
+                fout.write("# Thermal properties can be plotted by:\n")
+                fout.write("phonopy --siesta -t -p mesh.conf -c %s\n" % pos_fdf_name)
+                fout.write("# calculate Projected DOS and plot it\n")
+                fout.write("phonopy --siesta -p pdos.conf -c %s\n" % pos_fdf_name)
+                fout.write("# plot the phonon band\n")
+                fout.write("phonopy --siesta -c %s -p band.conf\n" % pos_fdf_name)
             os.chdir("../")
+            # end generate the result analysis bash script and necessary config files
 
-
-    def gen_yh(self, inpname, output, directory="tmp-siesta-static", cmd="siesta"):
-        """
-        generating yhbatch job script for calculation
-        """
-        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % (cmd, inpname, output))
-
+        if runopt == "run" or runopt == "genrun":
+            # run the simulation
+            os.chdir(directory)
+            disp_dirs = []
+            with open("pos.data", 'r') as fin:
+                for line in fin:
+                    disp_dirs.append(line.split(".")[0].split("-")[1])
+            # run every disp
+            for disp in disp_dirs:
+                os.chdir("disp-%s" % disp)
+                os.system("siesta < supercell-%s.fdf | tee supercell-%s.out" % (disp, disp))
+                os.chdir("../")
+            os.chdir("../")
+    #
+    #

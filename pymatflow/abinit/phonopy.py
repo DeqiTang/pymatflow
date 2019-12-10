@@ -85,25 +85,17 @@ class phonopy_run:
                         fout.write("%s\n" % (element + ".psp8"))
             os.chdir("../")
 
+            # generate yhbatch scripts
+            with open(os.path.join(directory, "phonopy-job.sub"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                for disp in disps:
+                    fout.write("cd disp-%s\n" % disp)
+                    fout.write("yhrun -N 1 -n 24 abinit < supercell-%s.files\n" % disp)
+                    fout.write("cd ../\n")
             
-        if runopt == "run" or runopt == "genrun":
-            # run the simulation
+            # generate the result analysis bash scripts and necessary config files
             os.chdir(directory)
-            disps = self.get_disps("./")
-            for disp in disps:
-                os.chdir("disp-%s" % disp)
-                os.system("abinit < supercell-%s.files" % disp)
-                os.chdir("../")
-            os.chdir("../")
-    
-            # analyse the result
-            os.chdir(directory)
-            disps = self.get_disps("./")
-            outs = ""
-            for disp in disps:
-                outs += "disp-%s/supercell-%s.out " % (disp, disp)
-            os.system("phonopy --abinit -f %s" % (outs))
-            
+                        
             with open("mesh.conf", 'w') as fout:
                 fout.write("ATOM_NAME =")
                 for element in self.system.xyz.specie_labels:
@@ -111,14 +103,8 @@ class phonopy_run:
                 fout.write("\n")
                 fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
                 fout.write("MP = 8 8 8\n")
-        
-            # plot The density of states (DOS) 
-            os.system("phonopy --abinit -p mesh.conf -c %s" % pos_inpname)
-            # Thermal properties are calculated with the sampling mesh by:
-            os.system("phonopy --abinit -t mesh.conf -c %s" % pos_inpname)
-            # Thermal properties can be plotted by:
-            os.system("phonopy --abinit -t -p mesh.conf -c %s" % pos_inpname)
-        
+            
+                    
             with open("pdos.conf", 'w') as fout:
                 fout.write("ATOM_NAME =")
                 for element in self.system.xyz.specie_labels:
@@ -127,10 +113,8 @@ class phonopy_run:
                 fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
                 fout.write("MP = 8 8 8\n")
                 fout.write("PDOS = 1 2, 3 4 5 5\n")
-
-            # calculate Projected DOS and plot it
-            os.system("phonopy --abinit -p pdos.conf -c %s" % pos_inpname)
-            # plot phonon band
+            
+            
             with open("band.conf", 'w') as fout:
                 fout.write("ATOM_NAME =")
                 for element in self.system.xyz.specie_labels:
@@ -208,8 +192,36 @@ class phonopy_run:
                 fout.write("\n")
                 #
             #
-            os.system("phonopy --abinit -c %s -p band.conf" % (pos_inpname))
-            # end plot phonon band
+            with open("phonopy-analysis.sh", 'w') as fout:
+                fout.write("#!/bin/bash\n\n")
+                outs = ""
+                for disp in disps:
+                    outs += "disp-%s/supercell-%s.out " % (disp, disp)
+                fout.write("# generate FORCE_SETS\n")
+                fout.write("phonopy --abinit -f %s\n" % (outs))
+                fout.write("# plot the density of states (DOS)\n")
+                fout.write("phonopy --abinit -p mesh.conf -c %s\n" % pos_inpname)
+                fout.write("# Thermal properties are calculated with the sampling mesh by:\n")
+                fout.write("phonopy --abinit -t mesh.conf -c %s\n" % pos_inpname)
+                fout.write("# Thermal properties can be plotted by:\n")
+                fout.write("phonopy --abinit -t -p mesh.conf -c %s\n" % pos_inpname)
+                fout.write("# calculate Projected DOS and plot it\n")
+                fout.write("phonopy --abinit -p pdos.conf -c %s\n" % pos_inpname)
+                fout.write("# plot phonon band\n")
+                fout.write("phonopy --abinit -c %s -p band.conf\n" % (pos_inpname))
+            os.chdir("../")
+            # end generate the result analysis bash script and necessary config giles
+
+        if runopt == "run" or runopt == "genrun":
+            # run the simulation
+            os.chdir(directory)
+            disps = self.get_disps("./")
+            for disp in disps:
+                os.chdir("disp-%s" % disp)
+                os.system("abinit < supercell-%s.files" % disp)
+                os.chdir("../")
+            os.chdir("../")
+    
     
     def get_disps(self, directory="./"):
         os.chdir(directory)

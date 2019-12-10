@@ -76,7 +76,7 @@ class phonopy_run:
                 fout.write("&END FORCE_EVAL\n")
 
 
-            # run the simulation
+            # build the phonopy running files 
             os.system("phonopy --cp2k -c %s -d --dim='%d %d %d'" % (inp_name, self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
             # now supercell-00x.inp is generated which will be used to construct input for cp2k
             os.system("ls | grep 'supercell-' > geo.data")
@@ -112,25 +112,17 @@ class phonopy_run:
                     fout.write("\t\t&END FORCES\n")
                     fout.write("\t&END PRINT\n")
                     fout.write("&END FORCE_EVAL\n")
+            os.chdir("../")
 
-        if runopt == "run" or runopt == "genrun":
-            for disp in disps:
-                in_name = "supercell-%s.inp" % disp
-                if os.path.exists(in_name) is not True:
-                    break
-                os.system("cp2k.psmp -in %s | tee %s" % (in_name, in_name+".out"))
+            #
+            # generate yhbatch file
+            with open(os.path.join(directory, "phonopy-job.sub"), 'w') as fout:
+                fout.write("#!/bin/bash\n\n")
+                for disp in disps:
+                    fout.write("yhrun -N 1 -n 24 cp2k.psmp -in supercell-%s.inp > supercell-%s.inp.out\n" % (disp, disp))
 
-            # get the FORCE_SETS
-            base_project_name = "ab-initio"
-            phonopy_command = "phonopy --cp2k -f "
-            for disp in disps:
-                # important: different disp calculation should have different PROJECT name
-                f_name = "abinitio" + "-supercell-" + disp + "-forces-1_0.xyz"
-                if os.path.exists(f_name) is not True:
-                    break
-                phonopy_command = phonopy_command + f_name + " "
-            os.system(phonopy_command)
-            
+            # generate the result analysis bash script and necessary config files
+            os.chdir(directory) 
             with open("mesh.conf", 'w') as fout:
                 fout.write("ATOM_NAME =")
                 for element in self.force_eval.subsys.xyz.specie_labels:
@@ -138,14 +130,6 @@ class phonopy_run:
                 fout.write("\n")
                 fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
                 fout.write("MP = 8 8 8\n")
-        
-            # plot The density of states (DOS) 
-            os.system("phonopy --cp2k -p mesh.conf -c %s" % inp_name)
-            # Thermal properties are calculated with the sampling mesh by:
-            os.system("phonopy --cp2k -t mesh.conf -c %s" % inp_name)
-            # Thermal properties can be plotted by:
-            os.system("phonopy --cp2k -t -p mesh.conf -c %s" % inp_name)
-        
             with open("pdos.conf", 'w') as fout:
                 fout.write("ATOM_NAME =")
                 for element in self.force_eval.subsys.xyz.specie_labels:
@@ -154,10 +138,6 @@ class phonopy_run:
                 fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
                 fout.write("MP = 8 8 8\n")
                 fout.write("PDOS = 1 2, 3 4 5 5\n")
-
-            # calculate Projected DOS and plot it
-            os.system("phonopy --cp2k -p pdos.conf -c %s" % inp_name)
-            # get the band structure
             # plot the phonon band
             # 注意设置Primitive Axis要设置正确!
             with open("band.conf", 'w') as fout:
@@ -235,11 +215,41 @@ class phonopy_run:
                         else:
                             fout.write(" %s" % point)
                 fout.write("\n")
-            os.system("phonopy --cp2k -c %s -p band.conf" % inp_name)
+            
+            with open("phonopy-analysis.sh", 'w') as fout:
+                fout.write("#!/bin/bash\n\n")
+                fout.write("# get the FORCE_SETS\n")
+                base_project_name = "ab-initio"
+                phonopy_command = "phonopy --cp2k -f "
+                for disp in disps:
+                    # important: different disp calculation should have different PROJECT name
+                    f_name = "abinitio" + "-supercell-" + disp + "-forces-1_0.xyz"
+                    phonopy_command = phonopy_command + f_name + " "
+                fout.write("%s\n" % phonopy_command)
+                fout.write("# plot The density of states (DOS)\n")
+                fout.write("phonopy --cp2k -p mesh.conf -c %s\n" % inp_name)
+                fout.write("# Thermal properties are calculated with the sampling mesh by:\n")
+                fout.write("phonopy --cp2k -t mesh.conf -c %s\n" % inp_name)
+                fout.write("# Thermal properties can be plotted by:\n")
+                fout.write("phonopy --cp2k -t -p mesh.conf -c %s\n" % inp_name)
+                fout.write("# calculate Projected DOS and plot it\n")
+                fout.write("phonopy --cp2k -p pdos.conf -c %s\n" % inp_name)
+                fout.write("# get the band structure\n")
+                fout.write("phonopy --cp2k -c %s -p band.conf\n" % inp_name)
+            os.chdir("../")
+            # end generate the result analysis bash script and necessray config file
 
-            import matplotlib.pyplot as plt
+        if runopt == "run" or runopt == "genrun":
+            os.chdir(directory)
+            disps = []
+            with open("geo.data", 'r') as fin:
+                for line in fin:
+                    disps.append(line.split(".")[0].split("-")[1])
+            for disp in disps:
+                in_name = "supercell-%s.inp" % disp
+                os.system("cp2k.psmp -in supercell-%s.inp | tee supercell-%s.inp.out" % (disp, disp))
+            os.chdir("../")
 
-            #
 
     def to_subsys_phonopy(self, fname):
         cell = self.force_eval.subsys.xyz.cell
