@@ -16,6 +16,9 @@ class cp2k_dft_kpoints:
         add the three integers behind it, like SCHEME is a string
         as: 'MONKHORST-PACK 3 3 3'.
         we add a check to guaranee this
+
+        OT not possible with kpoint calculations, so when doing
+        OT calculation, we must use DFT-KPOINTS-SCHEME = NONE
     """
     def __init__(self):
         self.params = {

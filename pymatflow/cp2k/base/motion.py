@@ -29,7 +29,7 @@ Usage:
 class cp2k_motion:
     """
     """
-    def __init__(self, project_name="Ab-initio", run_type="NONE"):
+    def __init__(self, project_name="ab-initio", run_type="NONE"):
         self.params = {
                 }
 

@@ -141,6 +141,8 @@ class cp2k_dft:
         self.kpoints.to_dft(fout)
         self.scf.to_dft(fout)
         self.localize.to_dft(fout)
+        if self.periodic_efield.section.upper() == "TRUE":
+            self.periodic_efield.to_dft(fout)
         self.printout.to_dft(fout)
         fout.write("\t&END DFT\n")
         #fout.write("\n")

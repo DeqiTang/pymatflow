@@ -90,6 +90,29 @@ class cp2k_dft_xc_xc_functional:
             if len(item.split("-")) == 4:
                 self.params[item.split("-")[-1]] = params[item]
 
+class cp2k_dft_xc_xc_grid:
+    def __init__(self):
+        self.section = "FALSE"
+        self.params = {
+                "XC_DERIV": "NN10_SMOOTH",
+                "XC_SMOOTH_RHO": "NN10",
+                }
+    def to_xc(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t&XC_GRID\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t%s %s\n" % (item, self.params[item]))
+        fout.write("\t\t\t&END XC_GRID\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 4:
+                self.params[item.split("-")[-1]] = params[item]
+
+
 class cp2k_dft_xc:
     def __init__(self):
         self.params = {
@@ -101,6 +124,7 @@ class cp2k_dft_xc:
                 }
         self.xc_functional = cp2k_dft_xc_xc_functional()
         self.vdw_potential = cp2k_dft_xc_vdw_potential()
+        self.xc_grid = cp2k_dft_xc_xc_grid()
 
     def to_dft(self, fout):
         """
@@ -113,6 +137,8 @@ class cp2k_dft_xc:
         self.xc_functional.to_xc(fout)
         if self.vdw_potential.section.upper() == "TRUE":
             self.vdw_potential.to_xc(fout)
+        if self.xc_grid.section.upper() == "TRUE":
+            self.xc_grid.to_xc(fout)
         fout.write("\t\t&END XC\n")
 
     def set_params(self, params):

@@ -12,8 +12,8 @@ About:
     actually we can easily implement that through python. 
 
     however, gnubands didn't shift Efermi to zero automatically.
-    so I decided to further process the output file of the gnubands, and 
-    shift Efermi to zero
+    so the Efermi shifted data file is generated based on the output
+    of gnubands.
 """
 
 
@@ -86,7 +86,10 @@ class bands_post:
                 fout.write("unset key\n")
                 fout.write("set xtics(")
                 for point in self.specialk:
-                    fout.write("%s %f, " % (point["label"], point["xcoord"])) # minus 1, because in gnuplot x start with 0
+                    if point["label"] == "GAMMA":
+                        fout.write("'%s' %f, " % ("{/symbol G}", point["xcoord"]))
+                    else:
+                        fout.write("'%s' %f, " % (point["label"], point["xcoord"])) # minus 1, because in gnuplot x start with 0
                 fout.write(")\n")
                 fout.write("plot '%s.gnuplot.shifted.data' u 1:2  w l \n" % (bandsfile))
             os.system("gnuplot bandplot.gp")

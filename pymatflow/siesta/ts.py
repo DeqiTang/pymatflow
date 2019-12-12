@@ -15,19 +15,25 @@ from pymatflow.siesta.base.properties import siesta_properties
 from pymatflow.siesta.base.transiesta import siesta_transiesta
 from pymatflow.siesta.base.tbtrans import siesta_tbtrans
 
+
+"""
+Note:
+    Gamma-only calculation on electrode is not feasible in transiesta.
+"""
+
 class ts_run:
     """
     """
-    def __init__(self, electrodes, scattering):
+    def __init__(self, electrodes, device):
         self.system_electrodes = []
-        self.properties = []
+        #self.properties = []
         for xyz_f in electrodes:
             self.system_electrodes.append(siesta_system(xyz_f))
 
-        for system in self.system_electrodes:
-            self.properties.append(siesta_properties(system.xyz))
+        #for system in self.electrodes:
+        #    self.properties.append(siesta_properties(system.xyz))
         
-        self.system_scattering = siesta_system(scattering)
+        self.system_device = siesta_system(device)
 
         self.electrons = siesta_electrons()
 
@@ -36,18 +42,24 @@ class ts_run:
         self.tbtrans = siesta_tbtrans()
         
         self.electrons.basic_setting()
-        self.electrons.params["SolutionMethod"] = "transiesta"
+        #self.electrons.params["SolutionMethod"] = "transiesta"
                 
 
     def ts(self, directory="tmp-siesta-ts", inpname="transiesta.fdf", output="transiesta.out",
-            mpi="", runopt="gen", electrons={}, properties=[], kpoints_mp=[1, 1, 1]):
+            mpi="", runopt="gen", electrons={}, properties=[], kpoints_mp=[1, 1, 1], bias=[0, 1, 0.2]):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
-        
-            for element in self.system_electrodes[0].xyz.specie_labels:
+            
+            for electrode in self.system_electrodes:
+                for element in electrode.xyz.specie_labels:
+                    shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
+                shutil.copyfile(electrode.xyz.file, os.path.join(directory, electrode.xyz.file))
+            for element in self.system_device.xyz.specie_labels:
                 shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
+            shutil.copyfile(self.system_device.xyz.file, os.path.join(directory, self.system_device.xyz.file))
+
        
             self.electrons.kpoints_mp = kpoints_mp
             self.electrons.set_params(electrons)
@@ -60,17 +72,77 @@ class ts_run:
                 os.mkdir(os.path.join(directory, "electrodes", "electrode-%d" % i))
                 with open(os.path.join(directory, "electrodes", "electrode-%d" % i, "electrode.fdf"), 'w') as fout:
                     self.system_electrodes[i].to_fdf(fout)
+                    self.electrons.set_params({
+                        "SolutionMethod": None,
+                        #"TS.WriteHS": "true",
+                        #"TS.HS.Save": "true",
+                        #"TS.DE.Save": "true",
+                        })
                     self.electrons.to_fdf(fout)
                     #self.properties.to_fdf(fout)
-                for element in self.system_electrodes[0].xyz.specie_labels:
+                for element in self.system_electrodes[i].xyz.specie_labels:
                     shutil.copyfile("%s.psf" % element, os.path.join(directory, "electrodes", "electrode-%d" % i, "%s.psf" % element))
+                    shutil.copyfile(self.system_electrodes[i].xyz.file, os.path.join(directory, "electrodes", "electrode-%d/%s" % (i, self.system_electrodes[i].xyz.file)))
 
-            #self.transiesta.to_fdf(fout)
-            #self.tbtrans.to_fdf(fout)
-
-
+            # now set the transiesta calculation of the device(including scattering zone)
+            os.mkdir(os.path.join(directory, "device"))
+            for v in np.arange(bias[0], bias[1], bias[2]):
+                os.mkdir(os.path.join(directory, "device", "bias-%.6f" % v))
+                with open(os.path.join(directory, "device", "bias-%.6f" % v, "device.fdf"), 'w') as fout:
+                    self.transiesta.ts["Voltage"] = v
+                    self.transiesta.set_params(ts={
+                        "TS.WriteHS": "true",
+                        "TS.HS.Save": "true",
+                        "TS.DE.Save": "true",
+                    })
+                    self.transiesta.to_fdf(fout)
+                    self.tbtrans.to_fdf(fout)
+                    self.system_device.to_fdf(fout)
+                    self.electrons.set_params({
+                        "SolutionMethod": "transiesta",
+                    })
+                    self.electrons.to_fdf(fout)
+                for element in self.system_device.xyz.specie_labels:
+                    shutil.copyfile("%s.psf" % element, os.path.join(directory, "device/bias-%.6f/%s.psf" % (v, element)))
+                shutil.copyfile(self.system_device.xyz.file, os.path.join(directory, "device/bias-%.6f/" % v, self.system_device.xyz.file))
+            
             # gen yhbatch script
-            #self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="siesta")
+            with open(os.path.join(directory, "job.sub"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("\n")
+                fout.write("# ----------------------------------------------------------------------\n")
+                fout.write("# run the electrode calculation task\n")
+                fout.write("# ----------------------------------------------------------------------\n")
+                fout.write("\n")
+                for i in range(len(self.system_electrodes)):
+                    fout.write("# running on electrode: %d\n" % i)
+                    fout.write("cd electrodes/electrode-%d\n" % i)
+                    fout.write("%s siesta --electrode < %s > %s\n" % (mpi, "electrode.fdf", "electrode.fdf.out"))
+                    fout.write("cd ../../\n\n")
+                fout.write("\n")
+                fout.write("# ----------------------------------------------------------------------\n")
+                fout.write("# run the scattering calculation tasks(different bias)\n")
+                fout.write("# ----------------------------------------------------------------------\n")
+                fout.write("cd device\n\n\n")
+                bias_all = np.arange(bias[0], bias[1], bias[2])
+                fout.write("# *************************************************first bias calculation\n")
+                fout.write("cd bias-%.6f\n" % bias_all[0])
+                fout.write("%s transiesta < %s > %s\n" % (mpi, "device.fdf", "device.fdf.transiesta.out"))
+                fout.write("%s tbtrans < %s > %s\n" % (mpi, "device.fdf", "device.fdf.tbtrans.out"))
+                fout.write("cat device.fdf.tbtrans.out | grep \" Voltage, Current(A) =\" | awk \'{print $4\"   \"$5}\' >> ../IV.dat\n")
+                fout.write("cd ../\n\n")
+                fout.write("# *************************************************other bias calculation\n")
+                fout.write("# copying previous bias output SystemLabel.TSDE\n")
+                fout.write("# to current bias calculation this can drastically\n")
+                fout.write("# improve convergence, recommended by transiesta manual\n")
+                fout.write("\n")
+                for i in range(1, len(bias_all)):
+                    fout.write("cd bias-%.6f\n" % bias_all[i])
+                    fout.write("cp ../bias-%.6f/siesta.TSDE ./\n" % bias_all[i-1])
+                    fout.write("%s transiesta < %s > %s\n" % (mpi, "device.fdf", "device.fdf.transiesta.out"))
+                    fout.write("%s tbtrans < %s > %s\n" % (mpi, "device.fdf", "device.fdf.tbtrans.out"))
+                    fout.write("cat device.fdf.tbtrans.out | grep \" Voltage, Current(A) =\" | awk \'{print $4\"   \"$5}\' >> ../IV.dat\n")
+                    fout.write("cd ../\n\n")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -79,18 +151,18 @@ class ts_run:
                 os.chdir(os.path.join("electrodes", "electrode-%d" % i))
                 os.system("%s siesta --electrode < %s | tee %s" % (mpi, "electrode.fdf", "electrode.fdf.out"))
                 os.chdir("../../")
-            #
+            
             # run the scattering zone
-            #os.system("%s transiesta < %s | tee %s" % (mpi, inpname, output))
-            #os.system('%s tbtrans < %s | tee %s' % (mpi, inpname, output))
+            os.chdir("device")
+            for v in np.arange(bias[0], bias[1], bias[2]):
+                os.chdir("bias-%.6f" % v)
+                # this can drastically improve convergence, recommended by transiesta manual
+                os.system("cp ../bias-%.6f/siesta.TSDE ./" % (v-bias[2]))                 
+                os.system("%s transiesta < %s | tee %s" % (mpi, "device.fdf", "device.fdf.transiesta.out"))
+                os.system('%s tbtrans < %s | tee %s' % (mpi, "device.fdf", "device.fdf.tbtrans.out"))
+                os.system("cat device.fdf.tbtrans.out | grep \" Voltage, Current(A) =\" | awk \'{print $4\"   \"$5}\' >> ../IV.dat")
+                os.chdir("../")
             os.chdir("../")
 
 
-    def gen_yh(self, inpname, output, directory="tmp-siesta-static", cmd="siesta"):
-        """
-        generating yhbatch job script for calculation
-        """
-        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % (cmd, inpname, output))
-
+            

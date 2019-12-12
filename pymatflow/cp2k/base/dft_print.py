@@ -109,6 +109,9 @@ class cp2k_dft_print:
 
         if self.e_density_cube == True:
             fout.write("\t\t\t&E_DENSITY_CUBE ON\n")
+            fout.write("\t\t\t\tSTRIDE 1 1 1\n")
+            fout.write("\t\t\t\tFILENAME=result.cube\n")
+            fout.write("\t\t\t\tAPPEND\n")
             fout.write("\t\t\t&END E_DENSITY_CUBE\n")
 
         if self.pdos == True:

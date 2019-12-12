@@ -62,6 +62,7 @@ setup(
         "pymatflow/cp2k/scripts/cp2k-neb.py",
         "pymatflow/cp2k/scripts/cp2k-lr.py",
         "pymatflow/cp2k/scripts/cp2k-phonopy.py",
+        "pymatflow/cp2k/scripts/cp2k-md-vib.py",
         "pymatflow/cp2k/post/scripts/post-single-point-cp2k.py",
         "pymatflow/cp2k/post/scripts/post-geo-opt-cp2k.py",
         "pymatflow/cp2k/post/scripts/post-pdos-without-convolute.py",

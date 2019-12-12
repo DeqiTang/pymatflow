@@ -26,16 +26,24 @@ class siesta_transiesta:
                 "Elecs.DM.Update": None,
                 "Elecs.GF.ReUse": None,
                 }
-
+        self.ts["Voltage"] = 0
+        self.ts["Elecs.Bulk"] = "true"
+        self.ts["Elecs.DM.Update"] = "cross-terms"
+        self.ts["Elecs.GF.ReUse"] = "true"
     def to_fdf(self, fout):
+        fout.write("# Transiesta related parameters\n")
         for item in self.ts:
             if self.ts[item] is not None:
-                fout.write("TS.%s %s\n" % (item, str(self.ts[item])))
+                if item == "Voltage":
+                    fout.write("TS.Voltage %f eV\n" % self.ts[item])
+                else:
+                    fout.write("TS.%s %s\n" % (item, str(self.ts[item])))
  
         fout.write("%block TS.ChemPots\n")
         fout.write("Left\n")
         fout.write("Right\n")
         fout.write("%endblock TS.ChemPots\n")
+        fout.write("\n")
  
         fout.write("%block TS.ChemPot.Left\n")
         fout.write("mu V/2\n")
@@ -45,6 +53,7 @@ class siesta_transiesta:
         fout.write("t-Left\n")
         fout.write("end\n")
         fout.write("%endblock TS.ChemPot.Left\n")
+        fout.write("\n")
 
         fout.write("%block TS.ChemPot.Right\n")
         fout.write("mu -V/2\n")
@@ -54,28 +63,31 @@ class siesta_transiesta:
         fout.write("t-Right\n")
         fout.write("end\n")
         fout.write("%endblock TS.ChemPot.Right\n")
- 
+        fout.write("\n")
 
         fout.write("%block TS.Elecs\n")
         fout.write("Left\n")
         fout.write("Right\n")
         fout.write("%endblock TS.Elecs\n")
+        fout.write("\n")
  
         fout.write("%block TS.Elec.Left\n")
-        fout.write("HS siesta.TSHS\n")
+        fout.write("HS ../../electrodes/electrode-0/siesta.TSHS\n")
         fout.write("chem-pot Left\n")
         fout.write("semi-inf-dir -a3\n")
         fout.write("elec-pos begin 1\n")
         fout.write("used-atoms 36\n")
         fout.write("%endblock TS.Elec.Left\n")
+        fout.write("\n")
  
         fout.write("%block TS.Elec.Right\n")
-        fout.write("HS siesta.TSHS\n")
+        fout.write("HS ../../electrodes/electrode-1/siesta.TSHS\n")
         fout.write("chem-pot Right\n")
         fout.write("semi-inf-dir +a3\n")
         fout.write("elec-pos end -1\n")
         fout.write("used-atoms 36\n")
         fout.write("%endblock TS.Elec.Right\n")
+        fout.write("\n")
  
         fout.write("TS.Contours.Eq.Pole    2.50000 eV\n")
         fout.write("%block TS.Contour.c-Left\n")
@@ -113,5 +125,8 @@ class siesta_transiesta:
         fout.write("delta 0.01 eV\n")
         fout.write("method mid-rule\n")
         fout.write("%endblock TS.Contour.nEq.neq\n")
+        fout.write("\n")
 
-        fout.write("TS.WriteHS  .true.\n")
+    def set_params(self, ts):
+        for item in ts:
+            self.ts[item] = ts[item]

@@ -19,12 +19,6 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-siesta-ts")
     #parser.add_argument("-f", "--file", help="the xyz file name", type=str)
 
-    parser.add_argument("--electrodes", nargs="+", type=str,
-            help="electrodes")
-
-    parser.add_argument("--scattering", type=str,
-            help="scattering zone")
-
     parser.add_argument("--runopt", type=str, default="genrun", 
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
@@ -40,49 +34,21 @@ if __name__ == "__main__":
     parser.add_argument("-k", "--kpoints", help="set kpoints like '3 3 3'", type=str, default="3 3 3")
     parser.add_argument("--occupation", help="OccupationFunction(FD or MP)", type=str, default="FD")
     parser.add_argument("--electronic-temperature", help="Electronic Temperature", type=int, default=300)
-    # properties related parameter
-    parser.add_argument("-p", "--properties" ,nargs="+", type=int, default=[],
-            help="Option for properties calculation")
-    #------------------------------------------------------------------------------------------------
-    #parser.add_argument("--bandlines", nargs="+", type=str,
-    #        default=["1 0.0 0.0 0.0 \Gamma", "20 1.0 1.0 1.0 L", "20 2.0 0.0 0.0 X"],
-    #        help="BandLines for band structre calculation(either choose BandLines or BandPoints)")
-    #parser.add_argument("--bandpoints", nargs="+", type=str,
-    #        default=["0.0 0.0 0.0", "1.0 0.0 0.0", "0.5 0.5 0.5"],
-    #        help="BandPoints for band structure calculation(either choose BandPoints or BandLines)")
-    # we now use seekapth to calculate the BandLines automatically so it is not needed to be set by 
-    # user manually.
-    #------------------------------------------------------------------------------------------------
-    parser.add_argument("--polarization-grids", nargs="+", type=str,
-            default=["10 3 3 no", "2 20 2 no", "4 4 15 no"],
-            help="PolarizationGrids")
-    parser.add_argument("--external-electric-field", nargs="+", type=float,
-            default=[0.0, 0.0, 0.5],
-            help="External Electric field")
-    parser.add_argument("--optical-energy-minimum", type=float,
-            default=0.0,
-            help="Optical.Energy.Minimum")
-    parser.add_argument("--optical-energy-maximum", type=float,
-            default=10.0,
-            help="Optical.Energy.Maximum")
-    parser.add_argument("--optical-broaden", type=float,
-            default=0.0,
-            help="Optical.Broaden")
-    parser.add_argument("--optical-scissor", type=float,
-            default=0.0,
-            help="Optical.Scissor")
-    parser.add_argument("--optical-mesh", nargs="+", type=int,
-            default=[5, 5, 5],
-            help="Optical.Mesh")
-    parser.add_argument("--optical-polarization-type", type=str,
-            default="unpolarized",
-            help="Optical.PolarizationType")
-    parser.add_argument("--optical-vector", nargs="+", type=float,
-            default=[1.0, 0.0, 0.5],
-            help="Optical.Vector")
-    parser.add_argument("--wannier90-unkgrid", nargs="+", type=int,
-            default=[10, 10, 10],
-            help="Siesta2Wannier90.UnkGrid[1-3]")
+
+
+    # --------------------------------------------------
+    # transiesta parameters
+    # --------------------------------------------------
+    parser.add_argument("--electrodes", nargs="+", type=str,
+            help="electrodes")
+
+    parser.add_argument("--device", type=str,
+            help="electrodes + scattering zone")
+
+
+    parser.add_argument("-b", "--bias", type=float, nargs="+",
+            default=[0, 1, 0.1],
+            help="bias for transiesta and tbtrans")
 
     # for server
     parser.add_argument("--auto", type=int, default=0,
@@ -106,24 +72,10 @@ if __name__ == "__main__":
     electrons["ElectronicTemperature"] = args.electronic_temperature
 
 
-    task = ts_run(electrodes=args.electrodes, scattering=args.scattering)
+    task = ts_run(electrodes=args.electrodes, device=args.device)
 
-    task.properties[0].set_params(
-        #bandlines = args.bandlines,
-        #bandpoints = args.bandpoints,
-        polarization_grids = args.polarization_grids,
-        external_electric_field = args.external_electric_field,
-        optical_energy_minimum = args.optical_energy_minimum,
-        optical_energy_maximum = args.optical_energy_maximum,
-        optical_broaden = args.optical_broaden,
-        optical_scissor = args.optical_scissor,
-        optical_mesh = args.optical_mesh,
-        optical_polarization_type = args.optical_polarization_type,
-        optical_vector = args.optical_vector,
-        wannier90_unkgrid = args.wannier90_unkgrid,
-        )
 
-    task.ts(directory=directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, properties=args.properties, kpoints_mp=kpoints_mp)
+    task.ts(directory=directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, kpoints_mp=kpoints_mp, bias=args.bias)
 
     # server handle
     if args.auto == 0:
@@ -139,4 +91,4 @@ if __name__ == "__main__":
         ctl = ssh()
         ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
         ctl.login()
-        ctl.submit(workdir=args.directory, jobfile="static-scf.fdf.sub")
+        ctl.submit(workdir=args.directory, jobfile="ts.sub")
