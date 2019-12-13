@@ -22,6 +22,7 @@ class cp2k_glob:
                 "PRINT_LEVEL": "LOW",
                 "FFTW_PLAN_TYPE": "ESTIMATE",
                 }
+        self.status = False
 
     def to_input(self, fout):
         fout.write("&GLOBAL\n")

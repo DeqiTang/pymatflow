@@ -11,7 +11,9 @@ class cp2k_dft_qs:
                 "EPS_DEFAULT": 1.0E-14,
                 "FORCE_PAW": None,
                 }
-    def to_dft(self, fout):
+        self.status = False
+
+    def to_input(self, fout):
         """
         fout: a file stream for writing
         """

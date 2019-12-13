@@ -13,7 +13,7 @@ class cp2k_properties_resp:
                 }
         self.status = False
 
-    def to_properties(self, fout):
+    def to_input(self, fout):
         fout.write("\t\t&RESP\n")
         for item in self.params:
             if self.params[item] is not None:
@@ -47,7 +47,7 @@ class cp2k_properties_linres:
                 }
         self.status = False
 
-    def to_properties(self, fout):
+    def to_input(self, fout):
         fout.write("\t\t&LINRES\n")
         for item in self.params:
             if self.params[item] is not None:
@@ -65,13 +65,15 @@ class cp2k_properties:
     def __init__(self):
         self.params = {
                 }
+        self.status = False
+
         self.resp = cp2k_properties_resp()
         self.linres = cp2k_properties_linres()
 
-    def to_force_eval(self, fout):
+    def to_input(self, fout):
         fout.write("\t&PROPERTIES\n")
         if self.resp.status == True:
-            self.resp.to_properties(fout)
+            self.resp.to_input(fout)
         if self.linres.status == True:
-            self.linres.to_properties(fout)
+            self.linres.to_input(fout)
         fout.write("\t&END PROPERTIES\n")

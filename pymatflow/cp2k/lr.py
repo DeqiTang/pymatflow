@@ -89,29 +89,30 @@ class lr_run:
            14: request a LINRES calculation
         """
         if 1 in option:
-            self.force_eval.dft.printout.print_pdos()
+            self.force_eval.dft.printout.pdos.status = True
         if 2 in option:
-            self.force_eval.dft.printout.print_band(self.force_eval.subsys.xyz)
+            self.force_eval.dft.printout.band_structure.status = True
+            self.force_eval.dft.printout.band_structure.set_band(self.force_eval.subsys.xyz)
         if 3 in option:
-            self.force_eval.dft.printout.print_electron_density()
+            self.force_eval.dft.printout.e_density_cube.status = True
         if 4 in option:
-            self.force_eval.dft.printout.elf_cube = True
+            self.force_eval.dft.printout.elf_cube.status = True
         if 5 in option:
-            self.force_eval.dft.printout.mo = True
+            self.force_eval.dft.printout.mo.status = True
         if 6 in option:
-            self.force_eval.dft.printout.mo_cubes = True
+            self.force_eval.dft.printout.mo_cubes.status = True
         if 7 in option:
-            self.force_eval.dft.printout.mulliken = True
+            self.force_eval.dft.printout.mulliken.status = True
         if 8 in option:
-            self.force_eval.dft.printout.stm = True
+            self.force_eval.dft.printout.stm.status = True
         if 9 in option:
-            self.force_eval.dft.printout.tot_density_cube = True
+            self.force_eval.dft.printout.tot_density_cube.status = True
         if 10 in option:
-            self.force_eval.dft.printout.v_hartree_cube = True
+            self.force_eval.dft.printout.v_hartree_cube.status = True
         if 11 in option:
-            self.force_eval.dft.printout.v_xc_cube = True
+            self.force_eval.dft.printout.v_xc_cube.status = True
         if 12 in option:
-            self.force_eval.dft.printout.xray_diffraction_spectrum = True
+            self.force_eval.dft.printout.xray_diffraction_spectrum.status = True
         if 13 in option:
             self.force_eval.properties.resp.status = True
         if 14 in option:

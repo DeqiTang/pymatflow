@@ -25,6 +25,7 @@ class cp2k_vibrational_analysis_mode_selection:
                 "RANGE": None,
                 "RESTART_FILE_NAME": None,
                 }
+        self.status = False
 
     def set_params(self, params):
         for item in params:
@@ -62,6 +63,7 @@ class cp2k_vibrational_analysis:
                 "TC_TEMPERATURE": None,
                 "THERMOCHEMISTRY": None,
                 }
+        self.status = False
         self.mode_selection = cp2k_vibrational_analysis_mode_selection()
 
     def to_input(self, fout):

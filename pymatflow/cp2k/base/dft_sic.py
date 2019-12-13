@@ -11,5 +11,6 @@ class cp2k_dft_sic:
                 "SIC_SCALING_A": None,
                 "SIC_SCALING_B": None,
                 }       
+        self.status = False
 
 

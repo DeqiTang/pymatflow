@@ -156,7 +156,7 @@ class md_run:
                 })
             # Smoothing mitigates the break of translational invariance due to the plane waves
             # For cutoffs < 600 Ry (as we all use), this is absolutely mandatory
-            self.force_eval.dft.xc.xc_grid.section = "TRUE"
+            self.force_eval.dft.xc.xc_grid.status = True
 
             # setting of vde potential
 
@@ -164,7 +164,7 @@ class md_run:
             self.motion.set_params({
                 "MD-ENSEMBLE": "NVT",
                 "MD-TIMESTEP": 0.5, # mandatory for some spectra calculation, like
-                "MD-STEPS": 2000,
+                "MD-STEPS": 200, #2000,
                 "MD-THERMOSTAT-TYPE": "NOSE",
                 "MD-THERMOSTAT-REGION": "MASSIVE",
                 "MD-THERMOSTAT-NOSE-TIMECON": 10.0,
@@ -197,7 +197,7 @@ class md_run:
             self.motion.set_params({
                 "MD-ENSEMBLE": "NVT",
                 "MD-TIMESTEP": 0.5,
-                "MD-STEPS": 20000,
+                "MD-STEPS": 500,  # 20000,
                 "MD-THERMOSTAT-TYPE": "NOSE",
                 "MD-THERMOSTAT-REGION": None,
                 "MD-THERMOSTAT-NOSE-TIMECON": 100.0,
@@ -221,7 +221,7 @@ class md_run:
             self.motion.set_params({
                 "MD-ENSEMBLE": "NVT",
                 "MD-TIMESTEP": 0.5,
-                "MD-STEPS": 60000,
+                "MD-STEPS": 1000, #60000,
                 "MD-THERMOSTAT-TYPE": "NOSE",
                 "MD-THERMOSTAT-REGION": None,
                 "MD-THERMOSTAT-NOSE-TIMECON": 100.0,
@@ -254,7 +254,7 @@ class md_run:
             # An external field strength of 5.0E‐3 a.u. is a good compromise 
             # between noise and linearity (corresponds to 2.5 * 10 9 V/m !)
             # POLARIZATION gives the field vector (here: positive X direction)
-            self.force_eval.dft.periodic_efield.section = "TRUE"
+            self.force_eval.dft.periodic_efield.status = True
             self.force_eval.set_params({
                 "DFT-PERIODIC_EFIELD-INTENSITY": 5.0E-3,
                 "DFT-PERIODIC_EFIELD-POLARIZATION": [1.0, 0.0, 0.0],

@@ -10,12 +10,13 @@ class cp2k_motion_md_thermostat_nose:
                 "TIMECON": None,
                 "YOSHIDA": None,
                 }
+        self.status = False
         self.params["LENGTH"] = 3
         self.params["MTS"] = 2
         self.params["TIMECON"] = 1.0e3
         self.params["YOSHIDA"] = 3
 
-    def to_motion_md_thermostat(self, fout):
+    def to_input(self, fout):
         fout.write("\t\t\t&NOSE\n")
         for item in self.params:
             if self.params[item] is not None:
@@ -53,16 +54,17 @@ class cp2k_motion_md_thermostat:
                 "REGION": None,
                 "TYPE": None,
                 }
+        self.status = False
         self.params["TYPE"] = "NOSE"
         self.nose = cp2k_motion_md_thermostat_nose()
 
-    def to_motion_md(self, fout):
+    def to_input(self, fout):
         fout.write("\t\t&THERMOSTAT\n")
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("\t\t\t%s %s\n" % (item, self.params[item]))
         if self.params["TYPE"].upper() == "NOSE":
-            self.nose.to_motion_md_thermostat(fout)
+            self.nose.to_input(fout)
 
         fout.write("\t\t&END THERMOSTAT\n")
 
@@ -77,8 +79,9 @@ class cp2k_motion_md_reftraj:
     def __init__(self):
         self.params = {
                 }
+        self.status = False
 
-    def to_motion_md(self, fout):
+    def to_input(self, fout):
         fout.write("\t\t&REFTRAJ\n")
         for item in self.params:
             if self.params[item] is not None:
@@ -113,13 +116,14 @@ class cp2k_motion_md:
                 "TIMESTEP": None,
                 "TIME_START_VAL": None,
                 }
+        self.status = False
         self.thermostat = cp2k_motion_md_thermostat()
         self.reftraj = cp2k_motion_md_reftraj()
         # basic default setting
         self.params["TIMESTEP"] = 0.5
         self.params["STEPS"] = 1000
 
-    def to_motion(self, fout):
+    def to_input(self, fout):
         """
         fout: a file stream for writing
         """
@@ -128,9 +132,9 @@ class cp2k_motion_md:
             if self.params[item] is not None:
                 fout.write("\t\t%s %s\n" % (item, str(self.params[item])))
         if self.params["ENSEMBLE"] == "NVT":
-            self.thermostat.to_motion_md(fout)
+            self.thermostat.to_input(fout)
         if self.params["ENSEMBLE"] == "REFTRAJ":
-            self.reftraj.to_motion_md(fout)
+            self.reftraj.to_input(fout)
         fout.write("\t&END MD\n")
 
     def set_params(self, params):

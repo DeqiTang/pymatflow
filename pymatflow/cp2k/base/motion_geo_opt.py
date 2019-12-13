@@ -13,9 +13,10 @@ class cp2k_motion_geo_opt:
                 "STEP_START_VAL": None,
                 "TYPE": None, # MINIMIZATION(default), TRANSITION_STATE
                 }
+        self.status = False
         self.default_set()
 
-    def to_motion(self, fout):
+    def to_input(self, fout):
         """
         fout: a file stream for writing
         """

@@ -69,6 +69,7 @@ class cp2k_dft:
                 "LSD": None, # alis: LSD = SPIN_POLARIZED = UNRESTRICTED_KOHN_SHAM = UKS
                 "WFN_RESTART_FILE_NAME": None,
                 }
+        self.status = False
 
         self.almo_scf = cp2k_dft_almo_scf()
 
@@ -124,7 +125,16 @@ class cp2k_dft:
         
         self.xc = cp2k_dft_xc()
 
-    def to_dft(self, fout):
+        # basic setting
+        self.qs.status = True
+        self.poisson.status = True
+        self.mgrid.status = True
+        self.xc.status = True
+        self.kpoints.status = True
+        self.scf.status = True
+        self.printout.status = False
+
+    def to_input(self, fout):
         """
         fout: a file stream for writing
         """
@@ -132,20 +142,27 @@ class cp2k_dft:
         for item in self.params:
             if self.params[item] is not None:                    
                 fout.write("\t\t%s %s\n" % (item, self.params[item]))
-        self.qs.to_dft(fout)
-        self.poisson.to_dft(fout)
-        if self.ls_scf.section.upper() == "TRUE":
-            self.ls_scf.to_dft(fout)
-        self.mgrid.to_dft(fout)
-        self.xc.to_dft(fout)
-        self.kpoints.to_dft(fout)
-        self.scf.to_dft(fout)
-        self.localize.to_dft(fout)
-        if self.periodic_efield.section.upper() == "TRUE":
-            self.periodic_efield.to_dft(fout)
-        self.printout.to_dft(fout)
+        if self.qs.status == True:
+            self.qs.to_input(fout)
+        if self.poisson.status == True:
+            self.poisson.to_input(fout)
+        if self.ls_scf.status == True:
+            self.ls_scf.to_input(fout)
+        if self.mgrid.status == True:
+            self.mgrid.to_input(fout)
+        if self.xc.status == True:
+            self.xc.to_input(fout)
+        if self.kpoints.status == True:
+            self.kpoints.to_input(fout)
+        if self.scf.status == True:
+            self.scf.to_input(fout)
+        if self.localize.status == True:
+            self.localize.to_input(fout)
+        if self.periodic_efield.status == True:
+            self.periodic_efield.to_input(fout)
+        if self.printout.status == True:
+            self.printout.to_input(fout)
         fout.write("\t&END DFT\n")
-        #fout.write("\n")
 
     def check_spin(self, xyz):
         """

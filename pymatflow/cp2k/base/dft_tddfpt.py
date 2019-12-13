@@ -20,5 +20,6 @@ class cp2k_dft_tddfpt:
                 "RESTARTS": None,
                 "RES_ETYPE": None,
                 }       
+        self.status = False
 
 

@@ -18,7 +18,9 @@ class cp2k_motion_pint:
                 "TRANSFORMATION": None,
                 "T_TOL": None,
                 }
-    def to_motion(self, fout):
+        self.status = False
+
+    def to_input(self, fout):
         """
         fout: a file stream for writing
         """

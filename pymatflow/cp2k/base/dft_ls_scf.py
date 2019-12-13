@@ -35,13 +35,13 @@ class cp2k_dft_ls_scf:
                 "S_INVERSION": None,
                 "S_PRECONDITIONER": None,
                 }
-        self.section = "FALSE"
+        self.status = False
 
         self.params["EPS_FILTER"] = 1.0E-7
         self.params["EPS_SCF"] = 1.0E-5
         self.params["S_PRECONDITIONER"] = "ATOMIC"
 
-    def to_dft(self, fout):
+    def to_input(self, fout):
         """
         fout: a file stream for writing
         """

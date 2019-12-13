@@ -10,7 +10,9 @@ class cp2k_dft_poisson:
                 "PERIODIC": "XYZ",
                 "POISSON_SOLVER": "PERIODIC",
                 }
-    def to_dft(self, fout):
+        self.status = False
+
+    def to_input(self, fout):
         """
         fout: a file stream for writing
         """

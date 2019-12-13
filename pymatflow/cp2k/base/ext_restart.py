@@ -19,11 +19,13 @@ class cp2k_ext_restart:
     def __init__(self, project_name="ab-initio"):
         self.params = {
                 }
+        self.status = False
 
     def to_input(self, fout):
         fout.write("&EXT_RESTART\n")
         for item in self.params:
-            fout.write("\t%s %s\n" % (item, self.params[item]))
+            if self.params[item] is not None:
+                fout.write("\t%s %s\n" % (item, self.params[item]))
         fout.write("&END EXT_RESTART\n")
         fout.write("\n")
     

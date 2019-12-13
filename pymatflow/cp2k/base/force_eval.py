@@ -34,14 +34,17 @@ class cp2k_force_eval:
         the these classes.
     """
     def __init__(self, xyz_f):
-        self.subsys = cp2k_subsys(xyz_f)
-        self.dft = cp2k_dft()
-        self.properties = cp2k_properties()
         self.params = {
                 "METHOD": "QS",
                 "EMBED": None,
                 "STRESS_TENSOR": None,
                 }
+        self.status = False
+
+        self.subsys = cp2k_subsys(xyz_f)
+        self.dft = cp2k_dft()
+        self.properties = cp2k_properties()
+
         self.check_spin()
 
     def to_input(self, fout):
@@ -49,9 +52,12 @@ class cp2k_force_eval:
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("\t%s %s\n" % (item, self.params[item]))
-        self.subsys.to_subsys(fout)
-        self.dft.to_dft(fout)
-        self.properties.to_force_eval(fout)
+        if self.subsys.status == True:
+            self.subsys.to_input(fout)
+        if self.dft.status == True:
+            self.dft.to_input(fout)
+        if self.properties.status == True:
+            self.properties.to_input(fout)
         fout.write("&END FORCE_EVAL\n") 
         fout.write("\n")
     
@@ -62,6 +68,8 @@ class cp2k_force_eval:
         self.dft.check_spin(self.subsys.xyz)
 
     def basic_setting(self):
+        self.subsys.status = True
+        self.dft.status = True
         self.dft.mgrid.params["CUTOFF"] = 100
         self.dft.mgrid.params["REL_CUTOFF"]= 60
 

@@ -16,8 +16,9 @@ class cp2k_dft_mgrid:
                 "PROGRESSION_FACTOR": None,
                 "SKIP_LOAD_BALANCE_DISTRIBUTED": None,
                 }
+        self.status = False
 
-    def to_dft(self, fout):
+    def to_input(self, fout):
         """
         fout: a file stream for writing
         """

@@ -6,5 +6,5 @@
 # ============================================
 class cp2k_dft_auxiliary_density_matrix_method:
     def __init__(self):
-        pass
+        self.status = False
 

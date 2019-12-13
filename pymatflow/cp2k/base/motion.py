@@ -33,6 +33,8 @@ class cp2k_motion:
         self.params = {
                 }
 
+        self.status = False
+
         self.band = cp2k_motion_band()
 
         self.cell_opt = cp2k_motion_cell_opt()
@@ -61,30 +63,34 @@ class cp2k_motion:
 
         self.run_type = "GEO_OPT"
 
+        # basic setting
+        self.printout.status = True
+
     def to_input(self, fout):
         fout.write("&MOTION\n")
         for item in self.params:
             fout.write("\t%s %s\n" % (item, self.params[item]))
         if self.run_type == "GEO_OPT":
-            self.geo_opt.to_motion(fout)
+            self.geo_opt.to_input(fout)
         elif self.run_type == "CELL_OPT":
-            self.cell_opt.to_motion(fout)
+            self.cell_opt.to_input(fout)
             # if the MOTION-CELL_OPT-TYPE == "GEO_OPT"
             # we also need to provide GEO_OPT section
             if self.cell_opt.params["TYPE"].upper() == "GEO_OPT":
-                self.geo_opt.to_motion(fout)
+                self.geo_opt.to_input(fout)
         elif self.run_type == "MC":
-            self.mc.to_motion(fout)
+            self.mc.to_input(fout)
         elif self.run_type == "MD":
-            self.md.to_motion(fout)
+            self.md.to_input(fout)
         elif self.run_type == "PINT":
-            self.pint.to_motion(fout)
+            self.pint.to_input(fout)
         elif self.run_type == "SHELL_OPT":
-            self.shell_opt.to_motion(fout)
+            self.shell_opt.to_input(fout)
         elif self.run_type == "BAND":
-            self.band.to_motion(fout)
-
-        self.printout.to_motion(fout)
+            self.band.to_input(fout)
+        
+        if self.printout.status == True:
+            self.printout.to_input(fout)
 
         fout.write("&END MOTION\n")
         fout.write("\n")

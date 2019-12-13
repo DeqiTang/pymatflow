@@ -10,7 +10,9 @@ class cp2k_dft_low_spin_roks:
                 "ENERGY_SCALING": None,
                 "SPIN_CONFIGURATION": None
                 }
-    def to_dft(self, fout):
+        self.status = False
+
+    def to_input(self, fout):
         """
         fout: a file stream for writing
         """

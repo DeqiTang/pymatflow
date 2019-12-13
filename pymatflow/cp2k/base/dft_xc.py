@@ -9,10 +9,11 @@ class cp2k_dft_xc_vdw_potential_pair_potential:
     def __init__(self):
         self.params = {
                 }
+        self.status = False
 
         self.params["PARAMETER_FILE_NAME"] = "dftd3.dat"
 
-    def to_vdw(self, fout):
+    def to_input(self, fout):
         fout.write("\t\t\t\t&PAIR_POTENTIAL\n")
         for item in self.params:
             fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
@@ -27,8 +28,9 @@ class cp2k_dft_xc_vdw_potential_non_local:
     def __init__(self):
         self.params = {
                 }
+        self.status = False
 
-    def to_vdw(self, fout):
+    def to_input(self, fout):
         fout.write("\t\t\t\t&NON_LOCAL\n")
         for item in self.params:
             fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
@@ -42,22 +44,23 @@ class cp2k_dft_xc_vdw_potential_non_local:
 
 class cp2k_dft_xc_vdw_potential:
     def __init__(self):
-        self.section = "FALSE"
         self.params = {
                 "POTENTIAL_TYPE": None,
                 }
+        self.status = False
+
         self.params["POTENTIAL_TYPE"] = "PAIR_POTENTIAL"
         self.pair_potential = cp2k_dft_xc_vdw_potential_pair_potential()
         self.non_local = cp2k_dft_xc_vdw_potential_non_local()
 
-    def to_xc(self, fout):
+    def to_input(self, fout):
         fout.write("\t\t\t&VDW_POTENTIAL\n")
         for item in self.params:
             fout.write("\t\t\t\t%s %s\n" % (item, str(self.params[item])))
         if self.params["POTENTIAL_TYPE"].upper() == "PAIR_POTENTIAL":
-            self.pair_potential.to_vdw(fout)
+            self.pair_potential.to_input(fout)
         elif self.params["POTENTIAL_TYPE"].upper() == "NON_LOCAL":
-            self.non_local.to_vdw(fout)
+            self.non_local.to_input(fout)
         fout.write("\t\t\t&END VDW_POTENTIAL\n")
 
     def set_params(self, params):
@@ -74,7 +77,9 @@ class cp2k_dft_xc_xc_functional:
         self.section = "PBE"
         self.params = {
                 }
-    def to_xc(self, fout):
+        self.status = False
+
+    def to_input(self, fout):
         """
         fout: a file stream for writing
         """
@@ -92,12 +97,13 @@ class cp2k_dft_xc_xc_functional:
 
 class cp2k_dft_xc_xc_grid:
     def __init__(self):
-        self.section = "FALSE"
         self.params = {
                 "XC_DERIV": "NN10_SMOOTH",
                 "XC_SMOOTH_RHO": "NN10",
                 }
-    def to_xc(self, fout):
+        self.status = False
+
+    def to_input(self, fout):
         """
         fout: a file stream for writing
         """
@@ -122,11 +128,18 @@ class cp2k_dft_xc:
                 "GRADIENT_CUTOFF": None,
                 "TAU_CUTOFF": None,
                 }
+        self.status = False
+
         self.xc_functional = cp2k_dft_xc_xc_functional()
         self.vdw_potential = cp2k_dft_xc_vdw_potential()
         self.xc_grid = cp2k_dft_xc_xc_grid()
 
-    def to_dft(self, fout):
+        # basic setting
+        self.xc_functional.status = True
+        self.vdw_potential.status = False
+        self.xc_grid.status = False
+
+    def to_input(self, fout):
         """
         fout: a file stream for writing
         """
@@ -134,11 +147,12 @@ class cp2k_dft_xc:
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("\t\t\t%s %s" % (item, str(self.params[item])))
-        self.xc_functional.to_xc(fout)
-        if self.vdw_potential.section.upper() == "TRUE":
-            self.vdw_potential.to_xc(fout)
-        if self.xc_grid.section.upper() == "TRUE":
-            self.xc_grid.to_xc(fout)
+        if self.xc_functional.status == True:
+            self.xc_functional.to_input(fout)
+        if self.vdw_potential.status == True:
+            self.vdw_potential.to_input(fout)
+        if self.xc_grid.status == True:
+            self.xc_grid.to_input(fout)
         fout.write("\t\t&END XC\n")
 
     def set_params(self, params):

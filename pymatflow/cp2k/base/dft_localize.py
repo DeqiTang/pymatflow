@@ -20,7 +20,7 @@ class cp2k_dft_localize:
                 }
         self.status = False
 
-    def to_dft(self, fout):
+    def to_input(self, fout):
         # fout: a file stream for writing
         if self.status == False:
             return

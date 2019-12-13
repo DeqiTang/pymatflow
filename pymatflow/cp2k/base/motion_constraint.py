@@ -8,7 +8,9 @@ class cp2k_motion_constraint:
                 "ROLL_TOLERANCE": None,
                 "SHAKE_TOLERANCE": None,
                 }
-    def to_motion(self, fout):
+        self.status = False
+
+    def to_input(self, fout):
         """
         fout: a file stream for writing
         """

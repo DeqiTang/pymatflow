@@ -12,7 +12,9 @@ class cp2k_motion_shell_opt:
                 "OPTIMIZER": None,
                 "STEP_START_VAL": None,
                 }
-    def to_motion(self, fout):
+        self.status = False
+
+    def to_input(self, fout):
         """
         fout: a file stream for writing
         """

@@ -31,7 +31,8 @@ class vib_run:
         self.vibrational_analysis.basic_setting()
         # calculation of IR through vib need print dipole moments
         # throught DFT/PRINT/MOMENTS
-        self.force_eval.dft.printout.print_moments()
+        #self.force_eval.dft.printout.print_moments()
+        self.force_eval.dft.printout.moments.status == True
         
     def vib(self, directory="tmp-cp2k-vib", inpname="vib.inp", output="vib.out", 
             mpi="", runopt="gen", force_eval={}, vibrational={}):
@@ -69,7 +70,7 @@ class vib_run:
             os.chdir("../")
    # 
 
-    def gen_yh(self,inpname, output, directory="tmp-cp2k-static", cmd="cp2k.psmp"):
+    def gen_yh(self,inpname, output, directory="tmp-cp2k-vib", cmd="cp2k.psmp"):
         """
         generating yhbatch job script for calculation
         """

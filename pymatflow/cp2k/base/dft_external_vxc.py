@@ -5,6 +5,6 @@
 # ==========================
 class cp2k_dft_external_vxc:
     def __init__(self):
-        pass
+        self.status = False
 
 

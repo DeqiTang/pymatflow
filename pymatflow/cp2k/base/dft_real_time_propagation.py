@@ -15,5 +15,6 @@ class cp2k_dft_real_time_propagation:
                 "MAX_ITER": None,
                 "EPS_ITER": None,
                 }
+        self.status = False
 
 

@@ -6,6 +6,6 @@
 # ==================================
 class cp2k_dft_almo_scf:
     def __init__(self):
-        pass
+        self.status = False
 
 

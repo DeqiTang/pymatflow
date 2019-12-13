@@ -36,6 +36,7 @@ class cp2k_negf:
                 "V_SHIFT_MAX_ITERS": None,
                 "V_SHIFT_OFFSET": None,
                 }
+        self.status = False
 
     def to_input(self, fout):
         # fout: a file stream for writing

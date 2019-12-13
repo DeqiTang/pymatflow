@@ -16,9 +16,11 @@ class cp2k_atom_method_xc_wf_correlation:
         self.params = {
                 "METHOD": None,
                 }
+        self.status = False
+
         self.params["METHOD"] = "RI_MP2_GPW"
 
-    def to_xc(self, fout):
+    def to_input(self, fout):
         fout.write("\t\t\t&WF_CORRELATION\n")
         for item in self.params:
             if self.params[item] is not None:
@@ -36,11 +38,13 @@ class cp2k_atom_method_xc:
     def __init__(self):
         self.params = {
                 }
+        self.status = False
+
         self.wf_correlation = cp2k_atom_method_xc_wf_correlation()
 
-    def to_method(self, fout):
+    def to_input(self, fout):
         fout.write("\t\t&XC\n")
-        self.wf_correlation.to_xc(fout)
+        self.wf_correlation.to_input(fout)
         fout.write("\t\t&END XC\n")
 
 
@@ -48,11 +52,13 @@ class cp2k_atom_method:
     def __init__(self):
         self.params = {
                 }
+        self.status = False
+
         self.xc = cp2k_atom_method_xc()
 
-    def to_atom(self, fout):
+    def to_input(self, fout):
         fout.write("\t&METHOD\n")
-        self.xc.to_method(fout)
+        self.xc.to_input(fout)
         fout.write("\t&END METHOD\n")
 
 class cp2k_atom:
@@ -62,6 +68,8 @@ class cp2k_atom:
     def __init__(self):
         self.params = {
                 }
+        self.status = False
+
         self.method = cp2k_atom_method()
 
     def to_input(self, fout):
@@ -69,7 +77,7 @@ class cp2k_atom:
         fout.write("&ATOM\n")
         for item in self.params:
             fout.write("\t%s %s\n" % (item, self.params[item]))
-        self.method.to_atom(fout)
+        self.method.to_input(fout)
         fout.write("&END ATOM\n")
         fout.write("\n")
 

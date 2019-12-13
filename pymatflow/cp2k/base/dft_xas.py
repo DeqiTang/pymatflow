@@ -9,4 +9,5 @@ class cp2k_dft_xas():
                 "ADDED_MOS": None,
                 "METHOD": None,
                 }
+        self.status = False
 

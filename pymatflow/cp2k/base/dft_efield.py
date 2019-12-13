@@ -13,4 +13,5 @@ class cp2k_dft_efield:
                 "POLARISATION": None,
                 "WAVELENGTH": None,
                 }
+        self.status = False
 

@@ -32,9 +32,12 @@ class cp2k_dft_kpoints:
                 "VERBOSE": None,
                 "WAVEFUNCTIONS": None,
                 }
-        self.basic_setting()
+        self.status = False
 
-    def to_dft(self, fout):
+        # basic_setting
+        self.params["SCHEME"] = "GAMMA"
+
+    def to_input(self, fout):
         """
         fout: a file stream for writing
         """
@@ -60,8 +63,6 @@ class cp2k_dft_kpoints:
                 print("E.g. MONKHORST-PACK 3 3 3.")
                 sys.exit(1)
 
-    def basic_setting(self):
-        self.params["SCHEME"] = "GAMMA"
 
     def set_params(self, params):
         for item in params:

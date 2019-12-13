@@ -19,6 +19,7 @@ class cp2k_motion_band:
                 "ROTATE_FRAMES": None,
                 "USE_COLVARS": None,
                 }
+        self.status = False
         self.images = []
 
         self.params["BAND_TYPE"] = "CI-NEB"
@@ -27,7 +28,7 @@ class cp2k_motion_band:
         self.params["ROTATE_FRAMES"] = "TRUE"
         self.params["ALIGN_FRAMES"] = "TRUE"
 
-    def to_motion(self, fout):
+    def to_input(self, fout):
         """
         fout: a file stream for writing
         """

@@ -5,7 +5,7 @@
 # ===================
 class cp2k_dft_scrf:
     def __init__(self):
-        pass
+        self.status = False
 
 
 

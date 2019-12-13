@@ -5,6 +5,6 @@
 # ==================
 class cp2k_dft_sccs:
     def __init__(self):
-        pass
+        self.status = False
 
 

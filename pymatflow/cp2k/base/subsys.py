@@ -23,7 +23,9 @@ class cp2k_subsys_cell:
                 "PERIODIC": None,
                 "SYMMETRY": None,
                 }
-    def to_cell(self, fout, xyz):
+        self.status = False
+
+    def to_input(self, fout, xyz):
         """
         fout: a file stream for writing
         """
@@ -37,29 +39,31 @@ class cp2k_subsys_cell:
 
 class cp2k_subsys_colvar:
     def __init__(self):
-        pass
+        self.status = False
 
 class cp2k_subsys_coord:
     def __init__(self):
-        pass
+        self.status = False
 
 class cp2k_subsys_core_coord:
     def __init__(self):
-        pass
+        self.status = False
 
 class cp2k_subsys_core_velocity:
     def __init__(self):
-        pass
+        self.status = False
 
 class cp2k_subsys_kind:
     def __init__(self):
+        self.status = False
+
         self.basis_set = dict()
         self.potential = dict()
         for i in mg.Element:
             self.basis_set[str(i)] = 'DZVP-MOLOPT-SR-GTH'
             self.potential[str(i)] = 'GTH-PBE'
 
-    def to_kind(self, fout, xyz):
+    def to_input(self, fout, xyz):
         """
         fout: a file stream for writing
         """
@@ -71,28 +75,29 @@ class cp2k_subsys_kind:
 
 class cp2k_subsys_multipoles:
     def __init__(self):
-        pass
+        self.status = False
 
 class cp2k_subsys_print:
     def __init__(self):
-        pass
+        self.status = False
 
 class cp2k_subsys_rng_init:
     def __init__(self):
-        pass
+        self.status = False
 
 class cp2k_subsys_shell_coord:
     def __init__(self):
-        pass
+        self.status = False
 
 class cp2k_subsys_shell_velocity:
     def __init__(self):
-        pass
+        self.status = False
 
 class cp2k_subsys_topology:
     def __init__(self):
-        pass
-    def to_topology(self, fout, xyz):
+        self.status = False
+
+    def to_input(self, fout, xyz):
         """
         fout: a file stream for writing
         """
@@ -103,7 +108,7 @@ class cp2k_subsys_topology:
 
 class cp2k_subsys_velocity:
     def __init__(self):
-        pass
+        self.status = False
 
 
 
@@ -121,6 +126,7 @@ class cp2k_subsys:
         self.params = {
                 "SEED": None,
                 }
+        self.status = False
 
         self.cell = cp2k_subsys_cell()
 
@@ -147,17 +153,23 @@ class cp2k_subsys:
         self.topology = cp2k_subsys_topology()
 
         self.velocity = cp2k_subsys_velocity()
+
+        self.basic_setting()
     
-    def to_subsys(self, fout):
+    def to_input(self, fout):
         """
         fout: a file stream for writing
         """
-        #with open(fname, 'a') as fout:
         fout.write("\t&SUBSYS\n")
-        self.kind.to_kind(fout, self.xyz)
-        self.cell.to_cell(fout, self.xyz)
-        self.topology.to_topology(fout, self.xyz)
+        if self.kind.status == True:
+            self.kind.to_input(fout, self.xyz)
+        if self.cell.status == True:
+            self.cell.to_input(fout, self.xyz)
+        if self.topology.status == True:
+            self.topology.to_input(fout, self.xyz)
         fout.write("\t&END SUBSYS\n")
-        #fout.write("\n")
 
-
+    def basic_setting(self):
+        self.kind.status = True
+        self.cell.status = True
+        self.topology.status = True

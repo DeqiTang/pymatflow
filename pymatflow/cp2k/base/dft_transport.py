@@ -8,3 +8,4 @@ class cp2k_dft_transport:
         self.params = {
                 "TRANSPORT_METHOD": None,
                 }       
+        self.status = False

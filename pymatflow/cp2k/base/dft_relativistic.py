@@ -13,5 +13,6 @@ class cp2k_dft_relativistic:
                 "ZORA_TYPE": None,
                 "Z_CUTOFF": None,
                 }
+        self.status = False
 
 

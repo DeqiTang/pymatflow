@@ -3,7 +3,7 @@
 
 class cp2k_motion_tmc:
     def __init__(self):
-        pass
+        self.status = False
 
     def set_params(self, params):
         for item in params:

@@ -71,7 +71,7 @@ class phonopy_run:
             # end subsys
             with open(inp_name, 'a') as fout:
                 # dft
-                self.force_eval.dft.to_dft(fout)
+                self.force_eval.dft.to_input(fout)
                 # end dft
                 fout.write("&END FORCE_EVAL\n")
 
@@ -104,7 +104,7 @@ class phonopy_run:
                 with open(in_name, 'a') as fout:
                     fout.write("\t&END SUBSYS\n")
                     # dft
-                    self.force_eval.dft.to_dft(fout)
+                    self.force_eval.dft.to_input(fout)
                     # end dft
                     fout.write("\t&PRINT\n")
                     fout.write("\t\t&FORCES\n")

@@ -4,8 +4,9 @@
 class cp2k_motion_print_trajectory:
     def __init__(self):
         self.params = {}
+        self.status = False
 
-    def to_print(self, fout):
+    def to_input(self, fout):
         fout.write("\t\t&TRAJECTORY\n")
         for item in self.params:
             if self.params[item] is not None:
@@ -20,8 +21,9 @@ class cp2k_motion_print_trajectory:
 class cp2k_motion_print_restart_each:
     def __init__(self):
         self.params = {}
+        self.status = False
 
-    def to_restart(self, fout):
+    def to_input(self, fout):
         fout.write("\t\t\t&EACH\n")
         for item in self.params:
             if self.params[item] is not None:
@@ -37,13 +39,15 @@ class cp2k_motion_print_restart_each:
 class cp2k_motion_print_restart:
     def __init__(self):
         self.params = {}
+        self.status = False
         self.each = cp2k_motion_print_restart_each()
-    def to_print(self, fout):
+
+    def to_input(self, fout):
         fout.write("\t\t&RESTART\n")
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("\t\t\t%s %s\n" % (item, self.params[item]))
-        self.each.to_restart(fout)
+        self.each.to_input(fout)
         fout.write("\t\t&END RESTART\n")
 
     def set_params(self, params):
@@ -56,8 +60,9 @@ class cp2k_motion_print_restart:
 class cp2k_motion_print_restart_history_each:
     def __init__(self):
         self.params = {}
+        self.status = False
 
-    def to_restart_history(self, fout):
+    def to_input(self, fout):
         fout.write("\t\t\t&EACH\n")
         for item in self.params:
             if self.params[item] is not None:
@@ -72,13 +77,15 @@ class cp2k_motion_print_restart_history_each:
 class cp2k_motion_print_restart_history:
     def __init__(self):
         self.params = {}
+        self.status = False
         self.each = cp2k_motion_print_restart_history_each()
-    def to_print(self, fout):
+
+    def to_input(self, fout):
         fout.write("\t\t&RESTART_HISTORY\n")
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("\t\t\t%s %s\n" % (item, self.params[item]))
-        self.each.to_restart_history(fout)
+        self.each.to_input(fout)
         fout.write("\t\t&END RESTART_HISTORY\n")
 
     def set_params(self, params):
@@ -90,17 +97,18 @@ class cp2k_motion_print_restart_history:
 
 class cp2k_motion_print:
     def __init__(self):
+        self.status = False
         self.trajectory = cp2k_motion_print_trajectory()
         self.restart = cp2k_motion_print_restart()
         self.restart_history = cp2k_motion_print_restart_history()
     
-    def to_motion(self, fout):
+    def to_input(self, fout):
         # fout: a file stream for writing
         fout.write("\t&PRINT\n")
 
-        self.trajectory.to_print(fout)
-        self.restart.to_print(fout)
-        self.restart_history.to_print(fout)
+        self.trajectory.to_input(fout)
+        self.restart.to_input(fout)
+        self.restart_history.to_input(fout)
         
         fout.write("\t&END PRINT\n")
 

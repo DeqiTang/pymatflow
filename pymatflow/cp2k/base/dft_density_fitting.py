@@ -5,6 +5,6 @@
 # ================================
 class cp2k_dft_density_fitting:
     def __init__(self):
-        pass
+        self.status = False
 
 

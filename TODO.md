@@ -20,7 +20,14 @@
 
 ## TODO
 ### CP2K
-* I found the cell opt result of cp2k is not reasonable(maybe inappropriate parameter setting), go and fix it!
+* I found the cell opt result of cp2k is not reasonable(maybe inappropriate parameter setting), go and fix it![OK]
+```
+we should know that when your system is small, you have to use a larger kpoint scheme so that the density of k grids
+in k space is suffice to gurantee the accuracy. So small system need larger kpoint scheme, or the scf calculation is
+not right, and the optimization will not get good results too.
+
+Note: OT calculation doesn't support KPOINTS setting
+```
 * implementing DFTB calculation
 * implementing Quantum Espresso type calculation by using SIRIUS in cp2k
 * implementing Linear Scaling SCF [OK]
