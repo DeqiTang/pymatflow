@@ -623,67 +623,67 @@ class cp2k_dft_print:
                 fout.write("\t\t\t%s %s\n" % (item, self.params[item]))
 
         if self.active_space.status == True:
-            self.active_space.to_print(fout)
+            self.active_space.to_input(fout)
 
         if self.band_structure.status == True:
-            self.band_structure.to_print(fout)
+            self.band_structure.to_input(fout)
         
         if self.efield_cube.status == True:
-            self.efield_cube.to_print(fout)
+            self.efield_cube.to_input(fout)
 
         if self.electric_field_gradient.status == True:
-            self.electric_field_gradient.to_print(fout)
+            self.electric_field_gradient.to_input(fout)
 
         if self.elf_cube.status == True:
-            self.elf_cube.to_print(fout)
+            self.elf_cube.to_input(fout)
 
         if self.e_density_cube.status == True:
-            self.e_density_cube.to_print(fout)
+            self.e_density_cube.to_input(fout)
 
         if self.external_potential_cube.status == True:
-            self.external_potential_cube.to_print(fout)
+            self.external_potential_cube.to_input(fout)
 
         if self.pdos.status == True:
-            self.pdos.to_print(fout)
+            self.pdos.to_input(fout)
 
         if self.lowdin.status == True:
-            self.lowdin.to_print(fout)
+            self.lowdin.to_input(fout)
 
         if self.mo.status == True:
-            self.mo.to_print(fout)
+            self.mo.to_input(fout)
 
         if self.moments.status == True:
-            self.moments.to_print(fout)
+            self.moments.to_input(fout)
 
         if self.mo_cubes.status == True:
-            self.mo_cubes.to_print(fout)
+            self.mo_cubes.to_input(fout)
 
         if self.mulliken.status == True:
-            self.mulliken.to_print(fout)
+            self.mulliken.to_input(fout)
 
         if self.stm.status == True:
-            self.stm.to_print(fout)
+            self.stm.to_input(fout)
 
         if self.subcell.status == True:
-            self.subcell.to_print(fout)
+            self.subcell.to_input(fout)
        
         if self.tot_density_cube.status == True:
-            self.tot_density_cube.to_print(fout)
+            self.tot_density_cube.to_input(fout)
 
         if self.v_hartree_cube.status == True:
-            self.v_hartree_cube.to_print(fout)
+            self.v_hartree_cube.to_input(fout)
 
         if self.v_xc_cube.status == True:
-            self.v_xc_cube.to_print(fout)
+            self.v_xc_cube.to_input(fout)
 
         if self.wannier90.status == True:
-            self.wannier90.to_print(fout)
+            self.wannier90.to_input(fout)
 
         if self.wfn_mix.status == True:
-            self.wfn_mix.to_print(fout)
+            self.wfn_mix.to_input(fout)
 
         if self.xray_diffraction_spectrum.status == True:
-            self.xray_diffraction_spectrum.to_print(fout)
+            self.xray_diffraction_spectrum.to_input(fout)
 
         fout.write("\t\t&END PRINT\n")
 

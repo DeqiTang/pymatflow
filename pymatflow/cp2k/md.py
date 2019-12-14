@@ -261,7 +261,8 @@ class md_run:
                 }) 
 
             # Write the electron density in each MD step to a CUBE trajectory
-            self.force_eval.dft.printout.e_density_cube = True  # STRIDE 1 1 1 is vital for Voronoi integration
+            self.force_eval.dft.printout.status = True
+            self.force_eval.dft.printout.e_density_cube.status = True  # STRIDE 1 1 1 is vital for Voronoi integration
 
             # Don‘t compute Wannier centers if you don‘t have to (can waste a lot of time if CRAZY does not converge)
             # Here we choose not to compute the Wannier centers

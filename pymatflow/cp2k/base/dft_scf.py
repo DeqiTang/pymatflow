@@ -76,7 +76,7 @@ class cp2k_dft_scf_diagonalization_diag_sub_scf:
                 self.mixing.set_params({item: params[item]})
 
 
-class cp2k_dft_scf_diagonalization_filer_matrix:
+class cp2k_dft_scf_diagonalization_filter_matrix:
     def __init__(self):
         self.params = {
                 }
@@ -163,23 +163,26 @@ class cp2k_dft_scf_diagonalization:
         self.ot = cp2k_dft_scf_diagonalization_ot()
 
     def to_input(self, fout):
-       """
-       fout: a file stream for writing
-       """
-       fout.write("\t\t\t&DIAGONALIZATION %s\n" % str(self.section))
-       for item in self.params:
-           if self.params[item] is not None:
-               fout.write("\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t&DIAGONALIZATION %s\n" % str(self.section))
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t%s %s\n" % (item, str(self.params[item])))
         if self.davidson.status == True:
             self.davidson.to_input(fout)
         if self.diag_sub_scf.status == True:
             self.diag_sub_scf.to_input(fout)
-       fout.write("\t\t\t&END DIAGONALIZATION\n")
+        fout.write("\t\t\t&END DIAGONALIZATION\n")
 
     def set_params(self, params):
         for item in params:
             if len(item.split("-")) == 4:
-                self.params[item.split("-")[-1]] = params[item]
+                if item.split("-")[3] == "DIAG_SUB_SCF":
+                    self.diag_sub_scf.section = params[item]
+                else:
+                    self.params[item.split("-")[-1]] = params[item]
             elif item.split("-")[3] == "DAVIDSON":
                 self.davidson.set_params({item: params[item]})
             elif item.split("-")[3] == "DIAG_SUB_SCF":
@@ -353,6 +356,606 @@ class cp2k_dft_scf_smear:
             if len(item.split("-")) == 4:
                 self.params[item.split("-")[-1]] = params[item]
 
+class cp2k_dft_scf_print_davidson_each:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t\t&EACH\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t\t&END EACH\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 6:
+                self.params[item.split("-")[-1]] = params[item]
+
+
+
+class cp2k_dft_scf_print_davidson:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+        self.each = cp2k_dft_scf_print_davidson_each()
+        # basic setting
+        self.each.status = True
+        
+        self.section = "HIGH" # DEBUG | HIGH | LOW | MEDIUM | OFF | ON | SILENT
+    
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&DAVIDSON %s\n" % self.section)
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        if self.each.status == True: 
+            self.each.to_input(fout)
+        fout.write("\t\t\t\t&END DAVIDSON\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            elif item.split("-")[4] == "EACH":
+                self.each.set_params({item: params[item]})
+
+class cp2k_dft_scf_print_detailed_energy_each:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t\t&EACH\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t\t&END EACH\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 6:
+                self.params[item.split("-")[-1]] = params[item]
+
+
+
+class cp2k_dft_scf_print_detailed_energy:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+        self.each = cp2k_dft_scf_print_detailed_energy_each()
+        # basic setting
+        self.each.status = True
+    
+        self.section = "HIGH" # DEBUG | HIGH | LOW | MEDIUM | OFF | ON | SILENT
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&DETAILED_ENERGY %s\n" % self.section)
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        if self.each.status == True: 
+            self.each.to_input(fout)
+        fout.write("\t\t\t\t&END DETAILED_ENERGY\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            elif item.split("-")[4] == "EACH":
+                self.each.set_params({item: params[item]})
+
+class cp2k_dft_scf_print_diag_sub_scf_each:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t\t&EACH\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t\t&END EACH\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 6:
+                self.params[item.split("-")[-1]] = params[item]
+
+
+
+class cp2k_dft_scf_print_diag_sub_scf:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+        self.each = cp2k_dft_scf_print_diag_sub_scf_each()
+        # basic setting
+        self.each.status = True
+        
+        self.section = "HIGH" # DEBUG | HIGH | LOW | MEDIUM | OFF | ON | SILENT
+    
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&DIAG_SUB_SCF %s\n" % self.section)
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        if self.each.status == True: 
+            self.each.to_input(fout)
+        fout.write("\t\t\t\t&END DIAG_SUB_SCF\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            elif item.split("-")[4] == "EACH":
+                self.each.set_params({item: params[item]})
+
+class cp2k_dft_scf_print_diis_info_each:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t\t&EACH\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t\t&END EACH\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 6:
+                self.params[item.split("-")[-1]] = params[item]
+
+
+
+class cp2k_dft_scf_print_diis_info:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+        self.each = cp2k_dft_scf_print_diis_info_each()
+        # basic setting
+        self.each.status = True
+        
+        self.section = "HIGH" # DEBUG | HIGH | LOW | MEDIUM | OFF | ON | SILENT
+    
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&DIIS_INFO %s\n" % self.section)
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        if self.each.status == True: 
+            self.each.to_input(fout)
+        fout.write("\t\t\t\t&END DIIS_INFO\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            elif item.split("-")[4] == "EACH":
+                self.each.set_params({item: params[item]})
+
+class cp2k_dft_scf_print_filter_matrix_each:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t\t&EACH\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t\t&END EACH\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 6:
+                self.params[item.split("-")[-1]] = params[item]
+
+
+
+class cp2k_dft_scf_print_filter_matrix:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+        self.each = cp2k_dft_scf_print_filter_matrix_each()
+        # basic setting
+        self.each.status = True
+        
+        self.section = "HIGH" # DEBUG | HIGH | LOW | MEDIUM | OFF | ON | SILENT
+    
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&FILTER_MATRIX %s\n" % self.section)
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        if self.each.status == True: 
+            self.each.to_input(fout)
+        fout.write("\t\t\t\t&END FILTER_MATRIX\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            elif item.split("-")[4] == "EACH":
+                self.each.set_params({item: params[item]})
+
+
+
+class cp2k_dft_scf_print_iteration_info_each:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t\t&EACH\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t\t&END EACH\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 6:
+                self.params[item.split("-")[-1]] = params[item]
+
+
+
+class cp2k_dft_scf_print_iteration_info:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+        self.each = cp2k_dft_scf_print_iteration_info_each()
+        # basic setting
+        self.each.status = True
+        
+        self.section = "HIGH" # DEBUG | HIGH | LOW | MEDIUM | OFF | ON | SILENT
+    
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&ITERATION_INFO %s\n" % self.section)
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        if self.each.status == True: 
+            self.each.to_input(fout)
+        fout.write("\t\t\t\t&END ITERATION_INFO\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            elif item.split("-")[4] == "EACH":
+                self.each.set_params({item: params[item]})
+
+
+class cp2k_dft_scf_print_lanczos_each:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t\t&EACH\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t\t&END EACH\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 6:
+                self.params[item.split("-")[-1]] = params[item]
+
+
+
+class cp2k_dft_scf_print_lanczos:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+        self.each = cp2k_dft_scf_print_lanczos_each()
+        # basic setting
+        self.each.status = True
+        
+        self.section = "HIGH" # DEBUG | HIGH | LOW | MEDIUM | OFF | ON | SILENT
+    
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&LANCZOS %s\n" % self.section)
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        if self.each.status == True: 
+            self.each.to_input(fout)
+        fout.write("\t\t\t\t&END LANCZOS\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            elif item.split("-")[4] == "EACH":
+                self.each.set_params({item: params[item]})
+
+class cp2k_dft_scf_print_mos_molden_each:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t\t&EACH\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t\t&END EACH\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 6:
+                self.params[item.split("-")[-1]] = params[item]
+
+
+
+class cp2k_dft_scf_print_mos_molden:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+        self.each = cp2k_dft_scf_print_mos_molden_each()
+        # basic setting
+        self.each.status = True
+        
+        self.section = "HIGH" # DEBUG | HIGH | LOW | MEDIUM | OFF | ON | SILENT
+    
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&MOS_MOLDEN %s\n" % self.section)
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        if self.each.status == True: 
+            self.each.to_input(fout)
+        fout.write("\t\t\t\t&END MOS_MOLDEN\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            elif item.split("-")[4] == "EACH":
+                self.each.set_params({item: params[item]})
+
+
+class cp2k_dft_scf_print_mo_magnitude_each:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t\t&EACH\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t\t&END EACH\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 6:
+                self.params[item.split("-")[-1]] = params[item]
+
+
+
+class cp2k_dft_scf_print_mo_magnitude:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+        self.each = cp2k_dft_scf_print_mo_magnitude_each()
+        # basic setting
+        self.each.status = True
+        
+        self.section = "HIGH" # DEBUG | HIGH | LOW | MEDIUM | OFF | ON | SILENT
+    
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&MO_MAGNITUDE %s\n" % self.section)
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        if self.each.status == True: 
+            self.each.to_input(fout)
+        fout.write("\t\t\t\t&END MO_MAGNITUDE\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            elif item.split("-")[4] == "EACH":
+                self.each.set_params({item: params[item]})
+
+class cp2k_dft_scf_print_mo_orthonormality_each:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t\t&EACH\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t\t&END EACH\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 6:
+                self.params[item.split("-")[-1]] = params[item]
+
+
+
+class cp2k_dft_scf_print_mo_orthonormality:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+        self.each = cp2k_dft_scf_print_mo_orthonormality_each()
+        # basic setting
+        self.each.status = True
+    
+        self.section = "HIGHG" # DEBUG | HIGH | LOW | MEDIUM | OFF | ON | SILENT
+
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&MO_ORTHONORMALITY %s\n" % self.section)
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        if self.each.status == True: 
+            self.each.to_input(fout)
+        fout.write("\t\t\t\t&END MO_ORTHONORMALITY\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            elif item.split("-")[4] == "EACH":
+                self.each.set_params({item: params[item]})
+
+class cp2k_dft_scf_print_program_run_info_each:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t\t&EACH\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t\t&END EACH\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 6:
+                self.params[item.split("-")[-1]] = params[item]
+
+
+
+class cp2k_dft_scf_print_program_run_info:
+    def __init__(self):
+        self.params = {
+                }
+        self.status = False
+
+        self.each = cp2k_dft_scf_print_program_run_info_each()
+        # basic setting
+        self.each.status = True
+    
+        self.section = "HIGH" # DEBUG | HIGH | LOW | MEDIUM | OFF | ON | SILENT
+
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&PROGRAM_RUN_INFO %s\n" % self.section)
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        if self.each.status == True: 
+            self.each.to_input(fout)
+        fout.write("\t\t\t\t&END PROGRAM_RUN_INFO\n")
+
+    def set_params(self, params):
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            elif item.split("-")[4] == "EACH":
+                self.each.set_params({item: params[item]})
+
 
 class cp2k_dft_scf_print_restart_each:
     def __init__(self):
@@ -387,11 +990,14 @@ class cp2k_dft_scf_print_restart:
         # basic setting
         self.each.status = True
     
+        self.section = "HIGH" # DEBUG | HIGH | LOW | MEDIUM | OFF | ON | SILENT
+
+
     def to_input(self, fout):
         """
         fout: a file stream for writing
         """
-        fout.write("\t\t\t\t&RESTART\n")
+        fout.write("\t\t\t\t&RESTART %s\n" % self.section)
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
@@ -439,11 +1045,13 @@ class cp2k_dft_scf_print_restart_history:
         # basic setting
         self.each.status = True
     
+        self.section = "HIGH" # DEBUG | HIGH | LOW | MEDIUM | OFF | ON | SILENT
+
     def to_input(self, fout):
         """
         fout: a file stream for writing
         """
-        fout.write("\t\t\t\t&RESTART_HISTORY\n")
+        fout.write("\t\t\t\t&RESTART_HISTORY %s\n" % self.section)
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
@@ -458,7 +1066,8 @@ class cp2k_dft_scf_print_restart_history:
             elif item.split("-")[4] == "EACH":
                 self.each.set_params({item: params[item]})
 
-class cp2k_dft_scf_print_total_densities__each:
+
+class cp2k_dft_scf_print_total_densities_each:
     def __init__(self):
         self.params = {
                 }
@@ -490,12 +1099,14 @@ class cp2k_dft_scf_print_total_densities:
         self.each = cp2k_dft_scf_print_total_densities_each()
         # basic setting
         self.each.status = True
+
+        self.section = "HIGH" # DEBUG | HIGH | LOW | MEDIUM | OFF | ON | SILENT
     
     def to_input(self, fout):
         """
         fout: a file stream for writing
         """
-        fout.write("\t\t\t\t&TOTAL_DENSITIES\n")
+        fout.write("\t\t\t\t&TOTAL_DENSITIES %s\n" % self.section)
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
@@ -518,6 +1129,17 @@ class cp2k_dft_scf_print:
                 }
         self.status = False
 
+        self.davidson = cp2k_dft_scf_print_davidson()
+        self.detailed_energy = cp2k_dft_scf_print_detailed_energy()
+        self.diag_sub_scf = cp2k_dft_scf_print_diag_sub_scf()
+        self.diis_info = cp2k_dft_scf_print_diis_info()
+        self.filter_matrix = cp2k_dft_scf_print_filter_matrix()
+        self.iteration_info = cp2k_dft_scf_print_iteration_info()
+        self.lanczos = cp2k_dft_scf_print_lanczos()
+        self.mos_molden = cp2k_dft_scf_print_mos_molden()
+        self.mo_magnitude = cp2k_dft_scf_print_mo_magnitude()
+        self.mo_orthonormality = cp2k_dft_scf_print_mo_orthonormality()
+        self.program_run_info = cp2k_dft_scf_print_program_run_info()
         self.restart = cp2k_dft_scf_print_restart()
         self.restart_history = cp2k_dft_scf_print_restart_history()
         self.total_densities = cp2k_dft_scf_print_total_densities()
@@ -534,6 +1156,28 @@ class cp2k_dft_scf_print:
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        if self.davidson.status == True:
+            self.davidson.to_input(fout)
+        if self.detailed_energy.status == True:
+            self.detailed_energy.to_input(fout)
+        if self.diag_sub_scf.status == True:
+            self.diag_sub_scf.to_input(fout)
+        if self.diis_info.status == True:
+            self.diis_info.to_input(fout)
+        if self.filter_matrix.status == True:
+            self.filter_matrix.to_input(fout)
+        if self.iteration_info.statu == True:
+            self.iteration_info.to_input(fout)
+        if self.lanczos.status == True:
+            self.lanczos.to_input(fout)
+        if self.mos_molden.status == True:
+            self.mos_molden.to_input(fout)
+        if self.mo_magnitude.status == True:
+            self.mo_magnitude.to_input(fout)
+        if self.orthonormality.status == True:
+            self.orthonormality.to_input(fout)
+        if self.program_run_info.status == True:
+            self.program_run_info.to_input(fout)
         if self.restart.status == True:
             self.restart.to_input(fout)
         if self.restart_history.status == True:
@@ -543,9 +1187,60 @@ class cp2k_dft_scf_print:
         fout.write("\t\t\t&END PRINT\n")
 
     def set_params(self, params):
-        for item in params:
+        for item in params: 
             if len(item.split("-")) == 4:
-                self.params[item.split("-")[-1]] = params[item]
+                if item.split("-")[3] == "DAVIDSON":
+                    self.davidson.section = params[item]
+                elif item.split("-")[3] == "DETAILED_ENERGY":
+                    self.detailed_energy.section = params[item]
+                elif item.split("-")[3] == "DIAG_SUB_SCF":
+                    self.diag_sub_scf.section = params[item]
+                elif item.split("-")[3] == "DIIS_INFO":
+                    self.diis_info.section = params[item]
+                elif item.split("-")[3] == "FILTER_MATRIX":
+                    self.filter_matrix.section = params[item]
+                elif item.split("-")[3] == "ITERATION_INFO":
+                    sel.fiteration_info.section = params[item]
+                elif item.split("-")[3] == "LANCZOS":
+                    self.lanczos.section = params[item]
+                elif item.split("-")[3] == "MOS_MOLDEN":
+                    self.mos_molden.section = params[item]
+                elif item.split("-")[3] == "MO_MAGNITUDE":
+                    self.mo_magnitude.section = params[item]
+                elif item.split("-")[3] == "MO_ORTHONORMALITY":
+                    self.mo_orthonormality.section = params[item]
+                elif item.split("-")[3] == "PROGRAM_RUN_INFO":
+                    self.program_run_info.section = params[item]
+                elif item.split("-")[3] == "RESTART":
+                    self.restart.section = params[item]
+                elif item.split("-")[3] == "RESTART_HISTORY":
+                    self.restart_history.section = params[item]
+                elif item.split("-")[3] == "TOTAL_DENSITIES":
+                    self.total_densities.section = params[item]
+                else:
+                    self.params[item.split("-")[-1]] = params[item]
+            elif item.split("-")[3] == "DAVIDSON":
+                self.dividson.set_params({item: params[item]})
+            elif item.split("-")[3] == "DETAILED_ENERGY":
+                self.detailed_energy.set_params({item: params[item]})
+            elif item.split("-")[3] == "DIAG_SUB_SCF":
+                self.diag_sub_scf.set_params({item: params[item]})
+            elif item.split("-")[3] == "DIIS_INFO":
+                self.diis_info.set_params({item: params[item]})
+            elif item.split("-")[3] == "FILTER_MATRIX":
+                self.filter_matrix.set_params({item: params[item]})
+            elif item.split("-")[3] == "ITERATION_INFO":
+                self.iteration_info.set_params({item: params[item]})
+            elif item.split("-")[3] == "LANCZOS":
+                self.lanczos.set_params({item: params[item]})
+            elif item.split("-")[3] == "MOS_MOLDEN":
+                self.mos_molden.set_params({item: params[item]})
+            elif item.split("-")[3] == "MO_MAGNITUDE":
+                self.mo_magnitude.set_params({item: params[item]})
+            elif item.split("-")[3] == "MO_ORTHONORMALITY":
+                self.mo_orthonormality.set_params({item: params[item]})
+            elif item.split("-")[3] == "PROGRAM_RUN_INFO":
+                self.program_run_info.set_params({item: params[item]})
             elif item.split("-")[3] == "RESTART":
                 self.restart.set_params({item: params[item]})
             elif item.split("-")[3] == "RESTART_HISTORY":
@@ -573,7 +1268,7 @@ class cp2k_dft_scf:
         self.mixing = cp2k_dft_scf_mixing()
         self.smear = cp2k_dft_scf_smear()
         self.printout = cp2k_dft_scf_print()
-        self.outer_scf = cp2k_dft_scf_out_scf()
+        self.outer_scf = cp2k_dft_scf_outer_scf()
 
     def to_input(self, fout):
         """
@@ -621,6 +1316,12 @@ class cp2k_dft_scf:
                     self.diagonalization.section = params[item]
                 elif item.split("-")[-1] == "OT":
                     self.ot.section = params[item]
+                elif item.split("-")[-1] == "OUTER_SCF":
+                    self.outer_scf.section = params[item]
+                elif item.split("-")[-1] == "MOM":
+                    self.mom.section = params[item]
+                elif item.split("-")[-1] == "MIXING":
+                    self.mixing.section = params[item]
                 else:
                     self.params[item.split("-")[-1]] = params[item]
             elif item.split("-")[2] == "DIAGONALIZATION":
