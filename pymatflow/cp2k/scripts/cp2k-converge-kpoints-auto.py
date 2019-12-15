@@ -16,12 +16,15 @@ force_eval = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-converge-cutoff")
+    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-kpoints-auto")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
 
     parser.add_argument("--runopt", type=str, default="genrun", 
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
+
+    parser.add_argument("--range", nargs="+", type=int, default=[1, 3, 1],
+            help="KPOINTS-AUTO test range default value: [1, 3, 1]")
 
     parser.add_argument("--ls-scf", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],
@@ -38,8 +41,6 @@ if __name__ == "__main__":
     parser.add_argument("--xc-functional", type=str, default="PBE",
             help="XC_FUNCTIONAL type")
 
-    parser.add_argument("--range", nargs="+", type=int, default=[30, 120, 10],
-            help="CUTOFF test range default value: [30, 120, 10] Ry")
 
     parser.add_argument("--rel-cutoff", type=int, default=60,
             help="REL_CUTOFF, default value: 60 Ry")
@@ -94,8 +95,8 @@ if __name__ == "__main__":
     force_eval["DFT-SCF-MIXING-ALPHA"] = args.alpha
     force_eval["DFT-KPOINTS-SCHEME"] = args.kpoints_scheme
 
-    task = static_run(xyzfile)
-    task.converge_cutoff(directory=args.directory, args.range[0], args.range[1], args.range[2], rel_cutoff=args.rel_cutoff, force_eval=force_eval, runopt=args.runopt)
+    task = static_run(args.file)
+    task.converge_kpoints_auto(kmin=args.range[0], kmax=args.range[1], step=args.range[2], directory=args.directory, force_eval=force_eval, runopt=args.runopt)
 
     # server handle
     if args.auto == 0:

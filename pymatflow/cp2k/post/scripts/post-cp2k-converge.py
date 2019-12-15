@@ -9,7 +9,7 @@ from pymatflow.cp2k.post.converge import converge_post
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", help="directory of converge test running", type=str, default="tmp-cp2k-cutoff")
-    parser.add_argument("-c", "--converge", help="type of converge test(cutoff, rel_cutoff)", type=str, default="cutoff")
+    parser.add_argument("-c", "--converge", help="type of converge test(cutoff, rel_cutoff, kpoints-manual, kpoints-auto)", type=str, default="cutoff")
     args = parser.parse_args()
     
     task = converge_post()

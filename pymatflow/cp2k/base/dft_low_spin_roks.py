@@ -22,4 +22,10 @@ class cp2k_dft_low_spin_roks:
                 fout.write("\t\t\t%s %s\n" % (item, str(self.params[item])))
         fout.write("\t\t&END LOW_SPIN_ROKS\n")
 
-
+    def set_params(self, params):
+        #
+        for item in params:
+            if len(item.split("-")) == 3:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass

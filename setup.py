@@ -54,6 +54,8 @@ setup(
         "pymatflow/cp2k/scripts/cp2k-aimd.py",
         "pymatflow/cp2k/scripts/cp2k-converge-cutoff.py",
         "pymatflow/cp2k/scripts/cp2k-converge-rel-cutoff.py",
+        "pymatflow/cp2k/scripts/cp2k-converge-kpoints-manual.py",
+        "pymatflow/cp2k/scripts/cp2k-converge-kpoints-auto.py",
         "pymatflow/cp2k/scripts/cp2k-geo-opt.py",
         "pymatflow/cp2k/scripts/cp2k-cell-opt.py",
         "pymatflow/cp2k/scripts/cp2k-scf.py",

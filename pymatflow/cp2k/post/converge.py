@@ -11,6 +11,7 @@ class converge_post:
         # analyse the result
         self.criteria_for_cutoff = 7.35e-4 # 10 meV = 7.35e-4 Ry
         self.criteria_for_rel_cutoff = 7.35e-4
+        self.criteria_for_kpoints = 7.35e-4
 
     def postprocess(self, directory, converge):
         """
@@ -19,6 +20,17 @@ class converge_post:
         converge:
             type of the converge running, it can be
             CUTOFF(cutoff), REL_CUTOFF(rel_cutoff)
+            KPOINTS-MANUAL, KPOINTS-AUTO
+            KPOINTS-MANUAL and KPOINTS-AUTO are two different
+            ways of kpoints testing. with KPOINTS-MAUAL user
+            will specify kpoints manually during converge test,
+            while with KPOINTS_AUTO user only need to specify
+            the test range by kmin, kmax, step, and converge
+            manager will generate the kpoints for test correspondingly
+        Warning:
+            postprocess for KPOINTS-AUTO works normally now,
+            but for KPOINTS-MANUAL it may not work right. so
+            be cautious when using it.
         """
         os.chdir(directory)
         if converge.upper() == "CUTOFF":
@@ -43,11 +55,32 @@ class converge_post:
 
             outfiles = []
             for x in x_all:
-                outfiles.append("rel-cutoff-%d.out" % x)
+                outfiles.append("rel-cutoff-%d.out" % x)        
+
+        elif converge.upper() == "KPOINTS-AUTO":
+            x_all = []
+            for f in os.listdir():
+                if f.split(".")[-1] == "out" and f[0:8] == "kpoints-":
+                    x_all.append(int(f.split(".")[0].split("-")[-1]))
+            # we must sort the x_all
+            x_all.sort()
+
+            outfiles = []
+            for x in x_all:
+                outfiles.append("kpoints-%d.out" % x)
+
+        elif converge.upper() == "KPOINTS-MANUAL":
+            x_all = []
+            for f in os.listdir():
+                if f.split(".")[-1] == "out" and f[0:8] == "kpoints-":
+                    x_all.append(f.split(".")[0].split("-")[-1])
+            outfiles = []
+            for x in x_all:
+                outfiles.append("kpoints-%s.out" % (x))
 
         else:
             print("cp2k.post.converge.converge_post class can only deal with\n")
-            print("CUTOFF, REL_CUTOFF, now\n")
+            print("CUTOFF, REL_CUTOFF, KPONITS-AUTO KPOINTS-MANUAL now\n")
             sys.exit(1)
 
         
@@ -62,9 +95,8 @@ class converge_post:
         with open("energy-x.data", 'r') as fin:
             for line in fin:
                 energy_all.append(float(line.split()[2]))
-
-        plt.plot(x_all, energy_all, marker='o')
         if converge.upper() == "CUTOFF":
+            plt.plot(x_all, energy_all, marker='o')
             plt.title("CUTOFF Converge Test", fontweight='bold', color='red')
             plt.xlabel("CUTOFF (Ry)")
             plt.ylabel("Energy (Ry)")
@@ -73,6 +105,7 @@ class converge_post:
             plt.savefig("energy-%s.png" % converge.lower())
             self.md_report(converge=converge, suggested=x_all[self.judge(energy_all, self.criteria_for_cutoff)])
         elif converge.upper() == "REL_CUTOFF":
+            plt.plot(x_all, energy_all, marker='o')
             plt.title("REL_CUTOFF Converge Test", fontweight='bold', color='red')
             plt.xlabel("REL_CUTOFF (Ry)")
             plt.ylabel("Energy (Ry)")        
@@ -80,9 +113,29 @@ class converge_post:
             plt.grid(True)
             plt.savefig("energy-%s.png" % converge.lower())
             self.md_report(converge=converge, suggested=x_all[self.judge(energy_all, self.criteria_for_rel_cutoff)])
+        elif converge.upper() == "KPOINTS-AUTO":
+            plt.plot(x_all, energy_all, marker='o')
+            #plt.xticks(x_all, ["%dx%dx%d" % (x_all[i], x_all[i], x_all[i]) for i in range(len(x_all))])
+            plt.title("Kpoints-auto Converge Test", fontweight='bold', color='red')
+            plt.xlabel("Kpoints")
+            plt.ylabel("Energy (Ry)")        
+            plt.tight_layout()
+            plt.grid(True)
+            plt.savefig("energy-%s.png" % converge.lower())
+            self.md_report(converge=converge, suggested=x_all[self.judge(energy_all, self.criteria_for_kpoints)])
+        elif converge.upper() == "KPOINTS-MANUAL":
+            plt.plot(energy_all, marker='o')
+            plt.xticks(range(len(energy_all)), x_all)
+            plt.title("Kpoints-manual Converge Test", fontweight='bold', color='red')
+            plt.xlabel("Kpoints")
+            plt.ylabel("Energy (Ry)")        
+            plt.tight_layout()
+            plt.grid(True)
+            plt.savefig("energy-%s.png" % converge.lower())
+            #self.md_report(converge=converge, suggested=x_all[self.judge(energy_all, self.criteria_for_kpoints)])
         else:
             print("qe.post.converge.converge_post class can only deal with\n")
-            print("CUTOFF, REL_CUTOFF now\n")
+            print("CUTOFF, REL_CUTOFF, KPOINTS now\n")
             sys.exit(1)
         
         plt.show()

@@ -9,19 +9,23 @@ from pymatflow.remote.ssh import ssh
 from pymatflow.remote.rsync import rsync
 
 """
-usage: cp2k-converge-cutoff.py xxx.xyz emin emax step rel_cutoff
 """
 
 force_eval = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-converge-cutoff")
+    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-kpoints-manual")
+
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
 
     parser.add_argument("--runopt", type=str, default="genrun", 
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
+
+    parser.add_argument("--range", type=int, nargs="+",
+            default=[1, 1, 1, 2, 2, 2, 3, 3, 3],
+            help="kpoints to test, like --range 1 1 1 2 2 2 3 3 3")
 
     parser.add_argument("--ls-scf", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],
@@ -37,9 +41,6 @@ if __name__ == "__main__":
 
     parser.add_argument("--xc-functional", type=str, default="PBE",
             help="XC_FUNCTIONAL type")
-
-    parser.add_argument("--range", nargs="+", type=int, default=[30, 120, 10],
-            help="CUTOFF test range default value: [30, 120, 10] Ry")
 
     parser.add_argument("--rel-cutoff", type=int, default=60,
             help="REL_CUTOFF, default value: 60 Ry")
@@ -94,8 +95,14 @@ if __name__ == "__main__":
     force_eval["DFT-SCF-MIXING-ALPHA"] = args.alpha
     force_eval["DFT-KPOINTS-SCHEME"] = args.kpoints_scheme
 
-    task = static_run(xyzfile)
-    task.converge_cutoff(directory=args.directory, args.range[0], args.range[1], args.range[2], rel_cutoff=args.rel_cutoff, force_eval=force_eval, runopt=args.runopt)
+    kpoints = []
+    i = 0
+    while i + 2 <= len(args.range) - 1:
+        kpoints.append([args.range[i], args.range[i+1], args.range[i+2]])
+        i = i + 3
+
+    task = static_run(args.file)
+    task.converge_kpoints_manual(directory=args.directory, force_eval=force_eval, runopt=args.runopt, kpoints_list=kpoints)
 
     # server handle
     if args.auto == 0:
@@ -111,4 +118,4 @@ if __name__ == "__main__":
         ctl = ssh()
         ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
         ctl.login()
-        ctl.submit(workdir=args.directory, jobfile="converge-cutoff.inp.sub")
+        ctl.submit(workdir=args.directory, jobfile="converge-kpoints.inp.sub")

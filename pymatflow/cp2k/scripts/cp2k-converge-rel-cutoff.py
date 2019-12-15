@@ -16,7 +16,7 @@ force_eval = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-static")
+    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-rel-cutoff")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
 
     parser.add_argument("--runopt", type=str, default="genrun", 
