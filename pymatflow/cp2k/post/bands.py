@@ -57,13 +57,19 @@ class bands_post:
             with open("bandplot.gp", 'w') as fout:
                 fout.write("set terminal gif\n")
                 fout.write("set output 'bandstructure.gif'\n")
+                fout.write("unset key\n")
+                fout.write("set parametric\n")
+
                 fout.write("set title 'Bandstructure'\n")
                 #fout.write("set xlabel 'Kpoint number'\n") # equal to nmber of kpoints
                 fout.write("set ylabel 'Energy'\n")
                 fout.write("unset key\n")
                 fout.write("set xtics(")
                 for point in specialk:
-                    fout.write("'%s' %d, " % (point["label"], point["k-number"]-1)) # minus 1, because in gnuplot x start with 0
+                    if point["label"] == "GAMMA":
+                        fout.write("'%s' %d, " % ("{/symbol G}", point["k-number"]-1))
+                    else:
+                        fout.write("'%s' %d, " % (point["label"], point["k-number"]-1)) # minus 1, because in gnuplot x start with 0
                 fout.write(")\n")
                 fout.write("plot for [i=4:%d] '%s.set-1.csv' u 0:i w l \n" % (n_bands+3, bandsfile))
             os.system("gnuplot bandplot.gp")

@@ -183,17 +183,58 @@ class cp2k_dft:
                     self.ls_scf.section = params[item]
                 else:
                     self.params[item.split("-")[-1]] = params[item]
-            elif item.split("-")[1] == "QS":
-                self.qs.set_params({item: params[item]})
-            elif item.split("-")[1] == "MGRID":
-                self.mgrid.set_params({item: params[item]})
-            elif item.split("-")[1] == "XC":
-                self.xc.set_params({item: params[item]})
-            elif item.split("-")[1] == "SCF":
-                self.scf.set_params({item: params[item]})
-            elif item.split("-")[1] == "PRINT":
-                self.printout.set_params({item: params[item]})
-            elif item.split("-")[1] == "LS_SCF":
-                self.ls_scf.set_params({item: params[item]})
+            elif item.split("-")[1] == "ALMO_SCF":
+                self.almo_scf.set_params({item: params[item]})
+            elif item.split("-")[1] == "AUXILIARY_DENSITY_MATRIX_METHOD":
+                self.auxiliary_density_matrix_method.set_params({item: params[item]})
+            elif item.split("-")[1] == "DENSITY_FITTING":
+                self.density_fitting.set_params({item: params[item]})
+            elif item.split("-")[1] == "EFIELD":
+                self.efield.set_params({item: params[item]})
+            elif item.split("-")[1] == "EXTERNAL_DENSITY":
+                self.external_density.set_params({item: params[item]})
+            elif item.split("-")[1] == "EXTERNAL_POTENTIAL":
+                self.external_potential.set_params({item: params[item]})
+            elif item.split("-")[1] == "EXTERNAL_VXC":
+                self.external_vxc.set_params({item: params[item]})
+            elif item.split("-")[1] == "KG_METHOD":
+                self.kg_method.set_params({item: params[item]})
             elif item.split("-")[1] == "KPOINTS":
                 self.kpoints.set_params({item: params[item]})
+            elif item.split("-")[1] == "LOCALIZE":
+                self.localize.set_params({item: params[item]})
+            elif item.split("-")[1] == "LOW_SPIN_ROKS":
+                self.low_spin_roks.set_params({item: params[item]})
+            elif item.split("-")[1] == "LS_SCF":
+                self.ls_scf.set_params({item: params[item]})
+            elif item.split("-")[1] == "MGRID":
+                self.mgrid.set_params({item: params[item]})
+            elif item.split("-")[1] == "PERIODIC_EFIELD":
+                self.periodic_efield.set_params({item: params[item]})
+            elif item.split("-")[1] == "POISSON":
+                self.poisson.set_params({item: params[item]})
+            elif item.split("-")[1] == "PRINT":
+                self.printout.set_params({item: params[item]})
+            elif item.split("-")[1] == "QS":
+                self.qs.set_params({item: params[item]})
+            elif item.split("-")[1] == "REAL_TIME_PROPAGATION":
+                self.real_time_propagation.set_params({item: params[item]})
+            elif item.split("-")[1] == "RELATIVISTIC":
+                self.relativistic.set_params({item: params[item]})
+            elif item.split("-")[1] == "SCCS":
+                self.sccs.set_params({item: params[item]})
+            elif item.split("-")[1] == "SCF":
+                self.scf.set_params({item: params[item]})
+            elif item.split("-")[1] == "SCRF":
+                self.scrf.set_params({item: params[item]})
+            elif item.split("-")[1] == "SIC":
+                self.sic.set_params({item: params[item]})
+            elif item.split("-")[1] == "TDDFPT":
+                self.tddfpt.set_params({item: params[item]})
+            elif item.split("-")[1] == "TRANSPORT":
+                self.transport.set_params({item: params[item]})
+            elif item.split("-")[1] == "XAS":
+                self.xas.set_params({item: params[item]})
+            elif item.split("-")[1] == "XC":
+                self.xc.set_params({item: params[item]})
+

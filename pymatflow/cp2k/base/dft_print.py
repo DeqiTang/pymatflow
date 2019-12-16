@@ -124,9 +124,11 @@ class cp2k_dft_print_elf_cube:
                 }
         self.status = False
 
+        # basic setting
+        self.params["STRIDE"] = [1, 1, 1]
+
     def to_input(self, fout):
         fout.write("\t\t\t&ELF_CUBE ON\n")
-        fout.write("\t\t\t\tSTRIDE 1 1 1\n")
         for item in self.params:
             if self.params[item] is not None:
                 if item == "STRIDE":
@@ -150,7 +152,7 @@ class cp2k_dft_print_e_density_cube:
         self.status = False
 
         self.params["STRIDE"] = [1, 1, 1]
-        self.params["FILENAME"] = "result.cube"
+        self.params["FILENAME"] = None
         self.params["APPEND"] = "TRUE"
 
     def to_input(self, fout):
@@ -690,7 +692,50 @@ class cp2k_dft_print:
 
     def set_params(self, params):
         for item in params:
-            if len(item.spit("-")) == 3:
+            if len(item.split("-")) == 3:
                 self.params[item.split("-")[-1]] = params[item]
             elif item.split("-")[2] == "BAND_STRUCTURE":
                 self.band_structure.set_params({item: params[item]})
+            elif item.split("-")[2] == "ACTIVE_SPACE":
+                self.active_space.set_params({item: params[item]})
+            elif item.split("-")[2] == "EFIELD_CUBE":
+                self.efield_cube.set_params({item: params[item]})
+            elif item.split("-")[2] == "ELF_CUBE":
+                self.elf_cube.set_params({item: params[item]})
+            elif item.split("-")[2] == "E_DENSITY_CUBE":
+                self.e_density_cube.set_params({item: params[item]})
+            elif item.split("-")[2] == "LOWDIN":
+                self.lowdin.set_params({item: params[item]})
+            elif item.split("-")[2] == "MO":
+                self.mo.set_params({item: params[item]})           
+            elif item.split("-")[2] == "MO_CUBES":
+                self.mo_cubes.set_params({item: params[item]})           
+            elif item.split("-")[2] == "MOMENTS":
+                self.moments.set_params({item: params[item]})           
+            elif item.split("-")[2] == "MULLIKEN":
+                self.mulliken.set_params({item: params[item]})           
+            elif item.split("-")[2] == "ELECTRIC_FIELD_GRADIENT":
+                self.electric_field_gradient.set_params({item: params[item]})           
+            elif item.split("-")[2] == "EXTERNAL_POTENTIAL_CUBE":
+                self.external_potential_cube.set_params({item: params[item]})           
+            elif item.split("-")[2] == "PDOS":
+                self.pdos.set_params({item: params[item]})           
+            elif item.split("-")[2] == "SUBCELL":
+                self.subcell.set_params({item: params[item]})           
+            elif item.split("-")[2] == "STM":
+                self.stm.set_params({item: params[item]})           
+            elif item.split("-")[2] == "TOT_DENSITY-CUBE":
+                self.tot_density_cube.set_params({item: params[item]})           
+            elif item.split("-")[2] == "V_HARTREE_CUBE":
+                self.v_hartree_cube.set_params({item: params[item]})           
+            elif item.split("-")[2] == "V_XC_CUBE":
+                self.x_xc_cube.set_params({item: params[item]})           
+            elif item.split("-")[2] == "WANNIER90":
+                self.wannier90.set_params({item: params[item]})           
+            elif item.split("-")[2] == "WFN_MIX":
+                self.wfn_mix.set_params({item: params[item]})           
+            elif item.split("-")[2] == "XRAY_DIFFRACTION_SPECTRUM":
+                self.xray_diffraction_spectrum.set_params({item: params[item]})           
+            else:
+                pass
+

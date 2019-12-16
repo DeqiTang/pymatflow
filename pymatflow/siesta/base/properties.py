@@ -84,7 +84,7 @@ class siesta_properties:
         if 9 in self.options:
             self.to_fdf_wannier90(fout)
 
-    def to_fdf_pdos(self, fout, emin=-20.0, emax=20.0, peak_width=0.1, npoint=2000, 
+    def to_fdf_pdos(self, fout, emin=-20.0, emax=20.0, peak_width=0.5, npoint=2000, 
             kgrid_mp=[8, 0, 0, 0.5, 0, 8, 0, 0.5, 0, 0, 8, 0.5]):
         # 输出pdos时会同时输出total dos
         fout.write("%block ProjectedDensityOfStates\n")

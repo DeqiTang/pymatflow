@@ -19,10 +19,10 @@ class static_run:
         self.system = abinit_system(xyz_f)
         self.electrons = abinit_electrons()
         self.properties = abinit_properties()
+        self.guard = abinit_guard(queen="static", electrons=self.electrons, system=self.system)
 
         self.electrons.basic_setting()
         
-        self.guard = abinit_guard(queen="static", electrons=self.electrons, system=self.system)
         
     def scf(self, directory="tmp-abinit-static", inpname="static-scf.in", mpi="", runopt="gen",
             electrons={}, kpoints={}, properties=[]):

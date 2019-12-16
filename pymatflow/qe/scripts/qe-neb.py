@@ -40,8 +40,9 @@ if __name__ == "__main__":
             choices=["automatic", "gamma", "tpiba_b"],
             help="Kpoints generation scheme option for the SCF or non-SCF calculation")
 
-    parser.add_argument("-k", "--kpoints", type=str, default="1 1 1 0 0 0",
-            help="Monkhorst-Pack kpoint grid, in format like '1 1 1 0 0 0'")
+    parser.add_argument("-k", "--kpoints", type=int, nargs="+",
+            default=[1, 1, 1, 0, 0, 0],
+            help="Monkhorst-Pack kpoint grid, in format like --kpoints-mp 1 1 1 0 0 0")
 
     parser.add_argument("--conv-thr", type=float, default=1.0e-6,
             help="Convergence threshold for SCF calculation.")
@@ -98,7 +99,7 @@ if __name__ == "__main__":
     system_params["degauss"] = args.degauss
     system_params["vdw_corr"] = args.vdw_corr
     electrons_params["conv_thr"] = args.conv_thr
-    kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
+
     path_params["string_method"] = args.string_method
     path_params["nstep_path"] = args.nstep_path
     path_params["opt_scheme"] = args.opt_scheme
@@ -111,7 +112,7 @@ if __name__ == "__main__":
     path_params["first_last_opt"] = args.first_last_opt
 
     task = neb_run(images=args.images)
-    task.neb(directory=directory, runopt=args.runopt, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=kpoints_mp, path=path_params, restart_mode=args.restart_mode)
+    task.neb(directory=directory, runopt=args.runopt, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp, path=path_params, restart_mode=args.restart_mode)
 
     # server handle
     if args.auto == 0:

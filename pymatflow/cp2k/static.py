@@ -58,12 +58,14 @@ class static_run:
                 shutil.rmtree(directory)
             os.mkdir(directory)
             shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, self.force_eval.subsys.xyz.file))
+
             # using force_eval
-            self.force_eval.set_params(force_eval)
+            self.force_eval.set_params(force_eval)            
             #self.atom.set_params(atom)
             self.force_eval.dft.printout.status = True
             self.force_eval.properties.status = True
             self.printout_option(printout_option)
+
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.glob.to_input(fout)
                 self.force_eval.to_input(fout)

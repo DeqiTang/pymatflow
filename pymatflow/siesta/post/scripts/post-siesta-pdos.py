@@ -3,7 +3,7 @@
 
 import sys
 
-from emuhelper.siesta.post.pdos import pdos
+from pymatflow.siesta.post.pdos import pdos
 
 """
 usage: post-siesta-pdos.py xxx.PDOS.xml

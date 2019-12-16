@@ -17,40 +17,35 @@ force_eval = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory",
-            type=str, default="tmp-cp2k-static",
+
+    parser.add_argument("-d", "--directory", type=str, default="tmp-cp2k-static",
             help="directory where the calculation happens")
 
-    parser.add_argument("-f", "--file", 
-            type=str,
+    parser.add_argument("-f", "--file", type=str,
             help="the xyz file containing the structure to be simulated")
 
 
     parser.add_argument("--runopt", type=str, default="genrun", 
             choices=["gen", "run", "genrun"],
-            help="Generate or run or both at the same time.")
+            help="generate or run or both at the same time.")
 
     parser.add_argument("--mpi", type=str, default="",
-            help="MPI command: like 'mpirun -np 4'")
+            help="mpi command: like --mpi='mpirun -np 4'")
 
     # ------------------------------------------------------------------
-    #                    FORCE_EVAL related parameters
+    #                    force_eval/dft related parameters
     # ------------------------------------------------------------------
-
-    parser.add_argument("--ls-scf", type=str, default="FALSE",
-            #choices=["TRUE", "FALSE", "true", "false"],
-            help="DFT-LS_SCF: use linear scaling scf method")
     
-    parser.add_argument("--qs-method", type=str, default="GPW",
-            choices=["AM1", "DFTB", "GAPW", "GAPW_XC", "GPW", "LRIGPW", "MNDO", "MNDOD", 
-                "OFGPW", "PDG", "PM3", "PM6", "PM6-FM", "PNNL", "RIGPW", "RM1"],
-            help="DFT-QS-METHOD: specify the electronic structure method")
+    parser.add_argument("--qs-method", type=str, default="gpw",
+            choices=["am1", "dftb", "gapw", "gapw_xc", "gpw", "lrigpw", "mndo", "mndod", 
+                "ofgpw", "pdg", "pm3", "pm6", "pm6-fm", "pnnl", "rigpw", "rm1"],
+            help="dft-qs-method: specify the electronic structure method")
 
     parser.add_argument("--eps-scf", type=float, default=1.0e-6,
-            help="DFT-SCF-EPS_SCF")
+            help="dft-scf-eps_scf")
 
-    parser.add_argument("--xc-functional", type=str, default="PBE",
-            help="DFT-XC-XC_FUNCTIONAL")
+    parser.add_argument("--xc-functional", type=str, default="pbe",
+            help="dft-xc-xc_functional: LYP, PADE, PBE, PW92, TPSS, XGGA, XWPBE, etc.")
 
     parser.add_argument("--cutoff", type=int, default=100,
             help="CUTOFF, default value: 100 Ry")
@@ -76,14 +71,23 @@ if __name__ == "__main__":
     parser.add_argument("--smear", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="switch on or off smearing for occupation")
+    
+    parser.add_argument("--smear-method", type=str, default="FERMI_DIRAC",
+            help="smearing type: FERMI_DIRAC, ENERGY_WINDOW")
 
-    parser.add_argument("--added-mos", help="ADDED_MOS for SCF", type=int, default=0)
+    parser.add_argument("--added-mos", type=int, default=0,
+            help="ADDED_MOS for SCF")
 
-    parser.add_argument("--smear-method", help="smearing type: FERMI_DIRAC, ENERGY_WINDOW", type=str, default="FERMI_DIRAC")
 
-    parser.add_argument("--electronic-temp", help="ELECTRON_TEMPERATURE for FERMI_DIRAC SMEAR", type=float, default=300)
+    parser.add_argument("--electronic-temp", type=float, default=300,
+            help="ELECTRON_TEMPERATURE for FERMI_DIRAC SMEAR")
 
-    parser.add_argument("--window-size", help="Size of the energy window centred at the Fermi level for ENERGY_WINDOW type smearing", type=float, default=0)
+    parser.add_argument("--window-size", type=float, default=0,
+            help="Size of the energy window centred at the Fermi level for ENERGY_WINDOW type smearing")
+
+    parser.add_argument("--ls-scf", type=str, default="false",
+            #choices=["true", "false", "true", "false"],
+            help="dft-ls_scf: use linear scaling scf method")
 
     # vdw correction related
     parser.add_argument("--vdw", type=str, default="FALSE",
@@ -92,14 +96,14 @@ if __name__ == "__main__":
 
     parser.add_argument("--vdw-potential-type", type=str, default="PAIR_POTENTIAL",
             choices=["PAIR_POTENTIAL", "NON_LOCAL", "NONE"],
-            help="type of VDW POTENTIAL: PAIR_POTENTIAL, NON_LOCAL")
+            help="DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE: PAIR_POTENTIAL, NON_LOCAL")
 
     parser.add_argument("--pair-type", type=str, default="DFTD3",
             choices=["DFTD2", "DFTD3", "DFTD3(BJ)"],
             help="VDW PAIR_POTENTIAL type: DFTD2, DFTD3, DFTD3(BJ)")
 
     parser.add_argument("--r-cutoff", type=float, default=1.05835442E+001,
-            help="Range of potential. The cutoff will be 2 times this value")
+            help="DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL: Range of potential. The cutoff will be 2 times this value")
 
     parser.add_argument("-p", "--printout-option", nargs="+", type=int,
             default=[],
@@ -123,11 +127,37 @@ if __name__ == "__main__":
            default is no printout of these properties.
            """)
 
+    parser.add_argument("--dft-print-elf-cube-stride", type=int, nargs="+",
+            default=[1, 1, 1],
+            help="DFT-PRINT-ELF_CUBE-STRIDE")
+
+    parser.add_argument("--dft-print-e-density-cube-stride", type=int, nargs="+",
+            default=[1, 1, 1],
+            help="DFT-PRINT-E_DENSITY_CUBE-STRIDE")
+    
+    # ------------------------------------------------------------------
+    #                    force_eval/properties related parameters
+    # ------------------------------------------------------------------
+    
+    parser.add_argument("--properties-resp-slab-sampling-range", type=float, nargs="+",
+            default=[0.3, 3.0],
+            help="PROPERTIES-RESP-SLAB_SAMPLING-RANGE.")
+
+    parser.add_argument("--properties-resp-slab-sampling-surf-direction", type=str, default="Z",
+            choices=["X", "Y", "Z", "x", "y", "z", "-X", "-Y", "-Z", "-x", "-y", "-z"],
+            help="PROPERTIES-RESP-SLAB_SAMPLING-SURF_DIRECTION.")
+
+    parser.add_argument("--properties-resp-slab-sampling-atom-list", type=int, nargs="+",
+            default=[1],
+            help="PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST")
+
     # ---------------------------------------------------------
     #                  for server handling
     # ---------------------------------------------------------
     parser.add_argument("--auto", type=int, default=0,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.emuhelper/server.conf")
+
+
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================   
@@ -153,6 +183,16 @@ if __name__ == "__main__":
     force_eval["DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"] = args.vdw_potential_type
     force_eval["DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-TYPE"] = args.pair_type
     force_eval["DFT-XC-VDW_POTENTIAL-PAIR-POTENTIAL-R_CUTOFF"] = args.r_cutoff
+
+
+    force_eval["DFT-PRINT-ELF_CUBE-STRIDE"] = args.dft_print_elf_cube_stride
+    force_eval["DFT-PRINT-E_DENSITY_CUBE-STRIDE"] = args.dft_print_e_density_cube_stride
+
+
+    force_eval["PROPERTIES-RESP-SLAB_SAMPLING-RANGE"] = args.properties_resp_slab_sampling_range
+    force_eval["PROPERTIES-RESP-SLAB_SAMPLING-SURF_DIRECTION"] = args.properties_resp_slab_sampling_surf_direction
+    force_eval["PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST"] = args.properties_resp_slab_sampling_atom_list
+    
 
     task = static_run(args.file)
     task.scf(directory=args.directory, mpi=args.mpi, runopt=args.runopt, force_eval=force_eval, printout_option=args.printout_option)

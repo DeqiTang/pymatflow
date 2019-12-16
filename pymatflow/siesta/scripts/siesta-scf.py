@@ -35,9 +35,16 @@ if __name__ == "__main__":
     parser.add_argument("-k", "--kpoints", help="set kpoints like '3 3 3'", type=str, default="3 3 3")
     parser.add_argument("--occupation", help="OccupationFunction(FD or MP)", type=str, default="FD")
     parser.add_argument("--electronic-temperature", help="Electronic Temperature", type=int, default=300)
+    
+    
+    # ------------------------------
     # properties related parameter
+    # ------------------------------
     parser.add_argument("-p", "--properties" ,nargs="+", type=int, default=[],
             help="Option for properties calculation")
+
+    parser.add_argument("--pdos-block", type=float, nargs="+",
+            default=[-20, 10, 0.2, 500])
     #------------------------------------------------------------------------------------------------
     #parser.add_argument("--bandlines", nargs="+", type=str,
     #        default=["1 0.0 0.0 0.0 \Gamma", "20 1.0 1.0 1.0 L", "20 2.0 0.0 0.0 X"],

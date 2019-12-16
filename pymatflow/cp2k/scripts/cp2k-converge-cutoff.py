@@ -94,8 +94,8 @@ if __name__ == "__main__":
     force_eval["DFT-SCF-MIXING-ALPHA"] = args.alpha
     force_eval["DFT-KPOINTS-SCHEME"] = args.kpoints_scheme
 
-    task = static_run(xyzfile)
-    task.converge_cutoff(directory=args.directory, args.range[0], args.range[1], args.range[2], rel_cutoff=args.rel_cutoff, force_eval=force_eval, runopt=args.runopt)
+    task = static_run(args.file)
+    task.converge_cutoff(emin=args.range[0], emax=args.range[1], step=args.range[2], directory=args.directory, rel_cutoff=args.rel_cutoff, force_eval=force_eval, runopt=args.runopt)
 
     # server handle
     if args.auto == 0:

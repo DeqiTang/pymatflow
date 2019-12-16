@@ -255,6 +255,7 @@ class md_run:
             # between noise and linearity (corresponds to 2.5 * 10 9 V/m !)
             # POLARIZATION gives the field vector (here: positive X direction)
             self.force_eval.dft.periodic_efield.status = True
+
             self.force_eval.set_params({
                 "DFT-PERIODIC_EFIELD-INTENSITY": 5.0E-3,
                 "DFT-PERIODIC_EFIELD-POLARIZATION": [1.0, 0.0, 0.0],
