@@ -84,7 +84,16 @@ class pdos_post:
         print("or statis-scf.out, if static-nscf.out is not available\n")
         #
 
-    def plot_elem_orb_proj(self):
+    def plot_elem_orb_proj(self, plotrange=[0.0, 1.0], filename="pdos-projected-to-element-and-orbital.png"):
+        """
+        plotrange:
+            a list of two values(between 0 and 1) defining the percentage
+            of data to plot.
+            plotrange[0]: left boundary of the data to plot
+            plotrange[1]: right boundary of the data to plot
+            default is plotrange[0] = 0, plotrange[1], in which case
+            all the data will be plot.
+        """
         data = {}
         for atmorb in self.data:
             key = self.get_elem_type(atmorb)+"-"+self.get_orb_type(atmorb)
@@ -93,11 +102,12 @@ class pdos_post:
             else:
                 data[key] = self.data[atmorb][:, 2]
 
+        # plot the pdos in the specified percentage range
+        begin = int(len(self.energies)*plotrange[0])
+        end = int(len(self.energies)*plotrange[1])
         for key in data:
-            plt.plot(self.energies, data[key], label=key)
-        # plot fermi energy
-        # plt.vlines(0, 0, 10, label="Fermi energy")
-        # abandoned the above plot but use grid to be more tidy
+            plt.plot(self.energies[begin:end], data[key][begin:end], label=key)
+        
         plt.grid(which="major", axis="x", linewidth=0.75, linestyle="-", color="0.75")
         plt.grid(which="major", axis="y", linewidth=0.75, linestyle="-", color="0.75")
         plt.title("Projected Density of States")
@@ -105,14 +115,25 @@ class pdos_post:
         plt.ylabel("States")
         plt.legend()
         plt.tight_layout()
-        plt.savefig("pdos-projected-to-element-and-orbital.png")
+        plt.savefig("%s" % filename)
         plt.close()
  
-    def plot_tdos(self):
-        plt.plot(self.energies, self.tdos[:, 2], label="total-dos")
-        # plot fermi energy
-        # plt.vlines(0, 0, 10, label="Fermi energy")
-        # abandoned the above plot but use grid to be more tidy
+    def plot_tdos(self, plotrange=[0, 1.0], filename="total-dos.png"):
+        """
+        plotrange:
+            a list of two values(between 0 and 1) defining the percentage
+            of data to plot.
+            plotrange[0]: left boundary of the data to plot
+            plotrange[1]: right boundary of the data to plot
+            default is plotrange[0] = 0, plotrange[1], in which case
+            all the data will be plot.
+        """
+        # plot the total dos in the specified percentage range
+        begin = int(len(self.energies)*plotrange[0])
+        end = int(len(self.energies)*plotrange[1])
+        #plt.plot(self.energies, self.tdos[:, 2], label="total-dos")
+        plt.plot(self.energies[begin:end], self.tdos[begin:end, 2], label="total-dos")
+
         plt.grid(which="major", axis="x", linewidth=0.75, linestyle="-", color="0.75")
         plt.grid(which="major", axis="y", linewidth=0.75, linestyle="-", color="0.75")
         plt.title("Total Density of States")
@@ -120,7 +141,7 @@ class pdos_post:
         plt.ylabel("States")
         plt.legend()
         plt.tight_layout()
-        plt.savefig("total-dos.png")
+        plt.savefig("%s" % filename)
         plt.close()   
 
     def get_elem_type(self, atmorb):
@@ -154,12 +175,20 @@ class pdos_post:
         """
         with open(md, 'w', encoding="utf-8") as fout:
             fout.write("# 投影态密度图\n")
-            fout.write("")
+            fout.write("**指定能量范围数据图\n")
+            fout.write("![pdos-range](./pdos-specified-range.png)\n")
+            fout.write("![tdos-range](./tdos-specified-range.png)\n")
+            fout.write("**所有可获取能量范围数据图**\n")
+            fout.write("![pdos-all](./pdos-all-energy-available.png)\n")
+            fout.write("![tdos-all](./tdos-all-energy-available.png)\n")
 
-    def export(self, directory="tmp-qe-static"):
+    def export(self, directory="tmp-qe-static", plotrange=[0, 1.0]):
         os.chdir(directory)
-        self.plot_elem_orb_proj()
-        self.plot_tdos()
+        self.plot_elem_orb_proj(plotrange=plotrange, filename="pdos-specified-range.png")
+        self.plot_tdos(plotrange=plotrange, filename="tdos-specified-range.png")
+        # also plot the all data
+        self.plot_elem_orb_proj(plotrange=[0, 1.0], filename="pdos-all-energy-available.png")
+        self.plot_tdos(plotrange=[0, 1.0], filename="tdos-all-energy-available.png")
         self.markdown_report()
         os.chdir("../")
     #
