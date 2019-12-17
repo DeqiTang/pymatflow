@@ -30,20 +30,21 @@ if __name__ == "__main__":
             default=[],
             help="Properties printout option(0, 1, 2 implemented now), you can also activate multiple prinout-option at the same time")
 
-    parser.add_argument("--ls-scf", type=str, default="FALSE",
-            #choices=["TRUE", "FALSE", "true", "false"],
-            help="use linear scaling scf method")
     
-    parser.add_argument("--qs-method", type=str, default="GPW",
-            choices=["AM1", "DFTB", "GAPW", "GAPW_XC", "GPW", "LRIGPW", "MNDO", "MNDOD", 
-                "OFGPW", "PDG", "PM3", "PM6", "PM6-FM", "PNNL", "RIGPW", "RM1"],
-            help="specify the electronic structure method")
+    # ------------------------------------------------------------------
+    #                    force_eval/dft related parameters
+    # ------------------------------------------------------------------
+    
+    parser.add_argument("--qs-method", type=str, default="gpw",
+            choices=["am1", "dftb", "gapw", "gapw_xc", "gpw", "lrigpw", "mndo", "mndod", 
+                "ofgpw", "pdg", "pm3", "pm6", "pm6-fm", "pnnl", "rigpw", "rm1"],
+            help="dft-qs-method: specify the electronic structure method")
 
     parser.add_argument("--eps-scf", type=float, default=1.0e-6,
-            help="DFT-SCF-EPS_SCF")
+            help="dft-scf-eps_scf")
 
-    parser.add_argument("--xc-functional", type=str, default="PBE",
-            help="XC_FUNCTIONAL type")
+    parser.add_argument("--xc-functional", type=str, default="pbe",
+            help="dft-xc-xc_functional: LYP, PADE, PBE, PW92, TPSS, XGGA, XWPBE, etc.")
 
     parser.add_argument("--cutoff", type=int, default=100,
             help="CUTOFF, default value: 100 Ry")
@@ -69,23 +70,51 @@ if __name__ == "__main__":
     parser.add_argument("--smear", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="switch on or off smearing for occupation")
+    
+    parser.add_argument("--smear-method", type=str, default="FERMI_DIRAC",
+            help="smearing type: FERMI_DIRAC, ENERGY_WINDOW")
 
-    parser.add_argument("--added-mos", help="ADDED_MOS for SCF", type=int, default=0)
+    parser.add_argument("--added-mos", type=int, default=0,
+            help="ADDED_MOS for SCF")
 
-    parser.add_argument("--smear-method", help="smearing type: FERMI_DIRAC, ENERGY_WINDOW", type=str, default="FERMI_DIRAC")
 
-    parser.add_argument("--electronic-temp", help="ELECTRON_TEMPERATURE for FERMI_DIRAC SMEAR", type=float, default=300)
+    parser.add_argument("--electronic-temp", type=float, default=300,
+            help="ELECTRON_TEMPERATURE for FERMI_DIRAC SMEAR")
 
-    parser.add_argument("--window-size", help="Size of the energy window centred at the Fermi level for ENERGY_WINDOW type smearing", type=float, default=0)
+    parser.add_argument("--window-size", type=float, default=0,
+            help="Size of the energy window centred at the Fermi level for ENERGY_WINDOW type smearing")
 
+    parser.add_argument("--ls-scf", type=str, default="false",
+            #choices=["true", "false", "true", "false"],
+            help="dft-ls_scf: use linear scaling scf method")
+
+    # vdw correction related
+    parser.add_argument("--vdw", type=str, default="FALSE",
+            choices=["TRUE", "FALSE", "true", "false"],
+            help="whether to use VDW correction")
+
+    parser.add_argument("--vdw-potential-type", type=str, default="PAIR_POTENTIAL",
+            choices=["PAIR_POTENTIAL", "NON_LOCAL", "NONE"],
+            help="DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE: PAIR_POTENTIAL, NON_LOCAL")
+
+    parser.add_argument("--pair-type", type=str, default="DFTD3",
+            choices=["DFTD2", "DFTD3", "DFTD3(BJ)"],
+            help="VDW PAIR_POTENTIAL type: DFTD2, DFTD3, DFTD3(BJ)")
+
+    parser.add_argument("--r-cutoff", type=float, default=1.05835442E+001,
+            help="DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL: Range of potential. The cutoff will be 2 times this value")
+
+
+    # --------------------------------
     # MOTION/BAND
+    # --------------------------------
     parser.add_argument("--images", nargs="+", type=str,
             help="specify the image xyz file(--images first.xyz imtermediate-1.xyz intermediate-2.xyz ... last.xyz)")
 
     parser.add_argument("--band-type", type=str, default="CI-NEB",
             help="specify the type of band calculation")
 
-    parser.add_argument("--n-replica", type=int, default=10,
+    parser.add_argument("--number-of-replica", type=int, default=5,
             help="number of replicas")
 
     parser.add_argument("--k-spring", type=float, default=2.0e-2,
@@ -107,24 +136,29 @@ if __name__ == "__main__":
     # ==========================================================   
     args = parser.parse_args()
 
-    force_eval["DFT-LS_SCF"] = args.ls_scf
-    force_eval["DFT-QS-METHOD"] = args.qs_method
-    force_eval["DFT-MGRID-CUTOFF"] = args.cutoff
-    force_eval["DFT-MGRID-REL_CUTOFF"] = args.rel_cutoff
-    force_eval["DFT-XC-XC_FUNCTIONAL"] = args.xc_functional
-    force_eval["DFT-SCF-EPS_SCF"] = args.eps_scf
-    force_eval["DFT-SCF-ADDED_MOS"] = args.added_mos
-    force_eval["DFT-SCF-SMEAR"] = args.smear
-    force_eval["DFT-SCF-SMEAR-METHOD"] = args.smear_method
-    force_eval["DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE"] = args.electronic_temp
-    force_eval["DFT-SCF-SMEAR-WINDOW_SIZE"] = args.window_size
-    force_eval["DFT-SCF-DIAGONALIZATION"] = args.diag
-    force_eval["DFT-SCF-OT"] = args.ot
-    force_eval["DFT-SCF-MIXING-ALPHA"] = args.alpha
-    force_eval["DFT-KPOINTS-SCHEME"] = args.kpoints_scheme
+    force_eval["dft-ls_scf"] = args.ls_scf
+    force_eval["dft-qs-method"] = args.qs_method
+    force_eval["dft-mgrid-cutoff"] = args.cutoff
+    force_eval["dft-mgrid-rel_cutoff"] = args.rel_cutoff
+    force_eval["dft-xc-xc_functional"] = args.xc_functional
+    force_eval["dft-scf-eps_scf"] = args.eps_scf
+    force_eval["dft-scf-added_mos"] = args.added_mos
+    force_eval["dft-scf-smear"] = args.smear
+    force_eval["dft-scf-smear-method"] = args.smear_method
+    force_eval["dft-scf-smear-electronic_temperature"] = args.electronic_temp
+    force_eval["dft-scf-smear-window_size"] = args.window_size
+    force_eval["dft-scf-diagonalization"] = args.diag
+    force_eval["dft-scf-ot"] = args.ot
+    force_eval["dft-scf-mixing-alpha"] = args.alpha
+    force_eval["dft-kpoints-scheme"] = args.kpoints_scheme
+
+    force_eval["dft-xc-vdw_potential"] = args.vdw
+    force_eval["dft-xc-vdw_potential-potential_type"] = args.vdw_potential_type
+    force_eval["dft-xc-vdw_potential-pair_potential-type"] = args.pair_type
+    force_eval["dft-xc-vdw_potential-pair-potential-r_cutoff"] = args.r_cutoff
 
     motion["BAND-BAND_TYPE"] = args.band_type
-    motion["BAND-NUMBER_OF_REPLICA"] = args.n_replica
+    motion["BAND-NUMBER_OF_REPLICA"] = args.number_of_replica
     motion["BAND-ALIGN_FRAMES"] = args.align_frames
     motion["BAND-ROTATE-FRAMES"] = args.rotate_frames
     motion["BAND-K_SPRING"] = args.k_spring

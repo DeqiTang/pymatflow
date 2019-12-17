@@ -109,6 +109,7 @@ setup(
         "pymatflow/qe/scripts/qe-plotband.py",
         "pymatflow/qe/scripts/qe-pp.py",
         "pymatflow/qe/scripts/qe-phonopy.py",
+        "pymatflow/qe/scripts/qe-molecularpdos.py",
         "pymatflow/qe/post/scripts/post-qe-dos.py",
         "pymatflow/qe/post/scripts/post-qe-pdos.py",
         "pymatflow/qe/post/scripts/post-qe-neb.py",

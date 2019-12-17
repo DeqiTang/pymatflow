@@ -168,7 +168,7 @@ class bands_post:
             plt.grid(which="major", axis="y", linewidth=0.75, linestyle="-", color="0.75")
             
             locs = [self.specialk[i]["xcoord"] for i in range(len(self.specialk))]
-            labels = [r"$\Gamma$" if self.specialk[i]["label"] == "GAMMA" else self.specialk[i]["label"] for i in range(len(self.specialk))]
+            labels = [r"$\Gamma$" if self.specialk[i]["label"] == "GAMMA" else r"$%s$" % self.specialk[i]["label"] for i in range(len(self.specialk))]
             plt.xticks(locs, labels)
 
             #plt.legend()    

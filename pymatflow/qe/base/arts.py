@@ -176,6 +176,7 @@ class qe_arts:
             primitive cell, if you stick to the use the original structure, you
             must know how to modify the k points to be applicable to your original
             structure.
+            
         Plan:
             build a wrapper to the seekpath in a separate file[not decided now]
         """

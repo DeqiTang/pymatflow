@@ -4,6 +4,8 @@
 import datetime
 import os
 import sys
+import numpy as np
+import matplotlib.pyplot as plt
 
 class neb_post:
     def __init__(self, nebout="neb.out"):
@@ -97,7 +99,7 @@ class neb_post:
                 fout.write("set term gif\n")
                 #fout.write("set output 'min-energy-path.eps'\n")
                 fout.write("set output 'min-energy-path.gif'\n")
-                fout.write("set title 'Minmum Energy Path'\n")
+                fout.write("set title 'Minimum Energy Path'\n")
                 fout.write("set xlabel 'Reaction coordinate / arb. u.'\n")
                 fout.write("set ylabel 'E - E_{IS} / eV'\n")
                 fout.write("set format y '%.2f'\n")
@@ -110,6 +112,28 @@ class neb_post:
 
         if runopt == "run" or runopt == "genrun":
             os.system("gnuplot %s" % inpname)
+
+    def min_energy_path_matplotlib(self, nebint='pwscf.int', nebdat='pwscf.dat'):
+        # read data 
+        with open(nebint, 'r') as fout:
+            energy_path = np.loadtxt(fout)
+        with open(nebdat, 'r') as fout:
+            image_energy = np.loadtxt(fout)
+        # do the plot of the minimum energy path
+        plt.plot(energy_path[:, 0], energy_path[:, 1], label="minimum energy path")
+        # do the plot of the images energy
+        plt.scatter(image_energy[:, 0], image_energy[:, 1], label="energy of each image", marker="o", color="red", alpha=0.6)
+        #
+        plt.title("Minimum Energy Path")
+        #plt.xlabel("Image Coordinate")
+        plt.xlabel("Diffusion Coordinate")
+        plt.ylabel(r"$\mathit{E}-\mathit{E}_\mathrm{initial}$")
+        plt.grid(which="major", axis="x", linewidth=0.75, linestyle="-", color="0.75")
+        plt.grid(which="major", axis="y", linewidth=0.75, linestyle="-", color="0.75")
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig("minimum-energy-path.png")
+
 
     def md_report(self, md):
         """
@@ -172,6 +196,7 @@ class neb_post:
 
             fout.write("## 运行信息图示\n")
             fout.write("Min energy path\n")
+            fout.write("![min energy path](minimum-energy-path.png)\n")
             fout.write("![min energy path](min-energy-path.gif)\n")
             fout.write("\n")
 
@@ -186,6 +211,9 @@ class neb_post:
             print("  directory of previous neb calculattion not found!\n")
             sys.exit(1)       
         os.chdir(directory)
+        # use gnuplot to plot minimum energy path
         self.min_energy_path_gp(nebint=nebint, nebdat=nebdat, inpname=inpname, runopt="genrun")
+        # use matplotlib to plot minimum energy path
+        self.min_energy_path_matplotlib(nebint=nebint, nebdat=nebdat)
         self.md_report(md=md)
         os.chdir("../")

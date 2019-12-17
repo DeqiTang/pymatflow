@@ -710,6 +710,72 @@ class static_run:
             os.system("%s projwfc.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
 
+    def molecularpdos(self, directory="tmp-qe-static", inpname="static-molecularpdos.in", output="static-molecularpdos.out",
+            mpi="", fileout="molecularpdos", ngauss=0, degauss=0.001, emin='default', emax='default',
+            deltae='default', runopt="gen"):
+        """
+        Reference:
+            http://www.quantum-espresso.org/Doc/INPUT_molecularpdos.html
+
+
+        ngauss:
+                    0: Simple Gaussian (default)
+                    1: Methfessel-Paxton of order 1
+                   -1: Marzari-Vanderbilt "cold smearing"
+                  -99: Fermi-Dirac function
+        degauss:
+            gaussian broadening, Ry (not eV!)
+            a floating number
+
+        Note:
+            I don't know why the run of molecularpdos.x in my computer is not stable
+            with all the same condition, it sometimes run successfully, and when you
+            execute again it might give 'STOP error reading file'. and when you again
+            execute it, it might work!!! unbelievable
+        """
+        # first check whether there is a previous scf running
+        if not os.path.exists(directory):
+            print("===================================================\n")
+            print("                 Warning !!!\n")
+            print("===================================================\n")
+            print("molecularpdos calculation:\n")
+            print("  directory of previous scf or nscf calculattion not found!\n")
+            sys.exit(1)
+
+        if runopt == "gen" or runopt == "genrun":
+            with open(os.path.join(directory, inpname), 'w') as fout:
+                fout.write("&INPUTMOPDOS\n")
+                fout.write("xmlfile_full = '%s'\n" % "./tmp/pwscf.save/atomic_proj.xml")
+                fout.write("xmlfile_part = '%s'\n" % "./tmp/pwscf.save/atomic_proj.xml")
+                fout.write("fileout = '%s'\n" % fileout)
+                fout.write("ngauss = %d\n" % ngauss)
+                fout.write("! default degauss is 0.0 which will calse float number erros\n")
+                fout.write("! we better set degauss and ngauss ourselves!\n")
+                fout.write("degauss = %f\n" % degauss)
+                if emin == 'default':
+                    fout.write("!using default Emin: band extrema\n")
+                else:
+                    fout.write("emin = %f\n" % emin)
+                if emax == 'default':
+                    fout.write("!using default Emax: band extrema\n")
+                else:
+                    fout.write("emax = %f\n" % emax)
+                fout.write("!Note deltae is in unit of eV while other variables like degauss is Rydberg\n")
+                if deltae == 'default':
+                    fout.write("!using default DeltaE value: 0.01 in unit of eV\n")
+                else:
+                    fout.write("deltae = %f\n" % deltae)
+                fout.write("/\n")
+                fout.write("\n")
+
+            # gen yhbatch script
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="molecularpdos.x")
+
+        if runopt == "run" or runopt == "genrun":
+            os.chdir(directory)
+            os.system("%s molecularpdos.x < %s | tee %s" % (mpi, inpname, output))
+            os.chdir("../")
+
     def epsilon(self, directory="tmp-qe-static", inpname="epsilon.in", output="epsilon.out", mpi="", runopt="gen"):
         """
         References:
@@ -950,6 +1016,10 @@ class static_run:
 
     def pp(self, directory="tmp-qe-static", prefix="pp", plot_num=[0], iflag=3, output_format=5, mpi="", runopt="gen"):
         """
+        Note:
+            the 3D charge plot like electron localization function and charge density
+            can be used to fabricate 2D plots using vesta software(Utilities/'2D Data Display').
+            where you can set (hkl) and depth to plot.
         """
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
