@@ -147,12 +147,15 @@ class phonopy_run:
                 # --------------
                 # using seekpath to set q path
                 # --------------
-                lattice = [self.system.xyz.cell[0:3], self.system.xyz.cell[3:6], self.system.xyz.cell[6:9]]
+                lattice = self.system.xyz.cell  # [self.system.xyz.cell[0:3], self.system.xyz.cell[3:6], self.system.xyz.cell[6:9]]
                 positions = []
                 numbers = []
-                a = np.sqrt(self.system.xyz.cell[0]**2 + self.system.xyz.cell[1]**2 + self.system.xyz.cell[2]**2)
-                b = np.sqrt(self.system.xyz.cell[3]**2 + self.system.xyz.cell[4]**2 + self.system.xyz.cell[5]**2)
-                c = np.sqrt(self.system.xyz.cell[6]**2 + self.system.xyz.cell[7]**2 + self.system.xyz.cell[8]**2)
+                #a = np.sqrt(self.system.xyz.cell[0]**2 + self.system.xyz.cell[1]**2 + self.system.xyz.cell[2]**2)
+                #b = np.sqrt(self.system.xyz.cell[3]**2 + self.system.xyz.cell[4]**2 + self.system.xyz.cell[5]**2)
+                #c = np.sqrt(self.system.xyz.cell[6]**2 + self.system.xyz.cell[7]**2 + self.system.xyz.cell[8]**2)
+                a = np.sqrt(self.system.xyz.cell[0][0]**2 + self.system.xyz.cell[0][1]**2 + self.system.xyz.cell[0][2]**2)
+                b = np.sqrt(self.system.xyz.cell[1][0]**2 + self.system.xyz.cell[1][1]**2 + self.system.xyz.cell[1][2]**2)
+                c = np.sqrt(self.system.xyz.cell[2][0]**2 + self.system.xyz.cell[2][1]**2 + self.system.xyz.cell[2][2]**2)
                 for atom in self.system.xyz.atoms:
                     positions.append([atom.x / a, atom.y / b, atom.z / c])
                     numbers.append(self.system.xyz.specie_labels[atom.name])

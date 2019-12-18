@@ -59,9 +59,11 @@ class qe_arts:
         fout.write("\n")
         cell = self.xyz.cell
         fout.write("CELL_PARAMETERS angstrom\n")
-        fout.write("%.9f %.9f %.9f\n" % (cell[0], cell[1], cell[2]))
-        fout.write("%.9f %.9f %.9f\n" % (cell[3], cell[4], cell[5]))
-        fout.write("%.9f %.9f %.9f\n" % (cell[6], cell[7], cell[8]))
+        #fout.write("%.9f %.9f %.9f\n" % (cell[0], cell[1], cell[2]))
+        #fout.write("%.9f %.9f %.9f\n" % (cell[3], cell[4], cell[5]))
+        #fout.write("%.9f %.9f %.9f\n" % (cell[6], cell[7], cell[8]))
+        for i in range(3):
+            fout.write("%.9f %.9f %.9f\n" % (cell[i][0], cell[i][1], cell[i][2]))
         fout.write("\n")
         if coordtype == "angstrom":
             fout.write("ATOMIC_POSITIONS angstrom\n")
@@ -87,8 +89,9 @@ class qe_arts:
             # crystal namely fractional coordinate can be convert from cartesian coordinates
             # the conversion process is like transformation of presentation in quantum mechanics
             # the convmat is bulid to do the conversion
+            #latcell = np.array(self.xyz.cell)
+            #latcell = latcell.reshape(3, 3)
             latcell = np.array(self.xyz.cell)
-            latcell = latcell.reshape(3, 3)
             convmat = np.linalg.inv(latcell.T)
             crystal_coord = np.zeros([self.xyz.natom, 3])
             for i in range(self.xyz.natom):
@@ -190,12 +193,15 @@ class qe_arts:
         # --------------
         # using seekpath
         # --------------
-        lattice = [self.xyz.cell[0:3], self.xyz.cell[3:6], self.xyz.cell[6:9]]
+        lattice = self.xyz.cell   # = [self.xyz.cell[0:3], self.xyz.cell[3:6], self.xyz.cell[6:9]]
         positions = []
         numbers = []
-        a = np.sqrt(self.xyz.cell[0]**2 + self.xyz.cell[1]**2 + self.xyz.cell[2]**2)
-        b = np.sqrt(self.xyz.cell[3]**2 + self.xyz.cell[4]**2 + self.xyz.cell[5]**2)
-        c = np.sqrt(self.xyz.cell[6]**2 + self.xyz.cell[7]**2 + self.xyz.cell[8]**2)
+        #a = np.sqrt(self.xyz.cell[0]**2 + self.xyz.cell[1]**2 + self.xyz.cell[2]**2)
+        #b = np.sqrt(self.xyz.cell[3]**2 + self.xyz.cell[4]**2 + self.xyz.cell[5]**2)
+        #c = np.sqrt(self.xyz.cell[6]**2 + self.xyz.cell[7]**2 + self.xyz.cell[8]**2)
+        a = np.sqrt(self.xyz.cell[0][0]**2 + self.xyz.cell[0][1]**2 + self.xyz.cell[0][2]**2)
+        b = np.sqrt(self.xyz.cell[1][0]**2 + self.xyz.cell[1][1]**2 + self.xyz.cell[1][2]**2)
+        c = np.sqrt(self.xyz.cell[2][0]**2 + self.xyz.cell[2][1]**2 + self.xyz.cell[2][2]**2)
         for atom in self.xyz.atoms:
             positions.append([atom.x / a, atom.y / b, atom.z / c])
             numbers.append(self.xyz.specie_labels[atom.name])

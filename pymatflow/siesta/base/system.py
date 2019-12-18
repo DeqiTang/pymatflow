@@ -53,9 +53,11 @@ class siesta_system:
         fout.write("\n")
             
         fout.write("%block LatticeVectors\n")
-        fout.write("%.9f %.9f %.9f\n" % (cell[0], cell[1], cell[2]))
-        fout.write("%.9f %.9f %.9f\n" % (cell[3], cell[4], cell[5]))
-        fout.write("%.9f %.9f %.9f\n" % (cell[6], cell[7], cell[8]))
+        #fout.write("%.9f %.9f %.9f\n" % (cell[0], cell[1], cell[2]))
+        #fout.write("%.9f %.9f %.9f\n" % (cell[3], cell[4], cell[5]))
+        #fout.write("%.9f %.9f %.9f\n" % (cell[6], cell[7], cell[8]))
+        for i in range(3):
+            fout.write("%.9f %.9f %.9f\n" % (cell[i][0], cell[i][1], cell[i][2]))
         fout.write("%endblock LatticeVectors\n")
         fout.write("\n")
 

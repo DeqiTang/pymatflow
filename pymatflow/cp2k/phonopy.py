@@ -160,12 +160,12 @@ class phonopy_run:
                 # --------------
                 # using seekpath to set q path
                 # --------------
-                lattice = [self.force_eval.subsys.xyz.cell[0:3], self.force_eval.subsys.xyz.cell[3:6], self.force_eval.subsys.xyz.cell[6:9]]
+                lattice = self.force_eval.subsys.xyz.cell #[self.force_eval.subsys.xyz.cell[0:3], self.force_eval.subsys.xyz.cell[3:6], self.force_eval.subsys.xyz.cell[6:9]]
                 positions = []
                 numbers = []
-                a = np.sqrt(self.force_eval.subsys.xyz.cell[0]**2 + self.force_eval.subsys.xyz.cell[1]**2 + self.force_eval.subsys.xyz.cell[2]**2)
-                b = np.sqrt(self.force_eval.subsys.xyz.cell[3]**2 + self.force_eval.subsys.xyz.cell[4]**2 + self.force_eval.subsys.xyz.cell[5]**2)
-                c = np.sqrt(self.force_eval.subsys.xyz.cell[6]**2 + self.force_eval.subsys.xyz.cell[7]**2 + self.force_eval.subsys.xyz.cell[8]**2)
+                a = np.sqrt(self.force_eval.subsys.xyz.cell[0][0]**2 + self.force_eval.subsys.xyz.cell[0][1]**2 + self.force_eval.subsys.xyz.cell[0][2]**2)
+                b = np.sqrt(self.force_eval.subsys.xyz.cell[1][0]**2 + self.force_eval.subsys.xyz.cell[1][1]**2 + self.force_eval.subsys.xyz.cell[1][2]**2)
+                c = np.sqrt(self.force_eval.subsys.xyz.cell[2][0]**2 + self.force_eval.subsys.xyz.cell[2][1]**2 + self.force_eval.subsys.xyz.cell[2][2]**2)
                 for atom in self.force_eval.subsys.xyz.atoms:
                     positions.append([atom.x / a, atom.y / b, atom.z / c])
                     numbers.append(self.force_eval.subsys.xyz.specie_labels[atom.name])
@@ -261,10 +261,9 @@ class phonopy_run:
                 fout.write("\t\t\tPOTENTIAL GTH-PBE\n")
                 fout.write("\t\t&END KIND\n")
             fout.write("\t\t&CELL\n")
-            fout.write("\t\t\tABC %f %f %f\n" % (cell[0], cell[4], cell[8]))
-            #fout.write("\t\t\tA %f %f %f\n" % (cell[0], cell[1], cell[2]))
-            #fout.write("\t\t\tB %f %f %f\n" % (cell[3], cell[4], cell[5]))
-            #fout.write("\t\t\tC %f %f %f\n" % (cell[6], cell[7], cell[8]))
+            #fout.write("\t\t\tABC %f %f %f\n" % (cell[0], cell[4], cell[8]))
+            # unit cell here can only be specified via ABC when doing phonopy calculation
+            fout.write("\t\t\tABC %f %f %f\n" % (cell[0][0], cell[1][1], cell[2][2]))
             fout.write("\t\t&END CELL\n")
             #fout.write("\t\t&TOPOLOGY\n")
             #fout.write("\t\t\tCOORD_FILE_FORMAT xyz\n")
@@ -273,7 +272,8 @@ class phonopy_run:
             fout.write("\t\t&COORD\n")
             fout.write("\t\t\tSCALED .TRUE.\n")
             for atom in self.force_eval.subsys.xyz.atoms:
-                fout.write("\t\t\t%s\t%f\t%f\t%f\n" % (atom.name, atom.x/cell[0], atom.y/cell[4], atom.z/cell[8]))
+                #fout.write("\t\t\t%s\t%f\t%f\t%f\n" % (atom.name, atom.x/cell[0], atom.y/cell[4], atom.z/cell[8]))
+                fout.write("\t\t\t%s\t%f\t%f\t%f\n" % (atom.name, atom.x/cell[0][0], atom.y/cell[1][1], atom.z/cell[2][2]))
             fout.write("\t\t&END COORD\n")
             fout.write("\t&END SUBSYS\n")
             fout.write("\n")

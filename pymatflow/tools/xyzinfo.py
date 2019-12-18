@@ -18,12 +18,15 @@ def get_spacegroup_and_kpath(xyz):
     """
     xyz is an instance of base_xyz
     """
-    lattice = [xyz.cell[0:3], xyz.cell[3:6], xyz.cell[6:9]]
+    lattice = xyz.cell  # [xyz.cell[0:3], xyz.cell[3:6], xyz.cell[6:9]]
     positions = []
     numbers = []
-    a = np.sqrt(xyz.cell[0]**2 + xyz.cell[1]**2 + xyz.cell[2]**2)
-    b = np.sqrt(xyz.cell[3]**2 + xyz.cell[4]**2 + xyz.cell[5]**2)
-    c = np.sqrt(xyz.cell[6]**2 + xyz.cell[7]**2 + xyz.cell[8]**2)
+    #a = np.sqrt(xyz.cell[0]**2 + xyz.cell[1]**2 + xyz.cell[2]**2)
+    #b = np.sqrt(xyz.cell[3]**2 + xyz.cell[4]**2 + xyz.cell[5]**2)
+    #c = np.sqrt(xyz.cell[6]**2 + xyz.cell[7]**2 + xyz.cell[8]**2)
+    a = np.sqrt(xyz.cell[0][0]**2 + xyz.cell[0][1]**2 + xyz.cell[0][2]**2)
+    b = np.sqrt(xyz.cell[1][0]**2 + xyz.cell[1][1]**2 + xyz.cell[1][2]**2)
+    c = np.sqrt(xyz.cell[2][0]**2 + xyz.cell[2][1]**2 + xyz.cell[2][2]**2)
     for atom in xyz.atoms:
         positions.append([atom.x / a, atom.y / b, atom.z / c]) # must be scaled cartesian
         numbers.append(xyz.specie_labels[atom.name])

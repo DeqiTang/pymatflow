@@ -95,12 +95,15 @@ class kpoints:
         system is an instance of abinit.base.system.abinit_system
         """
         import seekpath
-        lattice = [system.xyz.cell[0:3], system.xyz.cell[3:6], system.xyz.cell[6:9]]
+        lattice = system.xyz.cell  # [system.xyz.cell[0:3], system.xyz.cell[3:6], system.xyz.cell[6:9]]
         positions = []
         numbers = []
-        a = np.sqrt(system.xyz.cell[0]**2 + system.xyz.cell[1]**2 + system.xyz.cell[2]**2)
-        b = np.sqrt(system.xyz.cell[3]**2 + system.xyz.cell[4]**2 + system.xyz.cell[5]**2)
-        c = np.sqrt(system.xyz.cell[6]**2 + system.xyz.cell[7]**2 + system.xyz.cell[8]**2)
+        #a = np.sqrt(system.xyz.cell[0]**2 + system.xyz.cell[1]**2 + system.xyz.cell[2]**2)
+        #b = np.sqrt(system.xyz.cell[3]**2 + system.xyz.cell[4]**2 + system.xyz.cell[5]**2)
+        #c = np.sqrt(system.xyz.cell[6]**2 + system.xyz.cell[7]**2 + system.xyz.cell[8]**2)
+        a = np.sqrt(system.xyz.cell[0][0]**2 + system.xyz.cell[0][1]**2 + system.xyz.cell[0][2]**2)
+        b = np.sqrt(system.xyz.cell[1][0]**2 + system.xyz.cell[1][1]**2 + system.xyz.cell[1][2]**2)
+        c = np.sqrt(system.xyz.cell[2][0]**2 + system.xyz.cell[2][1]**2 + system.xyz.cell[2][2]**2)
         for atom in system.xyz.atoms:
             positions.append([atom.x / a, atom.y / b, atom.z / c])
             numbers.append(system.xyz.specie_labels[atom.name])

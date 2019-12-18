@@ -87,9 +87,9 @@ class bands_post:
                 fout.write("set xtics(")
                 for point in self.specialk:
                     if point["label"] == "GAMMA":
-                        fout.write("'%s' %f, " % ("{/symbol G}", point["xcoord"]))
+                        fout.write("%s %f, " % ("{/symbol G}", point["xcoord"]))
                     else:
-                        fout.write("'%s' %f, " % (point["label"], point["xcoord"])) # minus 1, because in gnuplot x start with 0
+                        fout.write("%s %f, " % (point["label"], point["xcoord"])) # minus 1, because in gnuplot x start with 0
                 fout.write(")\n")
                 fout.write("plot '%s.gnuplot.shifted.data' u 1:2  w l \n" % (bandsfile))
             os.system("gnuplot bandplot.gp")
