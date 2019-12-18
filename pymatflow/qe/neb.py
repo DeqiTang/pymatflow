@@ -140,9 +140,9 @@ class neb_run:
         fout.write("\n")
         cell = self.arts[0].xyz.cell
         fout.write("CELL_PARAMETERS angstrom\n")
-        fout.write("%.9f %.9f %.9f\n" % (cell[0], cell[1], cell[2]))
-        fout.write("%.9f %.9f %.9f\n" % (cell[3], cell[4], cell[5]))
-        fout.write("%.9f %.9f %.9f\n" % (cell[6], cell[7], cell[8]))
+        fout.write("%.9f %.9f %.9f\n" % (cell[0][0], cell[0][1], cell[0][2]))
+        fout.write("%.9f %.9f %.9f\n" % (cell[1][0], cell[1][1], cell[1][2]))
+        fout.write("%.9f %.9f %.9f\n" % (cell[2][0], cell[2][1], cell[2][2]))
         fout.write("\n")
         # writing KPOINTS to the fout
         self.arts[0].write_kpoints(fout)

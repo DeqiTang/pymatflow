@@ -40,7 +40,7 @@ if __name__ == "__main__":
             choices=["automatic", "gamma", "tpiba_b"],
             help="Kpoints generation scheme option for the SCF or non-SCF calculation")
 
-    parser.add_argument("-k", "--kpoints", type=int, nargs="+",
+    parser.add_argument("--kpoints-mp", type=int, nargs="+",
             default=[1, 1, 1, 0, 0, 0],
             help="Monkhorst-Pack kpoint grid, in format like --kpoints-mp 1 1 1 0 0 0")
 
