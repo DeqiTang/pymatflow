@@ -84,7 +84,7 @@ class static_run:
 
 
     def converge_cutoff(self, emin, emax, step, directory="tmp-siesta-cutoff",
-            mpi="", runopt="gen", electrons={}):
+            mpi="", runopt="gen", electrons={}, kpoints_mp=[1, 1, 1]):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -93,6 +93,7 @@ class static_run:
             for element in self.system.xyz.specie_labels:
                 shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
 
+            self.electrons.kpoints_mp = kpoints_mp
             self.electrons.set_params(electrons)
             self.electrons.dm["UseSaveDM"] = "false"
 

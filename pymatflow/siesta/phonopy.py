@@ -180,30 +180,30 @@ class phonopy_run:
                 if point == "GAMMA":
                     fout.write(" $\Gamma$")
                 else:
-                    fout.write(" %s" % point)
+                    fout.write(" $%s$" % point)
                 point = kpoints_seekpath["path"][0][1]
                 if point == "GAMMA":
                     fout.write(" $\Gamma$")
                 else:
-                    fout.write(" %s" % point)
+                    fout.write(" $%s$" % point)
                 for i in range(1, len(kpoints_seekpath["path"])):
                     if kpoints_seekpath["path"][i][0] == kpoints_seekpath["path"][i-1][1]:
                         point = kpoints_seekpath["path"][i][1]
                         if point == "GAMMA":
                             fout.write(" $\Gamma$")
                         else:
-                            fout.write(" %s" % point)
+                            fout.write(" $%s$" % point)
                     else:
                         point = kpoints_seekpath["path"][i][0]
                         if point == "GAMMA":
                             fout.write(" $\Gamma$")
                         else:
-                            fout.write(" %s" % point)
+                            fout.write(" $%s$" % point)
                         point = kpoints_seekpath["path"][i][1]
                         if point == "GAMMA":
                             fout.write(" $\Gamma$")
                         else:
-                            fout.write(" %s" % point)
+                            fout.write(" $%s$" % point)
                 fout.write("\n")
             with open("phonopy-analysis.sh", 'w') as fout:
                 fout.write("# create FORCE_SETS\n")

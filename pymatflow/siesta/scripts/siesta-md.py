@@ -51,7 +51,8 @@ if __name__ == "__main__":
             help="DM.NumberPulay")
     parser.add_argument("--mixing", type=float, default=0.1,
             help="DM.MixingWeight")
-    parser.add_argument("-k", "--kpoints", type=str, default="3 3 3",
+    parser.add_argument("--kpoints-mp", type=int, nargs="+",
+            default=[3, 3, 3],
             help="set kpoints like '3 3 3'")
     parser.add_argument("--occupation", type=str, default="FD",
             help="OccupationFunction(FD or MP)")
@@ -83,7 +84,6 @@ if __name__ == "__main__":
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================   
     args = parser.parse_args()
-    kpoints_mp = [int(args.kpoints.split()[i]) for i in range(3)]
     
     electrons["MeshCutoff"] = args.meshcutoff
     electrons["SolutionMethod"] = args.solution_method
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     ions["MD.VariableCell"] = args.vc
     
     task = md_run(args.file)
-    task.md(directory=args.directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, ions=ions, kpoints_mp=kpoints_mp)
+    task.md(directory=args.directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, ions=ions, kpoints_mp=args.kpoints_mp)
 
 
     # server handle

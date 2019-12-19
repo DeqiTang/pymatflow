@@ -24,11 +24,11 @@ if __name__ == "__main__":
     # --------------------------------------------------------------
     parser.add_argument("--asr", type=str, default='simple',
             help="type of sum rule")
-    parser.add_argument("--nqpoints", type=int, default=2,
-            help="number of qpoints")
-    parser.add_argument("--matdyn-qpoints", type=float, nargs="+",
-            default= [0.0, 0.0, 0.0, 0.0, 0.012658, 0.0, 0.0, 0.012658],
-            help="matdyn qpoints")
+    #parser.add_argument("--nqpoints", type=int, default=2,
+    #        help="number of qpoints")
+    #parser.add_argument("--matdyn-qpoints", type=float, nargs="+",
+    #        default= [0.0, 0.0, 0.0, 0.0, 0.012658, 0.0, 0.0, 0.012658],
+    #        help="matdyn qpoints")
 
     # ------------------------------------------------------------- 
     # for server
@@ -42,14 +42,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
     xyzfile = args.file
 
-    matdyn_qpoints = []
-    for i in range(0, len(args.matdyn_qpoints), 4):
-        matdyn_qpoints.append([float(args.matdyn_qpoints[i]), float(args.matdyn_qpoints[i+1]), float(args.matdyn_qpoints[i+2]), float(args.matdyn_qpoints[i+3])])
+    #matdyn_qpoints = []
+    #for i in range(0, len(args.matdyn_qpoints), 4):
+    #    matdyn_qpoints.append([float(args.matdyn_qpoints[i]), float(args.matdyn_qpoints[i+1]), float(args.matdyn_qpoints[i+2]), float(args.matdyn_qpoints[i+3])])
 
-    print(matdyn_qpoints)
+    #print(matdyn_qpoints)
 
     task = dfpt_run(xyzfile)
-    task.matdyn(directory=args.directory, mpi=args.mpi, runopt=args.runopt, asr=args.asr, nqpoints=args.nqpoints, qpoints=matdyn_qpoints)
+    task.matdyn(directory=args.directory, mpi=args.mpi, runopt=args.runopt, asr=args.asr) # nqpoints=args.nqpoints, qpoints=matdyn_qpoints)
 
     # server handle
     if args.auto == 0:

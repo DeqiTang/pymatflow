@@ -33,6 +33,9 @@ if __name__ == "__main__":
     # --------------------------------------------------------------
     # for phx
     # --------------------------------------------------------------
+    parser.add_argument("--tr2-ph", type=float, default=1.0e-14,
+            help="threshold for self-consistency.")
+
     parser.add_argument("--qpoints-option", type=str, default="gamma",
             choices=["gamma", "qmesh"],
             help="qpoints option for ph.x")
@@ -41,12 +44,13 @@ if __name__ == "__main__":
             default=[2, 2, 2],
             help="qpoints mesh for ph.x")
 
-    parser.add_argument("--polar", type=str, default="no",
-            choices=["yes", "no"],
-            help="whether it is polar materials, if yes, will set epsil = .true. and calculate and store the dielectric tensor and effective charges.")
-
-    parser.add_argument("--tr2-ph", type=float, default=1.0e-14,
-            help="threshold for self-consistency.")
+    parser.add_argument("--polarization", type=str, default="no",
+            choices=["yes", "no", "true", "false"],
+            help="whether it is polar materials, if yes(true), will set epsil = .true. and calculate and store the dielectric tensor and effective charges.")
+    
+    parser.add_argument("--lraman", type=str, default=None,
+            choices=["true", "false"],
+            help="set lraman, can be 'true' or 'false' only. default is None which means 'false' in real world.")
 
     # ------------------------------
     # for server
@@ -60,9 +64,15 @@ if __name__ == "__main__":
     xyzfile = args.file
 
     inputph["tr2_ph"] = args.tr2_ph
+    inputph["lraman"] = args.lraman
+
+    if args.polarization.lower() == "yes" or args.polarization.lower() == "true":
+        polarization = True
+    else:
+        polarization = False
 
     task = dfpt_run(xyzfile)
-    task.phx(directory=args.directory, mpi=args.mpi, runopt=args.runopt, qpoints_option=args.qpoints_option, qpoints=args.qpoints, polar=args.polar, inputph=inputph)
+    task.phx(directory=args.directory, mpi=args.mpi, runopt=args.runopt, qpoints_option=args.qpoints_option, qpoints=args.qpoints, polarization=polarization, inputph=inputph)
 
     # server handle
     if args.auto == 0:

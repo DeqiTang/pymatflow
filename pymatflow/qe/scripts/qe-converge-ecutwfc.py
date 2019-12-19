@@ -21,7 +21,7 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
     parser.add_argument("--runopt", help="gen run genrun", type=str, default="genrun")
     parser.add_argument("--range", help="ecutwfc test range", nargs='+', type=int)
- 
+
     parser.add_argument("--kpoints-option", type=str, default="automatic", 
             choices=["automatic", "gamma", "tpiba_b"],
             help="Kpoints generation scheme option for the SCF or non-SCF calculation")

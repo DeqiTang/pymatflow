@@ -193,6 +193,7 @@ class static_run:
             self.system.set_params(system)
             self.electrons.set_params(electrons)
             self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
+            
             os.chdir(directory)
             n_test = int((emax - emin) / step)
             for i in range(n_test + 1):
@@ -214,35 +215,16 @@ class static_run:
                     inp_name = "ecutwfc-%d.in" % ecut_wfc
                     out_f_name = "ecutwfc-%d.out" % ecut_wfc
                     fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inp_name, out_f_name))
+            os.chdir("../")
 
         if runopt == "run" or runopt == "genrun":
             # run the simulation
+            os.chdir(directory)
             for i in range(n_test + 1):
                 ecut_wfc = int(emin + i * step)
                 inp_name = "ecutwfc-%d.in" % ecut_wfc
                 out_f_name = "ecutwfc-%d.out" % ecut_wfc
                 os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
-
-            # analyse the result
-            for i in range(n_test + 1):
-                ecut_wfc = int(emin + i * step)
-                out_f_name = "ecutwfc-%d.out" % ecut_wfc
-                os.system("cat %s | grep '!    total energy' >> energy-ecutwfc.data" % out_f_name)
-
-            ecut_wfc_all = [emin + i * step for i in range(n_test + 1)]
-            energy_all = []
-            with open("energy-ecutwfc.data", 'r') as fin:
-                for line in fin:
-                    energy_all.append(float(line.split()[4]))
-
-            plt.plot(ecut_wfc_all, energy_all, marker='o')
-            plt.title("Ecutwfc Converge Test", fontweight='bold', color='red')
-            plt.xlabel("Ecutwfc (Ry)")
-            plt.ylabel("Energy (Ry)")
-            plt.tight_layout()
-            plt.grid(True)
-            plt.savefig("energy-ecutwfc.png")
-            plt.show()
             os.chdir("../")
 
         
@@ -285,34 +267,16 @@ class static_run:
                     inp_name = "ecutrho-%d.in" % ecut_rho
                     out_f_name = "ecutrho-%d.out" % ecut_rho
                     fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inp_name, out_f_name))
+            os.chdir("../")
 
         if runopt == "run" or runopt == "genrun":
             # run the simulation
+            os.chdir(directory)
             for i in range(n_test + 1):
                 ecut_rho = int(emin + i * step)
                 inp_name = "ecutrho-%d.in" % ecut_rho
                 out_f_name = "ecutrho-%d.out" % ecut_rho
                 os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
-            # analyse the result
-            for i in range(n_test + 1):
-                ecut_rho = int(emin + i * step)
-                out_f_name = "ecutrho-%d.out" % ecut_rho
-                os.system("cat %s | grep '!    total energy' >> energy-ecutrho.data" % out_f_name)
-
-            ecut_rho_all = [emin + i * step for i in range(n_test + 1)]
-            energy_all = []
-            with open("energy-ecutrho.data", 'r') as fin:
-                for line in fin:
-                    energy_all.append(float(line.split()[4]))
-
-            plt.plot(ecut_rho_all, energy_all, marker='o')
-            plt.title("Ecutrho Converge Test", fontweight='bold', color='red')
-            plt.xlabel("Ecutrho (Ry)")
-            plt.ylabel("Energy (Ry)")
-            plt.tight_layout()
-            plt.grid(True)
-            plt.savefig("energy-ecutrho.png")
-            plt.show()
             os.chdir("../")
     #
     def converge_kpoints(self, nk_min, nk_max, step=1, directory="tmp-qe-kpoints", 
@@ -363,35 +327,16 @@ class static_run:
                     inp_name = "kpoints-%d.in" % nk
                     out_f_name = "kpoints-%d.out" % nk
                     fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inp_name, out_f_name))                   
+            os.chdir("../")
 
         if runopt == "run" or runopt == "genrun":
             # run the simulation
+            os.chdir(directory)
             for i in range(n_test + 1):
                 nk = nk_min + i * step
                 inp_name = "kpoints-%d.in" % nk
                 out_f_name = "kpoints-%d.out" % nk
                 os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
-
-            # analyse the result
-            for i in range(n_test + 1):
-                nk = nk_min + i * step
-                out_f_name = "kpoints-%d.out" % nk
-                os.system("cat %s | grep '!    total energy' >> energy-kpoints.data" % out_f_name)
-            
-            nk_all = [nk_min + i * step for i in range(n_test + 1)]
-            energy_all = []
-            with open("energy-kpoints.data", 'r') as fin:
-                for line in fin:
-                    energy_all.append(float(line.split()[4]))
-            
-            plt.plot(nk_all, energy_all, marker='o')
-            plt.title("kpoints converge test", fontweight='bold', color='red')
-            plt.xlabel("Kpoints")
-            plt.ylabel("Energy (Ry)")
-            plt.tight_layout()
-            plt.grid(True)
-            plt.savefig("energy-kpoints.png")
-            plt.show()
             os.chdir("../")  
 
     def converge_degauss(self,degauss_min, degauss_max, step=0.01, directory="tmp-qe-degauss", mpi="",
@@ -459,34 +404,16 @@ class static_run:
                     inp_name = "degauss-%f.in" % degauss
                     out_f_name = "degauss-%f.out" % degauss
                     fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inp_name, out_f_name))                   
+            os.chdir("../")
+
         if runopt == "run" or runopt == "genrun":
             # run the simulation
+            os.chdir(directory)
             for i in range(n_test + 1):
                 degauss = degauss_min + i * step
                 inp_name = "degauss-%f.in" % degauss
                 out_f_name = "degauss-%f.out" % degauss
                 os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
-
-            # analyse the result
-            for i in range(n_test + 1):
-                degauss = degauss_min + i * step
-                out_f_name = "degauss-%f.out" % degauss
-                os.system("cat %s | grep '!    total energy' >> energy-degauss.data" % out_f_name)
-
-            degauss_all = [degauss_min + i * step for i in range(n_test + 1)]
-            energy_all = []
-            with open("energy-degauss.data", 'r') as fin:
-                for line in fin:
-                    energy_all.append(float(line.split()[4]))
-
-            plt.plot(degauss_all, energy_all, marker='o')
-            plt.title("degauss converge test", fontweight='bold', color='red')
-            plt.xlabel("degauss")
-            plt.ylabel("Energy (Ry)")
-            plt.tight_layout()
-            plt.grid(True)
-            plt.savefig("energy-degauss.png")
-            plt.show()
             os.chdir("../")  
 
     

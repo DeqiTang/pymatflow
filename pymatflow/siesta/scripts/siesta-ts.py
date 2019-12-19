@@ -31,7 +31,9 @@ if __name__ == "__main__":
     parser.add_argument("--tolerance", help="DM.Tolerance", type=float, default=1.0e-6)
     parser.add_argument("--numberpulay", help="DM.NumberPulay", type=int ,default=8)
     parser.add_argument("--mixing", help="DM.MixingWeight", type=float, default=0.1)
-    parser.add_argument("-k", "--kpoints", help="set kpoints like '3 3 3'", type=str, default="3 3 3")
+    parser.add_argument("--kpoints-mp", type=int, nargs="+",
+            default=[3, 3, 3],
+            help="set kpoints like '3 3 3'")
     parser.add_argument("--occupation", help="OccupationFunction(FD or MP)", type=str, default="FD")
     parser.add_argument("--electronic-temperature", help="Electronic Temperature", type=int, default=300)
 
@@ -59,7 +61,6 @@ if __name__ == "__main__":
     # ==========================================================   
     args = parser.parse_args()
     directory = args.directory
-    kpoints_mp = [int(args.kpoints.split()[i]) for i in range(3)]
     
     electrons["MeshCutoff"] = args.meshcutoff
     electrons["SolutionMethod"] = args.solution_method
@@ -75,7 +76,7 @@ if __name__ == "__main__":
     task = ts_run(electrodes=args.electrodes, device=args.device)
 
 
-    task.ts(directory=directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, kpoints_mp=kpoints_mp, bias=args.bias)
+    task.ts(directory=directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, kpoints_mp=args.kpoints_mp, bias=args.bias)
 
     # server handle
     if args.auto == 0:

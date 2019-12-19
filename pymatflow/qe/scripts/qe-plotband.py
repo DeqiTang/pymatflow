@@ -26,6 +26,12 @@ if __name__ == "__main__":
             help="range of frequencies for visualization")
     parser.add_argument("--freq-max", type=float, default=600,
             help="range of frequencies for visualization")
+    parser.add_argument("--efermi", type=float, default=0,
+            help="fermi energy level(only needed for band structure plot)")
+    parser.add_argument("--freq-step", type=float, default=100.0,
+            help="freq step")
+    parser.add_argument("--freq-reference", type=float, default=0.0,
+            help="freq reference")
    
     # --------------------------------------------------------------
     # for server
@@ -39,7 +45,7 @@ if __name__ == "__main__":
     xyzfile = args.file
 
     task = dfpt_run(xyzfile)
-    task.plotband(directory=args.directory, mpi=args.mpi, runopt=args.runopt, freq_min=args.freq_min, freq_max=args.freq_max)
+    task.plotband(directory=args.directory, mpi=args.mpi, runopt=args.runopt, freq_min=args.freq_min, freq_max=args.freq_max, efermi=args.efermi, freq_step=args.freq_step, freq_reference=args.freq_reference)
 
     # server handle
     if args.auto == 0:
@@ -55,7 +61,7 @@ if __name__ == "__main__":
         ctl = ssh()
         ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
         ctl.login()
-        ctl.submit(workdir=args.directory, jobfile="ph-qmesh.in.sub")
+        ctl.submit(workdir=args.directory, jobfile="plotband.in.sub")
         # cannot submit the following job before finishing the previous one
         #ctl.submit(wordir=args.directory, jobfile="q2r.in.sub")
         #ctl.submit(wordir=args.directory, jobfile="matdyn.in.sub")
