@@ -216,11 +216,345 @@ class cp2k_mm_forcefield_improper:
             else:
                 pass
 
+
+class cp2k_mm_forcefield_nonbonded_bmhft:
+    def __init__(self):
+        self.params = {
+                }       
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&BMHFT\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t&END BMHFT\n")
+
+    def set_params(self, params):
+        #
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass
+
+
+class cp2k_mm_forcefield_nonbonded_bmhftd:
+    def __init__(self):
+        self.params = {
+                }       
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&BMHFTD\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t&END BMHFTD\n")
+
+    def set_params(self, params):
+        #
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass
+
+
+class cp2k_mm_forcefield_nonbonded_buck4ranges:
+    def __init__(self):
+        self.params = {
+                }       
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&BUCK4RANGES\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t&END BUCK4RANGES\n")
+
+    def set_params(self, params):
+        #
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass
+
+
+class cp2k_mm_forcefield_nonbonded_buckmorse:
+    def __init__(self):
+        self.params = {
+                }       
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&BUCKMORSE\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t&END BUCKMORSE\n")
+
+    def set_params(self, params):
+        #
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass
+
+class cp2k_mm_forcefield_nonbonded_eam:
+    def __init__(self):
+        self.params = {
+                }       
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&EAM\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t&END EAM\n")
+
+    def set_params(self, params):
+        #
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass
+
+class cp2k_mm_forcefield_nonbonded_genpot:
+    def __init__(self):
+        self.params = {
+                }       
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&GENPOT\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t&END GENPOT\n")
+
+    def set_params(self, params):
+        #
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass
+
+class cp2k_mm_forcefield_nonbonded_goodwin:
+    def __init__(self):
+        self.params = {
+                }       
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&GOODWIN\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t&END GOODWIN\n")
+
+    def set_params(self, params):
+        #
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass
+
+class cp2k_mm_forcefield_nonbonded_ipbv:
+    def __init__(self):
+        self.params = {
+                }       
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&IPBV\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t&END IPBV\n")
+
+    def set_params(self, params):
+        #
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass
+
+
+class cp2k_mm_forcefield_nonbonded_lennard_jones:
+    def __init__(self):
+        self.params = {
+                }       
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&LENNARD-JONES\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t&END LENNARD-JONES\n")
+
+    def set_params(self, params):
+        #
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass
+
+class cp2k_mm_forcefield_nonbonded_quip:
+    def __init__(self):
+        self.params = {
+                }       
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&QUIP\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t&END QUIP\n")
+
+    def set_params(self, params):
+        #
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass
+
+class cp2k_mm_forcefield_nonbonded_siepmann:
+    def __init__(self):
+        self.params = {
+                }       
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&SIEPMANN\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t&END SIEPMANN\n")
+
+    def set_params(self, params):
+        #
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass
+
+class cp2k_mm_forcefield_nonbonded_tersoff:
+    def __init__(self):
+        self.params = {
+                }       
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&TERSOFF\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t&END TERSOFF\n")
+
+    def set_params(self, params):
+        #
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass
+
+class cp2k_mm_forcefield_nonbonded_williams:
+    def __init__(self):
+        self.params = {
+                }       
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&WILLIAMS\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t&END WILLIAMS\n")
+
+    def set_params(self, params):
+        #
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass
+
 class cp2k_mm_forcefield_nonbonded:
     def __init__(self):
         self.params = {
                 }       
         self.status = False
+
+        self.bmhft = cp2k_mm_forcefield_nonbonded_bmhft()
+        self.bmhftd = cp2k_mm_forcefield_nonbonded_bmhftd()
+        self.buck4ranges = cp2k_mm_forcefield_nonbonded_buck4ranges()
+        self.buckmorse = cp2k_mm_forcefield_nonbonded_buckmorse()
+        self.eam = cp2k_mm_forcefield_nonbonded_eam()
+        self.genpot = cp2k_mm_forcefield_nonbonded_genpot()
+        self.goodwin = cp2k_mm_forcefield_nonbonded_goodwin()
+        self.ipbv = cp2k_mm_forcefield_nonbonded_ipbv()
+        self.lennard_jones = cp2k_mm_forcefield_nonbonded_lennard_jones()
+        self.quip = cp2k_mm_forcefield_nonbonded_quip()
+        self.siepmann = cp2k_mm_forcefield_nonbonded_siepmann()
+        self.tersoff = cp2k_mm_forcefield_nonbonded_tersoff()
+        self.williams = cp2k_mm_forcefield_nonbonded_williams()
+
+        # basic setting
+        
 
     def to_input(self, fout):
         """
@@ -230,17 +564,71 @@ class cp2k_mm_forcefield_nonbonded:
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("\t\t\t\t%s %s\n" % (item, str(self.params[item])))
-        fout.write("\t\t\t&END NONBONDED\n")
+        if self.bmhft.status == True:
+            self.bmhft.to_input(fout)
+        if self.bmhftd.status == True:
+            self.bmhftd.to_input(fout)
+        if self.buck4ranges.status == True:
+            self.buck4ranges.to_input(fout)
+        if self.buckmorse.status == True:
+            self.buckmorse.to_input(fout)
+        if self.eam.status == True:
+            self.eam.to_input(fout)
+        if self.genpot.status == True:
+            self.genpot.to_input(fout)
+        if self.goodwin.status == True:
+            self.goodwin.to_input(fout)
+        if self.ipbv.status == True:
+            self.ipbv.to_input(fout)
+        if self.lennard_jones.status == True:
+            self.lennard_jones.to_input(fout)
+        if self.quip.status == True:
+            self.quip.to_input(fout)
+        if self.siepmann.status == True:
+            self.siepmann.to_input(fout)
+        if self.tersoff.status == True:
+            self.tersoff.to_input(fout)
+        if self.williams.status == True:
+            self.williams.to_input(fout)
+        fout.write("\t\t\tEND NONBONDED\n")
 
     def set_params(self, params):
         #
         for item in params:
             if len(item.split("-")) == 4:
                 self.params[item.split("-")[-1]] = params[item]
+            elif item.split("-")[3] == "BMHFT":
+                self.bmhft.set_params({item: parmas[item]})
+            elif item.split("-")[3] == "BMHFTD":
+                self.bmhftd.set_params({item: parmas[item]})
+            elif item.split("-")[3] == "BUCK4RANGES":
+                self.buck4ranges.set_params({item: parmas[item]})
+            elif item.split("-")[3] == "BUCKMORSE":
+                self.buckmorse.set_params({item: parmas[item]})
+            elif item.split("-")[3] == "EAM":
+                self.eam.set_params({item: parmas[item]})
+            elif item.split("-")[3] == "GENPOT":
+                self.genpot.set_params({item: parmas[item]})
+            elif item.split("-")[3] == "GOODWIN":
+                self.goodwin.set_params({item: parmas[item]})
+            elif item.split("-")[3] == "IPBV":
+                self.ipbv.set_params({item: parmas[item]})
+            elif item.split("-")[3] == "LENNARD_JONES":
+                self.lennard_jones.set_params({item: parmas[item]})
+            elif item.split("-")[3] == "QUIP":
+                self.quip.set_params({item: parmas[item]})
+            elif item.split("-")[3] == "SIEPMANN":
+                self.siepmann.set_params({item: parmas[item]})
+            elif item.split("-")[3] == "TERSOFF":
+                self.tersoff.set_params({item: parmas[item]})
+            elif item.split("-")[3] == "WILLIAMS":
+                self.williams.set_params({item: parmas[item]})
             else:
                 pass
 
-class cp2k_mm_forcefield_nonbonded14:
+
+
+class cp2k_mm_forcefield_nonbonded14_genpot:
     def __init__(self):
         self.params = {
                 }       
@@ -250,10 +638,126 @@ class cp2k_mm_forcefield_nonbonded14:
         """
         fout: a file stream for writing
         """
+        fout.write("\t\t\t\t&GENPOT\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t&END GENPOT\n")
+
+    def set_params(self, params):
+        #
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass
+
+class cp2k_mm_forcefield_nonbonded14_goodwin:
+    def __init__(self):
+        self.params = {
+                }       
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&GOODWIN\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t&END GOODWIN\n")
+
+    def set_params(self, params):
+        #
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass
+
+
+class cp2k_mm_forcefield_nonbonded14_lennard_jones:
+    def __init__(self):
+        self.params = {
+                }       
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&LENNARD-JONES\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t&END LENNARD-JONES\n")
+
+    def set_params(self, params):
+        #
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass
+
+
+class cp2k_mm_forcefield_nonbonded14_williams:
+    def __init__(self):
+        self.params = {
+                }       
+        self.status = False
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
+        fout.write("\t\t\t\t&WILLIAMS\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        fout.write("\t\t\t\t&END WILLIAMS\n")
+
+    def set_params(self, params):
+        #
+        for item in params:
+            if len(item.split("-")) == 5:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass
+
+
+
+class cp2k_mm_forcefield_nonbonded14:
+    def __init__(self):
+        self.params = {
+                }       
+        self.status = False
+
+        self.genpot = cp2k_mm_forcefield_nonbonded14_genpot()
+        self.goodwin = cp2k_mm_forcefield_nonbonded14_goodwin()
+        self.lennard_jones = cp2k_mm_forcefield_nonbonded14_lennard_jones()
+        self.williams = cp2k_mm_forcefield_nonbonded14_williams()
+
+        # basic setting
+
+
+    def to_input(self, fout):
+        """
+        fout: a file stream for writing
+        """
         fout.write("\t\t\t&NONBONDED14\n")
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+        if self.genpot.status == True:
+            self.genpot.to_input(fout)
+        if self.goodwin.status == True:
+            self.goodwin.to_input(fout)
+        if self.lennard_jones.status == True:
+            self.lennard_jones.to_input(fout)
+        if self.williams.status == True:
+            self.williams.to_input(fout)
         fout.write("\t\t\t&END NONBONDED14\n")
 
     def set_params(self, params):
@@ -261,8 +765,21 @@ class cp2k_mm_forcefield_nonbonded14:
         for item in params:
             if len(item.split("-")) == 4:
                 self.params[item.split("-")[-1]] = params[item]
+            elif item.split("-")[3] == "GENPOT":
+                self.genpot.set_params({item: parmas[item]})
+            elif item.split("-")[3] == "GOODWIN":
+                self.goodwin.set_params({item: parmas[item]})
+            elif item.split("-")[3] == "LENNARD_JONES":
+                self.lennard_jones.set_params({item: parmas[item]})
+            elif item.split("-")[3] == "WILLIAMS":
+                self.williams.set_params({item: parmas[item]})
             else:
                 pass
+
+                
+
+
+
 
 class cp2k_mm_forcefield_opbend:
     def __init__(self):
