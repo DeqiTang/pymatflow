@@ -22,6 +22,8 @@ class pdos_post:
         from scfout. if both don't exist, it will stop the program and 
         print out the warnnig, which guarantee that the fermi energy is
         always shifted to 0
+
+        atomorb is a string in format like this atm#1(Li)_wfc#2(s).
         """
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
@@ -42,6 +44,7 @@ class pdos_post:
                         self.tdos = np.loadtxt(f)
                     continue
                 atmorb = line.split("_")[1]+"_"+line.split("_")[2].split()[0]
+                # atomorb is a string in format like this atm#1(Li)_wfc#2(s).
                 with open(line.split()[0], 'r') as f:
                     f.readline()
                     self.data[atmorb] = np.loadtxt(f)
@@ -107,6 +110,9 @@ class pdos_post:
         end = int(len(self.energies)*plotrange[1])
         for key in data:
             plt.plot(self.energies[begin:end], data[key][begin:end], label=key)
+
+        # plot the total dos in the specified percentage range
+        plt.plot(self.energies[begin:end], self.tdos[begin:end, 2], label="Total-DOS")
         
         plt.grid(which="major", axis="x", linewidth=0.75, linestyle="-", color="0.75")
         plt.grid(which="major", axis="y", linewidth=0.75, linestyle="-", color="0.75")
@@ -117,7 +123,44 @@ class pdos_post:
         plt.tight_layout()
         plt.savefig("%s" % filename)
         plt.close()
- 
+
+
+    def plot_atom_orb_proj(self, atomtoproj=[], plotrange=[0.0, 1.0], filename="pdos-projected-to-atom-and-orbital.png"):
+        """
+        plotrange:
+            a list of two values(between 0 and 1) defining the percentage
+            of data to plot.
+            plotrange[0]: left boundary of the data to plot
+            plotrange[1]: right boundary of the data to plot
+            default is plotrange[0] = 0, plotrange[1], in which case
+            all the data will be plot.
+        atomtoproj:
+            the list of atoms to do the projection. atom number starts with 1
+        """
+        # plot the data in the specified percentage range
+        begin = int(len(self.energies)*plotrange[0])
+        end = int(len(self.energies)*plotrange[1])
+        
+        # atom projected dos
+        for atmorb in self.data:
+            if self.get_atom_num(atmorb) in atomtoproj:
+                plt.plot(self.energies[begin:end], self.data[atmorb][begin:end, 2], label="Atom(%d):%s-%s" % (self.get_atom_num(atmorb), self.get_elem_type(atmorb), self.get_orb_type(atmorb)))
+        
+        # plot the total dos in the specified percentage range
+        plt.plot(self.energies[begin:end], self.tdos[begin:end, 2], label="Total-DOS")
+        #
+
+        plt.grid(which="major", axis="x", linewidth=0.75, linestyle="-", color="0.75")
+        plt.grid(which="major", axis="y", linewidth=0.75, linestyle="-", color="0.75")
+        plt.title("Projected(Atom) Density of States")
+        plt.xlabel(r"$\mathit{E}-\mathit{E}_\mathrm{f} \mathrm{(eV)}$")
+        plt.ylabel("States")
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig("%s" % filename)
+        plt.close()
+
+
     def plot_tdos(self, plotrange=[0, 1.0], filename="total-dos.png"):
         """
         plotrange:
@@ -132,7 +175,7 @@ class pdos_post:
         begin = int(len(self.energies)*plotrange[0])
         end = int(len(self.energies)*plotrange[1])
         #plt.plot(self.energies, self.tdos[:, 2], label="total-dos")
-        plt.plot(self.energies[begin:end], self.tdos[begin:end, 2], label="total-dos")
+        plt.plot(self.energies[begin:end], self.tdos[begin:end, 2], label="Total-DOS")
 
         plt.grid(which="major", axis="x", linewidth=0.75, linestyle="-", color="0.75")
         plt.grid(which="major", axis="y", linewidth=0.75, linestyle="-", color="0.75")
@@ -168,6 +211,18 @@ class pdos_post:
         """
         return atmorb.split("#")[2]
 
+    def get_atom_num(self, atmorb):
+        """
+        get atom name from atmorb
+        atmorb is the key in self.data
+        it's like this:
+            atm#1(Li)_wfc#2(s)
+        return value of the above input
+        will be:
+            1
+        """
+        return int(atmorb.split("(")[0].split("#")[1])
+
     def markdown_report(self, md="pdos-report.md"):
         """
         when writing Chinese to a file you must specify
@@ -177,17 +232,21 @@ class pdos_post:
             fout.write("# 投影态密度图\n")
             fout.write("**指定能量范围数据图\n")
             fout.write("![pdos-range](./pdos-specified-range.png)\n")
+            fout.write("![pdos-atom-range](./pdos-atomproj-specified-range.png)\n")
             fout.write("![tdos-range](./tdos-specified-range.png)\n")
             fout.write("**所有可获取能量范围数据图**\n")
             fout.write("![pdos-all](./pdos-all-energy-available.png)\n")
+            fout.write("![pdos-atom-all](./pdos-atomproj-all-energy-available.png)\n")
             fout.write("![tdos-all](./tdos-all-energy-available.png)\n")
 
-    def export(self, directory="tmp-qe-static", plotrange=[0, 1.0]):
+    def export(self, directory="tmp-qe-static", plotrange=[0, 1.0], atomtoproj=[]):
         os.chdir(directory)
         self.plot_elem_orb_proj(plotrange=plotrange, filename="pdos-specified-range.png")
+        self.plot_atom_orb_proj(plotrange=plotrange, atomtoproj=atomtoproj, filename="pdos-atomproj-specified-range.png")
         self.plot_tdos(plotrange=plotrange, filename="tdos-specified-range.png")
         # also plot the all data
         self.plot_elem_orb_proj(plotrange=[0, 1.0], filename="pdos-all-energy-available.png")
+        self.plot_atom_orb_proj(plotrange=[0, 1.0], atomtoproj=atomtoproj, filename="pdos-atomproj-all-energy-available.png")
         self.plot_tdos(plotrange=[0, 1.0], filename="tdos-all-energy-available.png")
         self.markdown_report()
         os.chdir("../")

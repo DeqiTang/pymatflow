@@ -18,6 +18,10 @@ if __name__ == "__main__":
             default=[0, 1.0],
             help="plot range (in percentage), like --plotrange 0.1 0.9")
 
+    parser.add_argument("--atomtoproj", type=int, nargs="+",
+            default=[],
+            help="atom to projection in atom projected dos. atom number starts with 1.")
+
     args = parser.parse_args()
 
     directory = args.directory
@@ -25,4 +29,4 @@ if __name__ == "__main__":
 
     task = pdos_post()
     task.get_data(directory=directory, filpdos=filpdos)
-    task.export(directory=directory, plotrange=args.plotrange)
+    task.export(directory=directory, plotrange=args.plotrange, atomtoproj=args.atomtoproj)
