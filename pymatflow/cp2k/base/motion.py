@@ -92,9 +92,9 @@ class cp2k_motion:
         runtype: CELL_OPT, GEO_OPT, MC, MD, SHELL_OPT
         """
         if run_type == "GEO_OPT":
-            self.geo_opt.status == True:
+            self.geo_opt.status = True
         if run_type == "CELL_OPT":
-            self.cell_opt.status == True:
+            self.cell_opt.status = True
             self.check_cell_opt()
         if run_type == "MC":
             self.mc.status == True
