@@ -87,7 +87,7 @@ class pdos_post:
         print("or statis-scf.out, if static-nscf.out is not available\n")
         #
 
-    def plot_elem_orb_proj(self, plotrange=[0.0, 1.0], filename="pdos-projected-to-element-and-orbital.png"):
+    def plot_elem_orb_proj(self, plotrange=[0.0, 1.0], filename="pdos-projected-to-element-and-orbital.png", fontsize=10):
         """
         plotrange:
             a list of two values(between 0 and 1) defining the percentage
@@ -113,19 +113,23 @@ class pdos_post:
 
         # plot the total dos in the specified percentage range
         plt.plot(self.energies[begin:end], self.tdos[begin:end, 2], label="Total-DOS")
+
+        # set formats
+        font = {'size': fontsize}
+        plt.tick_params(labelsize=fontsize)
         
         plt.grid(which="major", axis="x", linewidth=0.75, linestyle="-", color="0.75")
         plt.grid(which="major", axis="y", linewidth=0.75, linestyle="-", color="0.75")
         plt.title("Projected Density of States")
-        plt.xlabel(r"$\mathit{E}-\mathit{E}_\mathrm{f} \mathrm{(eV)}$")
-        plt.ylabel("States")
-        plt.legend()
+        plt.xlabel(r"$\mathit{E}-\mathit{E}_\mathrm{f} \mathrm{(eV)}$", font)
+        plt.ylabel("States", font)
+        plt.legend(prop=font)
         plt.tight_layout()
         plt.savefig("%s" % filename)
         plt.close()
 
 
-    def plot_atom_orb_proj(self, atomtoproj=[], plotrange=[0.0, 1.0], filename="pdos-projected-to-atom-and-orbital.png"):
+    def plot_atom_orb_proj(self, atomtoproj=[], plotrange=[0.0, 1.0], filename="pdos-projected-to-atom-and-orbital.png", fontsize=10):
         """
         plotrange:
             a list of two values(between 0 and 1) defining the percentage
@@ -150,12 +154,16 @@ class pdos_post:
         plt.plot(self.energies[begin:end], self.tdos[begin:end, 2], label="Total-DOS")
         #
 
+        # set formats
+        font = {'size': fontsize}
+        plt.tick_params(labelsize=fontsize)
+
         plt.grid(which="major", axis="x", linewidth=0.75, linestyle="-", color="0.75")
         plt.grid(which="major", axis="y", linewidth=0.75, linestyle="-", color="0.75")
         plt.title("Projected(Atom) Density of States")
-        plt.xlabel(r"$\mathit{E}-\mathit{E}_\mathrm{f} \mathrm{(eV)}$")
-        plt.ylabel("States")
-        plt.legend()
+        plt.xlabel(r"$\mathit{E}-\mathit{E}_\mathrm{f} \mathrm{(eV)}$", font)
+        plt.ylabel("States", font)
+        plt.legend(prop=font)
         plt.tight_layout()
         plt.savefig("%s" % filename)
         plt.close()
@@ -239,14 +247,14 @@ class pdos_post:
             fout.write("![pdos-atom-all](./pdos-atomproj-all-energy-available.png)\n")
             fout.write("![tdos-all](./tdos-all-energy-available.png)\n")
 
-    def export(self, directory="tmp-qe-static", plotrange=[0, 1.0], atomtoproj=[]):
+    def export(self, directory="tmp-qe-static", plotrange=[0, 1.0], atomtoproj=[], fontsize=10):
         os.chdir(directory)
-        self.plot_elem_orb_proj(plotrange=plotrange, filename="pdos-specified-range.png")
-        self.plot_atom_orb_proj(plotrange=plotrange, atomtoproj=atomtoproj, filename="pdos-atomproj-specified-range.png")
+        self.plot_elem_orb_proj(plotrange=plotrange, filename="pdos-specified-range.png", fontsize=fontsize)
+        self.plot_atom_orb_proj(plotrange=plotrange, atomtoproj=atomtoproj, filename="pdos-atomproj-specified-range.png", fontsize=fontsize)
         self.plot_tdos(plotrange=plotrange, filename="tdos-specified-range.png")
         # also plot the all data
-        self.plot_elem_orb_proj(plotrange=[0, 1.0], filename="pdos-all-energy-available.png")
-        self.plot_atom_orb_proj(plotrange=[0, 1.0], atomtoproj=atomtoproj, filename="pdos-atomproj-all-energy-available.png")
+        self.plot_elem_orb_proj(plotrange=[0, 1.0], filename="pdos-all-energy-available.png", fontsize=fontsize)
+        self.plot_atom_orb_proj(plotrange=[0, 1.0], atomtoproj=atomtoproj, filename="pdos-atomproj-all-energy-available.png", fontsize=fontsize)
         self.plot_tdos(plotrange=[0, 1.0], filename="tdos-all-energy-available.png")
         self.markdown_report()
         os.chdir("../")

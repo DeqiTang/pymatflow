@@ -61,8 +61,6 @@ class cp2k_motion:
         
         self.tmc = cp2k_motion_tmc() 
 
-        self.run_type = "GEO_OPT"
-
         # basic setting
         self.printout.status = True
 
@@ -70,28 +68,22 @@ class cp2k_motion:
         fout.write("&MOTION\n")
         for item in self.params:
             fout.write("\t%s %s\n" % (item, self.params[item]))
-        if self.run_type == "GEO_OPT":
+        if  self.geo_opt.status == True:
             self.geo_opt.to_input(fout)
-        elif self.run_type == "CELL_OPT":
+        if  self.cell_opt.status == True:
             self.cell_opt.to_input(fout)
-            # if the MOTION-CELL_OPT-TYPE == "GEO_OPT"
-            # we also need to provide GEO_OPT section
-            if self.cell_opt.params["TYPE"].upper() == "GEO_OPT":
-                self.geo_opt.to_input(fout)
-        elif self.run_type == "MC":
+        if  self.mc.status == True:
             self.mc.to_input(fout)
-        elif self.run_type == "MD":
+        if self.md.status == True:
             self.md.to_input(fout)
-        elif self.run_type == "PINT":
+        if self.pint.status == True:
             self.pint.to_input(fout)
-        elif self.run_type == "SHELL_OPT":
+        if self.shell_opt.status == True:
             self.shell_opt.to_input(fout)
-        elif self.run_type == "BAND":
+        if self.band.status == True:
             self.band.to_input(fout)
-        
         if self.printout.status == True:
             self.printout.to_input(fout)
-
         fout.write("&END MOTION\n")
         fout.write("\n")
     
@@ -99,7 +91,21 @@ class cp2k_motion:
         """
         runtype: CELL_OPT, GEO_OPT, MC, MD, SHELL_OPT
         """
-        self.run_type = run_type
+        if run_type == "GEO_OPT":
+            self.geo_opt.status == True:
+        if run_type == "CELL_OPT":
+            self.cell_opt.status == True:
+            self.check_cell_opt()
+        if run_type == "MC":
+            self.mc.status == True
+        if run_type == "MD":
+            self.md.status == True
+        if run_type == "PINT":
+            self.pint.status == True
+        if run_type == "SHELL_OPT":
+            self.shell_opt.status == True
+        if run_type == "BAND":
+            self.band.status == True
 
     def set_params(self, params):
         """
@@ -135,3 +141,18 @@ class cp2k_motion:
                 self.free_energy.set_params({item: params[item]})
             elif item.split("-")[0] == "PRINT":
                 self.printout.set_params({item: params[item]})
+            else:
+                pass
+        # need to do some checking
+        self.check_cell_opt()
+
+    def check_cell_opt(self):
+        """
+        whenever we set cell opt params whether through self.set_type or self.set_params
+        we should check_cell_opt() to make sure some rules is followed. see below
+        """
+        # if the MOTION-CELL_OPT-TYPE == "GEO_OPT"
+        # we also need to provide GEO_OPT section
+        if self.cell_opt.params["TYPE"] is not None and self.cell_opt.params["TYPE"].upper() == "GEO_OPT":
+            self.geo_opt.status ==  True
+

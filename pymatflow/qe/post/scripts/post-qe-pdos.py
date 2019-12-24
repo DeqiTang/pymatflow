@@ -22,6 +22,9 @@ if __name__ == "__main__":
             default=[],
             help="atom to projection in atom projected dos. atom number starts with 1.")
 
+    parser.add_argument("--fontsize", type=int, default=10,
+            help="fontsize for the plot.")
+
     args = parser.parse_args()
 
     directory = args.directory
@@ -29,4 +32,4 @@ if __name__ == "__main__":
 
     task = pdos_post()
     task.get_data(directory=directory, filpdos=filpdos)
-    task.export(directory=directory, plotrange=args.plotrange, atomtoproj=args.atomtoproj)
+    task.export(directory=directory, plotrange=args.plotrange, atomtoproj=args.atomtoproj, fontsize=args.fontsize)
