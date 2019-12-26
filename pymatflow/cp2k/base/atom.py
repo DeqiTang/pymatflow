@@ -7,59 +7,20 @@ import os
 import shutil
 import pymatgen as mg
 
+
+from pymatflow.cp2k.base.atom_ae_basis import cp2k_atom_ae_basis
+from pymatflow.cp2k.base.atom_method import cp2k_atom_method
+from pymatflow.cp2k.base.atom_optimization import cp2k_atom_optimization
+from pymatflow.cp2k.base.atom_potential import cp2k_atom_potential
+from pymatflow.cp2k.base.atom_powell import cp2k_atom_powell
+from pymatflow.cp2k.base.atom_pp_basis import cp2k_atom_pp_basis
+from pymatflow.cp2k.base.atom_print import cp2k_atom_print
+
+
 """
 Usage:
 """
 
-class cp2k_atom_method_xc_wf_correlation:
-    def __init__(self):
-        self.params = {
-                "METHOD": None,
-                }
-        self.status = False
-
-        self.params["METHOD"] = "RI_MP2_GPW"
-
-    def to_input(self, fout):
-        fout.write("\t\t\t&WF_CORRELATION\n")
-        for item in self.params:
-            if self.params[item] is not None:
-                fout.write("\t\t\t\t%s %s\n" % (item, str(self.params[item])))
-        fout.write("\t\t\t\t&WFC_GPW\n")
-        fout.write("\t\t\t\t\tCUTOFF 300\n")
-        fout.write("\t\t\t\t\tREL_CUTOFF 50\n")
-        fout.write("\t\t\t\t\tEPS_FILTER 1.0E-12\n")
-        fout.write("\t\t\t\t\tEPS_GRID 1.0E-8\n")
-        fout.write("\t\t\t\t&END WFC_GPW\n")
-        fout.write("\t\t\t&END WF_CORRELATION\n")
-
-
-class cp2k_atom_method_xc:
-    def __init__(self):
-        self.params = {
-                }
-        self.status = False
-
-        self.wf_correlation = cp2k_atom_method_xc_wf_correlation()
-
-    def to_input(self, fout):
-        fout.write("\t\t&XC\n")
-        self.wf_correlation.to_input(fout)
-        fout.write("\t\t&END XC\n")
-
-
-class cp2k_atom_method:
-    def __init__(self):
-        self.params = {
-                }
-        self.status = False
-
-        self.xc = cp2k_atom_method_xc()
-
-    def to_input(self, fout):
-        fout.write("\t&METHOD\n")
-        self.xc.to_input(fout)
-        fout.write("\t&END METHOD\n")
 
 class cp2k_atom:
     """
@@ -68,16 +29,36 @@ class cp2k_atom:
     def __init__(self):
         self.params = {
                 }
-        self.status = False
-
+        self.status = false
+        
+        self.ae_basis = cp2k_atom_ae_basis()
         self.method = cp2k_atom_method()
+        self.optimization = cp2k_atom_optimization()
+        self.potential = cp2k_atom_potential()
+        self.powell = cp2k_atom_powell()
+        self.pp_basis = cp2k_atom_pp_basis()
+        self.printout = cp2k_atom_print()
+        # basic setting
 
     def to_input(self, fout):
         # fout: a file stream for writing
         fout.write("&ATOM\n")
         for item in self.params:
             fout.write("\t%s %s\n" % (item, self.params[item]))
-        self.method.to_input(fout)
+        if self.ae_basis.status == True:
+            self.ae_basis.to_input(fout)
+        if self.method.status == True:
+            self.method.to_input(fout)
+        if self.optimization.status == True:
+            self.optimization.to_input(fout)
+        if self.potential.status == True:
+            self.potential.to_input(fout)
+        if self.powell.status == True:
+            self.powell.to_input(fout)
+        if self.pp_basis.status == True:
+            self.pp_basis.to_input(fout)
+        if self.printout.status == True:
+            self.printout.to_input(fout)
         fout.write("&END ATOM\n")
         fout.write("\n")
 
@@ -85,5 +66,19 @@ class cp2k_atom:
         for item in params:
             if len(item.split("-")) == 1:
                 self.params[item.split("-")[-1]] = params[item]
+            elif item.split("-")[0] == "AE_BASIS":
+                self.ae_basis.set_params({item: params[item]})
             elif item.split("-")[0] == "METHOD":
+                self.method.set_params({item: params[item]})
+            elif item.split("-")[0] == "OPTIMIZATION":
+                self.optimization.set_params({item: params[item]})
+            elif item.split("-")[0] == "POTENTIAL":
+                self.potential.set_params({item: params[item]})
+            elif item.split("-")[0] == "POWELL":
+                self.powell.set_params({item: params[item]})
+            elif item.split("-")[0] == "PP_BASIS":
+                self.pp_basis.set_params({item: params[item]})
+            elif item.split("-")[0] == "PRINT":
+                self.printout.set_params({item: params[item]})
+            else:
                 pass

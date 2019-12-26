@@ -56,6 +56,7 @@ class phonopy_run:
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
+            
             os.chdir(directory)
             shutil.copyfile("../%s" % self.force_eval.subsys.xyz.file, "%s" % self.force_eval.subsys.xyz.file)
 
@@ -78,48 +79,53 @@ class phonopy_run:
 
             # build the phonopy running files 
             os.system("phonopy --cp2k -c %s -d --dim='%d %d %d'" % (inp_name, self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
-            # now supercell-00x.inp is generated which will be used to construct input for cp2k
-            os.system("ls | grep 'supercell-' > geo.data")
+            # now phonon-supercell-00x.inp is generated which will be used to construct input for cp2k
+            # in the past the above command will generate the supercell-00x.inp which can not be the
+            # input file of cp2k directly, and need us to construct the final input for cp2k for every
+            # displacement. but after an update of phonopy to version 2.4.2. the enerated phonon-supercell-00x.inp
+            # can be run by cp2k directly! so we comment those old code for constructing the final input file.
+            os.system("ls | grep 'phonon-supercell-' > geo.data")
             disps = []
             with open("geo.data", 'r') as fin:
                 for line in fin:
-                    disps.append(line.split(".")[0].split("-")[1])
-
-            for disp in disps:
-                in_name = "supercell-%s.inp" % disp
-                if os.path.exists(in_name) is not True:
-                    break
-                tmp_file = "supercell-%s.tmp.txt" % disp
-                shutil.copyfile(in_name, tmp_file)
-                # important: different disp calculation should have different PROJECT name
-                self.glob.params["PROJECT"] = "abinitio" + "-supercell-" + disp
-                with open(in_name, 'w') as fout:
-                    self.glob.to_input(fout)
-                    fout.write("\n")
-                    fout.write("&FORCE_EVAL\n")
-                    fout.write("\tMETHOD Quickstep\n")
-                    fout.write("\t&SUBSYS\n")
-                self.print_kinds(in_name)
-                os.system("cat %s | sed '1d;2d;3d;4d;5d;6d;7d' | sed '$d' | sed '$d' | sed '$d' | sed '$d' | sed '$d' >> %s" % (tmp_file, in_name))
-                with open(in_name, 'a') as fout:
-                    fout.write("\t&END SUBSYS\n")
-                    # dft
-                    self.force_eval.dft.to_input(fout)
-                    # end dft
-                    fout.write("\t&PRINT\n")
-                    fout.write("\t\t&FORCES\n")
-                    fout.write("\t\t\tFILENAME forces\n")
-                    fout.write("\t\t&END FORCES\n")
-                    fout.write("\t&END PRINT\n")
-                    fout.write("&END FORCE_EVAL\n")
+                    disps.append(line.split(".")[0].split("-")[2])
+            
+            #for disp in disps:
+            #    in_name = "phonon-supercell-%s.inp" % disp
+            #    if os.path.exists(in_name) is not True:
+            #        break
+            #    tmp_file = "phonon-supercell-%s.tmp.txt" % disp
+            #    shutil.copyfile(in_name, tmp_file)
+            #    # important: different disp calculation should have different PROJECT name
+            #    self.glob.params["PROJECT"] = "abinitio" + "-supercell-" + disp
+            #    with open(in_name, 'w') as fout:
+            #        self.glob.to_input(fout)
+            #        fout.write("\n")
+            #        fout.write("&FORCE_EVAL\n")
+            #        fout.write("\tMETHOD Quickstep\n")
+            #        fout.write("\t&SUBSYS\n")
+            #    self.print_kinds(in_name)
+            #    os.system("cat %s | sed '1d;2d;3d;4d;5d;6d;7d' | sed '$d' | sed '$d' | sed '$d' | sed '$d' | sed '$d' >> %s" % (tmp_file, in_name))
+            #    with open(in_name, 'a') as fout:
+            #        fout.write("\t&END SUBSYS\n")
+            #        # dft
+            #        self.force_eval.dft.to_input(fout)
+            #        # end dft
+            #        fout.write("\t&PRINT\n")
+            #        fout.write("\t\t&FORCES\n")
+            #        fout.write("\t\t\tFILENAME forces\n")
+            #        fout.write("\t\t&END FORCES\n")
+            #        fout.write("\t&END PRINT\n")
+            #        fout.write("&END FORCE_EVAL\n")
             os.chdir("../")
+
 
             #
             # generate yhbatch file
             with open(os.path.join(directory, "phonopy-job.sub"), 'w') as fout:
                 fout.write("#!/bin/bash\n\n")
                 for disp in disps:
-                    fout.write("yhrun -N 1 -n 24 cp2k.psmp -in supercell-%s.inp > supercell-%s.inp.out\n" % (disp, disp))
+                    fout.write("yhrun -N 1 -n 24 cp2k.psmp -in phonon-supercell-%s.inp > phonon-supercell-%s.inp.out\n" % (disp, disp))
 
             # generate the result analysis bash script and necessary config files
             os.chdir(directory) 
@@ -223,7 +229,8 @@ class phonopy_run:
                 phonopy_command = "phonopy --cp2k -f "
                 for disp in disps:
                     # important: different disp calculation should have different PROJECT name
-                    f_name = "abinitio" + "-supercell-" + disp + "-forces-1_0.xyz"
+                    #f_name = "abinitio" + "-supercell-" + disp + "-forces-1_0.xyz"
+                    f_name = "ab-initio" + "-supercell-" + disp + "-forces-1_0.xyz"
                     phonopy_command = phonopy_command + f_name + " "
                 fout.write("%s\n" % phonopy_command)
                 fout.write("# plot The density of states (DOS)\n")
@@ -244,10 +251,10 @@ class phonopy_run:
             disps = []
             with open("geo.data", 'r') as fin:
                 for line in fin:
-                    disps.append(line.split(".")[0].split("-")[1])
+                    disps.append(line.split(".")[0].split("-")[2])
             for disp in disps:
                 in_name = "supercell-%s.inp" % disp
-                os.system("cp2k.psmp -in supercell-%s.inp | tee supercell-%s.inp.out" % (disp, disp))
+                os.system("cp2k.psmp -in phonon-supercell-%s.inp | tee phonon-supercell-%s.inp.out" % (disp, disp))
             os.chdir("../")
 
 
