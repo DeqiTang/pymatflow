@@ -7,7 +7,6 @@ import os
 import shutil
 import pymatgen as mg
 
-from pymatflow.cp2k.base.atom_print import cp2k_atom_print
 
 """
 Usage:
@@ -107,7 +106,7 @@ class cp2k_atom_print_admm:
         self.status = False
 
         self.each = cp2k_atom_print_admm_each()
-        self.admm_basis = cp2k_atom_print_admm_basis()
+        self.admm_basis = cp2k_atom_print_admm_admm_basis()
         # basic setting
 
 

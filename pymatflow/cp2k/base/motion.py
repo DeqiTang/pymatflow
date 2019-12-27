@@ -97,15 +97,15 @@ class cp2k_motion:
             self.cell_opt.status = True
             self.check_cell_opt()
         if run_type == "MC":
-            self.mc.status == True
+            self.mc.status = True
         if run_type == "MD":
-            self.md.status == True
+            self.md.status = True
         if run_type == "PINT":
-            self.pint.status == True
+            self.pint.status = True
         if run_type == "SHELL_OPT":
-            self.shell_opt.status == True
+            self.shell_opt.status = True
         if run_type == "BAND":
-            self.band.status == True
+            self.band.status = True
 
     def set_params(self, params):
         """

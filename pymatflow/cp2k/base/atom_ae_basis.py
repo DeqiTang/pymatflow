@@ -17,7 +17,7 @@ class cp2k_atom_ae_basis_basis:
     def __init__(self):
         self.params = {
                 }
-        self.status = false
+        self.status = False
 
 
     def to_input(self, fout):
@@ -36,7 +36,7 @@ class cp2k_atom_ae_basis:
     def __init__(self):
         self.params = {
                 }
-        self.status = false
+        self.status = False
 
         self.basis = cp2k_atom_ae_basis_basis()
         # basic setting

@@ -29,7 +29,7 @@ class cp2k_atom:
     def __init__(self):
         self.params = {
                 }
-        self.status = false
+        self.status = False
         
         self.ae_basis = cp2k_atom_ae_basis()
         self.method = cp2k_atom_method()
@@ -61,6 +61,12 @@ class cp2k_atom:
             self.printout.to_input(fout)
         fout.write("&END ATOM\n")
         fout.write("\n")
+
+    def basic_setting(self, run_type):
+        if run_type == "MP2":
+            self.method.status = True
+            self.method.xc.status = True
+            self.method.xc.wf_correlation.status = True
 
     def set_params(self, params):
         for item in params:

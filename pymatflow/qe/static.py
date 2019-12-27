@@ -18,7 +18,6 @@ class static_run:
     About:
         static_run implements the control over scf, nscf and
         calculations based on them, like dos, pdos, bands, epsilon
-        Phonon(DFPT)
     Status:
         currently implemented calculation including:
             scf, nscf, dos, bands, projwfc(pdos),
