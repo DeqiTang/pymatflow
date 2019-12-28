@@ -28,7 +28,6 @@ class vib_run:
 
         self.glob.basic_setting(run_type="VIBRATIONAL_ANALYSIS")
         self.force_eval.basic_setting()
-        self.vibrational_analysis.basic_setting()
         # calculation of IR through vib need print dipole moments
         # throught DFT/PRINT/MOMENTS
         #self.force_eval.dft.printout.print_moments()
