@@ -96,7 +96,8 @@ if __name__ == "__main__":
     ions_params["mdtemp(2)"] = args.mdtemp[1]
     ions_params["optcell"] = args.optcell
 
-    task = md_run(args.file)
+    task = md_run()
+    task.get_xyz(args.file)
     task.md(directory=args.directory, mpi=args.mpi, runopt=args.runopt, electrons=electrons_params, kpoints=kpoints_params, ions=ions_params)
 
 

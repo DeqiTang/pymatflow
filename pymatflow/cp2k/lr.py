@@ -21,17 +21,26 @@ class lr_run:
     Note:
         lr_run is the  class as an agent for Linear Response calculation.
     """
-    def __init__(self, xyz_f):
+    def __init__(self):
         self.glob = cp2k_glob()
-        self.force_eval = cp2k_force_eval(xyz_f)
+        self.force_eval = cp2k_force_eval()
  #       self.atom = cp2k_atom()
         
         self.glob.basic_setting(run_type="LINEAR_RESPONSE")
         self.force_eval.basic_setting()
 
+    def get_xyz(self, xyzfile):
+        """
+        xyz_f:
+            a modified xyz formatted file(the second line specifies the cell of the 
+            system).
+        """
+        self.force_eval.subsys.xyz.get_xyz(xyzfile)
 
-    def lr(self, directory="tmp-cp2k-lr", inpname="lr.inp", output="lr.out", 
-            force_eval={}, mpi="", runopt="gen", printout_option=[]):
+    def set_params(self, force_eval={}):
+        self.force_eval.set_params(params=force_eval)
+
+    def lr(self, directory="tmp-cp2k-lr", inpname="lr.inp", output="lr.out", mpi="", runopt="gen"):
         """
         directory:
             where the calculation will happen
@@ -39,20 +48,13 @@ class lr_run:
             inputfile name for the cp2k
         output:
             output filename for the cp2k
-        force_eval:
-            allowing control of FORCE_EVAL/... parameters by user
-        printout_option:
-            a list of integers, controlling the printout of properties, etc.
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, self.force_eval.subsys.xyz.file))
-            # using force_eval
-            self.force_eval.set_params(force_eval)
-            #self.atom.set_params(atom)
-            self.printout_option(printout_option)
+            
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.glob.to_input(fout)
                 self.force_eval.to_input(fout)
@@ -67,7 +69,7 @@ class lr_run:
            os.chdir("../")    
 
 
-    def printout_option(self, option=[]):
+    def set_printout(self, option=[]):
         """
         Note:
             responsible for the parseing of the printout_option like in self.scf()
@@ -88,6 +90,9 @@ class lr_run:
            13: request a RESP fit of charges.
            14: request a LINRES calculation
         """
+        self.force_eval.dft.printout.status = True
+        self.force_eval.properties.status = True
+
         if 1 in option:
             self.force_eval.dft.printout.pdos.status = True
         if 2 in option:

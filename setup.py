@@ -59,7 +59,6 @@ setup(
         "pymatflow/cp2k/scripts/cp2k-geo-opt.py",
         "pymatflow/cp2k/scripts/cp2k-cell-opt.py",
         "pymatflow/cp2k/scripts/cp2k-scf.py",
-        "pymatflow/cp2k/scripts/cp2k-scf-restart.py",
         "pymatflow/cp2k/scripts/cp2k-mp2.py",
         "pymatflow/cp2k/scripts/cp2k-vib.py",
         "pymatflow/cp2k/scripts/cp2k-neb.py",

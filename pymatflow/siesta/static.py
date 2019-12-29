@@ -15,14 +15,16 @@ from pymatflow.siesta.base.properties import siesta_properties
 class static_run:
     """
     """
-    def __init__(self, xyz_f):
-        self.system = siesta_system(xyz_f)
+    def __init__(self):
+        self.system = siesta_system()
         self.electrons = siesta_electrons()
-        self.properties = siesta_properties(self.system.xyz)
+        self.properties = siesta_properties()
         
         self.electrons.basic_setting()
 
-                
+    def get_xyz(self, xyzfile):
+        self.system.xyz.get_xyz(xyzfile)
+        self.properties.set_xyz(self.system.xyz) 
 
     def scf(self, directory="tmp-siesta-static", inpname="static-scf.fdf", output="static-scf.out",
             mpi="", runopt="gen", electrons={}, properties=[], kpoints_mp=[1, 1, 1]):

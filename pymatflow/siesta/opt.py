@@ -16,13 +16,16 @@ from pymatflow.siesta.base.ions import siesta_ions
 class opt_run:
     """
     """
-    def __init__(self, xyz_f):
-        self.system = siesta_system(xyz_f)
+    def __init__(self):
+        self.system = siesta_system()
         self.electrons = siesta_electrons()
         self.ions = siesta_ions()
 
         self.electrons.basic_setting()
         self.ions.basic_setting(option="opt")
+
+    def get_xyz(self, xyzfile):
+        self.system.xyz.get_xyz(xyzfile)
 
     def opt(self, directory="tmp-siesta-opt", inpname="geometric-optimization.fdf", output="geometric-optimization.out",
             mpi="", runopt="gen", mode=0, electrons={}, ions={}, kpoints_mp=[1, 1, 1]):

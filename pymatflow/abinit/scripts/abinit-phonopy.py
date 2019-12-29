@@ -73,5 +73,6 @@ if __name__ == "__main__":
     kpoints_params["kptopt"] = args.kptopt
     kpoints_params["ngkpt"] = args.ngkpt
 
-    task = phonopy_run(args.file)
+    task = phonopy_run(xyzfile)
+    task.get_xyz(args.file)
     task.phonopy(directory=args.directory, mpi=args.mpi, runopt=args.runopt, electrons=electrons_params, kpoints=kpoints_params, supercell_n=args.supercell_n)

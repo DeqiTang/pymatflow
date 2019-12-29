@@ -14,16 +14,11 @@ from pymatflow.abinit.base.guard import abinit_guard
 class neb_run:
     """
     """
-    def __init__(self, images):
+    def __init__(self):
         """
-        images:
-            ["first.xyz", "last.xyz"]
         """
         self.electrons = abinit_electrons()
         self.system = []
-        for image in images:
-            self.system.append(abinit_system(image))
-
         self.electrons.basic_setting()
         
         self.guard = abinit_guard(queen="neb", electrons=self.electrons, system=self.system)
@@ -44,7 +39,18 @@ class neb_run:
                 "dynimage": "0 5*1 0",
                 "fxcartfactor": 1.0,
                 }
-        
+
+    def get_images(self, images):
+        """
+        images:
+            ["first.xyz", "last.xyz"]
+        """
+        self.system = []
+        for image in images:
+            system = abinit_system()
+            system.xyz.get_xyz(image)
+            self.system.append(system)
+
     def neb(self, directory="tmp-abinit-neb", inpname="neb.in", mpi="", runopt="gen",
             electrons={}, kpoints={}):
         if runopt == "gen" or runopt == "genrun":

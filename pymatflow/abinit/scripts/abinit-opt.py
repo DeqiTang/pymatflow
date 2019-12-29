@@ -80,5 +80,6 @@ if __name__ == "__main__":
     ions_params["ionmov"] = args.ionmov
     ions_params["optcell"] = args.optcell
 
-    task = opt_run(args.file)
+    task = opt_run()
+    task.get_xyz(args.file)
     task.optimize(directory=args.directory, mpi=args.mpi, runopt=args.runopt, electrons=electrons_params, kpoints=kpoints_params, ions=ions_params)

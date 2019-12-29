@@ -38,22 +38,47 @@ class phonopy_run:
         large kpoint sets, while the larger one requires smaller kpoint
         sets.
     """
-    def __init__(self, xyz_f):
+    def __init__(self):
         self.control = qe_control()
         self.system = qe_system()
         self.electrons = qe_electrons()
         #self.ions = qe_ions()
-        self.arts = qe_arts(xyz_f)
+        self.arts = qe_arts()
 
         self.control.basic_setting("scf")
-        self.system.basic_setting(self.arts)
-        self.arts.basic_setting(ifstatic=True)
 
         self.supercell_n = [1, 1, 1]
         
-    def phonopy(self, directory="tmp-qe-phonopy", pos_inpname="pos.in", head_inpname="head.in",
-            mpi="", runopt="gen", control={}, system={}, electrons={}, 
-            kpoints_option="automatic", kpoints_mp=[1, 1, 1, 0, 0, 0], supercell_n=[1, 1, 1]):
+    def get_xyz(self, xyzfile):
+        """
+        xyz_f:
+            a modified xyz formatted file(the second line specifies the cell of the 
+            system).
+        """
+        self.arts.xyz.get_xyz(xyzfile)
+        self.system.basic_setting(self.arts)
+        self.arts.basic_setting(ifstatic=True)
+
+    def set_params(self, control={}, system={}, electrons={}, kpoints_option="automatic", kpoints_mp=[1, 1, 1, 0, 0, 0], supercell_n=[1, 1, 1]):
+        self.supercell_n = supercell_n
+        # check if user try to set occupations and smearing and degauss
+        # through system. if so, use self.set_occupations() which uses
+        # self.system.set_occupations() to set them, as self.system.set_params()
+        # is suppressed from setting occupations related parameters
+        self.set_occupations(system)
+        self.control.set_params(control)
+        self.system.set_params(system)
+        self.electrons.set_params(electrons)
+        self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
+            
+        # must print print out forces and stress after scf
+        # so that phonopy can parse the scf output file and
+        # construct the FORCE CONSTANT MATIRX
+        self.control.params["tprnfor"] = True
+        self.control.params["tstress"] = True
+
+
+    def phonopy(self, directory="tmp-qe-phonopy", pos_inpname="pos.in", head_inpname="head.in", mpi="", runopt="gen"):
         """
         directory: a place for all the generated files
         """
@@ -63,27 +88,8 @@ class phonopy_run:
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
             os.system("cp %s %s/" % (self.arts.xyz.file, directory))
-           
-            self.supercell_n = supercell_n
 
-
-            # check if user try to set occupations and smearing and degauss
-            # through system. if so, use self.set_occupations() which uses
-            # self.system.set_occupations() to set them, as self.system.set_params() 
-            # is suppressed from setting occupations related parameters
-            self.set_occupations(system)
-            self.control.set_params(control)
-            self.system.set_params(system)
-            self.electrons.set_params(electrons)
-            self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
-            
-            # must print print out forces and stress after scf
-            # so that phonopy can parse the scf output file and
-            # construct the FORCE CONSTANT MATIRX
-            self.control.params["tprnfor"] = True
-            self.control.params["tstress"] = True
-            
-                        
+                                
             with open(os.path.join(directory, head_inpname), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)

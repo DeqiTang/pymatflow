@@ -30,20 +30,39 @@ class static_run:
                 ecutwfc, ecutrho, kpoints, degauss
     #
     """
-    def __init__(self, xyz_f):
+    def __init__(self):
         self.control = qe_control()
         self.system = qe_system()
         self.electrons = qe_electrons()
-        self.arts = qe_arts(xyz_f)
+        self.arts = qe_arts()
 
         self.control.basic_setting("scf") 
-        self.system.basic_setting(self.arts)
         self.electrons.basic_setting()
+
+    def get_xyz(self, xyzfile):
+        """
+        xyz_f:
+            a modified xyz formatted file(the second line specifies the cell of the 
+            system).
+        """
+        self.arts.xyz.get_xyz(xyzfile)
+        self.system.basic_setting(self.arts)
         self.arts.basic_setting(ifstatic=True)
 
+    def set_params(self, control={}, system={}, electrons={}, kpoints_option="automatic", kpoints_mp=[2, 2, 2, 0, 0, 0], pressure=None, pressuredir=None):
+        # check if user try to set occupations and smearing and degauss
+        # through system. if so, use self.set_occupations() which uses
+        # self.system.set_occupations() to set them, as self.system.set_params() 
+        # is suppressed from setting occupations related parameters
+        self.set_occupations(system)
+        self.control.set_params(control)
+        self.system.set_params(system)
+        self.electrons.set_params(electrons)
+        self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
+        self.arts.set_atomic_forces(pressure=pressure, direction=pressuredir)
+        
 
-    def scf(self, directory="tmp-qe-static", inpname="static-scf.in", output="static-scf.out", 
-            mpi="", runopt="gen", control={}, system={}, electrons={}, kpoints_option="automatic", kpoints_mp=[2, 2, 2, 0, 0, 0]):
+    def scf(self, directory="tmp-qe-static", inpname="static-scf.in", output="static-scf.out", mpi="", runopt="gen"):
         """
         directory: a place for all the generated files
 
@@ -63,6 +82,7 @@ class static_run:
             doing these calculations there should already be the 
             directory where scf calculation has been conducted.
         """
+        self.control.calculation("scf")
         if runopt == 'gen' or runopt == 'genrun':
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -70,16 +90,6 @@ class static_run:
             os.system("cp *.UPF %s/" % directory)
             os.system("cp %s %s/" % (self.arts.xyz.file, directory))
             
-            # check if user try to set occupations and smearing and degauss
-            # through system. if so, use self.set_occupations() which uses
-            # self.system.set_occupations() to set them, as self.system.set_params() 
-            # is suppressed from setting occupations related parameters
-            self.set_occupations(system)
-            self.control.set_params(control)
-            self.system.set_params(system)
-            self.electrons.set_params(electrons)
-            self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
-            self.control.calculation("scf")
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)
@@ -93,8 +103,7 @@ class static_run:
             os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
 
-    def nscf(self, directory="tmp-qe-static", inpname="static-nscf.in", output="static-nscf.out",
-            mpi="", runopt='gen', control={}, system={}, electrons={}, kpoints_mp=[4, 4, 4, 0, 0, 0]):
+    def nscf(self, directory="tmp-qe-static", inpname="static-nscf.in", output="static-nscf.out", mpi="", runopt='gen'):
         """
         parameters:
             directory: the overall static calculation directory
@@ -105,6 +114,7 @@ class static_run:
                 'genrun': generate input files and run
                 'run': run from the previously generated input files
         """
+        self.control.calculation("nscf")
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
             print("===================================================\n")
@@ -115,16 +125,6 @@ class static_run:
             sys.exit(1)
         if runopt == 'gen' or runopt == 'genrun':
 
-            # check if user try to set occupations and smearing and degauss
-            # through system. if so, use self.set_occupations() which uses
-            # self.system.set_occupations() to set them, as self.system.set_params() 
-            # is suppressed from setting occupations related parameters
-            self.set_occupations(system)
-            self.control.set_params(control)
-            self.system.set_params(system)
-            self.electrons.set_params(electrons)
-            self.arts.set_kpoints(kpoints_mp)
-            self.control.calculation("nscf")
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)
@@ -174,8 +174,7 @@ class static_run:
             elif system["occupations"] == "from_input":
                 self.system.set_occupations(occupations="from_input")
 
-    def converge_ecutwfc(self, emin, emax, step, directory="tmp-qe-ecutwfc", 
-            mpi="", runopt="gen", control={}, system={}, electrons={}, kpoints_option="automatic", kpoints_mp=[1, 1, 1, 0, 0, 0]):
+    def converge_ecutwfc(self, emin, emax, step, directory="tmp-qe-ecutwfc", mpi="", runopt="gen"):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -183,16 +182,6 @@ class static_run:
             os.system("cp *.UPF %s/" % directory)
             os.system("cp %s %s/" % (self.arts.xyz.file, directory))
     
-            # check if user try to set occupations and smearing and degauss
-            # through system. if so, use self.set_occupations() which uses
-            # self.system.set_occupations() to set them, as self.system.set_params() 
-            # is suppressed from setting occupations related parameters
-            self.set_occupations(system)
-            self.control.set_params(control)
-            self.system.set_params(system)
-            self.electrons.set_params(electrons)
-            self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
-            
             os.chdir(directory)
             n_test = int((emax - emin) / step)
             for i in range(n_test + 1):
@@ -227,23 +216,13 @@ class static_run:
             os.chdir("../")
 
         
-    def converge_ecutrho(self, emin, emax, step, ecutwfc, directory="tmp-qe-ecutrho", 
-            mpi="", runopt="gen", control={}, system={}, electrons={}, kpoints_option="automatic", kpoints_mp=[1, 1, 1, 0, 0, 0]):
+    def converge_ecutrho(self, emin, emax, step, ecutwfc, directory="tmp-qe-ecutrho", mpi="", runopt="gen"):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
 
-            # check if user try to set occupations and smearing and degauss
-            # through system. if so, use self.set_occupations() which uses
-            # self.system.set_occupations() to set them, as self.system.set_params() 
-            # is suppressed from setting occupations related parameters
-            self.set_occupations(system)
-            self.control.set_params(control)
-            self.system.set_params(system)
-            self.electrons.set_params(electrons)
-            self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
 
             os.chdir(directory)
             n_test = int((emax - emin) / step)
@@ -278,8 +257,7 @@ class static_run:
                 os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
             os.chdir("../")
     #
-    def converge_kpoints(self, nk_min, nk_max, step=1, directory="tmp-qe-kpoints", 
-            mpi="", control={}, system={}, electrons={}, runopt="gen"):
+    def converge_kpoints(self, nk_min, nk_max, step=1, directory="tmp-qe-kpoints", mpi="", runopt="gen"):
         """
         test the energy convergenc against k-points
 
@@ -297,14 +275,6 @@ class static_run:
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
 	    
-            # check if user try to set occupations and smearing and degauss
-            # through system. if so, use self.set_occupations() which uses
-            # self.system.set_occupations() to set them, as self.system.set_params() 
-            # is suppressed from setting occupations related parameters
-            self.set_occupations(system)
-            self.control.set_params(control)
-            self.system.set_params(system)
-            self.electrons.set_params(electrons)
             os.chdir(directory)	
             n_test = int((nk_max - nk_min) / step)
             for i in range(n_test + 1):
@@ -338,8 +308,7 @@ class static_run:
                 os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
             os.chdir("../")  
 
-    def converge_degauss(self,degauss_min, degauss_max, step=0.01, directory="tmp-qe-degauss", mpi="",
-            smearing='gauss', control={}, system={}, electrons={}, runopt="gen", kpoints_mp=[1, 1, 1, 0, 0, 0]):
+    def converge_degauss(self,degauss_min, degauss_max, step=0.01, directory="tmp-qe-degauss", mpi=""):
         """
         Convergence with respect to degauss/smearing
 
@@ -374,12 +343,6 @@ class static_run:
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
 	   
-            self.control.set_params(control)
-            self.system.set_params(system)
-            self.electrons.set_params(electrons)
-            self.arts.set_kpoints(kpoints_mp)
-            self.system.params["occupations"] = "smearing"
-
             os.chdir(directory)	
             n_test = int((degauss_max - degauss_min) / step)
             for i in range(n_test + 1):
@@ -387,7 +350,6 @@ class static_run:
                 inp_name = "degauss-%f.in" % degauss
                 self.control.params['outdir'] = './tmp-' + str(degauss) 
                 #self.arts.set_kpoints([nk, nk, nk, 0, 0, 0]) # use the previously convered kpoints(automatic)
-                self.system.params['smearing'] = smearing
                 self.system.params['degauss'] = degauss
                 with open(inp_name, 'w') as fout:
                     self.control.to_in(fout)
@@ -497,16 +459,19 @@ class static_run:
             os.chdir("../")
 
     def bands(self, directory="tmp-qe-static", inpname1="static-bands.in", output1="static-bands.out",
-            inpname2="bands.in", output2="bands.out", mpi="", kpoints_option="automatic",
-            control={}, system={}, electrons={}, kpoints_mp=[4, 4, 4, 0, 0, 0], runopt="gen"
-            ):
+            inpname2="bands.in", output2="bands.out", mpi="", runopt="gen"):
         """
         first check whether there is a previous scf running
         Note:
             the calculation of 'bands' is based on the previous scf or nscf running
             namely there must be the xxx.save/charge-density.dat for pw.x to read
             and do the bands calculation
+
+        Warning:
+            now we better use tpiba_b type kpoints setting!!! as only the postprocess of that
+            type of band structure calculation is implemented now
         """
+        self.control.calculation('bands')
         if not os.path.exists(directory):
             print("===================================================\n")
             print("                 Warning !!!\n")
@@ -516,19 +481,6 @@ class static_run:
             sys.exit(1)
         
         if runopt == "gen" or runopt == "genrun":
-            # check if user try to set occupations and smearing and degauss
-            # through system. if so, use self.set_occupations() which uses
-            # self.system.set_occupations() to set them, as self.system.set_params() 
-            # is suppressed from setting occupations related parameters
-            self.set_occupations(system)
-            self.control.set_params(control)
-            self.system.set_params(system)
-            self.electrons.set_params(electrons)
-            self.control.calculation('bands')
-            # ===========
-            # set kpoints
-            # ===========
-            self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
 
             with open(os.path.join(directory, inpname1), 'w') as fout:
                 self.control.to_in(fout)

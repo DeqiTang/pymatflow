@@ -31,27 +31,36 @@ class neb_run:
         can we fix some atoms when doing neb calculation?
 
     """
-    def __init__(self, images):
+    def __init__(self):
         """
-        images:
-            ["first.xyz", "intermediate-1.xyz", "intermediate-2.xyz", ...,"last.xyz"]
+
         """
         self.control = qe_control()
         self.system = qe_system()
         self.electrons = qe_electrons()
         self.arts = []
-        for image in images:
-            self.arts.append(qe_arts(image))
 
         self.path = {} # Namelist: &PATH
         self.set_basic_path()
         
         self.control.basic_setting("scf") 
-        self.system.basic_setting(self.arts[0])
         self.electrons.basic_setting()
+        
+    def get_images(self, images):
+        """
+        images:
+            ["first.xyz", "intermediate-1.xyz", "intermediate-2.xyz", ...,"last.xyz"]
+        """
+        self.arts = []
+        for image in images:
+            arts = qe_arts()
+            arts.xyz.get_xyz(image)
+            self.arts.append(arts)
+        self.system.basic_setting(self.arts[0])
         for image in self.arts:
             image.basic_setting(ifstatic=True)
         
+
     def neb(self, directory="tmp-qe-neb", inpname="neb.in", output="neb.out", 
             mpi="", runopt="gen", control={}, system={}, electrons={}, kpoints_option="automatic", kpoints_mp=[1, 1, 1, 0, 0, 0],
             path={}, restart_mode="from_scratch"):

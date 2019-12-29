@@ -709,7 +709,9 @@ class cp2k_motion_band:
 
     def get_images(self, images):
         for image in images:
-            self.images.append(base_xyz(image))
+            xyz = base_xyz()
+            xyz.get_xyz(image)
+            self.images.append(xyz)
 
     def set_params(self, params):
         for item in params:

@@ -40,18 +40,29 @@ References:
 class phonopy_run:
     """
     """
-    def __init__(self, xyz_f):
+    def __init__(self):
         self.glob = cp2k_glob()
-        self.force_eval = cp2k_force_eval(xyz_f)
+        self.force_eval = cp2k_force_eval()
         
         self.glob.basic_setting(run_type="ENERGY_FORCE")
         self.force_eval.basic_setting()
 
         self.supercell_n = [1, 1, 1]
 
+    def get_xyz(self, xyzfile):
+        """
+        xyz_f:
+            a modified xyz formatted file(the second line specifies the cell of the 
+            system).
+        """
+        self.force_eval.subsys.xyz.get_xyz(xyzfile)
+
+
+    def set_params(self, force_eval):
+        self.force_eval.set_params(force_eval)
 
     def phonopy(self, directory="tmp-cp2k-phonopy",
-            mpi="", runopt="gen", force_eval={}):
+            mpi="", runopt="gen"):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -60,7 +71,6 @@ class phonopy_run:
             os.chdir(directory)
             shutil.copyfile("../%s" % self.force_eval.subsys.xyz.file, "%s" % self.force_eval.subsys.xyz.file)
 
-            self.force_eval.set_params(force_eval)
             inp_name = "phonon.inp"
             with open(inp_name, 'w') as fout:
                 self.glob.to_input(fout)

@@ -19,8 +19,8 @@ Usage:
 class siesta_system:
     """
     """
-    def __init__(self, xyz_f, name="Siesta Job", label="siesta"):
-        self.xyz = base_xyz(xyz_f)
+    def __init__(self, name="Siesta Job", label="siesta"):
+        self.xyz = base_xyz()
 
         self.name = name
         self.label = label

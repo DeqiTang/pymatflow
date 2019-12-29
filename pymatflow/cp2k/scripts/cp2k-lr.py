@@ -103,8 +103,11 @@ if __name__ == "__main__":
     force_eval["DFT-KPOINTS-SCHEME"] = args.kpoints_scheme
 
 
-    task = lr_run(args.file)
-    task.lr(directory=args.directory, runopt=args.runopt, force_eval=force_eval, printout_option=args.printout_option)
+    task = lr_run()
+    task.get_xyz(args.file)
+    task.set_params(force_eval=force_eval)
+    task.set_printout(args.printout_option)
+    task.lr(directory=args.directory, runopt=args.runopt)
 
     # server handle
     if args.auto == 0:

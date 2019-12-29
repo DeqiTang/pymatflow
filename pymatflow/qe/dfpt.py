@@ -52,20 +52,26 @@ class dfpt_run:
         to properly deal with 2D materials, we have to set assume_isolated='2D' in
         pw.x scf calculation and set loto_2d=.true. in q2r.x and matdyn.x calculation
     """
-    def __init__(self, xyz_f):
+    def __init__(self):
         self.control = qe_control()
         self.system = qe_system()
         self.electrons = qe_electrons()
-        self.arts = qe_arts(xyz_f)
+        self.arts = qe_arts()
 
         self.control.basic_setting("scf") 
-        self.system.basic_setting(self.arts)
         self.electrons.basic_setting()
+
+    def get_xyz(self, xyzfile):
+        """
+        xyz_f:
+            a modified xyz formatted file(the second line specifies the cell of the 
+            system).
+        """
+        self.arts.xyz.get_xyz(xyzfile)
+        self.system.basic_setting(self.arts)
         self.arts.basic_setting(ifstatic=True)
 
-
-    def phx(self, directory="tmp-qe-static", inpname="phx.in", output="phx.out", mpi="", runopt="gen",
-            inputph={}, qpoints_option="gamma", qpoints=[2, 2, 2], polarization=False):
+    def set_params_phx(self, inputph={}, qpoints_option="gamma", qpoints=[2, 2, 2], polarization=False):
         """
         Reference:
             https://gitlab.com/QEF/material-for-ljubljana-qe-summer-school/blob/master/Day-3/handson-day3-DFPT.pdf
@@ -126,6 +132,14 @@ class dfpt_run:
                 print("are not allowed through inputph\n")
         for item in inputph:
             self.inputph[item] = inputph[item]
+       
+        self.polarization = polarization
+        self.qpoints_option = qpoints_option
+        self.qpoints = qpoints
+
+    def phx(self, directory="tmp-qe-static", inpname="phx.in", output="phx.out", mpi="", runopt="gen"):
+        """
+        """
         # ---------------------------------------------------------------
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
@@ -141,19 +155,19 @@ class dfpt_run:
                 fout.write("&inputph\n")
                 for item in self.inputph:
                     if self.inputph[item] is not None:
-                        if type(self.inputph[item]) == str:
+                        if type(self.inputph[item]) == str and item != "trans":
                             fout.write("%s = '%s'\n" % (item, str(self.inputph[item])))
                         else:
                             fout.write("%s = %s\n" % (item, str(self.inputph[item])))
-                # if polarization = True will  set epsil = .true. 
+                # if self.polarization = True will  set epsil = .true. 
                 # to calculate and store the dielectric tensor and effective charge
-                if polarization == True:
+                if self.polarization == True:
                     fout.write("epsil = .true.\n")
                 #
-                if qpoints_option == "qmesh":
-                    fout.write("nq1 = %d\n" % qpoints[0])
-                    fout.write("nq2 = %d\n" % qpoints[1])
-                    fout.write("nq3 = %d\n" % qpoints[2])
+                if self.qpoints_option == "qmesh":
+                    fout.write("nq1 = %d\n" % self.qpoints[0])
+                    fout.write("nq2 = %d\n" % self.qpoints[1])
+                    fout.write("nq3 = %d\n" % self.qpoints[2])
                     fout.write("ldisp = .true.\n") # must be set for q mesh calculation
                 # get info about atom fixation
                 nat_todo = 0
@@ -170,9 +184,9 @@ class dfpt_run:
                     # gamma_gamma tricks with nat_todo != 0 not available,
                     # so we must use nogg = .true.
                 fout.write("/\n")
-                if qpoints_option == "gamma":
+                if self.qpoints_option == "gamma":
                     fout.write("0.0 0.0 0.0\n")
-                elif qpoints_option == "qmesh":
+                elif self.qpoints_option == "qmesh":
                     pass
                 else:
                     print("=======================================\n")

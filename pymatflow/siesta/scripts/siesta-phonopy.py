@@ -71,7 +71,8 @@ if __name__ == "__main__":
     electrons["ElectronicTemperature"] = args.electronic_temperature
 
 
-    task = phonopy_run(xyzfile)
+    task = phonopy_run()
+    task.get_xyz(xyzfile)
 
     task.phonopy(directory=directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, kpoints_mp=args.kpoints_mp, supercelln=args.supercelln)
 

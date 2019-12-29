@@ -24,16 +24,10 @@ Note:
 class ts_run:
     """
     """
-    def __init__(self, electrodes, device):
+    def __init__(self):
         self.system_electrodes = []
-        #self.properties = []
-        for xyz_f in electrodes:
-            self.system_electrodes.append(siesta_system(xyz_f))
+        self.system_device = None
 
-        #for system in self.electrodes:
-        #    self.properties.append(siesta_properties(system.xyz))
-        
-        self.system_device = siesta_system(device)
 
         self.electrons = siesta_electrons()
 
@@ -43,7 +37,18 @@ class ts_run:
         
         self.electrons.basic_setting()
         #self.electrons.params["SolutionMethod"] = "transiesta"
-                
+
+    def get_electrodes_device(self, electrodes, device):
+        self.system_electrodes = []
+        #self.properties = []
+        for xyz_f in electrodes:
+            electrode = siesta_system()
+            electrode.xyz.get_xyz(xyz_f)
+            self.system_electrodes.append(electrode)
+        
+        self.system_device = siesta_system()
+        self.system_device.xyz.get_xyz(device)
+
 
     def ts(self, directory="tmp-siesta-ts", inpname="transiesta.fdf", output="transiesta.out",
             mpi="", runopt="gen", electrons={}, properties=[], kpoints_mp=[1, 1, 1], bias=[0, 1, 0.2]):

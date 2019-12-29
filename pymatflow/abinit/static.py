@@ -15,14 +15,16 @@ class static_run:
     GOAL: support for both single dataset and multi-dataset mode in abinit,
           currently, only for single dataset mode
     """
-    def __init__(self, xyz_f):
-        self.system = abinit_system(xyz_f)
+    def __init__(self):
+        self.system = abinit_system()
         self.electrons = abinit_electrons()
         self.properties = abinit_properties()
         self.guard = abinit_guard(queen="static", electrons=self.electrons, system=self.system)
 
         self.electrons.basic_setting()
-        
+
+    def get_xyz(self, xyzfile):
+        self.system.xyz.get_xyz(xyzfile)
         
     def scf(self, directory="tmp-abinit-static", inpname="static-scf.in", mpi="", runopt="gen",
             electrons={}, kpoints={}, properties=[]):

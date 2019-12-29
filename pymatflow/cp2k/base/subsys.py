@@ -123,9 +123,9 @@ class cp2k_subsys:
     """
 
     """
-    def __init__(self, xyz_f):
-        #super().__init__(xyz_f)
-        self.xyz = base_xyz(xyz_f)
+    def __init__(self):
+        #super().__init__()
+        self.xyz = base_xyz()
         self.params = {
                 "SEED": None,
                 }
@@ -157,7 +157,10 @@ class cp2k_subsys:
 
         self.velocity = cp2k_subsys_velocity()
 
-        self.basic_setting()
+        # basic_setting
+        self.kind.status = True
+        self.cell.status = True
+        self.topology.status = True
     
     def to_input(self, fout):
         """
@@ -172,7 +175,4 @@ class cp2k_subsys:
             self.topology.to_input(fout, self.xyz)
         fout.write("\t&END SUBSYS\n")
 
-    def basic_setting(self):
-        self.kind.status = True
-        self.cell.status = True
-        self.topology.status = True
+        

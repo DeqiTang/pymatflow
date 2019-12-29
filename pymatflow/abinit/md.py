@@ -14,8 +14,8 @@ from pymatflow.abinit.base.guard import abinit_guard
 class md_run:
     """
     """
-    def __init__(self, xyz_f):
-        self.system = abinit_system(xyz_f)
+    def __init__(self):
+        self.system = abinit_system()
         self.electrons = abinit_electrons()
         self.ions = abinit_ions()
         
@@ -25,6 +25,9 @@ class md_run:
 
         self.guard = abinit_guard(queen="md", electrons=self.electrons, ions=self.ions, system=self.system)
         
+    def get_xyz(self, xyzfile):
+        self.system.xyz.get_xyz(xyzfile)
+
     def md(self, directory="tmp-abinit-md", inpname="molecular-dynamics.in", mpi="", runopt="gen",
             electrons={}, ions={}, kpoints={}):
         if runopt == "gen" or runopt == "genrun":

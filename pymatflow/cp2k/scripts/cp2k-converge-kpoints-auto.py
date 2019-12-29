@@ -121,8 +121,10 @@ if __name__ == "__main__":
     force_eval["DFT-SCF-OT"] = args.ot
     force_eval["DFT-SCF-MIXING-ALPHA"] = args.alpha
 
-    task = static_run(args.file)
-    task.converge_kpoints_auto(kmin=args.range[0], kmax=args.range[1], step=args.range[2], directory=args.directory, force_eval=force_eval, runopt=args.runopt)
+    task = static_run()
+    task.get_xyz(args.file)
+    task.set_params(force_eval=force_eval)
+    task.converge_kpoints_auto(kmin=args.range[0], kmax=args.range[1], step=args.range[2], directory=args.directory, runopt=args.runopt)
 
     # server handle
     if args.auto == 0:

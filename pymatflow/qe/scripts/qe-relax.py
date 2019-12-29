@@ -107,8 +107,10 @@ if __name__ == "__main__":
     system_params["vdw_corr"] = args.vdw_corr
     electrons_params["conv_thr"] = args.conv_thr
  
-    task = opt_run(args.file)
-    task.relax(directory=args.directory, runopt=args.runopt, mpi=args.mpi, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+    task = opt_run()
+    task.get_xyz(args.file)
+    task.set_params(control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+    task.relax(directory=args.directory, runopt=args.runopt, mpi=args.mpi)
 
     # server handle
     if args.auto == 0:

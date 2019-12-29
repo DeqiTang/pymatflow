@@ -111,7 +111,8 @@ if __name__ == "__main__":
     path_params["ds"] = args.ds
     path_params["first_last_opt"] = args.first_last_opt
 
-    task = neb_run(images=args.images)
+    task = neb_run()
+    task.get_images(images=args.images)
     task.neb(directory=directory, runopt=args.runopt, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp, path=path_params, restart_mode=args.restart_mode)
 
     # server handle

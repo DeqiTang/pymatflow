@@ -45,9 +45,10 @@ if __name__ == "__main__":
     xyzfile = args.file
     system_params["ecutwfc"] = args.ecutwfc
 
-    task = static_run(xyzfile)
-
-    task.converge_degauss(round(args.range[0], 6), round(args.range[1], 6), round(args.range[2], 6), runopt=args.runopt, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+    task = static_run()
+    task.get_xyz(xyzfile)
+    task.set_params(control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+    task.converge_degauss(round(args.range[0], 6), round(args.range[1], 6), round(args.range[2], 6), runopt=args.runopt)
 
     # server handle
     if args.auto == 0:

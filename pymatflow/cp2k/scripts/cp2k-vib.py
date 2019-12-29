@@ -27,6 +27,11 @@ if __name__ == "__main__":
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
+
+    # ---------------------------------------------------------------------------
+    #                       FORCE_EVAL realated parameters
+    # ---------------------------------------------------------------------------
+
     parser.add_argument("--ls-scf", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="use linear scaling scf method")
@@ -75,7 +80,12 @@ if __name__ == "__main__":
 
     parser.add_argument("--window-size", help="Size of the energy window centred at the Fermi level for ENERGY_WINDOW type smearing", type=float, default=0)
 
-    # vibrational_analysis
+
+
+    # ---------------------------------------------------------------
+    #             vibrational_analysis related parameters
+    # ---------------------------------------------------------------
+
     parser.add_argument("--dx", type=float, default=1.0e-2,
             help="specify the increment to be used to construct the HESSIAN with finite difference method")
 
@@ -97,9 +107,12 @@ if __name__ == "__main__":
     parser.add_argument("--thermochemistry", type=str, default="FALSE",
             help="Calculation of the thermochemical data. Valid for molecules in the gas phase.")
 
+    # ------------------------
     # for server
+    # ------------------------
     parser.add_argument("--auto", type=int, default=0,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.emuhelper/server.conf")
+
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================   
@@ -128,8 +141,10 @@ if __name__ == "__main__":
     vib["TC_TEMPERATURE"] = args.tc_temperature
     vib["THERMOCHEMISTRY"] = args.thermochemistry
 
-    task = vib_run(args.file)
-    task.vib(directory=args.directory, runopt=args.runopt, force_eval=force_eval, vibrational=vib)
+    task = vib_run()
+    task.get_xyz(args.file)
+    task.set_params(force_eval=force_eval, vibrational=vib)
+    task.vib(directory=args.directory, runopt=args.runopt)
 
     # server handle
     if args.auto == 0:

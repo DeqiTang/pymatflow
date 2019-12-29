@@ -10,6 +10,7 @@ from pymatflow.qe.base.control import qe_control
 from pymatflow.qe.base.system import qe_system
 from pymatflow.qe.base.electrons import qe_electrons
 from pymatflow.qe.base.ions import qe_ions
+from pymatflow.qe.base.cell import qe_cell
 from pymatflow.qe.base.arts import qe_arts
 
 
@@ -24,22 +25,44 @@ class opt_run:
     will not be reliable. if you structure is big enough, a small kpoint set
     will usually suffice the requirement.
     """
-    def __init__(self, xyz_f):
+    def __init__(self):
         self.control = qe_control()
         self.system = qe_system()
         self.electrons = qe_electrons()
         self.ions = qe_ions()
-        self.arts = qe_arts(xyz_f)
+        self.cell = qe_cell() # only needed by vc-relax
+        self.arts = qe_arts()
 
-        self.arts.basic_setting(ifstatic=False)
    
-        
-    def relax(self, directory="tmp-qe-relax", inpname="relax.in", output="relax.out", 
-            mpi="", runopt="gen", control={}, system={}, electrons={}, ions={}, 
-            kpoints_option="automatic", kpoints_mp=[1, 1, 1, 0, 0, 0]):
+    def get_xyz(self, xyzfile):
+        """
+        xyz_f:
+            a modified xyz formatted file(the second line specifies the cell of the 
+            system).
+        """
+        self.arts.xyz.get_xyz(xyzfile)
+        self.system.basic_setting(self.arts)
+        self.arts.basic_setting(ifstatic=False)
+
+    def set_params(self, control={}, system={}, electrons={}, ions={}, cell={}, kpoints_option="automatic", kpoints_mp=[1, 1, 1, 0, 0, 0]):
+        # check if user try to set occupations and smearing and degauss
+        # through system. if so, use self.set_occupations() which uses
+        # self.system.set_occupations() to set them, as self.system.set_params() 
+        # is suppressed from setting occupations related parameters
+        self.set_occupations(system)
+        self.control.set_params(control)
+        self.system.set_params(system)
+        self.electrons.set_params(electrons)
+        self.ions.set_params(ions)
+        self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
+        self.cell.set_params(cell)
+
+
+    def relax(self, directory="tmp-qe-relax", inpname="relax.in", output="relax.out", mpi="", runopt="gen"):
         """
         directory: a place for all the generated files
         """
+        self.set_relax()
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -47,18 +70,6 @@ class opt_run:
             os.system("cp *.UPF %s/" % directory)
             os.system("cp %s %s/" % (self.arts.xyz.file, directory))
             
-            self.set_relax()
-            # check if user try to set occupations and smearing and degauss
-            # through system. if so, use self.set_occupations() which uses
-            # self.system.set_occupations() to set them, as self.system.set_params() 
-            # is suppressed from setting occupations related parameters
-            self.set_occupations(system)
-            self.control.set_params(control)
-            self.system.set_params(system)
-            self.electrons.set_params(electrons)
-            self.ions.set_params(ions)
-            self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
-
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)
@@ -73,12 +84,11 @@ class opt_run:
             os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
     
-    def vc_relax(self, directory="tmp-qe-vc-relax", inpname="vc-relax.in", output="vc-relax.out", 
-            mpi="", runopt="gen", control={}, system={}, electrons={}, ions={}, 
-            kpoints_option="automatic", kpoints_mp=[1, 1, 1, 0, 0, 0]):
+    def vc_relax(self, directory="tmp-qe-vc-relax", inpname="vc-relax.in", output="vc-relax.out", mpi="", runopt="gen"):
         """
         directory: a place for all the generated files
         """
+        self.set_vc_relax()
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -86,23 +96,13 @@ class opt_run:
             os.system("cp *.UPF %s/" % directory)
             os.system("cp %s %s/" % (self.arts.xyz.file, directory))
 
-            self.set_vc_relax()
-            # check if user try to set occupations and smearing and degauss
-            # through system. if so, use self.set_occupations() which uses
-            # self.system.set_occupations() to set them, as self.system.set_params() 
-            # is suppressed from setting occupations related parameters
-            self.set_occupations(system)
-            self.control.set_params(control)
-            self.system.set_params(system)
-            self.electrons.set_params(electrons)
-            self.ions.set_params(ions)
-            self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
 
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)
                 self.electrons.to_in(fout)
                 self.ions.to_in(fout)
+                self.cell.to_in(fout)
                 self.arts.to_in(fout)
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output)

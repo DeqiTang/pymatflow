@@ -90,7 +90,7 @@ if __name__ == "__main__":
             help="dft-ls_scf: use linear scaling scf method")
 
     # vdw correction related
-    parser.add_argument("--vdw", type=str, default="FALSE",
+    parser.add_argument("--usevdw", type=str, default="FALSE",
             choices=["TRUE", "FALSE", "true", "false"],
             help="whether to use VDW correction")
 
@@ -138,7 +138,7 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------
     #                    force_eval/properties related parameters
     # ------------------------------------------------------------------
-    
+ 
     parser.add_argument("--properties-resp-slab-sampling-range", type=float, nargs="+",
             default=[0.3, 3.0],
             help="PROPERTIES-RESP-SLAB_SAMPLING-RANGE.")
@@ -179,10 +179,10 @@ if __name__ == "__main__":
     force_eval["DFT-SCF-MIXING-ALPHA"] = args.alpha
     force_eval["DFT-KPOINTS-SCHEME"] = args.kpoints_scheme
 
-    force_eval["DFT-XC-VDW_POTENTIAL"] = args.vdw
+    #force_eval["DFT-XC-VDW_POTENTIAL"] = args.usevdw
     force_eval["DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"] = args.vdw_potential_type
     force_eval["DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-TYPE"] = args.pair_type
-    force_eval["DFT-XC-VDW_POTENTIAL-PAIR-POTENTIAL-R_CUTOFF"] = args.r_cutoff
+    force_eval["DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-R_CUTOFF"] = args.r_cutoff
 
 
     force_eval["DFT-PRINT-ELF_CUBE-STRIDE"] = args.dft_print_elf_cube_stride
@@ -194,8 +194,12 @@ if __name__ == "__main__":
     force_eval["PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST"] = args.properties_resp_slab_sampling_atom_list
     
 
-    task = static_run(args.file)
-    task.scf(directory=args.directory, mpi=args.mpi, runopt=args.runopt, force_eval=force_eval, printout_option=args.printout_option)
+    task = static_run()
+    task.get_xyz(args.file)
+    task.set_params(force_eval=force_eval)
+    task.set_printout(option=args.printout_option)
+    task.set_vdw(usevdw=True if args.usevdw.lower() == "true" else False)
+    task.scf(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
 
     # server handle
     if args.auto == 0:

@@ -112,7 +112,8 @@ if __name__ == "__main__":
     electrons["ElectronicTemperature"] = args.electronic_temperature
 
 
-    task = static_run(xyzfile)
+    task = static_run()
+    task.get_xyz(xyzfile)
 
     task.properties.set_params(
         #bandlines = args.bandlines,

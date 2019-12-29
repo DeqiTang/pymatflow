@@ -164,8 +164,10 @@ if __name__ == "__main__":
     motion["BAND-K_SPRING"] = args.k_spring
 
 
-    task = neb_run(images=args.images)
-    task.neb(directory=args.directory, runopt=args.runopt, force_eval=force_eval, motion=motion)
+    task = neb_run()
+    task.get_images(images=args.images)
+    task.set_params(force_eval=force_eval, motion=motion)
+    task.neb(directory=args.directory, runopt=args.runopt)
 
     # server handle
     if args.auto == 0:

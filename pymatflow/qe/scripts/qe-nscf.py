@@ -84,7 +84,8 @@ if __name__ == "__main__":
     system_params["vdw_corr"] = args.vdw_corr
     electrons_params["conv_thr"] = args.conv_thr
 
-    task = static_run(xyzfile)
+    task = static_run()
+    task.get_xyz(xyzfile)
     task.nscf(directory=args.directory, runopt=args.runopt, mpi=args.mpi, system=system_params, electrons=electrons_params, kpoints_mp=args.kpoints_mp)
 
     # server handle

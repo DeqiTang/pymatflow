@@ -73,6 +73,15 @@ if __name__ == "__main__":
     parser.add_argument("--tstress", type=str, default=".false.",
             choices=[".true.", ".false."],
             help="calculate stress. default=.false.")
+
+    # -----------------------------------------------------------
+    #           ATOMIC_FORCES
+    # -----------------------------------------------------------
+    parser.add_argument("--pressure", type=float, default=None,
+            help="specify pressure acting on system in unit of Pa")
+    parser.add_argument("--pressuredir", type=str, default=None,
+            choices=["x", "y", "z"],
+            help="specify direction of pressure acting on system.")
     
     # -----------------------------------------------------------------
     #                      for server handling
@@ -97,8 +106,10 @@ if __name__ == "__main__":
     electrons_params["conv_thr"] = args.conv_thr
     
 
-    task = static_run(xyzfile)
-    task.scf(directory=args.directory, runopt=args.runopt, mpi=args.mpi, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+    task = static_run()
+    task.get_xyz(xyzfile)
+    task.set_params(control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp, pressure=args.pressure, pressuredir=args.pressuredir)
+    task.scf(directory=args.directory, runopt=args.runopt, mpi=args.mpi)
 
     # server handle
     if args.auto == 0:

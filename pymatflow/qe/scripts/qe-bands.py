@@ -84,8 +84,10 @@ if __name__ == "__main__":
     kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
 
 
-    task = static_run(xyzfile)
-    task.bands(directory=args.directory, kpoints_option=args.kpoints_option, runopt=args.runopt, control=control_params, system=system_params, electrons=electrons_params, kpoints_mp=kpoints_mp)
+    task = static_run()
+    task.get_xyz(xyzfile)
+    task.set_params(control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=kpoints_mp)
+    task.bands(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
 
     # server handle
     if args.auto == 0:

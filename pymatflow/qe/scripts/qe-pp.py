@@ -58,7 +58,8 @@ if __name__ == "__main__":
     xyzfile = args.file
 
  
-    task = static_run(xyzfile)
+    task = static_run()
+    task.get_xyz(xyzfile)
     task.pp(directory=args.directory, runopt=args.runopt, plot_num=args.plot_num, iflag=args.iflag, output_format=args.output_format)
 
     # server handle

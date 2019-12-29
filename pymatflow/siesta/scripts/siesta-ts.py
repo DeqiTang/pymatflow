@@ -73,8 +73,9 @@ if __name__ == "__main__":
     electrons["ElectronicTemperature"] = args.electronic_temperature
 
 
-    task = ts_run(electrodes=args.electrodes, device=args.device)
 
+    task = ts_run()
+    task.get_electrodes_device(electrodes=args.electrodes, device=args.device)
 
     task.ts(directory=directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, kpoints_mp=args.kpoints_mp, bias=args.bias)
 

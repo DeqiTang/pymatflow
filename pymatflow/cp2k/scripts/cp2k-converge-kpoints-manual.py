@@ -101,8 +101,10 @@ if __name__ == "__main__":
         kpoints.append([args.range[i], args.range[i+1], args.range[i+2]])
         i = i + 3
 
-    task = static_run(args.file)
-    task.converge_kpoints_manual(directory=args.directory, force_eval=force_eval, runopt=args.runopt, kpoints_list=kpoints)
+    task = static_run()
+    task.get_xyz(args.file)
+    task.set_params(force_eval=force_eval)
+    task.converge_kpoints_manual(directory=args.directory, runopt=args.runopt, kpoints_list=kpoints)
 
     # server handle
     if args.auto == 0:

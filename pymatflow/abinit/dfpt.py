@@ -37,8 +37,8 @@ class dfpt_run():
 
         5) fifth, the self-consistent response-function computations of the atomic displacement perturbations with a q wavevector, with the full set of k-points (with kptopt=3)
     """
-    def __init__(self, xyz_f):
-        self.system = abinit_system(xyz_f)
+    def __init__(self):
+        self.system = abinit_system()
         self.electrons = abinit_electrons()
         self.properties = abinit_properties()
         self.dfpt = abinit_dfpt()
@@ -47,7 +47,10 @@ class dfpt_run():
         #self.dfpt.basic_setting()
 
         self.guard = abinit_guard(queen="dfpt", electrons=self.electrons, system=self.system, dfpt=self.dfpt)
-       
+    
+    def get_xyz(self, xyzfile):
+        self.system.xyz.get_xyz(xyzfile)
+
     def run(self, directory="tmp-abinit-static", mpi="", runopt="gen",
             electrons={}, kpoints={}, properties=[]):
         self.nscf_rf_ddk(directory=directory, mpi=mpi, runopt=runopt, electrons=electrons, kpoints=kpoints, properties=properties)

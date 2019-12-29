@@ -17,12 +17,12 @@ usage:
 
 class qe_arts:
     """
-    Control: &CELL, ATOMIC_SPECIES, ATOMIC_POSITIONS, 
+    Control: ATOMIC_SPECIES, ATOMIC_POSITIONS, 
              K_POINTS, CELL_PARAMETERS, CONSTRAINTS, 
              OCCUPATIONS, ATOMIC_FORCES
     """
-    def __init__(self, xyz_f):
-        self.xyz = base_xyz(xyz_f)
+    def __init__(self):
+        self.xyz = base_xyz()
 
         self.cell_params = {
                 "cell_dynamics": None,
@@ -38,12 +38,10 @@ class qe_arts:
         self.kpoints_seekpath = None
 
         self.ifstatic = True # used to determine how to put atomic coordinates to input file
+        self.atomic_forces_status = False # default is no force acting on system
 
     def to_in(self, fout, coordtype="angstrom"):
         # fout: a file stream for writing
-        fout.write("&cell\n")
-        fout.write("/\n")
-        fout.write("\n")
         
         fout.write("ATOMIC_SPECIES\n")
         for element in self.xyz.specie_labels:
@@ -121,6 +119,11 @@ class qe_arts:
         # writing KPOINTS to the fout
         self.write_kpoints(fout)
         # =========================
+        #
+        # writing forces act on atoms
+        if self.atomic_forces_status == True:
+            self.write_atomic_forces(fout)
+        # =========================
 
     def write_kpoints(self, fout):
         # fout: a file stream for writing
@@ -161,7 +164,7 @@ class qe_arts:
             #
         elif self.kpoints_option == "crystal_b":
             pass
-
+        
 
 
     def set_kpoints(self, kpoints_mp=[1, 1, 1, 0, 0, 0], option="automatic"):
@@ -210,6 +213,41 @@ class qe_arts:
         if option == "tpiba_b":
             self.kpoints_option = option
             return
+
+    def write_atomic_forces(self, fout):
+        fout.write("ATOMIC_FORCES\n")
+        for i in range(len(self.xyz.atoms)):
+            fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (self.xyz.atoms[i].name, self.atomic_forces[i][0], self.atomic_forces[i][1] , self.atomic_forces[i][2]))
+
+        fout.write('\n')
+
+    def set_atomic_forces(self, pressure=None, direction=None):
+        """
+        set ATOMIC_FORCES
+        pressure:
+            in unit of Pa
+        direction:
+            x | y | z
+        Note:
+            currently only support unidirectional forces acting on all atoms of the cubic system.
+            and the user provide pressure and direction of force, this function will calculate
+            the corresponding force accordign to the cell.
+        """
+
+        if pressure == None or direction == None:
+            self.atomic_forces_status = False
+            return
+        else:
+            self.atomic_forces_status = True
+
+        if direction == "x":
+            area = np.sqrt(self.xyz.cell[1][0]**2 + self.xyz.cell[1][1]**2 + self.xyz.cell[1][2]**2) * np.sqrt(self.xyz.cell[2][0]**2 + self.xyz.cell[2][1]**2 + self.xyz.cell[2][2]**2) # in unit of Anstrom^2
+            # 1 Hartree/Bohr = 8.238 7225(14)×10^8 N
+            # 1 Ry/Bohr = 4.119358925x10^8 N
+            # force is in unit of Ry/a.u.
+            force = area * 1.0e-20 * pressure / (4.119358925e8)
+            self.atomic_forces = np.zeros((len(self.xyz.atoms), 3))
+            self.atomic_forces[:, 0] = force
     
     def basic_setting(self, ifstatic=True):
         self.ifstatic = ifstatic

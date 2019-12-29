@@ -201,8 +201,11 @@ if __name__ == "__main__":
     force_eval["PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST"] = args.properties_resp_slab_sampling_atom_list
     
 
-    task = static_mp2_run(args.file)
-    task.scf_mp2(directory=args.directory, mpi=args.mpi, runopt=args.runopt, force_eval=force_eval, atom=atom, printout_option=args.printout_option)
+    task = static_mp2_run()
+    task.get_xyz(args.file)
+    task.set_params(force_eval=force_eval, atom=atom)
+    task.set_printout(args.printout_option)
+    task.scf_mp2(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
 
     # server handle
     if args.auto == 0:

@@ -71,8 +71,10 @@ if __name__ == "__main__":
     else:
         polarization = False
 
-    task = dfpt_run(xyzfile)
-    task.phx(directory=args.directory, mpi=args.mpi, runopt=args.runopt, qpoints_option=args.qpoints_option, qpoints=args.qpoints, polarization=polarization, inputph=inputph)
+    task = dfpt_run()
+    task.get_xyz(xyzfile)
+    task.set_params_phx(qpoints_option=args.qpoints_option, qpoints=args.qpoints, polarization=polarization, inputph=inputph)
+    task.phx(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
 
     # server handle
     if args.auto == 0:

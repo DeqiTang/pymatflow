@@ -65,5 +65,6 @@ if __name__ == "__main__":
 
     kpoints_params["ngkpt"] = args.ngkpt
 
-    task = dfpt_run(args.file)
+    task = dfpt_run()
+    task.get_xyz(args.file)
     task.run(directory=args.directory, mpi=args.mpi, runopt=args.runopt, electrons=electrons_params, kpoints=kpoints_params, properties=args.properties)

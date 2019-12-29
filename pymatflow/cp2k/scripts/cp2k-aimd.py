@@ -26,7 +26,7 @@ motion = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-md")
+    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-aimd")
     
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
 
@@ -130,8 +130,10 @@ if __name__ == "__main__":
     motion["MD-TEMP_TOL"] = args.temp_tol
     motion["PRINT-TRAJECTORY-FORMAT"] = args.traj_format
 
-    task = md_run(args.file)
-    task.md(directory=args.directory, runopt=args.runopt, force_eval=force_eval, motion=motion)
+    task = md_run()
+    task.get_xyz(args.file)
+    task.set_params(force_eval=force_eval, motion=motion)
+    task.aimd(directory=args.directory, runopt=args.runopt)
 
     # server handle
     if args.auto == 0:

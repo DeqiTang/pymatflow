@@ -23,13 +23,16 @@ Note:
 class phonopy_run:
     """
     """
-    def __init__(self, xyz_f):
-        self.system = siesta_system(xyz_f)
+    def __init__(self):
+        self.system = siesta_system()
         self.electrons = siesta_electrons()
 
         self.electrons.basic_setting()
             
         self.supercelln = [1, 1, 1] 
+
+    def get_xyz(self, xyzfile):
+        self.system.xyz.get_xyz(xyzfile)
 
     def phonopy(self, directory="tmp-siesta-phonopy", inpname="phono-with-phonopy.fdf", output="phono-with-phonopy.out",
             mpi="", runopt="gen", electrons={}, ions={}, kpoints_mp=[1, 1, 1], supercelln=[1, 1, 1]):

@@ -31,14 +31,14 @@ class md_run:
     TODO:
         implement QMMM and classic MD.
     """
-    def __init__(self, xyz_f):
+    def __init__(self):
         """
         xyz_f:
             a modified xyz formatted file(the second line specifies the cell of the 
             system).
         """
         self.glob = cp2k_glob()
-        self.force_eval = cp2k_force_eval(xyz_f)
+        self.force_eval = cp2k_force_eval()
         self.motion = cp2k_motion()
         self.ext_restart = cp2k_ext_restart()
 
@@ -47,8 +47,25 @@ class md_run:
 
         self.motion.set_type("MD")
 
-    def md(self, directory="tmp-cp2k-md", inpname="md.inp", output="md.out", mpi="", runopt="gen",
-            force_eval={}, motion={}):
+    def get_xyz(self, xyzfile):
+        """
+        xyz_f:
+            a modified xyz formatted file(the second line specifies the cell of the 
+            system).
+        """
+        self.force_eval.subsys.xyz.get_xyz(xyzfile)
+
+    def set_params(self, force_eval={}, motion={}):
+        """
+        force_eval:
+            allowing control of FORCE_EVAL/... parameters by user
+        motion:
+            allowing control of MOTION/... parameters by user
+        """
+        self.force_eval.set_params(force_eval)
+        self.motion.set_params(motion)
+
+    def aimd(self, directory="tmp-cp2k-aimd", inpname="aimd.inp", output="aimd.out", mpi="", runopt="gen"):
         """
         directory:
             directory is and path where the calculation will happen.
@@ -56,10 +73,6 @@ class md_run:
             input filename for the cp2k
         output:
             output filename for the cp2k
-        force_eval:
-            allowing control of FORCE_EVAL/... parameters by user
-        motion:
-            allowing control of MOTION/... parameters by user
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
@@ -67,8 +80,6 @@ class md_run:
             os.mkdir(directory)
             shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, self.force_eval.subsys.xyz.file))
 
-            self.force_eval.set_params(force_eval)
-            self.motion.set_params(motion)
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.glob.to_input(fout)
                 self.force_eval.to_input(fout)
@@ -80,8 +91,7 @@ class md_run:
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s cp2k.psmp -in %s | tee %s" % (mpi, inpname, output))
-            os.chdir("../")
-    
+            os.chdir("../")   
 
 
     def ir_spectra(self):
@@ -96,8 +106,7 @@ class md_run:
         """
         self.force_eval.dft.localize.status = True
 
-    def vib(self, directory="tmp-cp2k-md-vib", inpname="md.inp", output="md.out", mpi="", runopt="gen",
-            force_eval={}, motion={}):
+    def vib(self, directory="tmp-cp2k-md-vib", inpname="md.inp", output="md.out", mpi="", runopt="gen"):
         """
         directory:
             directory is and path where the calculation will happen.

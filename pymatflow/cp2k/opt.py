@@ -21,11 +21,8 @@ class opt_run:
         opt_run is the calss as an agent for geometric optimization, including GEO_OPT
         and CELL_OPT.
     """
-    def __init__(self, xyz_f):
+    def __init__(self):
         """
-        xyz_f:
-            a modified xyz formatted file(the second line specifies the cell of the 
-            system).
         TODO: 
         """
         self.glob = cp2k_glob()
@@ -36,9 +33,26 @@ class opt_run:
 
         self.glob.basic_setting(run_type="ENERGY_FORCE")
         self.force_eval.basic_setting()
+
+    def get_xyz(self, xyzfile):
+        """
+        xyz_f:
+            a modified xyz formatted file(the second line specifies the cell of the 
+            system).
+        """
+        self.force_eval.subsys.xyz.get_xyz(xyzfile)
         
-    def geo_opt(self, directory="tmp-cp2k-geo-opt", inpname="geo-opt.inp", output="geo-opt.out", 
-            mpi="", runopt="gen", force_eval={}, motion={}):
+    def set_params(self, force_eval={}, motion={}):
+        """
+        force_eval:
+            allowing control of FORCE_EVAL/... parameters by user
+        motion:
+            allowing control of MOTION/... parameters by user
+        """
+        self.force_eval.set_params(force_eval)
+        self.motion.set_params(motion)
+
+    def geo_opt(self, directory="tmp-cp2k-geo-opt", inpname="geo-opt.inp", output="geo-opt.out", mpi="", runopt="gen"):
         """
         directory:
             where the calculation will happen
@@ -46,20 +60,14 @@ class opt_run:
             input filename for the cp2k
         output:
             output filename for the cp2k
-        force_eval:
-            allowing control of FORCE_EVAL/... parameters by user
-        motion:
-            allowing control of MOTION/... parameters by user
         """
+        self.set_geo_opt()
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, self.force_eval.subsys.xyz.file))
 
-            self.set_geo_opt()
-            self.force_eval.set_params(force_eval)
-            self.motion.set_params(motion)
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.glob.to_input(fout)
                 self.force_eval.to_input(fout)
@@ -72,9 +80,9 @@ class opt_run:
             os.chdir(directory)
             os.system("%s cp2k.psmp -in %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
-    
-    def cell_opt(self, directory="tmp-cp2k-cell-opt", inpname="cell-opt.inp", output="cell-opt.out", 
-            mpi="", runopt="gen", force_eval={}, motion={}):
+
+
+    def cell_opt(self, directory="tmp-cp2k-cell-opt", inpname="cell-opt.inp", output="cell-opt.out", mpi="", runopt="gen"):
         """
         directory:
             where the calculation will happen
@@ -82,32 +90,27 @@ class opt_run:
             input filename for the cp2k
         output:
             output filename for the cp2k
-        force_eval:
-            allowing control of FORCE_EVAL/... parameters by user
-        motion:
-            allowing control of MOTION/... parameters by user
         """
+        self.set_cell_opt()
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, self.force_eval.subsys.xyz.file))
-            
-            self.set_cell_opt()
-            self.force_eval.set_params(force_eval)
-            self.motion.set_params(motion)
+
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.glob.to_input(fout)
                 self.force_eval.to_input(fout)
                 self.motion.to_input(fout)
-        
+ 
             # gen server job comit file
-            self.gen_yh(cmd="cp2k.popt", directory=directory, inpname=inpname, output=output)
+            self.gen_yh(cmd="cp2k.popt", directory=directory, inpname=inpname, output=output)       
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s cp2k.psmp -in %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
+
 
     def set_geo_opt(self):
         """

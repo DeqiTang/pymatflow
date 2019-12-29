@@ -14,6 +14,8 @@ usage: qe-md.py xxx.xyz
 control_params = {}
 system_params = {}
 electrons_params = {}
+ions_params = {}
+cell_params = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -23,8 +25,16 @@ if __name__ == "__main__":
     parser.add_argument("--mpi", help="MPI command", type=str, default="")
     parser.add_argument("--nstep", help="maximum ion steps", type=int, default=50)
     parser.add_argument("--ecutwfc", help="ecutwfc", type=int, default=100)
-    parser.add_argument("--ecutrho", help="ecutrho", type=int, defualt=400)
-    parser.add_argument("-k", "--kpoints", help="set kpoints like '1 1 1 0 0 0'", type=str, default="1 1 1 0 0 0")
+    parser.add_argument("--ecutrho", help="ecutrho", type=int, default=400)
+    
+    parser.add_argument("--kpoints-option", type=str, default="automatic", 
+            choices=["automatic", "gamma", "tpiba_b"],
+            help="Kpoints generation scheme option for the SCF or non-SCF calculation")
+
+    parser.add_argument("--kpoints-mp", type=int, nargs="+",
+            default=[1, 1, 1, 0, 0, 0],
+            help="Monkhorst-Pack kpoint grid, in format like --kpoints-mp 1 1 1 0 0 0")
+    
     parser.add_argument("--conv-thr", help="conv_thr of scf", type=float, default=1.e-6)
 
     parser.add_argument("--occupations", type=str, default="smearing",
@@ -57,10 +67,11 @@ if __name__ == "__main__":
     system_params["degauss"] = args.degauss
     system_params["vdw_corr"] = args.vdw_corr
     electrons_params["conv_thr"] = args.conv_thr
-    kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
  
-    task = md_run(xyzfile)
-    task.vc_md(directory=args.directory, runopt=args.runopt, mpi=args.mpi, control=control_params, system=system_params, electrons=electrons_params, kpoints_mp=kpoints_mp)
+    task = md_run()
+    task.get_xyz(args.file)
+    task.set_params(control=control_params, system=system_params, electrons=electrons_params, ions=ions_params, cell=cell_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+    task.vc_md(directory=args.directory, runopt=args.runopt, mpi=args.mpi)
 
     # server handle
     if args.auto == 0:

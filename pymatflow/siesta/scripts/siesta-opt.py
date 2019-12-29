@@ -102,7 +102,8 @@ if __name__ == "__main__":
     ions["MD.MaxStressTol"] = args.stresstol
     ions["MD.TargetPressure"] = args.targetpressure
 
-    task = opt_run(xyzfile)
+    task = opt_run()
+    task.get_xyz(xyzfile)
     task.opt(directory=directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, ions=ions, kpoints_mp=args.kpoints_mp, mode=args.mode)
 
 

@@ -22,13 +22,16 @@ Note:
 class phonopy_run:
     """
     """
-    def __init__(self, xyz_f):
-        self.system = abinit_system(xyz_f)
+    def __init__(self):
+        self.system = abinit_system()
         self.electrons = abinit_electrons()
     
         self.electrons.basic_setting()
 
         self.supercell_n = [1, 1, 1]
+
+    def get_xyz(self, xyzfile):
+        self.system.xyz.get_xyz(xyzfile)
 
     def phonopy(self, directory="tmp-abinit-phonopy", head_inpname="head-phonon.in", pos_inpname="pos.in", mpi="", runopt="gen",
             electrons={}, kpoints={}, supercell_n=[1, 1, 1]):

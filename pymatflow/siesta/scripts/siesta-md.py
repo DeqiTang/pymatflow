@@ -101,7 +101,8 @@ if __name__ == "__main__":
     ions["MD.TargetTemperature"] = args.target_temp
     ions["MD.VariableCell"] = args.vc
     
-    task = md_run(args.file)
+    task = md_run()
+    task.get_xyz(args.file)
     task.md(directory=args.directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, ions=ions, kpoints_mp=args.kpoints_mp)
 
 

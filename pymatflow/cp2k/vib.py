@@ -21,9 +21,9 @@ class vib_run:
     Note:
         vib_run is the calss as an agent for Vibrational Analysis running.
     """
-    def __init__(self, xyz_f):
+    def __init__(self):
         self.glob = cp2k_glob()
-        self.force_eval = cp2k_force_eval(xyz_f)
+        self.force_eval = cp2k_force_eval()
         self.vibrational_analysis = cp2k_vibrational_analysis()
 
         self.glob.basic_setting(run_type="VIBRATIONAL_ANALYSIS")
@@ -32,9 +32,29 @@ class vib_run:
         # throught DFT/PRINT/MOMENTS
         #self.force_eval.dft.printout.print_moments()
         self.force_eval.dft.printout.moments.status == True
-        
+    
+    def get_xyz(self, xyzfile):
+        """
+        xyz_f:
+            a modified xyz formatted file(the second line specifies the cell of the 
+            system).
+        """
+        self.force_eval.subsys.xyz.get_xyz(xyzfile)
+    
+    def set_params(self, force_eval={}, vibrational={}):
+        """
+        force_eval:
+            allowing control of FORCE_EVAL/... parameters by user
+        vibrational:
+            allowing control of VIBRATIONAL_ANALYSIS/... parameters by user
+        """
+
+        self.force_eval.set_params(force_eval)
+        self.vibrational_analysis.set_params(vibrational)
+
+
     def vib(self, directory="tmp-cp2k-vib", inpname="vib.inp", output="vib.out", 
-            mpi="", runopt="gen", force_eval={}, vibrational={}):
+            mpi="", runopt="gen"):
         """
         directory:
             wheere the calculation will happen
@@ -42,10 +62,6 @@ class vib_run:
             input filename for the cp2k
         output:
             output filename for the cp2k
-        force_eval:
-            allowing control of FORCE_EVAL/... parameters by user
-        vibrational:
-            allowing control of VIBRATIONAL_ANALYSIS/... parameters by user
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
@@ -53,8 +69,6 @@ class vib_run:
             os.mkdir(directory)
             shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, self.force_eval.subsys.xyz.file))
 
-            self.force_eval.set_params(force_eval)
-            self.vibrational_analysis.set_params(vibrational)
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.glob.to_input(fout)
                 self.force_eval.to_input(fout)

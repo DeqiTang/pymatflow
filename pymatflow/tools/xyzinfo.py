@@ -40,7 +40,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
 
-    xyz = base_xyz(args.file)
+    xyz = base_xyz()
+    xyz.get_xyz(args.file)
 
     print("===========================================\n")
     print("calculated using spglib\n")

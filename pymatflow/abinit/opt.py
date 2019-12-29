@@ -13,8 +13,8 @@ from pymatflow.abinit.base.guard import abinit_guard
 class opt_run:
     """
     """
-    def __init__(self, xyz_f):
-        self.system = abinit_system(xyz_f)
+    def __init__(self):
+        self.system = abinit_system()
         self.electrons = abinit_electrons()
         self.ions = abinit_ions()
 
@@ -22,6 +22,9 @@ class opt_run:
         self.ions.basic_setting(mode="opt")
 
         self.guard = abinit_guard(queen="opt", electrons=self.electrons, ions=self.ions, system=self.system)
+
+    def get_xyz(self, xyzfile):
+        self.system.xyz.get_xyz(xyzfile)
 
     def optimize(self, directory="tmp-abinit-opt", inpname="geometric-optimization.in", mpi="", runopt="gen",
             electrons={}, ions={}, kpoints={}):

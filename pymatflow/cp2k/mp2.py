@@ -20,7 +20,7 @@ class static_mp2_run:
     Note:
         static_run is the class as an agent for static mp2 type calculation, including
     """
-    def __init__(self, xyz_f):
+    def __init__(self):
         """
         xyz_f:
             a modified xyz formatted file(the second line specifies the cell of the 
@@ -28,15 +28,26 @@ class static_mp2_run:
         TODO: 
         """
         self.glob = cp2k_glob()
-        self.force_eval = cp2k_force_eval(xyz_f)
+        self.force_eval = cp2k_force_eval()
         self.atom = cp2k_atom()
         
         self.glob.basic_setting(run_type="ENERGY_FORCE")
         self.force_eval.basic_setting()
         self.atom.basic_setting(run_type="MP2")
 
-    def scf_mp2(self, directory="tmp-cp2k-static-mp2", inpname="static-scf-mp2.inp", output="static-scf-mp2.out", 
-            force_eval={}, atom={}, mpi="", runopt="gen", printout_option=[]):
+    def get_xyz(self, xyzfile):
+        """
+        xyz_f:
+            a modified xyz formatted file(the second line specifies the cell of the 
+            system).
+        """
+        self.force_eval.subsys.xyz.get_xyz(xyzfile)
+
+    def set_params(self, force_eval={}, atom={}):
+        self.force_eval.set_params(force_eval=force_eval)
+        self.atom.set_params(atom=atom)
+
+    def scf_mp2(self, directory="tmp-cp2k-static-mp2", inpname="static-scf-mp2.inp", output="static-scf-mp2.out", mpi="", runopt="gen"):
         """
         directory:
             directory is and path where the calculation will happen.
@@ -56,11 +67,9 @@ class static_mp2_run:
             shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, self.force_eval.subsys.xyz.file))
 
             # using force_eval
-            self.force_eval.set_params(force_eval)            
-            self.atom.set_params(atom)
+           
             self.force_eval.dft.printout.status = True
             self.force_eval.properties.status = True
-            self.printout_option(printout_option)
 
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.glob.to_input(fout)

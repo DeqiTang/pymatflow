@@ -9,8 +9,8 @@ from pymatflow.base.xyz import base_xyz
 class abinit_system:
     """
     """
-    def __init__(self, xyz_f):
-        self.xyz = base_xyz(xyz_f)
+    def __init__(self):
+        self.xyz = base_xyz()
 
     def to_in(self, fout):
         # fout: a file stream for writing

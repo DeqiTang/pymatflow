@@ -56,8 +56,10 @@ if __name__ == "__main__":
     system_params["vdw_corr"] = args.vdw_corr
     electrons_params["conv_thr"] = args.conv_thr
 
-    task = static_run(xyzfile)
-    task.converge_kpoints(args.range[0], args.range[1], args.range[2], directory=args.directory, control=control_params, system=system_params, electrons=electrons_params, runopt=args.runopt)
+    task = static_run()
+    task.get_xyz(xyzfile)
+    task.set_params(control=control_params, system=system_params, electrons=electrons_params, runopt=args.runopt)
+    task.converge_kpoints(args.range[0], args.range[1], args.range[2], directory=args.directory)
 
     # server handle
     if args.auto == 0:

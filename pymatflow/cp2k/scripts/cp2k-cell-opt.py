@@ -132,8 +132,10 @@ if __name__ == "__main__":
     motion["CELL_OPT-RMS_FORCE"] = args.rms_force
     motion["CELL_OPT-PRESSURE_TOLERANCE"] = args.pressure_tolerance
 
-    task = opt_run(xyzfile)
-    task.cell_opt(directory=directory, mpi=args.mpi, runopt=args.runopt, force_eval=force_eval, motion=motion)
+    task = opt_run()
+    task.get_xyz(xyzfile)
+    task.set_params(force_eval=force_eval, motion=motion)
+    task.cell_opt(directory=directory, mpi=args.mpi, runopt=args.runopt)
 
     # server handle
     if args.auto == 0:

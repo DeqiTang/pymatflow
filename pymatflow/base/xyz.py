@@ -19,22 +19,22 @@ class base_xyz:
     """
     a representation of xyz structure
     usage:
-        a = base_xyz(xyz_f)
+        a = base_xyz()
+        a.get_xyz(xyzfile)
     """
-    def __init__(self, xyz_f):
-        self.file = xyz_f
+    def __init__(self):
+        self.file = None 
         self.natom = 0
         self.nspecies = 0
         self.atoms = []
         self.cell = None
         self.specie_labels = dict()
 
-        self.get_info()
-
-    def get_info(self):
+    def get_xyz(self, xyzfile):
         """
-        get info to construct the structure from an xyz file: self.file
+        get information to construct the structure from an xyz file
         """
+        self.file = xyzfile
         with open(self.file, 'r') as fin:
             self.natom = int(fin.readline())
             fin.readline()
@@ -62,7 +62,6 @@ class base_xyz:
                 self.atoms.append(atom)
                 i += 1
         self.set_species_number()
-        #self.cell = self.get_cell(xyz_f)
         self.cell = self.get_cell(self.file)
 
     def set_species_number(self):
@@ -82,12 +81,12 @@ class base_xyz:
         self.nspecies = len(self.specie_labels)
 
 
-    def get_cell(self, xyz_f):
+    def get_cell(self, xyzfile):
         """
         cell defined in xxx.xyz must be in format like this:
         cell: 4.08376 0.00000 0.00000 | 0.00000 4.00251 0.00000 | -0.05485 0.00000 8.16247
         """
-        with open(xyz_f, 'r') as fin:
+        with open(xyzfile, 'r') as fin:
             fin.readline()
             line = fin.readline()
         #return [float(line.split()[i]) for i in [1, 2, 3, 5, 6, 7, 9, 10, 11]]
@@ -98,13 +97,13 @@ class base_xyz:
         
         return cell
 
-    def update(self, newxyzfile):
-        self.file = newxyzfile
+    def update(self, xyzfile):
+        self.file = xyzfile
         self.natom = 0
         self.nspecies = 0
         self.atoms = []
         self.specie_labels = dict()
-        self.get_info()
+        self.get_xyz(xyzfile=xyzfile)
     
     def build_supercell(self, n):
         """

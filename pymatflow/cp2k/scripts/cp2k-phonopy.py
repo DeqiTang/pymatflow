@@ -160,9 +160,11 @@ if __name__ == "__main__":
     force_eval["DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-TYPE"] = args.pair_type
     force_eval["DFT-XC-VDW_POTENTIAL-PAIR-POTENTIAL-R_CUTOFF"] = args.r_cutoff
 
-    task = phonopy_run(args.file)
+    task = phonopy_run()
+    task.get_xyz(args.file)
     task.supercell_n = args.supercell_n
-    task.phonopy(directory=args.directory, mpi=args.mpi, runopt=args.runopt, force_eval=force_eval)
+    task.set_params(force_eval=force_eval)
+    task.phonopy(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
 
     # server handle
     if args.auto == 0:

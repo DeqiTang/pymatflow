@@ -30,12 +30,10 @@ class siesta_properties:
 
 
     """
-    def __init__(self, xyz):
+    def __init__(self):
         """
-        xyz is the instance of base_xyz, passed from the calculation controller like static_run,
-        it is used by seekpath to generate BandLines
         """
-        self.xyz = xyz
+        self.xyz = None
         self.params = {
                 }
         self.options = []
@@ -54,6 +52,13 @@ class siesta_properties:
         self.optical_polarization_type = "unpolarized" # polarized, unpolarized, polycrystal
         self.optical_vector = [1.0, 0.0, 0.5]
         self.wannier90_unkgrid = [10, 10, 10]
+
+    def set_xyz(self, xyz):
+        """
+        xyz is the instance of base_xyz, passed from the calculation controller like static_run,
+        it is used by seekpath to generate BandLines
+        """
+        self.xyz = xyz
 
     def to_fdf(self, fout):
         for item in self.params:

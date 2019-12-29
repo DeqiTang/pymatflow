@@ -99,8 +99,10 @@ if __name__ == "__main__":
     electrons_params["conv_thr"] = args.conv_thr
     
 
-    task = phonopy_run(xyzfile)
-    task.phonopy(directory=args.directory, runopt=args.runopt, mpi=args.mpi, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp, supercell_n=args.supercell_n)
+    task = phonopy_run()
+    task.get_xyz(xyzfile)
+    task.set_params(control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp, supercell_n=args.supercell_n)
+    task.phonopy(directory=args.directory, runopt=args.runopt, mpi=args.mpi)
 
     # server handle
     if args.auto == 0:

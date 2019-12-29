@@ -402,9 +402,11 @@ class cp2k_dft_xc_vdw_potential:
                 }
         self.status = False
 
-        self.params["POTENTIAL_TYPE"] = "PAIR_POTENTIAL"
         self.pair_potential = cp2k_dft_xc_vdw_potential_pair_potential()
         self.non_local = cp2k_dft_xc_vdw_potential_non_local()
+        # basic setting
+        self.pair_potential.status = True
+        self.params["POTENTIAL_TYPE"] = "PAIR_POTENTIAL"
 
     def to_input(self, fout):
         fout.write("\t\t\t&VDW_POTENTIAL\n")

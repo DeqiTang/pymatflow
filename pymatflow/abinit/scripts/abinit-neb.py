@@ -67,5 +67,6 @@ if __name__ == "__main__":
     kpoints_params["kptopt"] = args.kptopt
     kpoints_params["ngkpt"] = args.ngkpt
 
-    task = neb_run(images=args.images)
+    task = neb_run()
+    task.get_images(images=args.images)
     task.neb(directory=args.directory, mpi=args.mpi, runopt=args.runopt, electrons=electrons_params, kpoints=kpoints_params)

@@ -33,7 +33,7 @@ class cp2k_force_eval:
         rather than 'is kind of a', so here combination is used to organize
         the these classes.
     """
-    def __init__(self, xyz_f):
+    def __init__(self):
         self.params = {
                 "METHOD": "QS",
                 "EMBED": None,
@@ -41,13 +41,15 @@ class cp2k_force_eval:
                 }
         self.status = False
 
-        self.subsys = cp2k_subsys(xyz_f)
+        self.subsys = cp2k_subsys()
         self.dft = cp2k_dft()
         self.properties = cp2k_properties()
 
-        self.check_spin()
 
     def to_input(self, fout):
+        # check before write input file
+        self.check_spin()
+
         fout.write("&FORCE_EVAL\n")
         for item in self.params:
             if self.params[item] is not None:

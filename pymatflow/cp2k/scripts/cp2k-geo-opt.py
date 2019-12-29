@@ -132,8 +132,10 @@ if __name__ == "__main__":
     motion["GEO_OPT-RMS_DR"] = args.rms_dr
     motion["GEO_OPT-RMS_FORCE"] = args.rms_force
 
-    task = opt_run(args.file)
-    task.geo_opt(directory=args.directory, mpi=args.mpi, runopt=args.runopt, force_eval=force_eval, motion=motion)
+    task = opt_run()
+    task = get_xyz(args.file)
+    task.set_params(force_eval=force_eval, motion=motion)
+    task.geo_opt(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
 
     # server handle
     if args.auto == 0:

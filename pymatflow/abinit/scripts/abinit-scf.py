@@ -72,5 +72,6 @@ if __name__ == "__main__":
     kpoints_params["kptopt"] = args.kptopt
     kpoints_params["ngkpt"] = args.ngkpt
 
-    task = static_run(args.file)
+    task = static_run()
+    task.get_xyz(args.file)
     task.scf(directory=args.directory, mpi=args.mpi, runopt=args.runopt, electrons=electrons_params, kpoints=kpoints_params, properties=args.properties)

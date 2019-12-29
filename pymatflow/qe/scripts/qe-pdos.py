@@ -58,7 +58,8 @@ if __name__ == "__main__":
         deltae = float(args.deltae)
 
 
-    task = static_run(xyzfile)
+    task = static_run()
+    task.get_xyz(xyzfile)
     task.projwfc(directory=args.directory, runopt=args.runopt, mpi=args.mpi, filpdos=filpdos, ngauss=ngauss, degauss=degauss, emin=emin, emax=emax, deltae=deltae)
 
     # server handle
