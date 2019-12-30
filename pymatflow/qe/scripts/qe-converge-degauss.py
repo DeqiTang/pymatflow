@@ -47,7 +47,8 @@ if __name__ == "__main__":
 
     task = static_run()
     task.get_xyz(xyzfile)
-    task.set_params(control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+    task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=kpoints_mp)
+    task.set_params(control=control_params, system=system_params, electrons=electrons_params)
     task.converge_degauss(round(args.range[0], 6), round(args.range[1], 6), round(args.range[2], 6), runopt=args.runopt)
 
     # server handle

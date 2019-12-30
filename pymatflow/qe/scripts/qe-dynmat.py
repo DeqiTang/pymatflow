@@ -44,7 +44,8 @@ if __name__ == "__main__":
 
 
     #task = static_run(xyzfile)
-    task = dfpt_run(xyzfile)
+    task = dfpt_run()
+    task.get_xyz(xyzfile)
     task.dynmat(directory=args.directory, mpi=args.mpi, runopt=args.runopt, asr=args.asr, qi=args.q)
 
     # server handle

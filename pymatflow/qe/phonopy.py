@@ -10,12 +10,7 @@ import numpy as np
 import pymatgen as mg
 import matplotlib.pyplot as plt
 
-from pymatflow.qe.base.control import qe_control
-from pymatflow.qe.base.system import qe_system
-from pymatflow.qe.base.electrons import qe_electrons
-from pymatflow.qe.base.arts import qe_arts
-
-
+from pymatflow.qe.pwscf import pwscf
 
 """
 Note:
@@ -27,7 +22,7 @@ Note:
 
 
 
-class phonopy_run:
+class phonopy_run(pwscf):
     """
     Note:
         kpoints as well as energy cutoff both will have a significant
@@ -39,45 +34,10 @@ class phonopy_run:
         sets.
     """
     def __init__(self):
-        self.control = qe_control()
-        self.system = qe_system()
-        self.electrons = qe_electrons()
-        #self.ions = qe_ions()
-        self.arts = qe_arts()
-
-        self.control.basic_setting("scf")
+        super().__init__()
 
         self.supercell_n = [1, 1, 1]
         
-    def get_xyz(self, xyzfile):
-        """
-        xyz_f:
-            a modified xyz formatted file(the second line specifies the cell of the 
-            system).
-        """
-        self.arts.xyz.get_xyz(xyzfile)
-        self.system.basic_setting(self.arts)
-        self.arts.basic_setting(ifstatic=True)
-
-    def set_params(self, control={}, system={}, electrons={}, kpoints_option="automatic", kpoints_mp=[1, 1, 1, 0, 0, 0], supercell_n=[1, 1, 1]):
-        self.supercell_n = supercell_n
-        # check if user try to set occupations and smearing and degauss
-        # through system. if so, use self.set_occupations() which uses
-        # self.system.set_occupations() to set them, as self.system.set_params()
-        # is suppressed from setting occupations related parameters
-        self.set_occupations(system)
-        self.control.set_params(control)
-        self.system.set_params(system)
-        self.electrons.set_params(electrons)
-        self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
-            
-        # must print print out forces and stress after scf
-        # so that phonopy can parse the scf output file and
-        # construct the FORCE CONSTANT MATIRX
-        self.control.params["tprnfor"] = True
-        self.control.params["tstress"] = True
-
-
     def phonopy(self, directory="tmp-qe-phonopy", pos_inpname="pos.in", head_inpname="head.in", mpi="", runopt="gen"):
         """
         directory: a place for all the generated files

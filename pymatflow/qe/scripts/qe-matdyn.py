@@ -48,7 +48,8 @@ if __name__ == "__main__":
 
     #print(matdyn_qpoints)
 
-    task = dfpt_run(xyzfile)
+    task = dfpt_run()
+    task.get_xyz(args.file)
     task.matdyn(directory=args.directory, mpi=args.mpi, runopt=args.runopt, asr=args.asr) # nqpoints=args.nqpoints, qpoints=matdyn_qpoints)
 
     # server handle

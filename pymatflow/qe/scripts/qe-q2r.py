@@ -38,7 +38,8 @@ if __name__ == "__main__":
 
 
 
-    task = dfpt_run(xyzfile)
+    task = dfpt_run()
+    task.get_xyz(args.file)
     task.q2r(directory=args.directory, mpi=args.mpi, runopt=args.runopt, zasr=args.zasr)
 
     # server handle

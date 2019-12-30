@@ -27,7 +27,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     xyzfile = args.file
 
-    task = static_run(xyzfile)
+    task = static_run()
+    task.get_xyz(args.file)
     task.epsilon(directory=args.directory, runopt=args.runopt)
 
     # server handle

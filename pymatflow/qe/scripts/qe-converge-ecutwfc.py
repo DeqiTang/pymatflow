@@ -63,7 +63,8 @@ if __name__ == "__main__":
     
     task = static_run()
     task.get_xyz(args.file)
-    task.set_params(control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)   
+    task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=kpoints_mp)
+    task.set_params(control=control_params, system=system_params, electrons=electrons_params)
     task.converge_ecutwfc(args.range[0], args.range[1], args.range[2], directory=args.directory, runopt=args.runopt)   
 
     # server handle

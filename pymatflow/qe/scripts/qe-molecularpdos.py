@@ -48,7 +48,8 @@ if __name__ == "__main__":
         deltae = float(args.deltae)
 
 
-    task = static_run(args.file)
+    task = static_run()
+    task.get_xyz(args.file)
     task.molecularpdos(directory=args.directory, runopt=args.runopt, mpi=args.mpi, fileout=args.fileout, ngauss=args.ngauss, degauss=args.degauss, emin=emin, emax=emax, deltae=deltae)
 
     # server handle

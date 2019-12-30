@@ -13,8 +13,8 @@ usage:
     qe-nscf.py -f xxx.xyz -k '4 4 4 0 0 0'
 """
 
-system_params = {}
-electrons_params = {}
+system = {}
+electrons = {}
     
 if __name__ == "__main__":
 
@@ -76,17 +76,19 @@ if __name__ == "__main__":
     # ==========================================================   
     args = parser.parse_args()
     xyzfile = args.file
-    system_params["ecutwfc"] = args.ecutwfc
-    system_params["ecutrho"] = args.ecutrho
-    system_params["occupations"] = args.occupations
-    system_params["smearing"] = args.smearing
-    system_params["degauss"] = args.degauss
-    system_params["vdw_corr"] = args.vdw_corr
-    electrons_params["conv_thr"] = args.conv_thr
+    system["ecutwfc"] = args.ecutwfc
+    system["ecutrho"] = args.ecutrho
+    system["occupations"] = args.occupations
+    system["smearing"] = args.smearing
+    system["degauss"] = args.degauss
+    system["vdw_corr"] = args.vdw_corr
+    electrons["conv_thr"] = args.conv_thr
 
     task = static_run()
     task.get_xyz(xyzfile)
-    task.nscf(directory=args.directory, runopt=args.runopt, mpi=args.mpi, system=system_params, electrons=electrons_params, kpoints_mp=args.kpoints_mp)
+    task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=kpoints_mp)
+    task.set_params(control=control, system=system, electrons=electrons)
+    task.nscf(directory=args.directory, runopt=args.runopt, mpi=args.mpi)
 
     # server handle
     if args.auto == 0:

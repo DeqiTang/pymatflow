@@ -14,16 +14,18 @@ usage:
 """
 
 
-control_params = {}
-system_params = {}
-electrons_params = {}
-path_params = {}
+control = {}
+system = {}
+electrons = {}
+path = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-qe-neb")
     parser.add_argument("--restart-mode", help="restart_mode", type=str, default="from_scratch")
     parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
+    parser.add_argument("--mpi", type=str, default="",
+            help="MPI command: like 'mpirun -np 4'")
     parser.add_argument("--images", help="the image xyz file(--images first.xyz imtermediate-1.xyz intermediate-2.xyz ... last.xyz)", nargs='+', type=str)
 
 
@@ -93,27 +95,29 @@ if __name__ == "__main__":
     args = parser.parse_args()
     directory = args.directory
     
-    system_params["ecutwfc"] = args.ecutwfc
-    system_params["occupations"] = args.occupations
-    system_params["smearing"] = args.smearing
-    system_params["degauss"] = args.degauss
-    system_params["vdw_corr"] = args.vdw_corr
-    electrons_params["conv_thr"] = args.conv_thr
+    system["ecutwfc"] = args.ecutwfc
+    system["occupations"] = args.occupations
+    system["smearing"] = args.smearing
+    system["degauss"] = args.degauss
+    system["vdw_corr"] = args.vdw_corr
+    electrons["conv_thr"] = args.conv_thr
 
-    path_params["string_method"] = args.string_method
-    path_params["nstep_path"] = args.nstep_path
-    path_params["opt_scheme"] = args.opt_scheme
-    path_params["num_of_images"] = args.num_of_images
-    path_params["k_max"] = args.k_max
-    path_params["k_min"] = args.k_min
-    path_params["CI_scheme"] = args.ci_scheme
-    path_params["path_thr"] = args.path_thr
-    path_params["ds"] = args.ds
-    path_params["first_last_opt"] = args.first_last_opt
+    path["string_method"] = args.string_method
+    path["nstep_path"] = args.nstep_path
+    path["opt_scheme"] = args.opt_scheme
+    path["num_of_images"] = args.num_of_images
+    path["k_max"] = args.k_max
+    path["k_min"] = args.k_min
+    path["CI_scheme"] = args.ci_scheme
+    path["path_thr"] = args.path_thr
+    path["ds"] = args.ds
+    path["first_last_opt"] = args.first_last_opt
 
     task = neb_run()
     task.get_images(images=args.images)
-    task.neb(directory=directory, runopt=args.runopt, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp, path=path_params, restart_mode=args.restart_mode)
+    task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+    task.set_path(path=path)
+    task.neb(directory=directory, mpi=args.mpi, runopt=args.runopt, restart_mode=args.restart_mode)
 
     # server handle
     if args.auto == 0:

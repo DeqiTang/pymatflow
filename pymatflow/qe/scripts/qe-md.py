@@ -11,10 +11,10 @@ from pymatflow.remote.rsync import rsync
 usage: qe-md.py xxx.xyz
 """
 
-control_params = {}
-system_params = {}
-electrons_params = {}
-ions_params = {}
+control = {}
+system = {}
+electrons = {}
+ions = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -56,17 +56,18 @@ if __name__ == "__main__":
     # ==========================================================   
     args = parser.parse_args()
     xyzfile = args.file
-    control_params["nstep"] = args.nstep
-    system_params["ecutwfc"] = args.ecutwfc
-    system_params["occupations"] = args.occupations
-    system_params["smearing"] = args.smearing
-    system_params["degauss"] = args.degauss
-    system_params["vdw_corr"] = args.vdw_corr
-    electrons_params["conv_thr"] = args.conv_thr
+    control["nstep"] = args.nstep
+    system["ecutwfc"] = args.ecutwfc
+    system["occupations"] = args.occupations
+    system["smearing"] = args.smearing
+    system["degauss"] = args.degauss
+    system["vdw_corr"] = args.vdw_corr
+    electrons["conv_thr"] = args.conv_thr
  
     task = md_run()
     task.get_xyz(xyzfile)
-    task.set_params(control=control_params, system=system_params, electrons=electrons_params, ions=ions_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+    task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+    task.set_params(control=control, system=system, electrons=electrons, ions=ions)
     task.md(directory=args.directory, runopt=args.runopt, mpi=args.mpi)
 
     # server handle

@@ -26,7 +26,7 @@ class opt_run:
         TODO: 
         """
         self.glob = cp2k_glob()
-        self.force_eval = cp2k_force_eval(xyz_f)
+        self.force_eval = cp2k_force_eval()
         self.motion = cp2k_motion()
         
         self.run_type = "GEO_OPT" # default is GEO_OPT, can also do CELL_OPT

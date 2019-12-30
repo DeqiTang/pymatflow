@@ -44,7 +44,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     xyzfile = args.file
 
-    task = dfpt_run(xyzfile)
+    task = dfpt_run()
+    task.get_xyz(args.file)
     task.plotband(directory=args.directory, mpi=args.mpi, runopt=args.runopt, freq_min=args.freq_min, freq_max=args.freq_max, efermi=args.efermi, freq_step=args.freq_step, freq_reference=args.freq_reference)
 
     # server handle

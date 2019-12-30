@@ -25,5 +25,6 @@ if __name__ == "__main__":
     directory = args.directory
     xyzfile = args.file
     
-    task = static_run(xyzfile)
+    task = static_run()
+    task.get_xyz(args.file)
     task.turbo_davidson(directory=directory, runopt=args.runopt)

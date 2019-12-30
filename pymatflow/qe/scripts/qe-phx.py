@@ -36,17 +36,13 @@ if __name__ == "__main__":
     parser.add_argument("--tr2-ph", type=float, default=1.0e-14,
             help="threshold for self-consistency.")
 
-    parser.add_argument("--qpoints-option", type=str, default="gamma",
-            choices=["gamma", "qmesh"],
-            help="qpoints option for ph.x")
+    parser.add_argument("--nq", type=int, nargs="+",
+            default=[0, 0, 0],
+            help="set value of nq1 nq2 nq3.")
 
-    parser.add_argument("--qpoints", type=int, nargs="+",
-            default=[2, 2, 2],
-            help="qpoints mesh for ph.x")
-
-    parser.add_argument("--polarization", type=str, default="no",
-            choices=["yes", "no", "true", "false"],
-            help="whether it is polar materials, if yes(true), will set epsil = .true. and calculate and store the dielectric tensor and effective charges.")
+    parser.add_argument("--epsil", type=str, default=None,
+            choices=[".true.", ".false."],
+            help="set epsil in inputph")
     
     parser.add_argument("--lraman", type=str, default=None,
             choices=["true", "false"],
@@ -65,15 +61,15 @@ if __name__ == "__main__":
 
     inputph["tr2_ph"] = args.tr2_ph
     inputph["lraman"] = args.lraman
+    inputph["epsil"] = args.epsil
+    inputph["nq1"] = args.nq[0]
+    inputph["nq2"] = args.nq[1]
+    inputph["nq3"] = args.nq[2]
 
-    if args.polarization.lower() == "yes" or args.polarization.lower() == "true":
-        polarization = True
-    else:
-        polarization = False
 
     task = dfpt_run()
     task.get_xyz(xyzfile)
-    task.set_params_phx(qpoints_option=args.qpoints_option, qpoints=args.qpoints, polarization=polarization, inputph=inputph)
+    task.set_inputph(inputph=inputph)
     task.phx(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
 
     # server handle

@@ -58,8 +58,8 @@ if __name__ == "__main__":
 
     task = static_run()
     task.get_xyz(xyzfile)
-    task.set_params(control=control_params, system=system_params, electrons=electrons_params, runopt=args.runopt)
-    task.converge_kpoints(args.range[0], args.range[1], args.range[2], directory=args.directory)
+    task.set_params(control=control_params, system=system_params, electrons=electrons_params)
+    task.converge_kpoints(args.range[0], args.range[1], args.range[2], directory=args.directory, runopt=args.runopt)
 
     # server handle
     if args.auto == 0:

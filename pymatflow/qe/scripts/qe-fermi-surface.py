@@ -35,7 +35,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    task = static_run(args.file)
+    task = static_run()
+    task.get_xyz(args.file)
     task.fermi_surface(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
 
     # server handle
