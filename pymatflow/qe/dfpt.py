@@ -206,8 +206,22 @@ class dfpt_run:
             os.system("%s ph.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
 
-    def q2r(self, directory="tmp-qe-static", inpname="q2r.in", output="q2r.out", 
-            dynamat_file="phx.dyn", ifc_file="q2r.fc", mpi="", runopt="gen", zasr='simple'):
+
+    def set_q2r(self, q2r_input={}, dynamat_file="phx.dyn", ifc_file="q2r.fc", mpi="", runopt="gen", zasr='simple'):
+        """
+        q2r.x:
+            calculation of Interatomic Force Constants(IFC) from 
+            Dynamical matrices from the phonon calculation
+        """
+        self.q2r_input = {
+                "fildyn": "phx.dyn", # Dynamical matrices from the phonon calculation
+                "zasr": "simple", # A way to impose the acoustic sum rule
+                "flfrc": "q2r.fc", # Output file of the interatomic force constants
+                }
+        for item in q2r_input:
+            self.q2r_input[item] = q2r_input[item]
+
+    def q2r(self, directory="tmp-qe-static", inpname="q2r.in", output="q2r.out", mpi="", runopt="gen"):
         """
         q2r.x:
             calculation of Interatomic Force Constants(IFC) from 
@@ -224,9 +238,12 @@ class dfpt_run:
         if runopt == "gen" or runopt == "genrun":
             with open(os.path.join(directory, inpname), 'w') as fout:
                 fout.write("&input\n")
-                fout.write("fildyn = '%s'\n" % dynamat_file) # Dynamical matrices from the phonon calculation
-                fout.write("zasr = '%s'\n" % zasr) # A way to impose the acoustic sum rule
-                fout.write("flfrc = '%s'\n" % ifc_file) # Output file of the interatomic force constants
+                for item in self.q2r_input:
+                    if self.q2r_input[item] is not None:
+                        if type(self.q2r_input[item]) == str:
+                            fout.write("%s = '%s'\n" % (item, self.q2r_input[item]))
+                        else:
+                            fout.write("%s = %s\n" % (item, self.q2r_input[item]))
                 fout.write("/\n")
                 fout.write("\n")
             # gen yhbatch script
@@ -237,15 +254,40 @@ class dfpt_run:
             os.system("%s q2r.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
 
-    def matdyn(self, directory="tmp-qe-static", inpname="matdyn.in", output="matdyn.out", 
-            ifc_file="q2r.fc", mpi="", runopt="gen", asr='simple',
-            nqpoints=2, qpoints = [[0.0, 0.0, 0.0, 0.0], [0.012658, 0.0, 0.0, 0.012658]]):
+    def set_matdyn(self, matdyn_input={}, qpoints=None):
         """
         matdyn.x
             Calculate phonons at generic q points using IFC
         if Born effective charge Z* not found in output ifc file of q2r.x q2r.fc
-        TO-LO splittting at q=0 will be abset! and
+        TO-LO splittting at q=0 will be absent! and
         if Adirection for q wast not specified: TO-LO splitting will be absent!
+        """
+        self.matdyn_input = {
+                "flfrc": "q2r.fc", # File with IFC's
+                "asr": "simple", # Acoustic sum rule
+                "flfrq": "matdyn.freq",  # Output file with the frequencies
+                }
+        for item in matdyn_input:
+            self.matdyn_input[item] = matdyn_input[item]
+
+        # setting of qpoints
+
+        self.matdyn_qpoints = {
+                "qpoint-option": None,
+                "nqpoint": 0,
+                "qpoints": [[]],
+                }
+
+        # I decide to use seekpath to give the main qpoints and 
+        # make an interpolation between those qpoints to give 
+        # more qpoints.
+        #qpoints = np.random.randn(100, 4)
+        #nqpoints = len(qpoints)
+        #
+
+
+    def matdyn(self, directory="tmp-qe-static", inpname="matdyn.in", output="matdyn.out", mpi="", runopt="gen"):
+        """
         """
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
@@ -255,24 +297,21 @@ class dfpt_run:
             print("matdyn.x calculation:\n")
             print("  directory of previous scf or nscf calculattion not found!\n")
             sys.exit(1)
-        # test: set qpoints through numpy random number generator
-        # this is just a try, maybe not used in production run
-        # I decide to use seekpath to give the main qpoints and 
-        # make an interpolation between those qpoints to give 
-        # more qpoints.
-        qpoints = np.random.randn(100, 4)
-        nqpoints = len(qpoints)
         #
         if runopt == "gen" or runopt == "genrun":
             with open(os.path.join(directory, inpname), 'w') as fout:
                 fout.write("&input\n")
-                fout.write("asr = '%s'\n" % asr) # Acoustic sum rule
-                fout.write("flfrc = '%s'\n" % ifc_file) # File with IFC's
-                fout.write("flfrq = 'matdyn.freq'\n") # Output file with the frequencies
+                for item in self.matdyn_input:
+                    if self.matdyn_input[item] is not None:
+                        if type(self.matdyn_input[item]) == str:
+                            fout.write("%s = '%s'\n" % (item, self.matdyn_input[item]))
+                        else:
+                            fout.write("%s = %s\n" % (item, self.matdyn_input[item]))
                 fout.write("/\n")
-                fout.write("%d\n" % nqpoints) # Number of q points
-                for i in range(nqpoints):
-                    fout.write("%f %f %f %f\n" % (qpoints[i][0], qpoints[i][1], qpoints[i][2], qpoints[i][3]))
+                fout.write("%d\n" % self.matdyn_qpoints["nqpoint"]) # Number of q points
+                for i in range(self.matdyn_qpoints["nqpoint"]):
+                    fout.write("%f %f %f %f\n" % (self.matdyn_qpoints["qpoints"][i][0], self.matdyn_qpoints["qpoints"][i][1], self.matdyn_qpoints["qpoints"][i][2], self.matdyn_qpoints["qpoints"][i][3]))
+
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="matdyn.x")
         if runopt == "run" or runopt == "genrun":
@@ -309,9 +348,7 @@ class dfpt_run:
             os.system("%s plotband.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
 
-
-    def dynmat(self, directory="tmp-qe-static", inpname="dynmat-gamma.in", output="dynmat-gamma.out", mpi="", runopt="gen",
-            fildyn="phx.dyn", asr="simple", qi=[0, 0, 0]):
+    def set_dynmat(self, dynmat_input={}):
         """
         imposing acoustic sum rule (ASR)
         extract the phonon information from ph.x output using dynmat.x(
@@ -332,6 +369,19 @@ class dfpt_run:
             and we redirect running output to dynmat-gamma.out and that will not
             affect the default fileout dynmat.out
         """
+        self.dynmat_input = {
+                "fildyn": "phx.dyn", # File containing the dynamical matrix
+                "asr": "simple",
+                "q(1)": 0,
+                "q(2)": 0,
+                "q(3)": 0,
+                }
+        for item in dynmat_input:
+            self.dynmat_input[item] = dynmat_input[item]
+
+    def dynmat(self, directory="tmp-qe-static", inpname="dynmat-gamma.in", output="dynmat-gamma.out", mpi="", runopt="gen"):
+        """
+        """
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
             print("===================================================\n")
@@ -343,13 +393,15 @@ class dfpt_run:
         if runopt == "gen" or runopt == "genrun":
             with open(os.path.join(directory, inpname), 'w') as fout:
                 fout.write("&input\n")
-                fout.write("fildyn = '%s'\n" % fildyn) # File containing the dynamical matrix
-                fout.write("asr = '%s'\n" % asr)
-                fout.write("q(1) = %f\n" % qi[0])
-                fout.write("q(2) = %f\n" % qi[1])
-                fout.write("q(3) = %f\n" % qi[2])
+                for item in self.dynmat_input:
+                    if self.dynmat_input[item] is not None:
+                        if type(self.dynmat_input[item]) == str:
+                            fout.write("%s = '%s'\n" % (item, self.dynmat_input[item]))
+                        else:
+                            fout.write("%s = %s\n" % (item, self.dynmat_input[item]))
                 fout.write("/\n")
                 fout.write("\n")
+            
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="dynmat.x")
 
@@ -373,11 +425,11 @@ class dfpt_run:
         self.dynmat(mpi=mpi, runopt=runopt)
 
     #
-    def gen_yh(self, inpname, output, directory="tmp-qe-static", cmd="pw.x"):
+    def gen_yh(self, inpname, output, directory="tmp-qe-static", cmd="ph.x"):
         """
         generating yhbatch job script for calculation
         """
-        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
+        with open(os.path.join(directory, inpname.split(".in")[0]+".sub"), 'w') as fout:
             fout.write("#!/bin/bash\n")
             fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % (cmd, inpname, output))
 

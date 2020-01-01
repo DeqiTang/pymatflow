@@ -28,7 +28,7 @@ class pwscf:
         self.cell = qe_cell()
         self.arts = qe_arts()
         
-        self.control.basic_setting("scf") 
+        #self.control.basic_setting("scf") 
         self.electrons.basic_setting()
         self.set_kpoints() # default kpoint setting
 
@@ -99,7 +99,7 @@ class pwscf:
         """
         generating yhbatch job script for calculation
         """
-        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
+        with open(os.path.join(directory, inpname.split(".in")[0]+".sub"), 'w') as fout:
             fout.write("#!/bin/bash\n")
             fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % (cmd, inpname, output))
 

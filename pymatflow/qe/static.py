@@ -31,8 +31,6 @@ class static_run(pwscf):
         super().__init__()
         
         self.control.basic_setting("scf") 
-        self.electrons.basic_setting()
-        self.set_kpoints() # default kpoint setting
 
     def scf(self, directory="tmp-qe-static", inpname="static-scf.in", output="static-scf.out", mpi="", runopt="gen"):
         """
@@ -111,7 +109,6 @@ class static_run(pwscf):
             os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
     
-
 
     def converge_ecutwfc(self, emin, emax, step, directory="tmp-qe-ecutwfc", mpi="", runopt="gen"):
         if runopt == "gen" or runopt == "genrun":
@@ -397,6 +394,16 @@ class static_run(pwscf):
             os.system("%s dos.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
 
+    def set_bands(self, bands_input={}):
+        self.bands_input = {
+                "prefix": self.control.params["prefix"],
+                "outdir": self.control.params["outdir"],
+                "filband": "bands.dat",
+                "lsym": ".true."
+                }
+        for item in bands_input:
+            self.bands_input[item] = bands_input[item]
+
     def bands(self, directory="tmp-qe-static", inpname1="static-bands.in", output1="static-bands.out",
             inpname2="bands.in", output2="bands.out", mpi="", runopt="gen"):
         """
@@ -429,10 +436,12 @@ class static_run(pwscf):
             #
             with open(os.path.join(directory, inpname2), 'w') as fout:
                 fout.write("&BANDS\n")
-                fout.write("prefix = '%s'\n" % self.control.params["prefix"])
-                fout.write("outdir = '%s'\n" % ("./tmp"))
-                fout.write("filband = '%s'\n" % ("bands.dat"))
-                fout.write("lsym = %s\n" % (".true."))
+                for item in self.bands_input:
+                    if self.bands_input[item] is not None:
+                        if type(self.bands_input[item]) == str and self.bands_input[item].lower() not in [".true.", ".false."]:
+                            fout.write("%s = '%s'\n" % (item, self.bands_input[item]))
+                        else:
+                            fout.write("%s = %s\n" % (item, self.bands_input[item]))
                 fout.write("/\n")
                 fout.write("\n")
             
@@ -448,11 +457,25 @@ class static_run(pwscf):
             os.system("%s bands.x < %s | tee %s" % (mpi, inpname2, output2))
             os.chdir("../")
 
+    def set_projwfc(self, projwfc_input={}):
+        """
+        """
+        self.projwfc_input = {
+                "prefix": self.control.params["prefix"],
+                "outdir": self.control.params["outdir"],
+                "filpdos": "projwfc",
+                "ngauss": "default",
+                "degauss": "default",
+                "emin": "default",
+                "emax": "default",
+                "deltae": "default",
+                }
+        
+        for item in projwfc_input:
+            self.projwfc_input[item] = projwfc_input[item]
 
-    def projwfc(self, directory="tmp-qe-static", inpname="static-projwfc.in", output="static-projwfc.out", 
-            mpi="", filpdos="projwfc", ngauss='default', degauss='default', emin='default', emax='default',
-            deltae='default', runopt="gen"
-            ):
+
+    def projwfc(self, directory="tmp-qe-static", inpname="static-projwfc.in", output="static-projwfc.out", mpi="", runopt="gen"):
         """
         Reference:
             http://www.quantum-espresso.org/Doc/INPUT_PROJWFC.html
@@ -491,31 +514,36 @@ class static_run(pwscf):
         if runopt == "gen" or runopt == "genrun":
             with open(os.path.join(directory, inpname), 'w') as fout:
                 fout.write("&PROJWFC\n")
-                fout.write("prefix = '%s'\n" % self.control.params["prefix"])
-                fout.write("outdir = '%s'\n" % self.control.params["outdir"])
-                fout.write("filpdos = '%s'\n" % filpdos)
-                if ngauss == 'default':
+                for item in self.projwfc_input:
+                    if item in ["ngauss", "degauss", "emin", "emax", "deltae"]:
+                        continue
+                    if self.projwfc_input[item] is not None:
+                        if type(self.projwfc_input[item]) == str:
+                            fout.write("%s = '%s'\n" % (item, self.projwfc_input[item]))
+                        else:
+                            fout.write("%s = %s\n" % (item, self.projwfc_input[item]))
+                if self.projwfc_input["ngauss"] == 'default':
                     fout.write("! use ngauss read from input for pw.x store in xxx.save\n")
                 else:
-                    fout.write("ngauss = %d\n" % ngauss)
-                if degauss == 'default':
+                    fout.write("ngauss = %d\n" % self.projwfc_input["ngauss"])
+                if self.projwfc_input["degauss"] == 'default':
                     fout.write("! use degauss read from input for pw.x stored in xxx.save\n")
                     fout.write("! or degauss = DeltaE, if DeltaE is specified\n")
                     fout.write("! we better set degauss and ngauss ourselves!\n")
                 else:
-                    fout.write("degauss = %f\n" % degauss)
-                if emin == 'default':
+                    fout.write("degauss = %f\n" % self.projwfc_input["degauss"])
+                if self.projwfc_input["emin"] == 'default':
                     fout.write("!using default Emin: lower band value plus 3 times gauss smearing value\n")
                 else:
-                    fout.write("emin = %f\n" % emin)
-                if emax == 'default':
+                    fout.write("emin = %f\n" % self.projwfc_input["emin"])
+                if self.projwfc_input["emax"] == 'default':
                     fout.write("!using default Emax: upper band value minus 3 times gauss smearing value\n")
                 else:
-                    fout.write("emax = %f\n" % emax)
-                if deltae == 'default':
+                    fout.write("emax = %f\n" % self.projwfc_input["emax"])
+                if self.projwfc_input["deltae"] == 'default':
                     fout.write("!using default DeltaE value\n")
                 else:
-                    fout.write("deltae = %f\n" % deltae)
+                    fout.write("deltae = %f\n" % self.projwfc_input["deltae"])
                 fout.write("/\n")
                 fout.write("\n")
 

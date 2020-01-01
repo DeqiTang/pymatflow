@@ -12,6 +12,8 @@ from pymatflow.remote.rsync import rsync
 usage:
 """
 
+matdyn_input = {}
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()    
     parser.add_argument("-d", "--directory", help="directory for the static running", type=str, default="tmp-qe-static")
@@ -40,7 +42,8 @@ if __name__ == "__main__":
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================
     args = parser.parse_args()
-    xyzfile = args.file
+
+    matdyn_input["asr"] = args.asr
 
     #matdyn_qpoints = []
     #for i in range(0, len(args.matdyn_qpoints), 4):
@@ -50,7 +53,8 @@ if __name__ == "__main__":
 
     task = dfpt_run()
     task.get_xyz(args.file)
-    task.matdyn(directory=args.directory, mpi=args.mpi, runopt=args.runopt, asr=args.asr) # nqpoints=args.nqpoints, qpoints=matdyn_qpoints)
+    task.set_matdyn(matdyn_input=matdyn_input)
+    task.matdyn(directory=args.directory, mpi=args.mpi, runopt=args.runopt) # nqpoints=args.nqpoints, qpoints=matdyn_qpoints)
 
     # server handle
     if args.auto == 0:
@@ -66,9 +70,4 @@ if __name__ == "__main__":
         ctl = ssh()
         ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
         ctl.login()
-        ctl.submit(workdir=args.directory, jobfile="ph-qmesh.in.sub")
-        # cannot submit the following job before finishing the previous one
-        #ctl.submit(wordir=args.directory, jobfile="q2r.in.sub")
-        #ctl.submit(wordir=args.directory, jobfile="matdyn.in.sub")
-        #ctl.submit(wordir=args.directory, jobfile="plotband.in.sub")
-
+        ctl.submit(workdir=args.directory, jobfile="matdyn.sub")

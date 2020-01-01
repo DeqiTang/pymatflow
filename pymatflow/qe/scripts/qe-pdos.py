@@ -13,6 +13,8 @@ usage:
     qe-pdos.py -f xxx.xyz
 """
 
+projwfc_input = {}
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()    
     parser.add_argument("-d", "--directory", help="directory for the static running", type=str, default="tmp-qe-static")
@@ -33,8 +35,6 @@ if __name__ == "__main__":
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================
     args = parser.parse_args()
-    xyzfile = args.file
-    filpdos = args.filpdos
 
     if args.ngauss == 'default':
         ngauss = args.ngauss
@@ -57,10 +57,17 @@ if __name__ == "__main__":
     else:
         deltae = float(args.deltae)
 
+    projwfc_input["filpdos"] = args.filpdos
+    projwfc_input["ngauss"] = ngauss
+    projwfc_input["degauss"] = degauss
+    projwfc_input["emin"] = emin
+    projwfc_input["emax"] = emax
+    projwfc_input["deltae"] = deltae
 
     task = static_run()
-    task.get_xyz(xyzfile)
-    task.projwfc(directory=args.directory, runopt=args.runopt, mpi=args.mpi, filpdos=filpdos, ngauss=ngauss, degauss=degauss, emin=emin, emax=emax, deltae=deltae)
+    task.get_xyz(args.file)
+    task.set_projwfc(projwfc_input=projwfc_input)
+    task.projwfc(directory=args.directory, runopt=args.runopt, mpi=args.mpi)
 
     # server handle
     if args.auto == 0:
@@ -76,4 +83,4 @@ if __name__ == "__main__":
         ctl = ssh()
         ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
         ctl.login()
-        ctl.submit(workdir=args.directory, jobfile="static-projwfc.in.sub")
+        ctl.submit(workdir=args.directory, jobfile="static-projwfc.sub")

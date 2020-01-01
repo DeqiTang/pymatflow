@@ -13,9 +13,10 @@ usage:
     qe-bands.py -f xxx.xyz
 """
 
-control_params = {}
-system_params = {}
-electrons_params = {}
+control = {}
+system = {}
+electrons = {}
+bands = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -43,7 +44,7 @@ if __name__ == "__main__":
             choices=["automatic", "gamma", "tpiba_b"],
             help="Kpoints generation scheme option for band calculation")
 
-    parser.add_argument("-k", "--kpoints", type=str, default="1 1 1 0 0 0",
+    parser.add_argument("--kpoints-mp", type=str, default="1 1 1 0 0 0",
             help="Monkhorst-Pack kpoint grid, in format like '1 1 1 0 0 0'")
 
     parser.add_argument("--conv-thr", type=float, default=1.0e-6,
@@ -66,6 +67,13 @@ if __name__ == "__main__":
 
     parser.add_argument("--nbnd", type=int, default=None,
             help="Number of electronic states (bands) to be calculated")
+
+    # -----------------------------------------
+    #         bands.x related parameters
+    # -----------------------------------------
+    parser.add_argument("--lsym", type=str, default=".true.",
+            choices=[".true.", ".false."],
+            help="set lsym variable in bands.x input.")
   
     # -------------------------------------------------------------
     #                        for server handling
@@ -77,17 +85,18 @@ if __name__ == "__main__":
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================
     args = parser.parse_args()
-    xyzfile = args.file
-    system_params["occupations"] = args.occupations
-    system_params["smearing"] = args.smearing
-    system_params["degauss"] = args.degauss
-    kpoints_mp = [int(args.kpoints.split()[i]) for i in range(6)]
 
+    system["occupations"] = args.occupations
+    system["smearing"] = args.smearing
+    system["degauss"] = args.degauss
+
+    bands["lsym"] = args.lsym
 
     task = static_run()
-    task.get_xyz(xyzfile)
-    task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=kpoints_mp)
-    task.set_params(control=control_params, system=system_params, electrons=electrons_params)
+    task.get_xyz(args.file)
+    task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+    task.set_params(control=control, system=system, electrons=electrons)
+    task.set_bands(bands_input=bands)
     task.bands(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
 
     # server handle
