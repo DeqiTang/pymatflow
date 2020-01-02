@@ -98,7 +98,6 @@ if __name__ == "__main__":
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================   
     args = parser.parse_args()
-    xyzfile = args.file
     directory = args.directory
     
     electrons["MeshCutoff"] = args.meshcutoff
@@ -113,7 +112,7 @@ if __name__ == "__main__":
 
 
     task = static_run()
-    task.get_xyz(xyzfile)
+    task.get_xyz(args.file)
 
     task.properties.set_params(
         #bandlines = args.bandlines,

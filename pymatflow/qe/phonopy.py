@@ -35,9 +35,17 @@ class phonopy_run(pwscf):
     """
     def __init__(self):
         super().__init__()
+        
+        self.control.basic_setting("scf")
 
         self.supercell_n = [1, 1, 1]
-        
+
+        #must print print out forces and stress after scf
+        # so that phonopy can parse the scf output file and
+        # construct the FORCE CONSTANT MATIRX
+        self.control.params["tprnfor"] = True
+        self.control.params["tstress"] = True
+
     def phonopy(self, directory="tmp-qe-phonopy", pos_inpname="pos.in", head_inpname="head.in", mpi="", runopt="gen"):
         """
         directory: a place for all the generated files
@@ -217,41 +225,5 @@ class phonopy_run(pwscf):
             for disp in disp_dirs:
                 os.system("pw.x < supercell-%s-full.in | tee supercell-%s.out" % (disp, disp))
             os.chdir("../")
-    
-
-    def set_occupations(self, system):
-        """
-            # check if user try to set occupations and smearing and degauss
-            # through system. if so, use self.system.set_occupations() to 
-            # set them, as self.system.set_params() is suppressed from setting
-            # occupations related parameters
-            # if occupations == None, use default smearing occupation. and 
-            # if occupations == "tetrahedra" the value set for smearing and degauss is ignored.
-            # if occupations == "smearing", the value of smearing and degauss
-            # should be legacy, not None or other illegal values.
-        """
-        if "occupations" in system:
-            if system["occupations"] == None: # user default setting of set_occupations()
-                self.system.set_occupations()
-            elif system["occupations"] == "tetrahedra":
-                self.system.set_occupations(occupations="tetrahedra")
-            elif system["occupations"] == "smearing":
-                if "smearing" in system and "degauss" in system:
-                    self.system.set_occupations(occupations="smearing", smearing=system["smearing"], degauss=system["degauss"])
-                elif "smearing" in system:
-                    self.system.set_occupations(occupations="smearing", smearing=system["smearing"])
-                elif "degauss" in system:
-                    self.system.set_occupations(occupations="smearing", degauss=system["degauss"])
-                else:
-                    self.system.set_occupations(occupations="smearing")
-            elif system["occupations"] == "tetrahedra_lin":
-                self.system.set_occupations(occupations="tetrahedra_lin")
-            elif system["occupations"] == "tetrahedra_opt":
-                self.system.set_occupations(occupations="tetrahedra_opt")
-            elif system["occupations"] == "fixed":
-                self.system.set_occupations(occupations="fixed")
-            elif system["occupations"] == "from_input":
-                self.system.set_occupations(occupations="from_input")
-    
     #
     #

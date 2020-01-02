@@ -7,9 +7,19 @@ import os
 import shutil
 import pymatgen as mg
 
-from pymatflow.cp2k.base.subsys import cp2k_subsys
+from pymatflow.cp2k.base.bsse import cp2k_bsse
 from pymatflow.cp2k.base.dft import cp2k_dft
+from pymatflow.cp2k.base.eip import cp2k_eip
+from pymatflow.cp2k.base.embed import cp2k_embed
+from pymatflow.cp2k.base.external_potential import cp2k_external_potential
+from pymatflow.cp2k.base.mixed import cp2k_mixed
+from pymatflow.cp2k.base.mm import cp2k_mm
+from pymatflow.cp2k.base.print import cp2k_print
 from pymatflow.cp2k.base.properties import cp2k_properties
+from pymatflow.cp2k.base.pw_dft import cp2k_pw_dft
+from pymatflow.cp2k.base.qmmm import cp2k_qmmm
+from pymatflow.cp2k.base.rescale_forces import cp2k_rescale_forces
+from pymatflow.cp2k.base.subsys import cp2k_subsys
 
 
 """

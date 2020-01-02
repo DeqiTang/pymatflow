@@ -774,7 +774,7 @@ class cp2k_mm_poisson:
             self.mt.to_input(fout)
         if self.multipole.status == True:
             self.multipole.to_input(fout)
-        if self.wavelet.status == True:s
+        if self.wavelet.status == True:
             self.wavelet.to_input(fout)
         fout.write("\t\t&END POISSON\n")
 

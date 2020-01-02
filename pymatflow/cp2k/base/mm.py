@@ -10,7 +10,7 @@ import pymatgen as mg
 
 from pymatflow.cp2k.base.mm_forcefield import cp2k_mm_forcefield
 from pymatflow.cp2k.base.mm_neighbor_lists import cp2k_mm_neighbor_lists
-from pymatflow.cp2k.base.mm_periodic_field import cp2k_mm_periodic_efield
+from pymatflow.cp2k.base.mm_periodic_efield import cp2k_mm_periodic_efield
 from pymatflow.cp2k.base.mm_poisson import cp2k_mm_poisson
 from pymatflow.cp2k.base.mm_print import cp2k_mm_print
 

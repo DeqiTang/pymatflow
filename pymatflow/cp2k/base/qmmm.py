@@ -3781,7 +3781,7 @@ class cp2k_qmmm_print:
             self.qmmm_charges.to_input(fout)
         if self.qmmm_link_info.status == True:
             self.qmmm_link_info.to_input(fout)
-        if self.qmmm_matrix.status == True
+        if self.qmmm_matrix.status == True:
             self.qmmm_matrix.to_input(fout)
         if self.qs_derivatives.status == True:
             self.qs_derivatives.to_input(fout)
