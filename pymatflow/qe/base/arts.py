@@ -48,9 +48,11 @@ class qe_arts:
         for element in self.xyz.specie_labels:
             for upf in upf_all:
                 if upf.split(".")[0] == element:
-                    pseudo_file = upf
+                    pseudo_file =upf
                     break
             fout.write("%s %f %s\n" % (element, mg.Element(element).atomic_mass, pseudo_file))
+            pseudo_file = None
+            # after pseudo_file used, set it to None to avoid it will be used in the next element
         fout.write("\n")
         cell = self.xyz.cell
         fout.write("CELL_PARAMETERS angstrom\n")

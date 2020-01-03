@@ -40,24 +40,7 @@ class static_run(cp2k):
         self.glob.basic_setting(run_type="ENERGY_FORCE")
         self.force_eval.basic_setting()
 
-    def get_xyz(self, xyzfile):
-        """
-        xyz_f:
-            a modified xyz formatted file(the second line specifies the cell of the 
-            system).
-        """
-        self.force_eval.subsys.xyz.get_xyz(xyzfile)
-
-    def set_params(self, force_eval={}):
-        """
-        force_eval:
-            allowing control of FORCE_EVAL/... parameters by user
-        printout_option:
-            a list of integers, controlling the printout of properties, etc.
-        """
-        # using force_eval
-        self.force_eval.set_params(force_eval)            
-
+    
     def scf(self, directory="tmp-cp2k-static", inpname="static-scf.inp", output="static-scf.out",
             mpi="", runopt="gen"):
         """
@@ -79,7 +62,7 @@ class static_run(cp2k):
                 self.force_eval.to_input(fout)
 
             # gen server job comit file
-            self.gen_yh(cmd="cp2k.popt", inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt")
     
         if runopt == "run" or runopt == "genrun":
            os.chdir(directory)
@@ -292,74 +275,4 @@ class static_run(cp2k):
                 output = "kpoints-%dx%dx%d.out" % (kpoints_list[i][0], kpoints_list[i][1], kpoints_list[i][2])
                 os.system("cp2k.psmp -in %s | tee %s" % (inpname, output))
             os.chdir("../")
-
-
-
-    def set_printout(self, option=[]):
-        """
-        Note:
-            responsible for the parseing of the printout_option like in self.scf()
-
-        option:
-            1: printout pdos
-            2: printout band
-            3: printout electron densities
-            4: printout electron local function(ELF)
-            5: printout molecular orbitals
-            6: printout molecular orbital cube files
-            7: printout mulliken populaltion analysis
-            8: printout cubes for generation of STM images
-            9: printout cube file with total density(electrons+atomic core)
-           10: printout v_hartree_cube
-           11: printout v_xc_cube
-           12: printout xray_diffraction_spectrum
-           13: request a RESP fit of charges.
-        """
-        self.force_eval.dft.printout.status = True
-        self.force_eval.properties.status = True
-
-        if 1 in option:
-            self.force_eval.dft.printout.pdos.status = True
-        if 2 in option:
-            self.force_eval.dft.printout.band_structure.status = True
-            self.force_eval.dft.printout.band_structure.set_band(self.force_eval.subsys.xyz)
-        if 3 in option:
-            self.force_eval.dft.printout.e_density_cube.status = True
-        if 4 in option:
-            self.force_eval.dft.printout.elf_cube.status = True
-        if 5 in option:
-            self.force_eval.dft.printout.mo.status = True
-        if 6 in option:
-            self.force_eval.dft.printout.mo_cubes.status = True
-        if 7 in option:
-            self.force_eval.dft.printout.mulliken.status = True
-        if 8 in option:
-            self.force_eval.dft.printout.stm.status = True
-        if 9 in option:
-            self.force_eval.dft.printout.tot_density_cube.status = True
-        if 10 in option:
-            self.force_eval.dft.printout.v_hartree_cube.status = True
-        if 11 in option:
-            self.force_eval.dft.printout.v_xc_cube.status = True
-        if 12 in option:
-            self.force_eval.dft.printout.xray_diffraction_spectrum.status = True
-        if 13 in option:
-            self.force_eval.properties.resp.status = True
-
-    def set_vdw(self, usevdw):
-        """
-        usevdw: bool
-            True or False
-        """
-        from pymatflow.cp2k.helper import set_vdw
-        set_vdw(self.force_eval.dft, usevdw=usevdw)
-
-
-    def gen_yh(self,inpname, output, directory="tmp-cp2k-static", cmd="cp2k.psmp"):
-        """
-        generating yhbatch job script for calculation
-        """
-        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("yhrun -N 1 -n 24 %s -in %s | tee %s\n" % (cmd, inpname, output))
 

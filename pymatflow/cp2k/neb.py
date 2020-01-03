@@ -8,9 +8,10 @@ import shutil
 import pymatgen as mg
 import matplotlib.pyplot as plt
 
-from pymatflow.cp2k.base.glob import cp2k_glob
-from pymatflow.cp2k.base.force_eval import cp2k_force_eval
-from pymatflow.cp2k.base.motion import cp2k_motion
+from pymatflow.cp2k.cp2k import cp2k
+#from pymatflow.cp2k.base.glob import cp2k_glob
+#from pymatflow.cp2k.base.force_eval import cp2k_force_eval
+#from pymatflow.cp2k.base.motion import cp2k_motion
 
 
 """
@@ -28,16 +29,16 @@ Note:
 
 """
 
-class neb_run:
+class neb_run(cp2k):
     """
     """
     def __init__(self):
         """
-
         """
-        self.glob = cp2k_glob()
-        self.force_eval = cp2k_force_eval()
-        self.motion = cp2k_motion()
+        super().__init__()
+        #self.glob = cp2k_glob()
+        #self.force_eval = cp2k_force_eval()
+        #self.motion = cp2k_motion()
 
         self.glob.basic_setting(run_type="BAND")
         self.force_eval.basic_setting()
@@ -50,16 +51,6 @@ class neb_run:
         """
         self.motion.band.get_images(images)
         self.force_eval.subsys.xyz.get_xyz(images[0])
-
-    def set_params(self, force_eval={}, motion={}):
-        """
-        force_eval:
-            allowing control of FORCE_EVAL/... parameters by user
-        motion:
-            allowing control of MOTION/... parameters by user
-        """
-        self.force_eval.set_params(force_eval)
-        self.motion.set_params(motion)
 
 
     def neb(self, directory="tmp-cp2k-neb", inpname="neb.inp", output="neb.out", 
@@ -89,18 +80,11 @@ class neb_run:
                 self.motion.to_input(fout)
  
             # gen server job comit file
-            self.gen_yh(cmd="cp2k.popt", inpname=inpname, output=output)       
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s cp2k.psmp -in %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
     
-    
-    def gen_yh(self,inpname, output, directory="tmp-cp2k-neb", cmd="cp2k.psmp"):
-        """
-        generating yhbatch job script for calculation
-        """
-        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("yhrun -N 1 -n 24 %s -in %s | tee %s\n" % (cmd, inpname, output))
+    #

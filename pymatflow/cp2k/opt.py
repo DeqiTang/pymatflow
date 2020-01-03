@@ -8,14 +8,15 @@ import shutil
 import pymatgen as mg
 import matplotlib.pyplot as plt
 
-from pymatflow.cp2k.base.glob import cp2k_glob
-from pymatflow.cp2k.base.force_eval import cp2k_force_eval
-from pymatflow.cp2k.base.motion import cp2k_motion
+from pymatflow.cp2k.cp2k import cp2k
+#from pymatflow.cp2k.base.glob import cp2k_glob
+#from pymatflow.cp2k.base.force_eval import cp2k_force_eval
+#from pymatflow.cp2k.base.motion import cp2k_motion
 
 """
 """
 
-class opt_run:
+class opt_run(cp2k):
     """
     Note:
         opt_run is the calss as an agent for geometric optimization, including GEO_OPT
@@ -25,32 +26,16 @@ class opt_run:
         """
         TODO: 
         """
-        self.glob = cp2k_glob()
-        self.force_eval = cp2k_force_eval()
-        self.motion = cp2k_motion()
+        super().__init__()
+        #self.glob = cp2k_glob()
+        #self.force_eval = cp2k_force_eval()
+        #self.motion = cp2k_motion()
         
         self.run_type = "GEO_OPT" # default is GEO_OPT, can also do CELL_OPT
 
         self.glob.basic_setting(run_type="ENERGY_FORCE")
         self.force_eval.basic_setting()
 
-    def get_xyz(self, xyzfile):
-        """
-        xyz_f:
-            a modified xyz formatted file(the second line specifies the cell of the 
-            system).
-        """
-        self.force_eval.subsys.xyz.get_xyz(xyzfile)
-        
-    def set_params(self, force_eval={}, motion={}):
-        """
-        force_eval:
-            allowing control of FORCE_EVAL/... parameters by user
-        motion:
-            allowing control of MOTION/... parameters by user
-        """
-        self.force_eval.set_params(force_eval)
-        self.motion.set_params(motion)
 
     def geo_opt(self, directory="tmp-cp2k-geo-opt", inpname="geo-opt.inp", output="geo-opt.out", mpi="", runopt="gen"):
         """
@@ -74,7 +59,7 @@ class opt_run:
                 self.motion.to_input(fout)
  
             # gen server job comit file
-            self.gen_yh(cmd="cp2k.popt", directory=directory, inpname=inpname, output=output)       
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt")       
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -104,7 +89,7 @@ class opt_run:
                 self.motion.to_input(fout)
  
             # gen server job comit file
-            self.gen_yh(cmd="cp2k.popt", directory=directory, inpname=inpname, output=output)       
+            self.gen_yh(directory=directory, inpname=inpname, output=output. cmd="cp2k.popt")       
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -136,11 +121,4 @@ class opt_run:
         if self.force_eval.params["STRESS_TENSOR"] is None:
             self.force_eval.params["STRESS_TENSOR"] = "ANALYTICAL" # NUMERICAL
 
-
-    def gen_yh(self, inpname, output, directory, cmd="cp2k.psmp"):
-        """
-        generating yhbatch job script for calculation
-        """
-        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("yhrun -N 1 -n 24 %s -in %s | tee %s\n" % (cmd, inpname, output))
+    #

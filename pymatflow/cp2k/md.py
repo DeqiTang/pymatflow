@@ -8,10 +8,11 @@ import shutil
 import pymatgen as mg
 import matplotlib.pyplot as plt
 
-from pymatflow.cp2k.base.glob import cp2k_glob
-from pymatflow.cp2k.base.force_eval import cp2k_force_eval
-from pymatflow.cp2k.base.motion import cp2k_motion
-from pymatflow.cp2k.base.ext_restart import cp2k_ext_restart
+from pymatflow.cp2k.cp2k import cp2k
+#from pymatflow.cp2k.base.glob import cp2k_glob
+#from pymatflow.cp2k.base.force_eval import cp2k_force_eval
+#from pymatflow.cp2k.base.motion import cp2k_motion
+#from pymatflow.cp2k.base.ext_restart import cp2k_ext_restart
 
 """
 Reference:
@@ -23,7 +24,7 @@ TODO: implementing VIBRATIONAL SPECTRA calculating following this tutorial:
     it will use cp2k and Travis tools.
 """
 
-class md_run:
+class md_run(cp2k):
     """
     Note:
         md_run is the class as an agent for Molecular Dynamics running. currently 
@@ -37,33 +38,17 @@ class md_run:
             a modified xyz formatted file(the second line specifies the cell of the 
             system).
         """
-        self.glob = cp2k_glob()
-        self.force_eval = cp2k_force_eval()
-        self.motion = cp2k_motion()
-        self.ext_restart = cp2k_ext_restart()
+        super().__init__()
+        #self.glob = cp2k_glob()
+        #self.force_eval = cp2k_force_eval()
+        #self.motion = cp2k_motion()
+        #self.ext_restart = cp2k_ext_restart()
 
         self.glob.basic_setting(run_type="MD")
         self.force_eval.basic_setting()
 
         self.motion.set_type("MD")
 
-    def get_xyz(self, xyzfile):
-        """
-        xyz_f:
-            a modified xyz formatted file(the second line specifies the cell of the 
-            system).
-        """
-        self.force_eval.subsys.xyz.get_xyz(xyzfile)
-
-    def set_params(self, force_eval={}, motion={}):
-        """
-        force_eval:
-            allowing control of FORCE_EVAL/... parameters by user
-        motion:
-            allowing control of MOTION/... parameters by user
-        """
-        self.force_eval.set_params(force_eval)
-        self.motion.set_params(motion)
 
     def aimd(self, directory="tmp-cp2k-aimd", inpname="aimd.inp", output="aimd.out", mpi="", runopt="gen"):
         """
@@ -323,12 +308,4 @@ class md_run:
             os.system("%s cp2k.psmp -in %s | tee %s" % (mpi, "md-electron-density.inp", "md-electron-density.out"))
             os.chdir("../")
     
-
-
-    def gen_yh(self,inpname, output, directory="tmp-cp2k-md", cmd="cp2k.psmp"):
-        """
-        generating yhbatch job script for calculation
-        """
-        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("yhrun -N 1 -n 24 %s -in %s | tee %s\n" % (cmd, inpname, output))
+    #

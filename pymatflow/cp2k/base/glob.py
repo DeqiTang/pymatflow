@@ -31,6 +31,15 @@ class cp2k_glob:
         fout.write("&END GLOBAL\n")
         fout.write("\n")
 
+    def set_params(self, params):
+        """
+        """
+        for item in params:
+            if len(item.split("-")) == 1:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass
+
     def basic_setting(self, run_type="ENERGY_FORCE"):
         """
         """

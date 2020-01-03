@@ -10,9 +10,9 @@ from pymatflow.remote.rsync import rsync
 
 """
 usage:
-    qe-nscf.py -f xxx.xyz -k '4 4 4 0 0 0'
 """
 
+control = {}
 system = {}
 electrons = {}
     
@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
     task = static_run()
     task.get_xyz(xyzfile)
-    task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=kpoints_mp)
+    task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
     task.set_params(control=control, system=system, electrons=electrons)
     task.nscf(directory=args.directory, runopt=args.runopt, mpi=args.mpi)
 

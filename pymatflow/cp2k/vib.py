@@ -8,23 +8,25 @@ import shutil
 import pymatgen as mg
 import matplotlib.pyplot as plt
 
-from pymatflow.cp2k.base.glob import cp2k_glob
-from pymatflow.cp2k.base.force_eval import cp2k_force_eval
-from pymatflow.cp2k.base.vibrational_analysis import cp2k_vibrational_analysis
+from pymatflow.cp2k.cp2k import cp2k
+#from pymatflow.cp2k.base.glob import cp2k_glob
+#from pymatflow.cp2k.base.force_eval import cp2k_force_eval
+#from pymatflow.cp2k.base.vibrational_analysis import cp2k_vibrational_analysis
 
 """
 Usage:
 """
 
-class vib_run:
+class vib_run(cp2k):
     """
     Note:
         vib_run is the calss as an agent for Vibrational Analysis running.
     """
     def __init__(self):
-        self.glob = cp2k_glob()
-        self.force_eval = cp2k_force_eval()
-        self.vibrational_analysis = cp2k_vibrational_analysis()
+        super().__init__()
+        #self.glob = cp2k_glob()
+        #self.force_eval = cp2k_force_eval()
+        #self.vibrational_analysis = cp2k_vibrational_analysis()
 
         self.glob.basic_setting(run_type="VIBRATIONAL_ANALYSIS")
         self.force_eval.basic_setting()
@@ -33,25 +35,6 @@ class vib_run:
         #self.force_eval.dft.printout.print_moments()
         self.force_eval.dft.printout.moments.status == True
     
-    def get_xyz(self, xyzfile):
-        """
-        xyz_f:
-            a modified xyz formatted file(the second line specifies the cell of the 
-            system).
-        """
-        self.force_eval.subsys.xyz.get_xyz(xyzfile)
-    
-    def set_params(self, force_eval={}, vibrational={}):
-        """
-        force_eval:
-            allowing control of FORCE_EVAL/... parameters by user
-        vibrational:
-            allowing control of VIBRATIONAL_ANALYSIS/... parameters by user
-        """
-
-        self.force_eval.set_params(force_eval)
-        self.vibrational_analysis.set_params(vibrational)
-
 
     def vib(self, directory="tmp-cp2k-vib", inpname="vib.inp", output="vib.out", 
             mpi="", runopt="gen"):
@@ -75,7 +58,7 @@ class vib_run:
                 self.vibrational_analysis.to_input(fout)
         
             # gen server job comit file
-            self.gen_yh(cmd="cp2k.popt", inpname=inpname, output=output)
+            self.gen_yh(directory=directory, cmd="cp2k.popt", inpname=inpname, output=output)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -83,10 +66,3 @@ class vib_run:
             os.chdir("../")
    # 
 
-    def gen_yh(self,inpname, output, directory="tmp-cp2k-vib", cmd="cp2k.psmp"):
-        """
-        generating yhbatch job script for calculation
-        """
-        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("yhrun -N 1 -n 24 %s -in %s | tee %s\n" % (cmd, inpname, output))

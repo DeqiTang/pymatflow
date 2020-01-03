@@ -8,37 +8,28 @@ import shutil
 import pymatgen as mg
 import matplotlib.pyplot as plt
 
-from pymatflow.cp2k.base.glob import cp2k_glob
-from pymatflow.cp2k.base.force_eval import cp2k_force_eval
+from pymatflow.cp2k.cp2k import cp2k
+#from pymatflow.cp2k.base.glob import cp2k_glob
+#from pymatflow.cp2k.base.force_eval import cp2k_force_eval
 #from emuhelper.cp2k.base.atom import cp2k_atom
 
 """
 Usage:
 """
 
-class lr_run:
+class lr_run(cp2k):
     """
     Note:
         lr_run is the  class as an agent for Linear Response calculation.
     """
     def __init__(self):
-        self.glob = cp2k_glob()
-        self.force_eval = cp2k_force_eval()
- #       self.atom = cp2k_atom()
+        super().__init__()
+        #self.glob = cp2k_glob()
+        #self.force_eval = cp2k_force_eval()
+        #self.atom = cp2k_atom()
         
         self.glob.basic_setting(run_type="LINEAR_RESPONSE")
         self.force_eval.basic_setting()
-
-    def get_xyz(self, xyzfile):
-        """
-        xyz_f:
-            a modified xyz formatted file(the second line specifies the cell of the 
-            system).
-        """
-        self.force_eval.subsys.xyz.get_xyz(xyzfile)
-
-    def set_params(self, force_eval={}):
-        self.force_eval.set_params(params=force_eval)
 
     def lr(self, directory="tmp-cp2k-lr", inpname="lr.inp", output="lr.out", mpi="", runopt="gen"):
         """
@@ -67,69 +58,5 @@ class lr_run:
            os.chdir(directory)
            os.system("cp2k.psmp -in %s | tee %s" % (inpname, output))
            os.chdir("../")    
+    #
 
-
-    def set_printout(self, option=[]):
-        """
-        Note:
-            responsible for the parseing of the printout_option like in self.scf()
-
-        option:
-            1: printout pdos
-            2: printout band
-            3: printout electron densities
-            4: printout electron local function(ELF)
-            5: printout molecular orbitals
-            6: printout molecular orbital cube files
-            7: printout mulliken populaltion analysis
-            8: printout cubes for generation of STM images
-            9: printout cube file with total density(electrons+atomic core)
-           10: printout v_hartree_cube
-           11: printout v_xc_cube
-           12: printout xray_diffraction_spectrum
-           13: request a RESP fit of charges.
-           14: request a LINRES calculation
-        """
-        self.force_eval.dft.printout.status = True
-        self.force_eval.properties.status = True
-
-        if 1 in option:
-            self.force_eval.dft.printout.pdos.status = True
-        if 2 in option:
-            self.force_eval.dft.printout.band_structure.status = True
-            self.force_eval.dft.printout.band_structure.set_band(self.force_eval.subsys.xyz)
-        if 3 in option:
-            self.force_eval.dft.printout.e_density_cube.status = True
-        if 4 in option:
-            self.force_eval.dft.printout.elf_cube.status = True
-        if 5 in option:
-            self.force_eval.dft.printout.mo.status = True
-        if 6 in option:
-            self.force_eval.dft.printout.mo_cubes.status = True
-        if 7 in option:
-            self.force_eval.dft.printout.mulliken.status = True
-        if 8 in option:
-            self.force_eval.dft.printout.stm.status = True
-        if 9 in option:
-            self.force_eval.dft.printout.tot_density_cube.status = True
-        if 10 in option:
-            self.force_eval.dft.printout.v_hartree_cube.status = True
-        if 11 in option:
-            self.force_eval.dft.printout.v_xc_cube.status = True
-        if 12 in option:
-            self.force_eval.dft.printout.xray_diffraction_spectrum.status = True
-        if 13 in option:
-            self.force_eval.properties.resp.status = True
-        if 14 in option:
-            self.force_eval.properties.linres.status = True
-            # XC_DERIV method not implemented for GPW!
-            # so we try GAPW
-            self.force_eval.dft.qs.params["METHOD"] = "RIGPW"
-
-    def gen_yh(self,inpname, output, directory="tmp-cp2k-lr", cmd="cp2k.psmp"):
-        """
-        generating yhbatch job script for calculation
-        """
-        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("yhrun -N 1 -n 24 %s -in %s | tee %s\n" % (cmd, inpname, output))

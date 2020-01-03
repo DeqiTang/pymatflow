@@ -10,8 +10,9 @@ import pymatgen as mg
 
 from pymatflow.cp2k.base.xyz import cp2k_xyz
 
-from pymatflow.cp2k.base.glob import cp2k_glob
-from pymatflow.cp2k.base.force_eval import cp2k_force_eval
+from pymatflow.cp2k.cp2k import cp2k
+#from pymatflow.cp2k.base.glob import cp2k_glob
+#from pymatflow.cp2k.base.force_eval import cp2k_force_eval
 
 """
 Usage:
@@ -37,29 +38,19 @@ References:
 """
 
 
-class phonopy_run:
+class phonopy_run(cp2k):
     """
     """
     def __init__(self):
-        self.glob = cp2k_glob()
-        self.force_eval = cp2k_force_eval()
+        super().__init__()
+        #self.glob = cp2k_glob()
+        #self.force_eval = cp2k_force_eval()
         
         self.glob.basic_setting(run_type="ENERGY_FORCE")
         self.force_eval.basic_setting()
 
         self.supercell_n = [1, 1, 1]
 
-    def get_xyz(self, xyzfile):
-        """
-        xyz_f:
-            a modified xyz formatted file(the second line specifies the cell of the 
-            system).
-        """
-        self.force_eval.subsys.xyz.get_xyz(xyzfile)
-
-
-    def set_params(self, force_eval):
-        self.force_eval.set_params(force_eval)
 
     def phonopy(self, directory="tmp-cp2k-phonopy",
             mpi="", runopt="gen"):
