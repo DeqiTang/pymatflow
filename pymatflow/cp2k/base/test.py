@@ -525,7 +525,7 @@ class cp2k_test:
         self.grid_information = cp2k_test_grid_information()
         self.program_run_info = cp2k_test_program_run_info()
         self.pw_transfer = cp2k_test_pw_transfer()
-        self.rs_pw_transfer = cp2k_test_rs_pw_tranfser()
+        self.rs_pw_transfer = cp2k_test_rs_pw_transfer()
         self.shg_integrals_test = cp2k_test_shg_integrals_test()
         # basic setting
 

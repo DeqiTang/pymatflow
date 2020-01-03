@@ -24,7 +24,21 @@ class md_run(pwscf):
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
-            os.system("cp *.UPF %s/" % directory)
+
+            #os.system("cp *.UPF %s/" % directory)
+            #os.system("cp %s %s/" % (self.arts.xyz.file, directory))
+
+            # do not copy too many files at the same time or it will be slow
+            # so we do not copy all UPF files in the directory but just copy
+            # those used in the calculation.
+            shutil.copyfile(self.arts.xyz.file, os.path.join(directory, self.arts.xyz.file))
+            all_upfs = [s for s in os.listdir() if s.split(".")[-1] == "UPF"]
+            for element in self.arts.xyz.specie_labels:
+                for upf in all_upfs:
+                    if upf.split(".")[0] == element:
+                        shutil.copyfile(upf, os.path.join(directory, upf))
+                        break
+            # 
             
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
@@ -49,7 +63,21 @@ class md_run(pwscf):
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
-            os.system("cp *.UPF %s/" % directory)
+
+            #os.system("cp *.UPF %s/" % directory)
+            #os.system("cp %s %s/" % (self.arts.xyz.file, directory))
+
+            # do not copy too many files at the same time or it will be slow
+            # so we do not copy all UPF files in the directory but just copy
+            # those used in the calculation.
+            shutil.copyfile(self.arts.xyz.file, os.path.join(directory, self.arts.xyz.file))
+            all_upfs = [s for s in os.listdir() if s.split(".")[-1] == "UPF"]
+            for element in self.arts.xyz.specie_labels:
+                for upf in all_upfs:
+                    if upf.split(".")[0] == element:
+                        shutil.copyfile(upf, os.path.join(directory, upf))
+                        break
+            # 
             
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)

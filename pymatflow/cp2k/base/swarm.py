@@ -198,7 +198,7 @@ class cp2k_swarm_global_opt_progress_trajectory:
                 }
         self.status = False
 
-        self.each = cp2k_swarm_global_opt_progres_trajectory_each()
+        self.each = cp2k_swarm_global_opt_progress_trajectory_each()
         # basic setting
 
     def to_input(self, fout):

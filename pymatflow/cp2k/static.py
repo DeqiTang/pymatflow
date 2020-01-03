@@ -5,18 +5,16 @@ import os
 import sys
 import shutil
 import numpy as np
-import pymatgen as mg
-import matplotlib.pyplot as plt
 
-from pymatflow.cp2k.base.glob import cp2k_glob
-from pymatflow.cp2k.base.force_eval import cp2k_force_eval
-#from pymatflow.cp2k.base.atom import cp2k_atom
+#from pymatflow.cp2k.base.glob import cp2k_glob
+#from pymatflow.cp2k.base.force_eval import cp2k_force_eval
 
+from pymatflow.cp2k.cp2k import cp2k
 
 """
 """
 
-class static_run:
+class static_run(cp2k):
     """
     Usage:
         a = static_run()
@@ -35,9 +33,9 @@ class static_run:
         TODO: 
             include implement MP2 calculation through CP2K/ATOM
         """
-        self.glob = cp2k_glob()
-        self.force_eval = cp2k_force_eval()
-        #self.atom = cp2k_atom()
+        super().__init__()
+        #self.glob = cp2k_glob()
+        #self.force_eval = cp2k_force_eval()
         
         self.glob.basic_setting(run_type="ENERGY_FORCE")
         self.force_eval.basic_setting()
@@ -59,7 +57,6 @@ class static_run:
         """
         # using force_eval
         self.force_eval.set_params(force_eval)            
-        #self.atom.set_params(atom)
 
     def scf(self, directory="tmp-cp2k-static", inpname="static-scf.inp", output="static-scf.out",
             mpi="", runopt="gen"):
@@ -80,7 +77,6 @@ class static_run:
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.glob.to_input(fout)
                 self.force_eval.to_input(fout)
-                #self.atom.to_input(fout)
 
             # gen server job comit file
             self.gen_yh(cmd="cp2k.popt", inpname=inpname, output=output)

@@ -7,9 +7,10 @@ import argparse
 from pymatflow.cp2k.static import static_run
 from pymatflow.remote.ssh import ssh
 from pymatflow.remote.rsync import rsync
+
 """
 usage:
-    cp2k-scf.py -f xxx.xyz
+    cp2k-scf.py -h
 """
 
 
@@ -23,7 +24,6 @@ if __name__ == "__main__":
 
     parser.add_argument("-f", "--file", type=str,
             help="the xyz file containing the structure to be simulated")
-
 
     parser.add_argument("--runopt", type=str, default="genrun", 
             choices=["gen", "run", "genrun"],

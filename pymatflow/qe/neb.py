@@ -35,6 +35,8 @@ class neb_run(pwscf):
         self.images = []
         self.path = {} # Namelist: &PATH
         self.set_basic_path()
+
+        self.control.basic_setting("scf")
         
     def get_images(self, images):
         """
@@ -54,6 +56,7 @@ class neb_run(pwscf):
         # self.arts is actually the same as self.images[0]
         # it is used to set kpoints convinently
         self.arts.xyz.get_xyz(self.images[0].xyz.file)
+        self.arts.basic_setting(ifstatic=True)
 
     def set_params(self, control={}, system={}, electrons={}):
 
@@ -79,9 +82,22 @@ class neb_run(pwscf):
                 if os.path.exists(directory):
                     shutil.rmtree(directory)
                 os.mkdir(directory)
-                os.system("cp *.UPF %s/" % directory)
+
+                #os.system("cp *.UPF %s/" % directory)
+                #os.system("cp %s %s/" % (self.arts.xyz.file, directory))
+
+                # do not copy too many files at the same time or it will be slow
+                # so we do not copy all UPF files in the directory but just copy
+                # those used in the calculation.
                 for art in self.images:
-                    os.system("cp %s %s/" % (art.xyz.file, directory))
+                    shutil.copyfile(art.xyz.file, os.path.join(directory, art.xyz.file))
+                all_upfs = [s for s in os.listdir() if s.split(".")[-1] == "UPF"]
+                for element in self.arts.xyz.specie_labels:
+                    for upf in all_upfs:
+                        if upf.split(".")[0] == element:
+                            shutil.copyfile(upf, os.path.join(directory, upf))
+                            break
+                # 
             elif restart_mode == "restart":
                 self.path["restart_mode"] = restart_mode
                 # first check whether there is a previous neb running

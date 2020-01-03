@@ -191,7 +191,7 @@ class cp2k_farming:
             if len(item.split("-")) == 1:
                 self.params[item.split("-")[-1]] = params[item]
             elif item.split("-")[0] == "JOB":
-                self.job.set_params([item: params[item]])
+                self.job.set_params({item: params[item]})
             elif item.split("-")[0] == "PROGRAM_RUN_INFO":
                 self.program_run_info.set_params({item: params[item]})
             elif item.split("-")[0] == "RESTART":

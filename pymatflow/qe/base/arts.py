@@ -44,14 +44,11 @@ class qe_arts:
         # fout: a file stream for writing
         
         fout.write("ATOMIC_SPECIES\n")
+        upf_all = [s for s in os.listdir("./") if s.split(".")[-1] == "UPF"]
         for element in self.xyz.specie_labels:
-            tmp = os.listdir("./")
-            pseudo_file = ""
-            for f in tmp:
-                match_string = "%s\." % element
-                match = re.match(match_string, f)
-                if match is not None and match.string.split(".")[-1] == 'UPF':
-                    pseudo_file = match.string
+            for upf in upf_all:
+                if upf.split(".")[0] == element:
+                    pseudo_file = upf
                     break
             fout.write("%s %f %s\n" % (element, mg.Element(element).atomic_mass, pseudo_file))
         fout.write("\n")

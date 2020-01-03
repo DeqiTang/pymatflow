@@ -77,7 +77,7 @@ class cp2k_optimize_basis_fit_kind:
         self.status = False
 
         self.constrain_exponents = cp2k_optimize_basis_fit_kind_constrain_exponents()
-        self.derived_basis_sets = cp2k_optimize_fit_kind_derived_basis_sets()
+        self.derived_basis_sets = cp2k_optimize_basis_fit_kind_derived_basis_sets()
         # basic setting
 
     def to_input(self, fout):
