@@ -9,8 +9,9 @@ import seekpath
 import pymatgen as mg
 import matplotlib.pyplot as plt
 
-from pymatflow.abinit.base.electrons import abinit_electrons
-from pymatflow.abinit.base.system import abinit_system
+from pymatflow.abinit.abinit import abinit
+#from pymatflow.abinit.base.electrons import abinit_electrons
+#from pymatflow.abinit.base.system import abinit_system
 
 """
 Usage:
@@ -19,22 +20,19 @@ Note:
 """
 
         
-class phonopy_run:
+class phonopy_run(abinit):
     """
     """
     def __init__(self):
-        self.system = abinit_system()
-        self.electrons = abinit_electrons()
+        super().__init__()
+        #self.system = abinit_system()
+        #self.electrons = abinit_electrons()
     
         self.electrons.basic_setting()
 
         self.supercell_n = [1, 1, 1]
 
-    def get_xyz(self, xyzfile):
-        self.system.xyz.get_xyz(xyzfile)
-
-    def phonopy(self, directory="tmp-abinit-phonopy", head_inpname="head-phonon.in", pos_inpname="pos.in", mpi="", runopt="gen",
-            electrons={}, kpoints={}, supercell_n=[1, 1, 1]):
+    def phonopy(self, directory="tmp-abinit-phonopy", head_inpname="head-phonon.in", pos_inpname="pos.in", mpi="", runopt="gen"):
         """
         """
         if runopt == "gen" or runopt == "genrun":
@@ -45,11 +43,8 @@ class phonopy_run:
             os.system("cp *.GGA_PBE-JTH.xml %s/" % directory)
             os.system("cp %s %s/" % (self.system.xyz.file, directory))
            
-            self.supercell_n = supercell_n
 
             self.electrons.set_scf_nscf("scf")
-            self.electrons.set_params(electrons)
-            self.electrons.kpoints.set_params(kpoints)
             #
             with open(os.path.join(directory, head_inpname), 'w') as fout:
                 self.electrons.to_in(fout)

@@ -74,4 +74,6 @@ if __name__ == "__main__":
 
     task = static_run()
     task.get_xyz(args.file)
-    task.scf(directory=args.directory, mpi=args.mpi, runopt=args.runopt, electrons=electrons_params, kpoints=kpoints_params, properties=args.properties)
+    task.set_params(electrons=electrons_params)
+    task.set_kpoints(kpoints=kpoints_params)
+    task.scf(directory=args.directory, mpi=args.mpi, runopt=args.runopt, properties=args.properties)

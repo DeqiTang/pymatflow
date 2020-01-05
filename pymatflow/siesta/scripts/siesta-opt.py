@@ -71,8 +71,7 @@ if __name__ == "__main__":
     parser.add_argument("--stresstol", type=float, default=1,
             help="Stress tolerance in variable-cell CG optimization. default=1 GPa")
     parser.add_argument("--targetpressure", type=float, default=0,
-            help="Target pressure for Parrinello-Rahman method, variable cell optimizations, and annealing op-
-            tions.")
+            help="Target pressure for Parrinello-Rahman method, variable cell optimizations, and annealing options.")
    
     # -------------------------
     # for server
@@ -103,8 +102,10 @@ if __name__ == "__main__":
     ions["MD.TargetPressure"] = args.targetpressure
 
     task = opt_run()
-    task.get_xyz(xyzfile)
-    task.opt(directory=directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, ions=ions, kpoints_mp=args.kpoints_mp, mode=args.mode)
+    task.get_xyz(args.file)
+    task.set_params(electrons=electrons, ions=ions)
+    task.set_kpoints(kpoints_mp=args.kpoints_mp)
+    task.opt(directory=directory, runopt=args.runopt, mpi=args.mpi, mode=args.mode)
 
 
     # server handle

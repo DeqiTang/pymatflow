@@ -59,8 +59,11 @@ if __name__ == "__main__":
     electrons["OccupationFunction"] = args.occupation
     electrons["ElectronicTemperature"] = args.electronic_temperature
 
-    task = static_run(xyzfile)
-    task.scf_restart(directory=directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, properties=args.properties, kpoints_mp=args.kpoints_mp)
+    task = static_run()
+    task.get_xyz(args.file)
+    task.set_params(electrons=electrons)
+    task.set_kpoints(kpoints_mp=args.kpoints_mp)
+    task.scf_restart(directory=directory, runopt=args.runopt, mpi=args.mpi, properties=args.properties)
 
     # server handle
     if args.auto == 0:

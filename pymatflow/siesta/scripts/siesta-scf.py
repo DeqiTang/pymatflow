@@ -129,7 +129,9 @@ if __name__ == "__main__":
         wannier90_unkgrid = args.wannier90_unkgrid,
         )
 
-    task.scf(directory=directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, properties=args.properties, kpoints_mp=args.kpoints_mp)
+    task.set_params(electrons=electrons)
+    task.set_kpoints(kpoints_mp=args.kpoints_mp)
+    task.scf(directory=directory, runopt=args.runopt, mpi=args.mpi, properties=args.properties)
 
     # server handle
     if args.auto == 0:

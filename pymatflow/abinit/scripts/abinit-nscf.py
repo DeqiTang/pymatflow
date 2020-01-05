@@ -80,5 +80,8 @@ if __name__ == "__main__":
 
     electrons_params["prtdos"] = args.prtdos
     
-    task = static_run(args.file)
-    task.nscf(directory=args.directory, mpi=args.mpi, runopt=args.runopt, electrons=electrons_params, kpoints=kpoints_params, properties=args.properties)
+    task = static_run()
+    task.get_xyz(args.file)
+    task.set_params(electrons=electrons_params)
+    task.set_kpoints(kpoints=kpoints_params)
+    task.nscf(directory=args.directory, mpi=args.mpi, runopt=args.runopt, properties=args.properties)

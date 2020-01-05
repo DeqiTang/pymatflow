@@ -8,26 +8,25 @@ import shutil
 import pymatgen as mg
 import matplotlib.pyplot as plt
 
-from pymatflow.siesta.base.system import siesta_system
-from pymatflow.siesta.base.electrons import siesta_electrons
-from pymatflow.siesta.base.properties import siesta_properties
+from pymatflow.siesta.siesta import siesta
+#from pymatflow.siesta.base.system import siesta_system
+#from pymatflow.siesta.base.electrons import siesta_electrons
+#from pymatflow.siesta.base.properties import siesta_properties
 
-class static_run:
+class static_run(siesta):
     """
     """
     def __init__(self):
-        self.system = siesta_system()
-        self.electrons = siesta_electrons()
-        self.properties = siesta_properties()
+        super().__init__()
+        #self.system = siesta_system()
+        #self.electrons = siesta_electrons()
+        #self.properties = siesta_properties()
         
         self.electrons.basic_setting()
 
-    def get_xyz(self, xyzfile):
-        self.system.xyz.get_xyz(xyzfile)
-        self.properties.set_xyz(self.system.xyz) 
 
     def scf(self, directory="tmp-siesta-static", inpname="static-scf.fdf", output="static-scf.out",
-            mpi="", runopt="gen", electrons={}, properties=[], kpoints_mp=[1, 1, 1]):
+            mpi="", runopt="gen", properties=[]):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -36,8 +35,6 @@ class static_run:
             for element in self.system.xyz.specie_labels:
                 shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
        
-            self.electrons.kpoints_mp = kpoints_mp
-            self.electrons.set_params(electrons)
             # use self.properties.options to contorl the calculation of properties
             self.properties.options = properties
             with open(os.path.join(directory, inpname), 'w') as fout:
@@ -54,7 +51,7 @@ class static_run:
             os.chdir("../")
 
     def scf_restart(self, directory="tmp-siesta-static", inpname="static-scf-restart.fdf", output="static-scf-restart.out",
-            mpi="", runopt="gen", electrons={}, properties=[], kpoints_mp=[1, 1, 1]):
+            mpi="", runopt="gen", properties=[]):
 
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
@@ -67,8 +64,6 @@ class static_run:
         if runopt == "gen" or runopt == "genrun":
        
             self.electrons.dm["UseSaveDM"] = "true"
-            self.electrons.kpoints_mp = kpoints_mp
-            self.electrons.set_params(electrons)
             # use self.properties.option to contorl the calculation of properties
             self.properties.options = properties
             with open(os.path.join(directory, inpname), 'w') as fout:
@@ -85,8 +80,7 @@ class static_run:
             os.chdir("../")
 
 
-    def converge_cutoff(self, emin, emax, step, directory="tmp-siesta-cutoff",
-            mpi="", runopt="gen", electrons={}, kpoints_mp=[1, 1, 1]):
+    def converge_cutoff(self, emin, emax, step, directory="tmp-siesta-cutoff", mpi="", runopt="gen"):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -95,8 +89,6 @@ class static_run:
             for element in self.system.xyz.specie_labels:
                 shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
 
-            self.electrons.kpoints_mp = kpoints_mp
-            self.electrons.set_params(electrons)
             self.electrons.dm["UseSaveDM"] = "false"
 
             n_test = int((emax - emin) / step)
@@ -125,15 +117,5 @@ class static_run:
                 meshcutoff = int(emin + i * step)
                 os.system("%s siesta < cutoff-%d.fdf | tee cutoff-%d.out" % (mpi, meshcutoff, meshcutoff))
             os.chdir("../")
-    
-    def set_spin(self, spin="non-polarized"):
-        self.electrons.set_spin(spin)
 
-    def gen_yh(self, inpname, output, directory="tmp-siesta-static", cmd="siesta"):
-        """
-        generating yhbatch job script for calculation
-        """
-        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % (cmd, inpname, output))
-
+    #

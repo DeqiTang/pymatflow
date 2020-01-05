@@ -103,7 +103,9 @@ if __name__ == "__main__":
     
     task = md_run()
     task.get_xyz(args.file)
-    task.md(directory=args.directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, ions=ions, kpoints_mp=args.kpoints_mp)
+    task.set_params(electrons=electrons, ions=ions)
+    task.set_kpoints(kpoints_mp=args.kpoints_mp)
+    task.md(directory=args.directory, runopt=args.runopt, mpi=args.mpi)
 
 
     # server handle

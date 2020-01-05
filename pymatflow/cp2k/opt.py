@@ -89,7 +89,7 @@ class opt_run(cp2k):
                 self.motion.to_input(fout)
  
             # gen server job comit file
-            self.gen_yh(directory=directory, inpname=inpname, output=output. cmd="cp2k.popt")       
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt")       
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

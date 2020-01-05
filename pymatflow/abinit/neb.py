@@ -5,19 +5,22 @@ import os
 import shutil
 import matplotlib.pyplot as plt
 
-from pymatflow.abinit.base.electrons import abinit_electrons
-from pymatflow.abinit.base.system import abinit_system
+
+from pymatflow.abinit.abinit import abinit
+#from pymatflow.abinit.base.electrons import abinit_electrons
+#from pymatflow.abinit.base.system import abinit_system
 #from pymatflow.abinit.base.ions import abinit_ions
 #from emuhelper.abinit.base.properties import abinit_properties
 from pymatflow.abinit.base.guard import abinit_guard
 
-class neb_run:
+class neb_run(abinit):
     """
     """
     def __init__(self):
         """
         """
-        self.electrons = abinit_electrons()
+        super().__init__()
+        #self.electrons = abinit_electrons()
         self.system = []
         self.electrons.basic_setting()
         
@@ -51,8 +54,7 @@ class neb_run:
             system.xyz.get_xyz(image)
             self.system.append(system)
 
-    def neb(self, directory="tmp-abinit-neb", inpname="neb.in", mpi="", runopt="gen",
-            electrons={}, kpoints={}):
+    def neb(self, directory="tmp-abinit-neb", inpname="neb.in", mpi="", runopt="gen"):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -63,8 +65,6 @@ class neb_run:
                 os.system("cp %s %s/" % (image.xyz.file, directory))
 
             self.electrons.set_scf_nscf("scf")
-            self.electrons.set_params(electrons)
-            self.electrons.kpoints.set_params(kpoints)
             #
             self.guard.check_all()
             with open(os.path.join(directory, inpname), 'w') as fout:

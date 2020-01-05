@@ -13,6 +13,7 @@ usage:
 
 
 electrons = {}
+ions = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -57,8 +58,6 @@ if __name__ == "__main__":
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================   
     args = parser.parse_args()
-    xyzfile = args.file
-    directory = args.directory
     
     electrons["MeshCutoff"] = args.meshcutoff
     electrons["SolutionMethod"] = args.solution_method
@@ -72,9 +71,12 @@ if __name__ == "__main__":
 
 
     task = phonopy_run()
-    task.get_xyz(xyzfile)
-
-    task.phonopy(directory=directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, kpoints_mp=args.kpoints_mp, supercelln=args.supercelln)
+    task.get_xyz(args.file)
+    
+    task.set_params(electrons=electrons, ions=ions)
+    task.set_kpoints(kpoints_mp=args.kpoints_mp)
+    task.supercelln = args.supercelln
+    task.phonopy(directory=args.directory, runopt=args.runopt, mpi=args.mpi)
 
     # server handle
     if args.auto == 0:

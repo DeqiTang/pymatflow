@@ -25,6 +25,7 @@ Usage:
 Dependencies:
     pip install --user phonopy
     pip install --user cp2k_tools
+    pip install --user cp2k_input_tools
 
 Note:
     phonopy read the xxx.inp and it can only read the system structure
@@ -126,7 +127,7 @@ class phonopy_run(cp2k):
             with open(os.path.join(directory, "phonopy-job.sub"), 'w') as fout:
                 fout.write("#!/bin/bash\n\n")
                 for disp in disps:
-                    fout.write("yhrun -N 1 -n 24 cp2k.psmp -in phonon-supercell-%s.inp > phonon-supercell-%s.inp.out\n" % (disp, disp))
+                    fout.write("yhrun -N 1 -n 24 cp2k.popt -in phonon-supercell-%s.inp > phonon-supercell-%s.inp.out\n" % (disp, disp))
 
             # generate the result analysis bash script and necessary config files
             os.chdir(directory) 

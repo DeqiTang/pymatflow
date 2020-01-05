@@ -24,6 +24,7 @@ if __name__ == "__main__":
             help="Generate or run or both at the same time.")
 
     parser.add_argument("--mpi", help="MPI command", default="")
+
     parser.add_argument("--range", help="Test Range of MeshCutoff (Ry)", nargs="+", type=int)
     parser.add_argument("--solution-method", help="SolutionMethod(diagon, OMM, OrderN, PEXSI)", type=str, default="diagon")
     parser.add_argument("--functional", help="XC.functional", type=str, default="GGA")
@@ -48,7 +49,6 @@ if __name__ == "__main__":
     # ==========================================================   
     args = parser.parse_args()
     xyzfile = args.file
-    directory = args.directory
  
     electrons["SolutionMethod"] = args.solution_method
     electrons["XC.funtional"] = args.functional
@@ -59,8 +59,11 @@ if __name__ == "__main__":
     electrons["OccupationFunction"] = args.occupation
     electrons["ElectronicTemperature"] = args.electronic_temperature
 
-    task = static_run(xyzfile)
-    task.converge_cutoff(args.range[0], args.range[1], args.range[2], directory=directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, kpoints_mp=args.kpoints_mp)
+    task = static_run()
+    task.get_xyz(args.file)
+    task.set_params(electrons=electrons)
+    task.set_kpoints(kpoints_mp=args.kpoints_mp)
+    task.converge_cutoff(args.range[0], args.range[1], args.range[2], directory=args.directory, runopt=args.runopt, mpi=args.mpi)
 
     # server handle
     if args.auto == 0:

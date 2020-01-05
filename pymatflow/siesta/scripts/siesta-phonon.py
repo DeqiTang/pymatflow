@@ -72,13 +72,18 @@ if __name__ == "__main__":
     electrons["ElectronicTemperature"] = args.electronic_temperature
 
 
-    task = phonon_run(xyzfile)
+    task = phonon_run()
+    task.get_xyz(args.file)
+
     if args.borncharge == "yes":
         borncharge = True
         task.properties.set_params(polarization_grids=args.polarization_grids)
     elif args.borncharge == "no":
         borncharge = False
-    task.phonon(directory=directory, runopt=args.runopt, mpi=args.mpi, electrons=electrons, ions=ions, kpoints_mp=args.kpoints_mp, borncharge=borncharge)
+
+    task.set_params(electrons=electrons, ions=ions)
+    task.set_kpoints(kpoints_mp=args.kpoints_mp)
+    task.phonon(directory=directory, runopt=args.runopt, mpi=args.mpi, borncharge=borncharge)
 
     # server handle
     if args.auto == 0:

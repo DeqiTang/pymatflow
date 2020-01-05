@@ -7,30 +7,28 @@ import os
 import shutil
 import pymatgen as mg
 
-from pymatflow.siesta.base.system import siesta_system
-from pymatflow.siesta.base.electrons import siesta_electrons
-from pymatflow.siesta.base.ions import siesta_ions
-from pymatflow.siesta.base.properties import siesta_properties
+from pymatflow.siesta.siesta import siesta
+#from pymatflow.siesta.base.system import siesta_system
+#from pymatflow.siesta.base.electrons import siesta_electrons
+#from pymatflow.siesta.base.ions import siesta_ions
+#from pymatflow.siesta.base.properties import siesta_properties
 
-class phonon_run:
+class phonon_run(siesta):
     """
     Note:
         we can use Util/vibra to extract phonon frequencies and vectors.
     """
-    def __init__(self, xyz_f):
-        self.system = siesta_system(xyz_f)
-        self.electrons = siesta_electrons()
-        self.ions = siesta_ions()
-        # here self.properties is not used as in static calculation
-        # we just utilize it to providing calculation of BornCharge
-        # with self.properties.option = [6]
-        self.properties = siesta_properties(self.system.xyz)
+    def __init__(self):
+        super().__init__()
+        #self.system = siesta_system()
+        #self.electrons = siesta_electrons()
+        #self.ions = siesta_ions()
         
         self.electrons.basic_setting()
         self.ions.basic_setting(option="phonon")
 
     def phonon(self, directory="tmp-siesta-phonon", inpname="phonon.fdf", output="phonon.out",
-            mpi="", runopt="gen", electrons={}, ions={}, kpoints_mp=[1, 1, 1], borncharge=False):
+            mpi="", runopt="gen", borncharge=False):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -39,9 +37,6 @@ class phonon_run:
             for element in self.system.xyz.specie_labels:
                 shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
        
-            self.electrons.kpoints_mp = kpoints_mp
-            self.electrons.set_params(electrons)
-            self.ions.set_params(ions)
             if borncharge == True:
                 # here we use siesta_properties to provide calculation of Born  Effective Charge
                 # along with force constants calculation.
@@ -56,7 +51,7 @@ class phonon_run:
                     self.properties.to_fdf(fout)
 
             # gen yhbatch script
-            #self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="siesta")
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="siesta")
 
         if runopt == "run" or runopt == "genrun":
             # run the simulation

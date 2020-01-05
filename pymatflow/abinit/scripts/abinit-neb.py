@@ -69,4 +69,6 @@ if __name__ == "__main__":
 
     task = neb_run()
     task.get_images(images=args.images)
-    task.neb(directory=args.directory, mpi=args.mpi, runopt=args.runopt, electrons=electrons_params, kpoints=kpoints_params)
+    task.set_params(electrons=electrons_params)
+    task.set_kpoints(kpoints=kpoints_params)
+    task.neb(directory=args.directory, mpi=args.mpi, runopt=args.runopt)

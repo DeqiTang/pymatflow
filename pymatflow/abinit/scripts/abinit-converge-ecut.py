@@ -54,5 +54,8 @@ if __name__ == "__main__":
     kpoints_params["ngkpt"] = args.ngkpt
 
     
-    task = static_run(args.file)
-    task.converge_ecut(args.range[0], args.range[1], args.range[2], directory=args.directory, mpi=args.mpi, runopt=args.runopt, electrons=electrons_params, kpoints=kpoints_params)
+    task = static_run()
+    task.get_xyz(args.file)
+    task.set_params(electrons=electrons_parmas)
+    task.set_kpoints(kpoints=kpoints_parmas)
+    task.converge_ecut(args.range[0], args.range[1], args.range[2], directory=args.directory, mpi=args.mpi, runopt=args.runopt)

@@ -6,14 +6,15 @@ import sys
 import shutil
 import matplotlib.pyplot as plt
 
-from pymatflow.abinit.base.dfpt import abinit_dfpt
-from pymatflow.abinit.base.electrons import abinit_electrons
-from pymatflow.abinit.base.system import abinit_system
-from pymatflow.abinit.base.properties import abinit_properties
+from pymatflow.abinit.abinit import abinit
+#from pymatflow.abinit.base.dfpt import abinit_dfpt
+#from pymatflow.abinit.base.electrons import abinit_electrons
+#from pymatflow.abinit.base.system import abinit_system
+#from pymatflow.abinit.base.properties import abinit_properties
 from pymatflow.abinit.base.guard import abinit_guard
 
 
-class dfpt_run():
+class dfpt_run(abinit):
     """
     procedure for DFPT calculation:
         1) ground-state calculation
@@ -38,28 +39,26 @@ class dfpt_run():
         5) fifth, the self-consistent response-function computations of the atomic displacement perturbations with a q wavevector, with the full set of k-points (with kptopt=3)
     """
     def __init__(self):
-        self.system = abinit_system()
-        self.electrons = abinit_electrons()
-        self.properties = abinit_properties()
-        self.dfpt = abinit_dfpt()
+        super().__init__()
+        #self.system = abinit_system()
+        #self.electrons = abinit_electrons()
+        #self.properties = abinit_properties()
+        #self.dfpt = abinit_dfpt()
 
         self.electrons.basic_setting()
         #self.dfpt.basic_setting()
 
         self.guard = abinit_guard(queen="dfpt", electrons=self.electrons, system=self.system, dfpt=self.dfpt)
     
-    def get_xyz(self, xyzfile):
-        self.system.xyz.get_xyz(xyzfile)
 
-    def run(self, directory="tmp-abinit-static", mpi="", runopt="gen",
-            electrons={}, kpoints={}, properties=[]):
-        self.nscf_rf_ddk(directory=directory, mpi=mpi, runopt=runopt, electrons=electrons, kpoints=kpoints, properties=properties)
-        self.scf_rf_elfd_phon_q0(directory=directory, mpi=mpi, runopt=runopt, electrons=electrons, kpoints=kpoints, properties=properties)
-        self.nscf_ground_kq(directory=directory, mpi=mpi, runopt=runopt, electrons=electrons, kpoints=kpoints, properties=properties)
-        self.scf_rf_phon_q(directory=directory, mpi=mpi, runopt=runopt, electrons=electrons, kpoints=kpoints, properties=properties)
+    def run(self, directory="tmp-abinit-static", mpi="", runopt="gen", properties=[]):
+        self.nscf_rf_ddk(directory=directory, mpi=mpi, runopt=runopt, properties=properties)
+        self.scf_rf_elfd_phon_q0(directory=directory, mpi=mpi, runopt=runopt, properties=properties)
+        self.nscf_ground_kq(directory=directory, mpi=mpi, runopt=runopt, properties=properties)
+        self.scf_rf_phon_q(directory=directory, mpi=mpi, runopt=runopt, properties=properties)
 
     def nscf_rf_ddk(self, directory="tmp-abinit-static", inpname="nscf-rf-ddk.in", mpi="", runopt="gen",
-            electrons={}, kpoints={}, properties=[]):
+            properties=[]):
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
             print("===================================================\n")
@@ -71,7 +70,6 @@ class dfpt_run():
         if runopt == "gen" or runopt == "genrun":
 
             #self.electrons.set_scf_nscf("scf")
-            self.electrons.set_params(electrons)
             #self.properties.get_option(option=properties)
             self.electrons.params["tolvrs"] = None
             self.electrons.params["toldfe"] = None
@@ -79,7 +77,6 @@ class dfpt_run():
             self.electrons.params["tolrff"] = None
             self.electrons.params["tolwfr"] = 1.0e-22
             #self.electrons.params["nstep"] = 0
-            self.electrons.kpoints.set_params(kpoints)
             self.electrons.params["irdwfk"] = 1
             self.electrons.kpoints.params["kptopt"] = 2
             self.electrons.params["iscf"] = -3
@@ -110,7 +107,7 @@ class dfpt_run():
             os.chdir("../")
 
     def scf_rf_elfd_phon_q0(self, directory="tmp-abinit-static", inpname="scf-rf-elfd-phon.in", mpi="", runopt="gen",
-            electrons={}, kpoints={}, properties=[]):
+            properties=[]):
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
             print("===================================================\n")
@@ -122,8 +119,6 @@ class dfpt_run():
         if runopt == "gen" or runopt == "genrun":
 
             #self.electrons.set_scf_nscf("scf")
-            self.electrons.set_params(electrons)
-            self.electrons.kpoints.set_params(kpoints)
             #self.properties.get_option(option=properties)
 
             #
@@ -168,7 +163,7 @@ class dfpt_run():
 
 
     def nscf_ground_kq(self, directory="tmp-abinit-static", inpname="nscf-ground-kq.in", mpi="", runopt="gen",
-            electrons={}, kpoints={}, properties=[]):
+            properties=[]):
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
             print("===================================================\n")
@@ -180,8 +175,6 @@ class dfpt_run():
         if runopt == "gen" or runopt == "genrun":
 
             #self.electrons.set_scf_nscf("scf")
-            #self.electrons.set_params(electrons)
-            self.electrons.kpoints.set_params(kpoints)
             #self.properties.get_option(option=properties)
             #
             self.electrons.params["tolwfr"] = 1.0e-22
@@ -227,7 +220,7 @@ class dfpt_run():
         
 
     def scf_rf_phon_q(self, directory="tmp-abinit-static", inpname="scf-rf-phon-q.in", mpi="", runopt="gen",
-            electrons={}, kpoints={}, properties=[]):
+            properties=[]):
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
             print("===================================================\n")
@@ -239,8 +232,6 @@ class dfpt_run():
         if runopt == "gen" or runopt == "genrun":
 
             #self.electrons.set_scf_nscf("scf")
-            self.electrons.set_params(electrons)
-            #self.electrons.kpoints.set_params(kpoints)
             #self.properties.get_option(option=properties)
             #
             self.electrons.params["tolwfr"] = None #1.0e-22

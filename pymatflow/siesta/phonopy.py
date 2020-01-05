@@ -9,8 +9,9 @@ import seekpath
 import pymatgen as mg
 
 
-from pymatflow.siesta.base.system import siesta_system
-from pymatflow.siesta.base.electrons import siesta_electrons
+from pymatflow.siesta.siesta import siesta
+#from pymatflow.siesta.base.system import siesta_system
+#from pymatflow.siesta.base.electrons import siesta_electrons
 
 
 
@@ -20,22 +21,21 @@ Note:
     https://atztogo.github.io/phonopy/siesta.html
 """
 
-class phonopy_run:
+class phonopy_run(siesta):
     """
     """
     def __init__(self):
-        self.system = siesta_system()
-        self.electrons = siesta_electrons()
+        super().__init__()
+        #self.system = siesta_system()
+        #self.electrons = siesta_electrons()
 
         self.electrons.basic_setting()
             
         self.supercelln = [1, 1, 1] 
 
-    def get_xyz(self, xyzfile):
-        self.system.xyz.get_xyz(xyzfile)
 
     def phonopy(self, directory="tmp-siesta-phonopy", inpname="phono-with-phonopy.fdf", output="phono-with-phonopy.out",
-            mpi="", runopt="gen", electrons={}, ions={}, kpoints_mp=[1, 1, 1], supercelln=[1, 1, 1]):
+            mpi="", runopt="gen"):
         """
         """
         if runopt == "gen" or runopt == "genrun":
@@ -46,9 +46,6 @@ class phonopy_run:
             for element in self.system.xyz.specie_labels:
                 shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
 
-            self.supercelln = supercelln
-            self.electrons.kpoints_mp = kpoints_mp
-            self.electrons.set_params(electrons)
             
             # ok now we can use xyz class to extract information 
             # from the xyz file: sys.argv[1]

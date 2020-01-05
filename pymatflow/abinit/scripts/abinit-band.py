@@ -61,5 +61,7 @@ if __name__ == "__main__":
     electrons_params["vdw_tol"] = args.vdw_tol
 
 
-    task = static_run(args.file)
-    task.band(directory=args.directory, mpi=args.mpi, runopt=args.runopt, electrons=electrons_params)
+    task = static_run()
+    task.get_xyz(args.file)
+    task.set_params(electrons=electrons_params)
+    task.band(directory=args.directory, mpi=args.mpi, runopt=args.runopt)

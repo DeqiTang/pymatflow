@@ -43,6 +43,8 @@ class siesta_ions:
                     fout.write("MD.%s %s K\n" % (item, str(self.md[item])))
                 elif item == "TargetTemperature":
                     fout.write("MD.%s %s K\n" % (item, str(self.md[item])))
+                elif item == "TargetPressure":
+                    fout.write("MD.%s %s GPa\n" % (item, str(self.md[item])))
                 elif item == "LengthTimeStep":
                     fout.write("MD.%s %s fs\n" % (item, str(self.md[item])))
                 elif item == "MaxForceTol":
