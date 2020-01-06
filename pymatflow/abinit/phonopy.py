@@ -10,8 +10,6 @@ import pymatgen as mg
 import matplotlib.pyplot as plt
 
 from pymatflow.abinit.abinit import abinit
-#from pymatflow.abinit.base.electrons import abinit_electrons
-#from pymatflow.abinit.base.system import abinit_system
 
 """
 Usage:
@@ -25,8 +23,6 @@ class phonopy_run(abinit):
     """
     def __init__(self):
         super().__init__()
-        #self.system = abinit_system()
-        #self.electrons = abinit_electrons()
     
         self.electrons.basic_setting()
 

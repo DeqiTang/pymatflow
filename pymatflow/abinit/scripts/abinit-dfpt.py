@@ -69,4 +69,5 @@ if __name__ == "__main__":
     task.get_xyz(args.file)
     task.set_params(electrons=electrons_params)
     task.set_kpoints(kpoints=kpoints_params)
-    task.run(directory=args.directory, mpi=args.mpi, runopt=args.runopt, properties=args.properties)
+    task.set_properties(properties=args.properties)
+    task.run(directory=args.directory, mpi=args.mpi, runopt=args.runopt)

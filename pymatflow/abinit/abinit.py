@@ -12,6 +12,7 @@ from pymatflow.abinit.base.system import abinit_system
 from pymatflow.abinit.base.properties import abinit_properties
 from pymatflow.abinit.base.guard import abinit_guard
 
+
 class abinit:
     """
     """
@@ -21,8 +22,8 @@ class abinit:
         self.ions = abinit_ions()
         self.dfpt = abinit_dfpt()
         self.properties = abinit_properties()
-        self.guard = abinit_guard(queen="static", electrons=self.electrons, system=self.system)
-
+        self.guard = abinit_guard()
+        
         self.electrons.basic_setting()
 
     def get_xyz(self, xyzfile):
@@ -34,7 +35,10 @@ class abinit:
 
     def set_kpoints(self, kpoints={}):
         self.electrons.kpoints.set_params(kpoints)
-                
+
+    def set_properties(self, properties=[]):
+        self.properties.get_option(option=properties)
+
     #
 
     def dft_plus_u(self):

@@ -46,19 +46,18 @@ class dfpt_run(abinit):
         #self.dfpt = abinit_dfpt()
 
         self.electrons.basic_setting()
-        #self.dfpt.basic_setting()
+        self.dfpt.basic_setting()
 
-        self.guard = abinit_guard(queen="dfpt", electrons=self.electrons, system=self.system, dfpt=self.dfpt)
+        self.guard.set_queen(queen="dfpt", electrons=self.electrons, system=self.system, dfpt=self.dfpt)
     
 
-    def run(self, directory="tmp-abinit-static", mpi="", runopt="gen", properties=[]):
-        self.nscf_rf_ddk(directory=directory, mpi=mpi, runopt=runopt, properties=properties)
-        self.scf_rf_elfd_phon_q0(directory=directory, mpi=mpi, runopt=runopt, properties=properties)
-        self.nscf_ground_kq(directory=directory, mpi=mpi, runopt=runopt, properties=properties)
-        self.scf_rf_phon_q(directory=directory, mpi=mpi, runopt=runopt, properties=properties)
+    def run(self, directory="tmp-abinit-static", mpi="", runopt="gen"):
+        self.nscf_rf_ddk(directory=directory, mpi=mpi, runopt=runopt)
+        self.scf_rf_elfd_phon_q0(directory=directory, mpi=mpi, runopt=runopt)
+        self.nscf_ground_kq(directory=directory, mpi=mpi, runopt=runopt)
+        self.scf_rf_phon_q(directory=directory, mpi=mpi, runopt=runopt)
 
-    def nscf_rf_ddk(self, directory="tmp-abinit-static", inpname="nscf-rf-ddk.in", mpi="", runopt="gen",
-            properties=[]):
+    def nscf_rf_ddk(self, directory="tmp-abinit-static", inpname="nscf-rf-ddk.in", mpi="", runopt="gen"):
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
             print("===================================================\n")
@@ -70,7 +69,6 @@ class dfpt_run(abinit):
         if runopt == "gen" or runopt == "genrun":
 
             #self.electrons.set_scf_nscf("scf")
-            #self.properties.get_option(option=properties)
             self.electrons.params["tolvrs"] = None
             self.electrons.params["toldfe"] = None
             self.electrons.params["toldff"] = None
@@ -106,8 +104,7 @@ class dfpt_run(abinit):
             os.system("abinit < %s" % inpname.split(".")[0]+".files")
             os.chdir("../")
 
-    def scf_rf_elfd_phon_q0(self, directory="tmp-abinit-static", inpname="scf-rf-elfd-phon.in", mpi="", runopt="gen",
-            properties=[]):
+    def scf_rf_elfd_phon_q0(self, directory="tmp-abinit-static", inpname="scf-rf-elfd-phon.in", mpi="", runopt="gen"):
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
             print("===================================================\n")
@@ -119,7 +116,6 @@ class dfpt_run(abinit):
         if runopt == "gen" or runopt == "genrun":
 
             #self.electrons.set_scf_nscf("scf")
-            #self.properties.get_option(option=properties)
 
             #
             self.electrons.params["nstep"] = None # for scf
@@ -162,8 +158,7 @@ class dfpt_run(abinit):
             os.chdir("../")
 
 
-    def nscf_ground_kq(self, directory="tmp-abinit-static", inpname="nscf-ground-kq.in", mpi="", runopt="gen",
-            properties=[]):
+    def nscf_ground_kq(self, directory="tmp-abinit-static", inpname="nscf-ground-kq.in", mpi="", runopt="gen"):
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
             print("===================================================\n")
@@ -175,7 +170,6 @@ class dfpt_run(abinit):
         if runopt == "gen" or runopt == "genrun":
 
             #self.electrons.set_scf_nscf("scf")
-            #self.properties.get_option(option=properties)
             #
             self.electrons.params["tolwfr"] = 1.0e-22
             self.electrons.params["tolvrs"] = None
@@ -219,8 +213,7 @@ class dfpt_run(abinit):
 
         
 
-    def scf_rf_phon_q(self, directory="tmp-abinit-static", inpname="scf-rf-phon-q.in", mpi="", runopt="gen",
-            properties=[]):
+    def scf_rf_phon_q(self, directory="tmp-abinit-static", inpname="scf-rf-phon-q.in", mpi="", runopt="gen"):
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
             print("===================================================\n")
@@ -232,7 +225,6 @@ class dfpt_run(abinit):
         if runopt == "gen" or runopt == "genrun":
 
             #self.electrons.set_scf_nscf("scf")
-            #self.properties.get_option(option=properties)
             #
             self.electrons.params["tolwfr"] = None #1.0e-22
             self.electrons.params["tolvrs"] = 1.0e-8 #None

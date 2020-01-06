@@ -11,7 +11,12 @@ class abinit_guard:
     one solution, and if the number of solutions to some kind of erros is more that one
     it will not trying to correct automatically, but will stop the program.
     """
-    def __init__(self, queen, electrons=None, ions=None, system=None, dfpt=None):
+    def __init__(self):
+        """
+        """
+        pass
+
+    def set_queen(self, queen, electrons=None, ions=None, system=None, dfpt=None):
         """
         queen:
             type of abinit run, can be the following values:

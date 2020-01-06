@@ -6,26 +6,18 @@ import shutil
 import matplotlib.pyplot as plt
 
 from pymatflow.abinit.abinit import abinit
-#from pymatflow.abinit.base.electrons import abinit_electrons
-#from pymatflow.abinit.base.ions import abinit_ions
-#from pymatflow.abinit.base.system import abinit_system
-
-from pymatflow.abinit.base.guard import abinit_guard
 
 class md_run(abinit):
     """
     """
     def __init__(self):
         super().__init__()
-        #self.system = abinit_system()
-        #self.electrons = abinit_electrons()
-        #self.ions = abinit_ions()
         
         self.electrons.basic_setting()
 
         self.ions.basic_setting(mode="md")
 
-        self.guard = abinit_guard(queen="md", electrons=self.electrons, ions=self.ions, system=self.system)
+        self.guard.set_queen(queen="md", electrons=self.electrons, ions=self.ions, system=self.system)
         
 
     def md(self, directory="tmp-abinit-md", inpname="molecular-dynamics.in", mpi="", runopt="gen"):

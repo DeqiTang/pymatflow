@@ -9,7 +9,6 @@ from pymatflow.abinit.abinit import abinit
 #from pymatflow.abinit.base.electrons import abinit_electrons
 #from pymatflow.abinit.base.system import abinit_system
 #from pymatflow.abinit.base.properties import abinit_properties
-from pymatflow.abinit.base.guard import abinit_guard
 
 class static_run(abinit):
     """
@@ -21,13 +20,12 @@ class static_run(abinit):
         #self.system = abinit_system()
         #self.electrons = abinit_electrons()
         #self.properties = abinit_properties()
-        self.guard = abinit_guard(queen="static", electrons=self.electrons, system=self.system)
+        self.guard.set_queen(queen="static", electrons=self.electrons, system=self.system)
 
         self.electrons.basic_setting()
 
         
-    def scf(self, directory="tmp-abinit-static", inpname="static-scf.in", mpi="", runopt="gen",
-            properties=[]):
+    def scf(self, directory="tmp-abinit-static", inpname="static-scf.in", mpi="", runopt="gen"):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -37,7 +35,6 @@ class static_run(abinit):
             os.system("cp %s %s/" % (self.system.xyz.file, directory))
 
             self.electrons.set_scf_nscf("scf")
-            self.properties.get_option(option=properties)
             #
             self.guard.check_all()
             with open(os.path.join(directory, inpname), 'w') as fout:
@@ -59,8 +56,7 @@ class static_run(abinit):
             os.system("abinit < %s" % inpname.split(".")[0]+".files")
             os.chdir("../")
  
-    def nscf(self, directory="tmp-abinit-static", inpname="static-nscf.in", mpi="", runopt="gen",
-            properties=[]):
+    def nscf(self, directory="tmp-abinit-static", inpname="static-nscf.in", mpi="", runopt="gen"):
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
             print("===================================================\n")
@@ -72,7 +68,6 @@ class static_run(abinit):
         if runopt == "gen" or runopt == "genrun":
 
             self.electrons.set_scf_nscf("nscf")
-            self.properties.get_option(option=properties)
             self.electrons.params["irdwfk"] = 1
             self.electrons.params["irdden"] = 1
             # dos
