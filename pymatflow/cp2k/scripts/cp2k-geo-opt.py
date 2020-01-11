@@ -17,8 +17,7 @@ Usage:
 
 """
 
-force_eval = {}
-motion = {}
+params
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -108,33 +107,33 @@ if __name__ == "__main__":
     # ==========================================================   
     args = parser.parse_args()
     
-    force_eval["DFT-LS_SCF"] = args.ls_scf
-    force_eval["DFT-QS-METHOD"] = args.qs_method
-    force_eval["DFT-MGRID-CUTOFF"] = args.cutoff
-    force_eval["DFT-MGRID-REL_CUTOFF"] = args.rel_cutoff
-    force_eval["DFT-XC-XC_FUNCTIONAL"] = args.xc_functional
-    force_eval["DFT-SCF-EPS_SCF"] = args.eps_scf
-    force_eval["DFT-SCF-ADDED_MOS"] = args.added_mos
-    force_eval["DFT-SCF-SMEAR"] = args.smear
-    force_eval["DFT-SCF-SMEAR-METHOD"] = args.smear_method
-    force_eval["DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE"] = args.electronic_temp
-    force_eval["DFT-SCF-SMEAR-WINDOW_SIZE"] = args.window_size
-    force_eval["DFT-SCF-DIAGONALIZATION"] = args.diag
-    force_eval["DFT-SCF-OT"] = args.ot
-    force_eval["DFT-SCF-MIXING-ALPHA"] = args.alpha
-    force_eval["DFT-KPOINTS-SCHEME"] = args.kpoints_scheme
+    params["FORCE_EVAL-DFT-LS_SCF"] = args.ls_scf
+    params["FORCE_EVAL-DFT-QS-METHOD"] = args.qs_method
+    params["FORCE_EVAL-DFT-MGRID-CUTOFF"] = args.cutoff
+    params["FORCE_EVAL-DFT-MGRID-REL_CUTOFF"] = args.rel_cutoff
+    params["FORCE_EVAL-DFT-XC-XC_FUNCTIONAL"] = args.xc_functional
+    params["FORCE_EVAL-DFT-SCF-EPS_SCF"] = args.eps_scf
+    params["FORCE_EVAL-DFT-SCF-ADDED_MOS"] = args.added_mos
+    params["FORCE_EVAL-DFT-SCF-SMEAR"] = args.smear
+    params["FORCE_EVAL-DFT-SCF-SMEAR-METHOD"] = args.smear_method
+    params["FORCE_EVAL-DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE"] = args.electronic_temp
+    params["FORCE_EVAL-DFT-SCF-SMEAR-WINDOW_SIZE"] = args.window_size
+    params["FORCE_EVAL-DFT-SCF-DIAGONALIZATION"] = args.diag
+    params["FORCE_EVAL-DFT-SCF-OT"] = args.ot
+    params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"] = args.alpha
+    params["FORCE_EVAL-DFT-KPOINTS-SCHEME"] = args.kpoints_scheme
 
-    motion["GEO_OPT-MAX_ITER"] = args.max_iter
-    motion["GEO_OPT-OPTIMIZER"] = args.optimizer
-    motion["GEO_OPT-TYPE"] = args.type
-    motion["GEO_OPT-MAX_DR"] = args.max_dr
-    motion["GEO_OPT-MAX_FORCE"] = args.max_force
-    motion["GEO_OPT-RMS_DR"] = args.rms_dr
-    motion["GEO_OPT-RMS_FORCE"] = args.rms_force
+    params["MOTION-GEO_OPT-MAX_ITER"] = args.max_iter
+    params["MOTION-GEO_OPT-OPTIMIZER"] = args.optimizer
+    params["MOTION-GEO_OPT-TYPE"] = args.type
+    params["MOTION-GEO_OPT-MAX_DR"] = args.max_dr
+    params["MOTION-GEO_OPT-MAX_FORCE"] = args.max_force
+    params["MOTION-GEO_OPT-RMS_DR"] = args.rms_dr
+    params["MOTION-GEO_OPT-RMS_FORCE"] = args.rms_force
 
     task = opt_run()
     task.get_xyz(args.file)
-    task.set_params(force_eval=force_eval, motion=motion)
+    task.set_params(params=params)
     task.geo_opt(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
 
     # server handle

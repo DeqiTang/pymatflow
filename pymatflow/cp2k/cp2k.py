@@ -44,7 +44,7 @@ class cp2k:
     def __init__(self):
         """
         """
-        self.cp2k_atom = cp2k_atom()
+        self.atom = cp2k_atom()
         self.debug = cp2k_debug()
         self.ext_restart = cp2k_ext_restart()
         self.farming = cp2k_farming()
@@ -66,28 +66,46 @@ class cp2k:
             system).
         """
         self.force_eval.subsys.xyz.get_xyz(xyzfile)
-        
-    def set_params(self, atom={}, debug={}, ext_restart={}, farming={}, force_eval={}, glob={}, motion={}, multipole_force_evals={}, negf={}, optimize_basis={}, optimize_input={}, swarm={}, test={}, vibrational_analysis={}):
+
+    def set_params(self, params={}):
         """
-        force_eval:
-            allowing control of FORCE_EVAL/... parameters by user
-        motion:
-            allowing control of MOTION/... parameters by user
+        Note:
+            we should always use this function to set params in cp2k
+            
+            every item in params begin with a "XXX-" where XXX is the first level
+            input section of cp2k, like "FORCE_EVAL", "ATOM", "MOTION".
+
+            currently only FORCE_EVAL, MOTION, ATOM, VIBRATIONAL_ANALYSIS are reliable.
         """
-        self.cp2k_atom.set_params(atom) 
-        self.debug.set_params(debug)
-        self.ext_restart.set_params(ext_restart)
-        self.farming.set_params(farming)
-        self.force_eval.set_params(force_eval)
-        self.glob.set_params(glob)
-        self.motion.set_params(motion)
-        self.multipole_force_evals.set_params(motion)
-        self.negf.set_params(negf)
-        self.optimize_basis.set_params(optimize_basis)
-        self.optimize_input.set_params(optimize_input)
-        self.swarm.set_params(swarm)
-        self.test.set_params(test)
-        self.vibrational_analysis.set_params(vibrational_analysis)
+        for item in params:
+            if item.split("-")[0].upper() == "ATOM":
+                self.atom.set_params({item.replace("ATOM-", ""): params[item]})
+            elif item.split("-")[0].upper() == "DEBUG":
+                self.debug.set_params({item: params[item]})
+            elif item.split("-")[0].upper() == "EXT_RESTART":
+                self.ext_restart.set_params({item: params[item]})
+            elif item.split("-")[0].upper() == "FARMING":
+                self.farming.set_params({item: params[item]})
+            elif item.split("-")[0].upper() == "FORCE_EVAL":
+                self.force_eval.set_params({item.replace("FORCE_EVAL-", ""): params[item]})
+            elif item.split("-")[0].upper() == "GLOBAL":
+                self.glob.set_params({item: params[item]})
+            elif item.split("-")[0].upper() == "MOTION":
+                self.motion.set_params({item.replace("MOTION-", ""): params[item]})
+            elif item.split("-")[0].upper() == "MULTIPOLE_FORCE_EVALS":
+                self.multipole_force_evals.set_params({item: params[item]})
+            elif item.split("-")[0].upper() == "NEGF":
+                self.negf.set_params({item: params[item]})
+            elif item.split("-")[0].upper() == "OPTIMIZE_BASIS":
+                self.optimize_basis.set_params({item: params[item]})
+            elif item.split("-")[0].upper() == "OPTIMIZE_INPUT":
+                self.optimize_input.set_params({item: params[item]})
+            elif item.split("-")[0].upper() == "SWARM":
+                self.swarm.set_params({item: params[item]})
+            elif item.split("-")[0].upper() == "TEST":
+                self.test.set_params({item: params[item]})
+            elif item.split("-")[0].upper() == "VIBRATIONAL_ANALYSIS":
+                self.vibrational_analysis.set_params({item.replace("VIBRATIONAL_ANALYSIS-", ""): params[item]})
 
     def gen_yh(self, inpname, output, directory, cmd="cp2k.psmp"):
         """

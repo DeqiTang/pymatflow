@@ -14,8 +14,7 @@ usage:
 """
 
 
-force_eval = {}
-motion = {}
+params = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -136,37 +135,37 @@ if __name__ == "__main__":
     # ==========================================================   
     args = parser.parse_args()
 
-    force_eval["dft-ls_scf"] = args.ls_scf
-    force_eval["dft-qs-method"] = args.qs_method
-    force_eval["dft-mgrid-cutoff"] = args.cutoff
-    force_eval["dft-mgrid-rel_cutoff"] = args.rel_cutoff
-    force_eval["dft-xc-xc_functional"] = args.xc_functional
-    force_eval["dft-scf-eps_scf"] = args.eps_scf
-    force_eval["dft-scf-added_mos"] = args.added_mos
-    force_eval["dft-scf-smear"] = args.smear
-    force_eval["dft-scf-smear-method"] = args.smear_method
-    force_eval["dft-scf-smear-electronic_temperature"] = args.electronic_temp
-    force_eval["dft-scf-smear-window_size"] = args.window_size
-    force_eval["dft-scf-diagonalization"] = args.diag
-    force_eval["dft-scf-ot"] = args.ot
-    force_eval["dft-scf-mixing-alpha"] = args.alpha
-    force_eval["dft-kpoints-scheme"] = args.kpoints_scheme
+    params["FORCE_EVAL-DFT-LS_SCF"] = args.ls_scf
+    params["FORCE_EVAL-DFT-QS-METHOD"] = args.qs_method
+    params["FORCE_EVAL-DFT-MGRID-CUTOFF"] = args.cutoff
+    params["FORCE_EVAL-DFT-MGRID-REL_CUTOFF"] = args.rel_cutoff
+    params["FORCE_EVAL-DFT-XC-XC_FUNCTIONAL"] = args.xc_functional
+    params["FORCE_EVAL-DFT-SCF-EPS_SCF"] = args.eps_scf
+    params["FORCE_EVAL-DFT-SCF-ADDED_MOS"] = args.added_mos
+    params["FORCE_EVAL-DFT-SCF-SMEAR"] = args.smear
+    params["FORCE_EVAL-DFT-SCF-SMEAR-METHOD"] = args.smear_method
+    params["FORCE_EVAL-DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE"] = args.electronic_temp
+    params["FORCE_EVAL-DFT-SCF-SMEAR-WINDOW_SIZE"] = args.window_size
+    params["FORCE_EVAL-DFT-SCF-DIAGONALIZATION"] = args.diag
+    params["FORCE_EVAL-DFT-SCF-OT"] = args.ot
+    params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"] = args.alpha
+    params["FORCE_EVAL-DFT-KPOINTS-SCHEME"] = args.kpoints_scheme
 
-    force_eval["dft-xc-vdw_potential"] = args.vdw
-    force_eval["dft-xc-vdw_potential-potential_type"] = args.vdw_potential_type
-    force_eval["dft-xc-vdw_potential-pair_potential-type"] = args.pair_type
-    force_eval["dft-xc-vdw_potential-pair-potential-r_cutoff"] = args.r_cutoff
+    params["FORCE_EVAL-dft-xc-vdw_potential"] = args.vdw
+    params["FORCE_EVAL-dft-xc-vdw_potential-potential_type"] = args.vdw_potential_type
+    params["FORCE_EVAL-dft-xc-vdw_potential-pair_potential-type"] = args.pair_type
+    params["FORCE_EVAL-dft-xc-vdw_potential-pair-potential-r_cutoff"] = args.r_cutoff
 
-    motion["BAND-BAND_TYPE"] = args.band_type
-    motion["BAND-NUMBER_OF_REPLICA"] = args.number_of_replica
-    motion["BAND-ALIGN_FRAMES"] = args.align_frames
-    motion["BAND-ROTATE-FRAMES"] = args.rotate_frames
-    motion["BAND-K_SPRING"] = args.k_spring
+    params["MOTION-BAND-BAND_TYPE"] = args.band_type
+    params["MOTION-BAND-NUMBER_OF_REPLICA"] = args.number_of_replica
+    params["MOTION-BAND-ALIGN_FRAMES"] = args.align_frames
+    params["MOTION-BAND-ROTATE-FRAMES"] = args.rotate_frames
+    params["MOTION-BAND-K_SPRING"] = args.k_spring
 
 
     task = neb_run()
     task.get_images(images=args.images)
-    task.set_params(force_eval=force_eval, motion=motion)
+    task.set_params(params=params)
     task.neb(directory=args.directory, runopt=args.runopt)
 
     # server handle

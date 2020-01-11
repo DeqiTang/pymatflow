@@ -21,8 +21,7 @@ Usage:
     for all the elements of the system is in the directory.
 """
 
-force_eval = {}
-motion = {}
+params = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -107,32 +106,32 @@ if __name__ == "__main__":
     # ==========================================================   
     args = parser.parse_args()
 
-    force_eval["DFT-LS_SCF"] = args.ls_scf
-    force_eval["DFT-QS-METHOD"] = args.qs_method
-    force_eval["DFT-MGRID-CUTOFF"] = args.cutoff
-    force_eval["DFT-MGRID-REL_CUTOFF"] = args.rel_cutoff
-    force_eval["DFT-XC-XC_FUNCTIONAL"] = args.xc_functional
-    force_eval["DFT-SCF-EPS_SCF"] = args.eps_scf
-    force_eval["DFT-SCF-ADDED_MOS"] = args.added_mos
-    force_eval["DFT-SCF-SMEAR"] = args.smear
-    force_eval["DFT-SCF-SMEAR-METHOD"] = args.smear_method
-    force_eval["DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE"] = args.electronic_temp
-    force_eval["DFT-SCF-SMEAR-WINDOW_SIZE"] = args.window_size
-    force_eval["DFT-SCF-DIAGONALIZATION"] = args.diag
-    force_eval["DFT-SCF-OT"] = args.ot
-    force_eval["DFT-SCF-MIXING-ALPHA"] = args.alpha
-    force_eval["DFT-KPOINTS-SCHEME"] = args.kpoints_scheme
+    params["FORCE_EVAL-DFT-LS_SCF"] = args.ls_scf
+    params["FORCE_EVAL-DFT-QS-METHOD"] = args.qs_method
+    params["FORCE_EVAL-DFT-MGRID-CUTOFF"] = args.cutoff
+    params["FORCE_EVAL-DFT-MGRID-REL_CUTOFF"] = args.rel_cutoff
+    params["FORCE_EVAL-DFT-XC-XC_FUNCTIONAL"] = args.xc_functional
+    params["FORCE_EVAL-DFT-SCF-EPS_SCF"] = args.eps_scf
+    params["FORCE_EVAL-DFT-SCF-ADDED_MOS"] = args.added_mos
+    params["FORCE_EVAL-DFT-SCF-SMEAR"] = args.smear
+    params["FORCE_EVAL-DFT-SCF-SMEAR-METHOD"] = args.smear_method
+    params["FORCE_EVAL-DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE"] = args.electronic_temp
+    params["FORCE_EVAL-DFT-SCF-SMEAR-WINDOW_SIZE"] = args.window_size
+    params["FORCE_EVAL-DFT-SCF-DIAGONALIZATION"] = args.diag
+    params["FORCE_EVAL-DFT-SCF-OT"] = args.ot
+    params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"] = args.alpha
+    params["FORCE_EVAL-DFT-KPOINTS-SCHEME"] = args.kpoints_scheme
 
-    motion["MD-STEPS"] = args.md_steps
-    motion["MD-TIMESTEP"] = args.timestep
-    motion["MD-ENSEMBLE"] = args.ensemble
-    motion["MD-TEMPERATURE"] = args.temperature
-    motion["MD-TEMP_TOL"] = args.temp_tol
-    motion["PRINT-TRAJECTORY-FORMAT"] = args.traj_format
+    params["MOTION-MD-STEPS"] = args.md_steps
+    params["MOTION-MD-TIMESTEP"] = args.timestep
+    params["MOTION-MD-ENSEMBLE"] = args.ensemble
+    params["MOTION-MD-TEMPERATURE"] = args.temperature
+    params["MOTION-MD-TEMP_TOL"] = args.temp_tol
+    params["MOTION-PRINT-TRAJECTORY-FORMAT"] = args.traj_format
 
     task = md_run()
     task.get_xyz(args.file)
-    task.set_params(force_eval=force_eval, motion=motion)
+    task.set_params(params=params)
     task.aimd(directory=args.directory, runopt=args.runopt)
 
     # server handle
