@@ -568,10 +568,8 @@ class static_run(pwscf):
             os.chdir(directory)
             os.system("%s projwfc.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
-
-    def molecularpdos(self, directory="tmp-qe-static", inpname="static-molecularpdos.in", output="static-molecularpdos.out",
-            mpi="", fileout="molecularpdos", ngauss=0, degauss=0.001, emin='default', emax='default',
-            deltae='default', runopt="gen"):
+    
+    def set_molecularpdos(self, inputmopdos={}):
         """
         Reference:
             http://www.quantum-espresso.org/Doc/INPUT_molecularpdos.html
@@ -592,6 +590,23 @@ class static_run(pwscf):
             execute again it might give 'STOP error reading file'. and when you again
             execute it, it might work!!! unbelievable
         """
+        self.inputmopdos = {
+                "fileout": "molecularpdos",
+                "ngauss": 0, 
+                "degauss": 0.001,
+                "emin": "default",
+                "emax": "default",
+                "deltae": "default",
+                }
+        for item in inputmopdos:
+            if item in self.inputmopdos:
+                self.inputmopdos[item] = inputmopdos[item]
+
+
+    def molecularpdos(self, directory="tmp-qe-static", inpname="static-molecularpdos.in", output="static-molecularpdos.out",
+            mpi="", runopt="gen"):
+        """
+        """
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
             print("===================================================\n")
@@ -606,24 +621,24 @@ class static_run(pwscf):
                 fout.write("&INPUTMOPDOS\n")
                 fout.write("xmlfile_full = '%s'\n" % "./tmp/pwscf.save/atomic_proj.xml")
                 fout.write("xmlfile_part = '%s'\n" % "./tmp/pwscf.save/atomic_proj.xml")
-                fout.write("fileout = '%s'\n" % fileout)
-                fout.write("ngauss = %d\n" % ngauss)
+                fout.write("fileout = '%s'\n" % self.inputmopdos["fileout"])
+                fout.write("ngauss = %d\n" % self.inputmopdos["ngauss"])
                 fout.write("! default degauss is 0.0 which will calse float number erros\n")
                 fout.write("! we better set degauss and ngauss ourselves!\n")
-                fout.write("degauss = %f\n" % degauss)
-                if emin == 'default':
+                fout.write("degauss = %f\n" % self.inputmopdos["degauss"])
+                if self.inputmopdos["emin"] == 'default':
                     fout.write("!using default Emin: band extrema\n")
                 else:
-                    fout.write("emin = %f\n" % emin)
-                if emax == 'default':
+                    fout.write("emin = %f\n" % self.inputmopdos["emin"])
+                if self.inputmopdos["emax"] == 'default':
                     fout.write("!using default Emax: band extrema\n")
                 else:
-                    fout.write("emax = %f\n" % emax)
+                    fout.write("emax = %f\n" % self.inputmopdos["emax"])
                 fout.write("!Note deltae is in unit of eV while other variables like degauss is Rydberg\n")
-                if deltae == 'default':
+                if self.inputmopdos["deltae"] == 'default':
                     fout.write("!using default DeltaE value: 0.01 in unit of eV\n")
                 else:
-                    fout.write("deltae = %f\n" % deltae)
+                    fout.write("deltae = %f\n" % self.inputmopdos["deltae"])
                 fout.write("/\n")
                 fout.write("\n")
 
@@ -873,7 +888,24 @@ class static_run(pwscf):
             os.system("%s fs.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
 
-    def pp(self, directory="tmp-qe-static", prefix="pp", plot_num=[0], iflag=3, output_format=5, mpi="", runopt="gen"):
+    def set_pp(self, inputpp={}, plotpp={}):
+        self.inputpp = {
+                "plot_num": [0],
+                }
+        for item in inputpp:
+            if item in self.inputpp:
+                self.inputpp[item] = inputpp[item]
+
+        self.plotpp = {
+                "iflag": 3,
+                "output_format": 5,
+                }
+        for item in plotpp:
+            if item in self.plotpp:
+                self.plotpp[item] = plotpp[item]
+
+
+    def pp(self, directory="tmp-qe-static", prefix="pp", mpi="", runopt="gen"):
         """
         Note:
             the 3D charge plot like electron localization function and charge density
@@ -910,25 +942,25 @@ class static_run(pwscf):
                     20: "product-of-charge-density-with-hessian",
                     21: "all-electron-density-paw-only",
                     }
-            for plot_num_i in plot_num:
+            for plot_num_i in self.inputpp["plot_num"]:
                 with open(os.path.join(directory, prefix+"-"+table[plot_num_i]+".in"), 'w') as fout:
-                    self.pp_inputpp(fout, plot_num=plot_num_i, filplot=table[plot_num_i]+".dat")
-                    self.pp_plot(fout, output_format=output_format, iflag=iflag, filepp=table[plot_num_i]+".dat")
+                    self._pp_inputpp(fout, plot_num=plot_num_i, filplot=table[plot_num_i]+".dat")
+                    self._pp_plot(fout, output_format=self.plotpp["output_format"], iflag=self.plotpp["iflag"], filepp=table[plot_num_i]+".dat")
 
             # gen yhbatch script
             with open(os.path.join(directory, "pp.x.sub"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                for plot_num_i in plot_num:
+                for plot_num_i in self.inputpp["plot_num"]:
                     fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % ("pp.x", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))   
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            for plot_num_i in plot_num:
+            for plot_num_i in self.inputpp["plot_num"]:
                 os.system("%s pp.x < %s | tee %s" % (mpi, prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
             os.chdir("../")
 
 
-    def pp_inputpp(self, fout, plot_num, filplot):
+    def _pp_inputpp(self, fout, plot_num, filplot):
         """ 
         fout: a file stream for writing
         Note:
@@ -974,7 +1006,7 @@ class static_run(pwscf):
             pass
         fout.write("/\n")
 
-    def pp_plot(self, fout, filepp, iflag=3, output_format=5, 
+    def _pp_plot(self, fout, filepp, iflag=3, output_format=5, 
             e1=[2.0, 0.0, 0.0], e2=[0.0, 2.0, 0.0], e3=[0.0, 0.0, 2.0],
             x0=[0.0, 0.0, 0.0], nx=1000, ny=1000, nz=1000):
         """

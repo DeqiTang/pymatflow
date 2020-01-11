@@ -12,6 +12,9 @@ from pymatflow.remote.rsync import rsync
 usage:
 """
 
+inputpp = {}
+plotpp = {}
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", help="directory of the static running", type=str, default="tmp-qe-static")
@@ -57,10 +60,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
     xyzfile = args.file
 
+    inputpp["plot_num"] = args.plot_num
+    plotpp["iflag"] = args.iflag
+    plotpp["output_format"] = args.output_format
  
     task = static_run()
     task.get_xyz(xyzfile)
-    task.pp(directory=args.directory, runopt=args.runopt, plot_num=args.plot_num, iflag=args.iflag, output_format=args.output_format)
+    task.set_pp(inputpp=inputpp, plotpp=plotpp)
+    task.pp(directory=args.directory, runopt=args.runopt)
 
     # server handle
     if args.auto == 0:

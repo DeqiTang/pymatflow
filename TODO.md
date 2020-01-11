@@ -59,6 +59,7 @@ Note: OT calculation doesn't support KPOINTS setting
 * improving Phonon calculation using ph.x
 * implementing kpoints setting for band structure calculation [OK]
 * develop post processing module
+* 3D band structure??
 ### SIESTA
 * improving code base structure
 * develop post processing module

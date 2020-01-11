@@ -381,6 +381,9 @@ class dfpt_run:
 
     def dynmat(self, directory="tmp-qe-static", inpname="dynmat-gamma.in", output="dynmat-gamma.out", mpi="", runopt="gen"):
         """
+        the default output file name of dynamt.x is dynmat.out
+        so we should not redirect the output of running of dynmat.x(not output file of dynamt.x)
+        to dynamt.out to save us from leaving it a mess.
         """
         # first check whether there is a previous scf running
         if not os.path.exists(directory):

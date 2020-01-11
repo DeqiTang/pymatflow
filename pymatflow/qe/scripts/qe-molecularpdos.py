@@ -12,6 +12,8 @@ from pymatflow.remote.rsync import rsync
 usage:
 """
 
+inputmopdos = {}
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()    
     parser.add_argument("-d", "--directory", help="directory for the static running", type=str, default="tmp-qe-static")
@@ -47,10 +49,18 @@ if __name__ == "__main__":
     else:
         deltae = float(args.deltae)
 
+    inputmopdos["fileout"] = args.fileout
+    inputmopdos["ngauss"] = args.ngauss
+    inputmopdos["degauss"] = args.degauss
+    inputmopdos["emin"] = emin
+    inputmopdos["emax"] = emax
+    inputmopdos["deltae"] = deltae
 
     task = static_run()
     task.get_xyz(args.file)
-    task.molecularpdos(directory=args.directory, runopt=args.runopt, mpi=args.mpi, fileout=args.fileout, ngauss=args.ngauss, degauss=args.degauss, emin=emin, emax=emax, deltae=deltae)
+    
+    task.set_molecularpdos(inputmopdos=inputmopdos)
+    task.molecularpdos(directory=args.directory, runopt=args.runopt, mpi=args.mpi)
 
     # server handle
     if args.auto == 0:
