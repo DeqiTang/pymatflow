@@ -18,20 +18,12 @@ class siesta_ions:
     """
     """
     def __init__(self):
-        self.params = {
-                "WriteCoorXmol": None,
-                }
-        self.md = {
-                "TypeOfRun": None,
-                "VariableCell": None,
-                "ConstantVolume": None,
-                "MaxForceTol": None,
-                "MaxStressTol": None,
-                "Steps": None,
-                "MaxDispl": None,
-                "PreconditionVariableCell": None,
-                }
-
+        self.incharge = [
+                "WriteCoorXmol", "MD.TypeOfRun", "MD.TypeOfRun", "MD.VariableCell", "MD.ConstantVolume",
+                "MD.MaxForceTol", "MD.MaxStressTol", "MD.Steps", "MD.MaxDispl", "MD.PreconditionVariableCell",
+                ]
+        self.params = {}
+        self.md = {}
 
     def to_fdf(self, fout):
         for item in self.params:
@@ -98,10 +90,10 @@ class siesta_ions:
  
         #
 
-    def set_params(self, ions):
-        for item in ions:
+    def set_params(self, params):
+        for item in params:
             if len(item.split(".")) == 1:
-                self.params[item] = ions[item]
+                self.params[item] = params[item]
             elif len(item.split(".")) == 2 and item.split(".")[0] == "MD":
-                self.md[item.split(".")[1]] = ions[item]
+                self.md[item.split(".")[1]] = params[item]
         #

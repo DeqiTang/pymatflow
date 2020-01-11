@@ -11,8 +11,7 @@ from pymatflow.remote.rsync import rsync
 usage:
 """
 
-electrons = {}
-ions = {}
+params = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -84,26 +83,28 @@ if __name__ == "__main__":
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================   
     args = parser.parse_args()
-    
-    electrons["MeshCutoff"] = args.meshcutoff
-    electrons["SolutionMethod"] = args.solution_method
-    electrons["XC.funtional"] = args.functional
-    electrons["XC.authors"] = args.authors
-    electrons["DM.Tolerance"] = args.tolerance
-    electrons["DM.NumberPulay"] = args.numberpulay
-    electrons["DM.MixingWeight"] = args.mixing
-    electrons["OccupationFunction"] = args.occupation
-    electrons["ElectronicTemperature"] = args.electronic_temperature
 
-    ions["MD.FinalTimeStep"] = args.mdstep
-    ions["MD.LengthTimeStep"] = args.timestep
-    ions["MD.InitialTemperature"] = args.initial_temp
-    ions["MD.TargetTemperature"] = args.target_temp
-    ions["MD.VariableCell"] = args.vc
+    params = {}
+
+    params["MeshCutoff"] = args.meshcutoff
+    params["SolutionMethod"] = args.solution_method
+    params["XC.funtional"] = args.functional
+    params["XC.authors"] = args.authors
+    params["DM.Tolerance"] = args.tolerance
+    params["DM.NumberPulay"] = args.numberpulay
+    params["DM.MixingWeight"] = args.mixing
+    params["OccupationFunction"] = args.occupation
+    params["ElectronicTemperature"] = args.electronic_temperature
+
+    params["MD.FinalTimeStep"] = args.mdstep
+    params["MD.LengthTimeStep"] = args.timestep
+    params["MD.InitialTemperature"] = args.initial_temp
+    params["MD.TargetTemperature"] = args.target_temp
+    params["MD.VariableCell"] = args.vc
     
     task = md_run()
     task.get_xyz(args.file)
-    task.set_params(electrons=electrons, ions=ions)
+    task.set_params(params=params)
     task.set_kpoints(kpoints_mp=args.kpoints_mp)
     task.md(directory=args.directory, runopt=args.runopt, mpi=args.mpi)
 

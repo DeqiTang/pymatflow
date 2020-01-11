@@ -28,9 +28,14 @@ class siesta:
         self.system.xyz.get_xyz(xyzfile)
         self.properties.set_xyz(self.system.xyz) 
 
-    def set_params(self, electrons={}, ions={}, properties={}):
-        self.electrons.set_params(electrons)
-        self.ions.set_params(ions)
+    def set_params(self, params={}):
+        for item in params:
+            if item in self.electrons.incharge:
+                self.electrons.set_params({item: params[item]})
+            elif item in self.ions.incharge:
+                self.ions.set_params({item: params[item]})
+            else:
+                continue
 
     def set_kpoints(self, kpoints_mp=[1, 1, 1]):
         self.electrons.kpoints_mp = kpoints_mp

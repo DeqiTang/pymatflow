@@ -12,9 +12,6 @@ usage:
    siesta-opt.py xxx.xyz
 """
 
-electrons = {}
-ions = {}
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # ===========================
@@ -85,25 +82,27 @@ if __name__ == "__main__":
     args = parser.parse_args()
     xyzfile = args.file
     directory = args.directory
-    
-    electrons["MeshCutoff"] = args.meshcutoff
-    electrons["SolutionMethod"] = args.solution_method
-    electrons["XC.funtional"] = args.functional
-    electrons["XC.authors"] = args.authors
-    electrons["DM.Tolerance"] = args.tolerance
-    electrons["DM.NumberPulay"] = args.numberpulay
-    electrons["DM.MixingWeight"] = args.mixing
-    electrons["OccupationFunction"] = args.occupation
-    electrons["ElectronicTemperature"] = args.electronic_temperature
 
-    ions["MD.VariableCell"] = args.vc
-    ions["MD.MaxForceTol"] = args.forcetol
-    ions["MD.MaxStressTol"] = args.stresstol
-    ions["MD.TargetPressure"] = args.targetpressure
+    params = {}
+    
+    params["MeshCutoff"] = args.meshcutoff
+    params["SolutionMethod"] = args.solution_method
+    params["XC.funtional"] = args.functional
+    params["XC.authors"] = args.authors
+    params["DM.Tolerance"] = args.tolerance
+    params["DM.NumberPulay"] = args.numberpulay
+    params["DM.MixingWeight"] = args.mixing
+    params["OccupationFunction"] = args.occupation
+    params["ElectronicTemperature"] = args.electronic_temperature
+
+    params["MD.VariableCell"] = args.vc
+    params["MD.MaxForceTol"] = args.forcetol
+    params["MD.MaxStressTol"] = args.stresstol
+    params["MD.TargetPressure"] = args.targetpressure
 
     task = opt_run()
     task.get_xyz(args.file)
-    task.set_params(electrons=electrons, ions=ions)
+    task.set_params(params=params)
     task.set_kpoints(kpoints_mp=args.kpoints_mp)
     task.opt(directory=directory, runopt=args.runopt, mpi=args.mpi, mode=args.mode)
 

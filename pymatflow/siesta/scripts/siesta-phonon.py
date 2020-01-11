@@ -10,9 +10,7 @@ from pymatflow.remote.rsync import rsync
 """
 """
 
-
-electrons = {}
-ions = {}
+params = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -60,16 +58,18 @@ if __name__ == "__main__":
     args = parser.parse_args()
     xyzfile = args.file
     directory = args.directory
-    
-    electrons["MeshCutoff"] = args.meshcutoff
-    electrons["SolutionMethod"] = args.solution_method
-    electrons["XC.funtional"] = args.functional
-    electrons["XC.authors"] = args.authors
-    electrons["DM.Tolerance"] = args.tolerance
-    electrons["DM.NumberPulay"] = args.numberpulay
-    electrons["DM.MixingWeight"] = args.mixing
-    electrons["OccupationFunction"] = args.occupation
-    electrons["ElectronicTemperature"] = args.electronic_temperature
+   
+    params = {}
+
+    params["MeshCutoff"] = args.meshcutoff
+    params["SolutionMethod"] = args.solution_method
+    params["XC.funtional"] = args.functional
+    params["XC.authors"] = args.authors
+    params["DM.Tolerance"] = args.tolerance
+    params["DM.NumberPulay"] = args.numberpulay
+    params["DM.MixingWeight"] = args.mixing
+    params["OccupationFunction"] = args.occupation
+    params["ElectronicTemperature"] = args.electronic_temperature
 
 
     task = phonon_run()
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     elif args.borncharge == "no":
         borncharge = False
 
-    task.set_params(electrons=electrons, ions=ions)
+    task.set_params(params=params)
     task.set_kpoints(kpoints_mp=args.kpoints_mp)
     task.phonon(directory=directory, runopt=args.runopt, mpi=args.mpi, borncharge=borncharge)
 

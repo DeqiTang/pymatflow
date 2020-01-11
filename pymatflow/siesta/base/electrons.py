@@ -18,22 +18,14 @@ class siesta_electrons:
     """
     """
     def __init__(self):
-        self.params = {
-                "MaxSCFIterations": None,
-                "SolutionMethod": None,
-                "MeshCutoff": None,
-                }
-        self.xc = {
-                "functional": None,
-                "author": None,
-                }
-        self.dm = {
-                "Tolerance": None,
-                "MixingWeight": None,
-                "NumberPulay": None,
-                "AllowExtrapolation": None,
-                "UseSaveDM": None,
-                }
+        self.incharge = [
+                "MaxSCFIterations", "SolutionMethod", "MeshCutoff", "XC.functional", "XC.author",
+                "DM.Tolerance", "DM.MixingWeight", "DM.NumberPulay", "DM.AllowExtrapolation",
+                "DM.UseSaveDM",
+                ]
+        self.params = {}
+        self.xc = {}
+        self.dm = {}
         self.kpoints_mp = [1, 1, 1]
 
     def to_fdf(self, fout):
@@ -75,25 +67,14 @@ class siesta_electrons:
         self.params["SolutionMethod"] = "diagon"
         self.params["MeshCutoff"] = 300 #100
     
-    def set_params(self, electrons):
-    
-        #for item in electrons:
-        #    if item in self.params:
-        #        self.params[item] = electrons[item]
-        #        continue
-        #    elif item.split(".")[1] in self.xc:
-        #        self.xc[item.split(".")[1]] = electrons[item]
-        #        continue
-        #    elif item.split(".")[1] in self.dm:
-        #        self.dm[item.split(".")[1]] = electrons[item]
-        #        continue
-        for item in electrons:
+    def set_params(self, params):
+        for item in params:
             if len(item.split(".")) == 1:
-                self.params[item] = electrons[item]
+                self.params[item] = params[item]
             elif len(item.split(".")) == 2 and item.split(".")[0] == "XC":
-                self.xc[item.split(".")[1]] = electrons[item]
+                self.xc[item.split(".")[1]] = params[item]
             elif len(item.split(".")) == 2 and item.split(".")[0] == "DM":
-                self.dm[item.split(".")[1]] = electrons[item]
+                self.dm[item.split(".")[1]] = params[item]
         #
 
     
