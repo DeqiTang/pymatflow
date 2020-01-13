@@ -153,6 +153,7 @@ setup(
         "pymatflow/remote/scripts/thcmd.py",
         "pymatflow/remote/scripts/threport.py",
         "pymatflow/flow/scripts/flow-run.py",
+        "pymatflow/flow/scripts/flow-pes.py",
         ],
     #entry_points = {
     #    'console_scripts': [
