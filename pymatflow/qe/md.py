@@ -48,6 +48,8 @@ class md_run(pwscf):
                 self.arts.to_in(fout)
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output)
+            # gen pbs script
+            self.gen_pbs(directory=directory, inpname=inpname, output=output)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -89,6 +91,8 @@ class md_run(pwscf):
             
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output)
+            # gen pbs script
+            self.gen_pbs(directory=directory, inpname=inpname, output=output)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

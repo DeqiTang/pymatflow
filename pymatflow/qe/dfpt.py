@@ -200,6 +200,8 @@ class dfpt_run:
 
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="ph.x")
+            # gen pbs script
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="ph.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -248,6 +250,8 @@ class dfpt_run:
                 fout.write("\n")
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="q2r.x")
+            # gen pbs script
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="q2r.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -314,6 +318,8 @@ class dfpt_run:
 
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="matdyn.x")
+            # gen pbs script
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="matdyn.x")
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s matdyn.x < %s | tee %s" % (mpi, inpname, output))
@@ -343,6 +349,8 @@ class dfpt_run:
 
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="plotband.x")
+            # gen pbs script
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="plotband.x")
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s plotband.x < %s | tee %s" % (mpi, inpname, output))
@@ -407,6 +415,8 @@ class dfpt_run:
             
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="dynmat.x")
+            # gen pbs script
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="dynmat.x")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

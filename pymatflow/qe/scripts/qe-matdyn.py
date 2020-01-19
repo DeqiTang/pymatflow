@@ -32,11 +32,14 @@ if __name__ == "__main__":
     #        default= [0.0, 0.0, 0.0, 0.0, 0.012658, 0.0, 0.0, 0.012658],
     #        help="matdyn qpoints")
 
-    # ------------------------------------------------------------- 
-    # for server
-    # -------------------------------------------------------------
+    # -----------------------------------------------------------------
+    #                      for server handling
+    # -----------------------------------------------------------------
     parser.add_argument("--auto", type=int, default=0,
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.emuhelper/server.conf")
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+    parser.add_argument("--server", type=str, default="pbs",
+            choices=["pbs", "yh"]
+            help="type of remote server, can be pbs or yh")
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
@@ -61,13 +64,25 @@ if __name__ == "__main__":
         pass
     elif args.auto == 1:
         mover = rsync()
-        mover.get_info(os.path.join(os.path.expanduser("~"), ".emuhelper/server.conf"))
+        if args.server == "pbs":
+            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_pbs.conf"))
+            pass
+        elif args.server == "yh":
+            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_yh.conf"))
         mover.copy_default(source=os.path.abspath(args.directory))
     elif args.auto == 2:
         mover = rsync()
-        mover.get_info(os.path.join(os.path.expanduser("~"), ".emuhelper/server.conf"))
+        if args.server == "pbs":
+            pass
+        elif args.server == "yh":
+            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_yh.conf"))
         mover.copy_default(source=os.path.abspath(args.directory))
         ctl = ssh()
-        ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
-        ctl.login()
-        ctl.submit(workdir=args.directory, jobfile="matdyn.sub")
+        if args.server == "pbs":
+            ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_pbs.conf"))
+            ctl.login()
+            ctl.submit(workdir=args.directory, jobfile="matdyn.pbs", server="pbs")
+        elif args.server == "yh":
+            ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_yh.conf"))
+            ctl.login()
+            ctl.submit(workdir=args.directory, jobfile="matdyn.sub", server="yh")

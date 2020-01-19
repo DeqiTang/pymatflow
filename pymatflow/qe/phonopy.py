@@ -114,6 +114,14 @@ class phonopy_run(pwscf):
                 fout.write("\n")
                 for disp in disp_dirs:
                     fout.write("yhrun -N 1 -n 24 pw.x < supercell-%s-full.in > supercell-%s.out\n" % (disp, disp))
+            # gen pbs script
+            with open(os.path.join(directory, "phonopy-job.pbs"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#PBS -N phonopy-qe\n")
+                fout.write("#PBS -l nodes=2:ppn=32\n")
+                fout.write("\n")
+                for disp in disp_dirs:
+                    fout.write("mpirun -np 80 -machinefile $PBS_NODEFILE pw.x < supercell-%s-full.in > supercell-%s.out\n" % (disp, disp))
 
             # generate the result analyse bash scripts and necessary config files
             os.chdir(directory)

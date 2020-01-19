@@ -36,11 +36,14 @@ class ssh:
         self.session.handshake(self.sock)
         self.session.userauth_password(self.user, self.password)
 
-    def submit(self, workdir, jobfile, ctl="yh"):
+    def submit(self, workdir, jobfile, server="pbs"):
+        """
+        server: pbs or yh
+        """
         channel = self.session.open_session()
-        if ctl == "yh":
+        if server == "yh":
             channel.execute("cd %s; yhbatch -p free %s" % (os.path.join(self.serverdir, workdir), jobfile))
-        elif ctl == "pbs":
+        elif server == "pbs":
             channel.execute("cd %s; qsub %s" % (os.path.join(self.serverdir, workdir), jobfile))
         print("\n\n")
         print("=========================================\n")

@@ -135,6 +135,8 @@ class neb_run(pwscf):
                 fout.write("END\n")
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output)
+            # gen pbs script
+            self.gen_pbs(directory=directory, inpname=inpname, output=output)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
