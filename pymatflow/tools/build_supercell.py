@@ -27,6 +27,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    xyz = base_xyz(args.input)
+    xyz = base_xyz()
+    xyz.get_xyz(args.input)
     xyz.build_supercell(args.supern)
     xyz.to_xyz(args.output)

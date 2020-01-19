@@ -103,3 +103,13 @@ class pwscf:
             fout.write("#!/bin/bash\n")
             fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % (cmd, inpname, output))
 
+    def gen_pbs(self, inpname, output, directory, cmd="pw.x"):
+        """
+        generating yhbatch job script for calculation
+        """
+        with open(os.path.join(directory, inpname.split(".in")[0]+".pbs"), 'w') as fout:
+            fout.write("#PBS -N pwscf\n")
+            fout.write("#PBS -l nodes=4:ppn=2\n")
+            fout.write("\n")
+            fout.write("mpirun -np 80 -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
+

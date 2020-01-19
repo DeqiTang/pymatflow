@@ -81,6 +81,8 @@ class static_run(pwscf):
 
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pw.x")
+            # gen pbs scripts
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="pw.x")
 
         if runopt == 'genrun' or runopt == 'run':
             os.chdir(directory)

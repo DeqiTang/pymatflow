@@ -113,6 +113,7 @@ if __name__ == "__main__":
     task.set_atomic_forces(pressure=args.pressure, pressuredir=args.pressuredir)
     task.scf(directory=args.directory, runopt=args.runopt, mpi=args.mpi)
 
+    """
     # server handle
     if args.auto == 0:
         pass
@@ -128,3 +129,19 @@ if __name__ == "__main__":
         ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
         ctl.login()
         ctl.submit(workdir=args.directory, jobfile="static-scf.sub")
+    """
+    # server handle
+    if args.auto == 0:
+        pass
+    elif args.auto == 1:
+        mover = rsync()
+        mover.get_info(os.path.join(os.path.expanduser("~"), ".emuhelper/server.conf"))
+        mover.copy_default(source=os.path.abspath(args.directory))
+    elif args.auto == 2:
+        mover = rsync()
+        mover.get_info(os.path.join(os.path.expanduser("~"), ".emuhelper/server.conf"))
+        mover.copy_default(source=os.path.abspath(args.directory))
+        ctl = ssh()
+        ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
+        ctl.login()
+        ctl.submit(workdir=args.directory, jobfile="static-scf.pbs", ctl="pbs")
