@@ -84,14 +84,25 @@ if __name__ == "__main__":
     parser.add_argument("--nstep",
             type=int, default=50,
             help="maximum ion steps for geometric optimization")
+
+    parser.add_argument("--cell-dofree", type=str, default='all',
+            choices=['all', 'ibrav', 'x', 'y', 'z', 'xy', 'xz', 'yz', 'xyz', 'shape', 'volume', '2Dxy', '2Dshape', 'epitaxial_ab', 'epitaxial_ac', 'epitaxial_bc'],
+            help="cell_dofree for &cell/")
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
     parser.add_argument("--auto", type=int, default=0,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
-            choices=["pbs", "yh"]
+            choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
+    parser.add_argument("--jobname", type=str, default="pwscf-vc-relax",
+            help="jobname on the pbs server")
+    parser.add_argument("--nodes", type=int, default=1,
+            help="Nodes used in server")
+    parser.add_argument("--ppn", type=int, default=32,
+            help="ppn of the server")
+
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
@@ -113,7 +124,7 @@ if __name__ == "__main__":
     task.get_xyz(xyzfile)
     task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
     task.set_params(control=control, system=system, electrons=electrons, ions=ions, cell=cell)
-    task.vc_relax(directory=args.directory, runopt=args.runopt, mpi=args.mpi)
+    task.vc_relax(directory=args.directory, runopt=args.runopt, mpi=args.mpi, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
 
     # server handle
     if args.auto == 0:
@@ -122,14 +133,13 @@ if __name__ == "__main__":
         mover = rsync()
         if args.server == "pbs":
             mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_pbs.conf"))
-            pass
         elif args.server == "yh":
             mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_yh.conf"))
         mover.copy_default(source=os.path.abspath(args.directory))
     elif args.auto == 2:
         mover = rsync()
         if args.server == "pbs":
-            pass
+            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_pbs.conf"))
         elif args.server == "yh":
             mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_yh.conf"))
         mover.copy_default(source=os.path.abspath(args.directory))

@@ -35,6 +35,13 @@ if __name__ == "__main__":
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"]
             help="type of remote server, can be pbs or yh")
+    parser.add("--jobname", type=str, default="pwscf-scf",
+            help="jobname on the pbs server")
+    parser.add_argument("--nodes", type=int, default=1,
+            help="Nodes used in server")
+    parser.add_argument("--ppn", type=int, default=32,
+            help="ppn of the server")
+
 
 
     # ==========================================================
@@ -67,7 +74,7 @@ if __name__ == "__main__":
     task.get_xyz(args.file)
     
     task.set_molecularpdos(inputmopdos=inputmopdos)
-    task.molecularpdos(directory=args.directory, runopt=args.runopt, mpi=args.mpi)
+    task.molecularpdos(directory=args.directory, runopt=args.runopt, mpi=args.mpi, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
 
     # server handle
     if args.auto == 0:

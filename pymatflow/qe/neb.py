@@ -72,7 +72,8 @@ class neb_run(pwscf):
         for item in path:
             self.path[item] = path[item]
 
-    def neb(self, directory="tmp-qe-neb", inpname="neb.in", output="neb.out", mpi="", runopt="gen", restart_mode="from_scratch"):
+    def neb(self, directory="tmp-qe-neb", inpname="neb.in", output="neb.out", mpi="", runopt="gen", restart_mode="from_scratch",
+            jobname="neb-qe", nodes=1, ppn=32):
         """
         directory: a place for all the generated files
         """
@@ -136,7 +137,7 @@ class neb_run(pwscf):
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output)
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, jobname=jobname, nodes=nodes, ppn=ppn)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

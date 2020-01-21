@@ -46,7 +46,8 @@ class phonopy_run(pwscf):
         self.control.params["tprnfor"] = True
         self.control.params["tstress"] = True
 
-    def phonopy(self, directory="tmp-qe-phonopy", pos_inpname="pos.in", head_inpname="head.in", mpi="", runopt="gen"):
+    def phonopy(self, directory="tmp-qe-phonopy", pos_inpname="pos.in", head_inpname="head.in", mpi="", runopt="gen",
+            jobname="pwscf-phonopy", nodes=1, ppn=32):
         """
         directory: a place for all the generated files
         """
@@ -117,11 +118,13 @@ class phonopy_run(pwscf):
             # gen pbs script
             with open(os.path.join(directory, "phonopy-job.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("#PBS -N phonopy-qe\n")
-                fout.write("#PBS -l nodes=2:ppn=32\n")
+                fout.write("#PBS -N %s\n" % jobname)
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("cd $PBS_O_WORKDIR\n")
+                fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
                 fout.write("\n")
                 for disp in disp_dirs:
-                    fout.write("mpirun -np 80 -machinefile $PBS_NODEFILE pw.x < supercell-%s-full.in > supercell-%s.out\n" % (disp, disp))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < supercell-%s-full.in > supercell-%s.out\n" % (disp, disp))
 
             # generate the result analyse bash scripts and necessary config files
             os.chdir(directory)

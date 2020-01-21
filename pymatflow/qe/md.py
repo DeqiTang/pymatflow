@@ -15,7 +15,8 @@ class md_run(pwscf):
         super().__init__()
 
 
-    def md(self, directory="tmp-qe-md", inpname="md.in", output="md.out", mpi="", runopt="gen"):
+    def md(self, directory="tmp-qe-md", inpname="md.in", output="md.out", mpi="", runopt="gen",
+            jobname="pwscf-md", nodes=1, ppn=32):
         """
         directory: a place for all the generated files
         """
@@ -49,14 +50,15 @@ class md_run(pwscf):
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output)
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, jobname=jobname, nodes=nodes, ppn=ppn)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
 
-    def vc_md(self, directory="tmp-qe-vc-md", inpname="vc-md.in", output="vc-md.out", mpi="", runopt="gen"):
+    def vc_md(self, directory="tmp-qe-vc-md", inpname="vc-md.in", output="vc-md.out", mpi="", runopt="gen",
+            jobname="pwscf-vc-md", nodes=1, ppn=32):
         """
         directory: a place for all the generated files
         """
@@ -92,7 +94,7 @@ class md_run(pwscf):
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output)
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, jobname=jobname, nodes=nodes, ppn=ppn)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

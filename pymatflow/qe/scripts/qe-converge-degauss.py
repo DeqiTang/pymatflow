@@ -43,6 +43,13 @@ if __name__ == "__main__":
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"]
             help="type of remote server, can be pbs or yh")
+    parser.add("--jobname", type=str, default="pwscf-scf",
+            help="jobname on the pbs server")
+    parser.add_argument("--nodes", type=int, default=1,
+            help="Nodes used in server")
+    parser.add_argument("--ppn", type=int, default=32,
+            help="ppn of the server")
+
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
@@ -55,7 +62,7 @@ if __name__ == "__main__":
     task.get_xyz(xyzfile)
     task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=kpoints_mp)
     task.set_params(control=control_params, system=system_params, electrons=electrons_params)
-    task.converge_degauss(round(args.range[0], 6), round(args.range[1], 6), round(args.range[2], 6), runopt=args.runopt)
+    task.converge_degauss(round(args.range[0], 6), round(args.range[1], 6), round(args.range[2], 6), runopt=args.runopt, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
 
     # server handle
     if args.auto == 0:

@@ -139,7 +139,8 @@ class dfpt_run:
             self.inputph[item] = inputph[item]
         
 
-    def phx(self, directory="tmp-qe-static", inpname="phx.in", output="phx.out", mpi="", runopt="gen"):
+    def phx(self, directory="tmp-qe-static", inpname="phx.in", output="phx.out", mpi="", runopt="gen",
+            jobname="phx", nodes=1, ppn=32):
         """
         """
         # ---------------------------------------------------------------
@@ -201,7 +202,7 @@ class dfpt_run:
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="ph.x")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="ph.x")
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="ph.x", jobname=jobname, nodes=nodes, ppn=ppn)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -223,7 +224,8 @@ class dfpt_run:
         for item in q2r_input:
             self.q2r_input[item] = q2r_input[item]
 
-    def q2r(self, directory="tmp-qe-static", inpname="q2r.in", output="q2r.out", mpi="", runopt="gen"):
+    def q2r(self, directory="tmp-qe-static", inpname="q2r.in", output="q2r.out", mpi="", runopt="gen", 
+            jobname="q2r", nodes=1, ppn=32):
         """
         q2r.x:
             calculation of Interatomic Force Constants(IFC) from 
@@ -251,7 +253,7 @@ class dfpt_run:
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="q2r.x")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="q2r.x")
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="q2r.x", jobname=jobname, nodes=nodes, ppn=ppn)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -290,7 +292,8 @@ class dfpt_run:
         #
 
 
-    def matdyn(self, directory="tmp-qe-static", inpname="matdyn.in", output="matdyn.out", mpi="", runopt="gen"):
+    def matdyn(self, directory="tmp-qe-static", inpname="matdyn.in", output="matdyn.out", mpi="", runopt="gen",
+            jobname="matdyn", nodes=nodes, ppn=ppn):
         """
         """
         # first check whether there is a previous scf running
@@ -319,13 +322,14 @@ class dfpt_run:
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="matdyn.x")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="matdyn.x")
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="matdyn.x", jobname=jobname, nodes=nodes, ppn=ppn)
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s matdyn.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
 
-    def plotband(self, directory="tmp-qe-static", inpname="plotband.in", output="plotband.out", frequencies_file="matdyn.freq", mpi="", runopt="gen", freq_min=0, freq_max=600, efermi=0, freq_step=100.0, freq_reference=0.0):
+    def plotband(self, directory="tmp-qe-static", inpname="plotband.in", output="plotband.out", frequencies_file="matdyn.freq", mpi="", runopt="gen", freq_min=0, freq_max=600, efermi=0, freq_step=100.0, freq_reference=0.0,
+            jobname="plotband", nodes=nodes, ppn=ppn):
         """
         plotband.x
             Plot the phonon dispersion
@@ -350,7 +354,7 @@ class dfpt_run:
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="plotband.x")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="plotband.x")
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="plotband.x", jobname=jobname, nodes=nodes, ppn=ppn)
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s plotband.x < %s | tee %s" % (mpi, inpname, output))
@@ -387,7 +391,8 @@ class dfpt_run:
         for item in dynmat_input:
             self.dynmat_input[item] = dynmat_input[item]
 
-    def dynmat(self, directory="tmp-qe-static", inpname="dynmat-gamma.in", output="dynmat-gamma.out", mpi="", runopt="gen"):
+    def dynmat(self, directory="tmp-qe-static", inpname="dynmat-gamma.in", output="dynmat-gamma.out", mpi="", runopt="gen",
+            jobname="dynmat", nodes=1, ppn=32):
         """
         the default output file name of dynamt.x is dynmat.out
         so we should not redirect the output of running of dynmat.x(not output file of dynamt.x)
@@ -416,7 +421,7 @@ class dfpt_run:
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="dynmat.x")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="dynmat.x")
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="dynmat.x", jobname=jobname, nodes=nodes, ppn=ppn)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -445,4 +450,14 @@ class dfpt_run:
         with open(os.path.join(directory, inpname.split(".in")[0]+".sub"), 'w') as fout:
             fout.write("#!/bin/bash\n")
             fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % (cmd, inpname, output))
+
+    def gen_pbs(self, inpname, output, directory, cmd, jobname, nodes=1, ppn=32):
+        """
+        generating pbs job script for calculation
+        """
+        with open(os.path.join(directory, inpname.split(".in")[0]+".pbs"), 'w') as fout:
+            fout.write("#PBS -N %s\n" % jobname)
+            fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+            fout.write("\n")
+            fout.write("mpirun -np %d -machinefile $PBS_NODEFILE %s < %s > %s\n" % (nodes*ppn, cmd, inpname, output))
 

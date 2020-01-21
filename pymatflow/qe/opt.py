@@ -23,7 +23,8 @@ class opt_run(pwscf):
         super().__init__()
 
 
-    def relax(self, directory="tmp-qe-relax", inpname="relax.in", output="relax.out", mpi="", runopt="gen"):
+    def relax(self, directory="tmp-qe-relax", inpname="relax.in", output="relax.out", mpi="", runopt="gen",
+            jobname="relax", nodes=1, ppn=32):
         """
         directory: a place for all the generated files
         """
@@ -57,14 +58,15 @@ class opt_run(pwscf):
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output)
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, jobname=jobname, nodes=nodes, ppn=ppn)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
     
-    def vc_relax(self, directory="tmp-qe-vc-relax", inpname="vc-relax.in", output="vc-relax.out", mpi="", runopt="gen"):
+    def vc_relax(self, directory="tmp-qe-vc-relax", inpname="vc-relax.in", output="vc-relax.out", mpi="", runopt="gen",
+            jobname="vc-relax", nodes=1, ppn=32):
         """
         directory: a place for all the generated files
         """
@@ -100,7 +102,7 @@ class opt_run(pwscf):
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output)
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, jobname=jobname, nodes=nodes, ppn=ppn)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
