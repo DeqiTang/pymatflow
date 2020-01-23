@@ -22,7 +22,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-d", "--directory", 
-            type=str, default="tmp-qe-relax-tetragonal",
+            type=str, default="tmp-qe-relax-cubic",
             help="directory for the relax running")
 
     parser.add_argument("-f", "--file", 
@@ -89,13 +89,8 @@ if __name__ == "__main__":
     # na nc stepa stepc
     parser.add_argument("--na", type=int, default=10,
             help="number of a used")
-    parser.add_argument("--nc", type=int, default=10,
-            help="number of c used")
     parser.add_argument("--stepa", type=float, default=0.05,
             help="a step")
-    parser.add_argument("--stepc", type=float, default=0.05,
-            help="c step")
-
 
     # -----------------------------------------------------------------
     #                      for server handling
@@ -105,7 +100,7 @@ if __name__ == "__main__":
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
-    parser.add_argument("--jobname", type=str, default="relax-tetragonal",
+    parser.add_argument("--jobname", type=str, default="relax-cubic",
             help="jobname on the pbs server")
     parser.add_argument("--nodes", type=int, default=1,
             help="Nodes used in server")
@@ -232,7 +227,7 @@ if __name__ == "__main__":
         # =========================
 
     # gen pbs script
-    with open("relax-tetragonal.pbs", 'w') as fout:
+    with open("relax-cubic.pbs", 'w') as fout:
         fout.write("#!/bin/bash\n")
         fout.write("#PBS -N %s\n" % args.jobname)
         fout.write("#PBS -l nodes=%d:ppn=%d\n" % (args.nodes, args.ppn))
@@ -242,39 +237,32 @@ if __name__ == "__main__":
         #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
  
         a = task.arts.xyz.cell[0][0]
-        c = task.arts.xyz.cell[2][2]
     
         fout.write("for a in `seq -w %f %f %f`\n" % (a-args.na/2*args.stepa, args.stepa, a+args.na/2*args.stepa))
         fout.write("do\n")
-        fout.write("  for c in `seq -w %f %f %f`\n" % (c-args.nc/2*args.stepc, args.stepc, c+args.nc/2*args.stepc))
-        fout.write("  do\n")
-        fout.write("    cp relax.in.template relax-${a}-${c}.in\n")
-        fout.write("    cat >> relax-${a}-${c}.in <<EOF\n")
+        fout.write("  cp relax.in.template relax-${a}.in\n")
+        fout.write("  cat >> relax-${a}.in <<EOF\n")
         fout.write("\n")
         fout.write("CELL_PARAMETERS angstrom\n")
         fout.write("${a} 0.000000 0.000000\n")
         fout.write("0.000000 ${a} 0.000000\n")
-        fout.write("0.000000 0.000000 ${c}\n")
+        fout.write("0.000000 0.000000 ${a}\n")
         fout.write("EOF\n")
-        fout.write("    mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < relax-${a}-${c}.in > relax-${a}-${c}.out\n")
-        fout.write("  done\n")
+        fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < relax-${a}.in > relax-${a}.out\n")
         fout.write("done\n")
 
     # generate result analysis script
     with open("get_energy.sh", 'w') as fout:
         fout.write("#!/bin/bash\n")
         fout.write("cat > energy-latconst.data <<EOF\n")
-        fout.write("# format: a c energy(Ry)\n")
+        fout.write("# format: a energy(Ry)\n")
         fout.write("EOF\n")
         fout.write("for a in `seq -w %f %f %f`\n" % (a-args.na/2*args.stepa, args.stepa, a+args.na/2*args.stepa))
         fout.write("do\n")
-        fout.write("  for c in `seq -w %f %f %f`\n" % (c-args.nc/2*args.stepc, args.stepc, c+args.nc/2*args.stepc))
-        fout.write("  do\n")
-        fout.write("    energy=`cat relax-${a}-${c}.out | grep '!    total energy' | tail -1`\n")
-        fout.write("    cat >> energy-latconst.data <<EOF\n")
-        fout.write("${a} ${c} ${energy:32:-2}\n")
+        fout.write("  energy=`cat relax-${a}.out | grep '!    total energy' | tail -1`\n")
+        fout.write("  cat >> energy-latconst.data <<EOF\n")
+        fout.write("${a} ${energy:32:-2}\n")
         fout.write("EOF\n")
-        fout.write("  done\n")
         fout.write("done\n")
 
     os.chdir("../")
@@ -300,8 +288,8 @@ if __name__ == "__main__":
         if args.server == "pbs":
             ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_pbs.conf"))
             ctl.login()
-            ctl.submit(workdir=args.directory, jobfile="relax-tetragonal.pbs", server="pbs")
+            ctl.submit(workdir=args.directory, jobfile="relax-cubic.pbs", server="pbs")
         elif args.server == "yh":
             ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_yh.conf"))
             ctl.login()
-            ctl.submit(workdir=args.directory, jobfile="relax-tetragonal.sub", server="yh")
+            ctl.submit(workdir=args.directory, jobfile="relax-cubic.sub", server="yh")
