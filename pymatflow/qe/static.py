@@ -284,6 +284,7 @@ class static_run(pwscf):
                 fout.write("#!/bin/bash\n")
                 fout.write("#PBS -N %s\n" % jobname)
                 fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
                 for i in range(n_test + 1):
                     nk = nk_min + i * step # nk1 = nk2 = nk3 = nk
@@ -365,6 +366,7 @@ class static_run(pwscf):
                 fout.write("#!/bin/bash\n")
                 fout.write("#PBS -N %s\n" % jobname)
                 fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
                 for i in range(n_test + 1):
                     degauss = degauss_min + i * step

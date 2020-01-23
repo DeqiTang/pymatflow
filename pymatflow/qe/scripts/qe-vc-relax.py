@@ -85,7 +85,7 @@ if __name__ == "__main__":
             type=int, default=50,
             help="maximum ion steps for geometric optimization")
 
-    parser.add_argument("--cell-dofree", type=str, default='all',
+    parser.add_argument("--cell-dofree", type=str, default=None,
             choices=['all', 'ibrav', 'x', 'y', 'z', 'xy', 'xz', 'yz', 'xyz', 'shape', 'volume', '2Dxy', '2Dshape', 'epitaxial_ab', 'epitaxial_ac', 'epitaxial_bc'],
             help="cell_dofree for &cell/")
     # -----------------------------------------------------------------
