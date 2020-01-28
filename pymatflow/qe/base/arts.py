@@ -138,7 +138,7 @@ class qe_arts:
                 ))
         elif self.kpoints_option == "gamma":
             fout.write("K_POINTS gamma\n")
-        elif self.kpoints_option == "tpiba_b":
+        elif self.kpoints_option == "tpiba_b" and self.tpiba_b_from == 'seekpath':
             fout.write("K_POINTS %s\n" % self.kpoints_option)
             nks = 2
             for i in range(1, len(self.kpoints_seekpath["path"])):
@@ -161,13 +161,28 @@ class qe_arts:
                     point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][1]]
                     fout.write("%f %f %f %d  #%s\n" % (point[0], point[1], point[2], 5, self.kpoints_seekpath["path"][i][1]))
             #
+        elif self.kpoints_option == "tpiba_b" and self.tpiba_b_from == 'manual':
+            fout.write("K_POINTS %s\n" % self.kpoints_option)
+            fout.write("%d\n" % len(self.tpiba_b_manual))
+            for i in range(len(self.tpiba_b_manual)):
+                fout.write("%f %f %f %d #%s\n" % (
+                    self.tpiba_b_manual[i][0],
+                    self.tpiba_b_manual[i][1],
+                    self.tpiba_b_manual[i][2],
+                    self.tpiba_b_manual[i][3],
+                    self.tpiba_b_manual[i][4],
+                    ))
         elif self.kpoints_option == "crystal_b":
             pass
         
 
-
-    def set_kpoints(self, kpoints_mp=[1, 1, 1, 0, 0, 0], option="automatic"):
+    def set_kpoints(self, kpoints_mp=[1, 1, 1, 0, 0, 0], option="automatic", tpiba_b_from="seekpath", tpiba_b_manual=None):
         """
+        tpiba_b_from:
+            how to set the tpiba_b can be 'seekpath' or 'manual'
+        tpiba_b_manual:
+            manual set tpiba_b kpoints, in format like this
+            [[k1, k2, k3, n, 'label(in uppercase)'], [0.0, 0.0, 0.0, 5, GAMMA], ...]
         TODO: 
             considering using seekpath to get the kpoints automatically from structure
             https://github.com/giovannipizzi/seekpath/tree/develop/seekpath
@@ -185,6 +200,8 @@ class qe_arts:
         Plan:
             build a wrapper to the seekpath in a separate file[not decided now]
         """
+        self.tpiba_b_from = tpiba_b_from
+        self.tpiba_b_manual = tpiba_b_manual
         if option == "automatic":
             self.kpoints_option = option
             self.kpoints_mp = kpoints_mp

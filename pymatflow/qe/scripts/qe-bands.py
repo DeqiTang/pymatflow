@@ -47,6 +47,16 @@ if __name__ == "__main__":
     parser.add_argument("--kpoints-mp", type=str, default="1 1 1 0 0 0",
             help="Monkhorst-Pack kpoint grid, in format like '1 1 1 0 0 0'")
 
+    parser.add_argument("--tpiba-b-from", type=str, default="seekpath",
+            choices=["seekpath", "manual"],
+            help="the tpiba_b kpoints from ? canbe seekpath or manual")
+    
+    parser.add_argument("--tpiba-b-manual", type=str, nargs="+", default=None,
+            help="manual input tpiba_b, like --tpiba-b-manual '0.000000 0.000000 0.000000 5  GAMMA' '0.500000 0.000000 0.000000 5  X'")
+
+    parser.add_argument("--tpiba-b-manual-file", type=str, default='tpiba-b.txt',
+            help="manual input tpiba_b read from the file")
+
     parser.add_argument("--conv-thr", type=float, default=1.0e-6,
             help="Convergence threshold for SCF calculation.")
 
@@ -102,9 +112,43 @@ if __name__ == "__main__":
 
     bands["lsym"] = args.lsym
 
+    # --------------------------------------------------------------
+    # process tpiba_b_manual
+    tpiba_b_manual = []
+    if args.tpiba_b_from == 'manual' and args.tpiba_b_manual != None:
+       # tpiba_b_manual read from script argument args.tpiba_b_manual
+       for point in args.tpiba_b_manual:
+           tpiba_b_manual.append([
+               float(point.split()[0]), 
+               float(point.split()[1]), 
+               float(point.split()[2]),
+               int(point.split()[3]),
+               point.split()[4].upper()
+               ])
+    elif args.tpiba_b_from == 'manual' and args.tpiba_b_manual == None:
+        # tpiba_b_manual read from a file contains manual K_POINTS tpiba_b setting
+        # tpiba_b_manual_file in format like this:
+        # K_POINTS tpiba_b
+        # 2
+        # 0.000000 0.000000 0.000000 5  #GAMMA
+        # 0.500000 0.000000 0.000000 5  #X
+        # 0.000000 0.500000 0.000000 5  #Y
+        with open(args.tpiba_b_manual_file, 'r') as fin:
+          fin.readline()
+          fin.readline()
+          for point in fin:
+              tpiba_b_manual.append([
+                  float(point.split()[0]), 
+                  float(point.split()[1]), 
+                  float(point.split()[2]),
+                  int(point.split()[3]),
+                  point.split()[4].split("#")[1].upper()
+               ])
+
+    # --------------------------------------------------------------------
     task = static_run()
     task.get_xyz(args.file)
-    task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+    task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp, tpiba_b_from=args.tpiba_b_from, tpiba_b_manual=tpiba_b_manual)
     task.set_params(control=control, system=system, electrons=electrons)
     task.set_bands(bands_input=bands)
     task.bands(directory=args.directory, mpi=args.mpi, runopt=args.runopt, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)

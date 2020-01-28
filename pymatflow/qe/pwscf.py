@@ -55,8 +55,8 @@ class pwscf:
         self.ions.set_params(ions)
         self.cell.set_params(cell)
 
-    def set_kpoints(self, kpoints_option="automatic", kpoints_mp=[2, 2, 2, 0, 0, 0]):
-        self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp)
+    def set_kpoints(self, kpoints_option="automatic", kpoints_mp=[2, 2, 2, 0, 0, 0], tpiba_b_from=None, tpiba_b_manual=None):
+        self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp, tpiba_b_from=tpiba_b_from, tpiba_b_manual=tpiba_b_manual)
  
     def set_atomic_forces(self, pressure=None, pressuredir=None):
         self.arts.set_atomic_forces(pressure=pressure, direction=pressuredir)       

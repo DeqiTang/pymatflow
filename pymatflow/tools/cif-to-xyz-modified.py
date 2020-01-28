@@ -20,6 +20,7 @@ if __name__ == "__main__":
     os.system("cif2cell %s --cartesian > tmp-cif2cell-xxx.dat" % args.cif)
     with open("tmp-cif2cell-xxx.dat", 'r') as fin:
         lines = fin.readlines()
+    os.system("rm tmp-cif2cell-xxx.dat")
     # get the begin line number of Bravis lattice vectors:
     for i in range(len(lines)):
         if len(lines[i].split()) == 0:
