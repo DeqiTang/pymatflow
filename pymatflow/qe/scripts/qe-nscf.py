@@ -74,9 +74,9 @@ if __name__ == "__main__":
     parser.add_argument("--auto", type=int, default=0,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
-            choices=["pbs", "yh"]
+            choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
-    parser.add("--jobname", type=str, default="pwscf-scf",
+    parser.add_argument("--jobname", type=str, default="pwscf-nscf",
             help="jobname on the pbs server")
     parser.add_argument("--nodes", type=int, default=1,
             help="Nodes used in server")
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     elif args.auto == 2:
         mover = rsync()
         if args.server == "pbs":
-            pass
+            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_pbs.conf"))
         elif args.server == "yh":
             mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_yh.conf"))
         mover.copy_default(source=os.path.abspath(args.directory))

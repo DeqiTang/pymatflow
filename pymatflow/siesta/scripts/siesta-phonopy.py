@@ -41,7 +41,7 @@ if __name__ == "__main__":
     # -------------------------------
     #      Phonopy
     # -------------------------------
-    parser.add_argument("-n", "--supercelln", type=int, nargs="+",
+    parser.add_argument("-n", "--supercell-n", type=int, nargs="+",
             default=[1, 1,1],
             help="supercell option for phonopy, like '2 2 2'")
 
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     
     task.set_params(params=params)
     task.set_kpoints(kpoints_mp=args.kpoints_mp)
-    task.supercelln = args.supercelln
+    task.supercell_n = args.supercell_n
     task.phonopy(directory=args.directory, runopt=args.runopt, mpi=args.mpi)
 
     # server handle

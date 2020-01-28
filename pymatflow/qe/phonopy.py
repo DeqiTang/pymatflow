@@ -234,7 +234,7 @@ class phonopy_run(pwscf):
                 fout.write("# Thermal properties can be plotted by:\n")
                 fout.write("phonopy --qe -t -p mesh.conf -c %s\n" % pos_inpname)
                 fout.write("# calculate Projected DOS and plot it\n")
-                fout.write("phonopy --siesta -p pdos.conf -c %s\n" % pos_inpname)
+                fout.write("phonopy --qe -p pdos.conf -c %s\n" % pos_inpname)
                 fout.write("phonopy --qe -c %s -p band.conf\n" % pos_inpname)
             os.chdir("../")
             # end generate the result analysis scripts and the necessary config files

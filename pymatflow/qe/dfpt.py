@@ -293,7 +293,7 @@ class dfpt_run:
 
 
     def matdyn(self, directory="tmp-qe-static", inpname="matdyn.in", output="matdyn.out", mpi="", runopt="gen",
-            jobname="matdyn", nodes=nodes, ppn=ppn):
+            jobname="matdyn", nodes=1, ppn=32):
         """
         """
         # first check whether there is a previous scf running
@@ -329,7 +329,7 @@ class dfpt_run:
             os.chdir("../")
 
     def plotband(self, directory="tmp-qe-static", inpname="plotband.in", output="plotband.out", frequencies_file="matdyn.freq", mpi="", runopt="gen", freq_min=0, freq_max=600, efermi=0, freq_step=100.0, freq_reference=0.0,
-            jobname="plotband", nodes=nodes, ppn=ppn):
+            jobname="plotband", nodes=1, ppn=32):
         """
         plotband.x
             Plot the phonon dispersion
@@ -456,8 +456,11 @@ class dfpt_run:
         generating pbs job script for calculation
         """
         with open(os.path.join(directory, inpname.split(".in")[0]+".pbs"), 'w') as fout:
+            fout.write("#!/bin/bash\n")
             fout.write("#PBS -N %s\n" % jobname)
             fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+            fout.write("cd $PBS_O_WORKDIR\n")
+            fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
             fout.write("\n")
-            fout.write("mpirun -np %d -machinefile $PBS_NODEFILE %s < %s > %s\n" % (nodes*ppn, cmd, inpname, output))
+            fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
 

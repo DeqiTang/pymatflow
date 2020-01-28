@@ -56,7 +56,7 @@ if __name__ == "__main__":
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
-    parser.add("--jobname", type=str, default="qe-phx",
+    parser.add_argument("--jobname", type=str, default="qe-phx",
             help="jobname on the pbs server")
     parser.add_argument("--nodes", type=int, default=1,
             help="Nodes used in server")

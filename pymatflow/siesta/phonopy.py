@@ -31,7 +31,7 @@ class phonopy_run(siesta):
 
         self.electrons.basic_setting()
             
-        self.supercelln = [1, 1, 1] 
+        self.supercell_n = [1, 1, 1] 
 
 
     def phonopy(self, directory="tmp-siesta-phonopy", inpname="phono-with-phonopy.fdf", output="phono-with-phonopy.out",
@@ -82,7 +82,7 @@ class phonopy_run(siesta):
             
             # set up the Phonopy calculation
             os.chdir(directory)
-            os.system("phonopy --siesta -d --dim='%d %d %d' -c %s" % (self.supercelln[0], self.supercelln[1], self.supercelln[2], pos_fdf_name))
+            os.system("phonopy --siesta -d --dim='%d %d %d' -c %s" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2], pos_fdf_name))
             os.system("ls | grep 'supercell-' > pos.data")
             disp_dirs = []
             with open("pos.data", 'r') as fin:
@@ -117,14 +117,14 @@ class phonopy_run(siesta):
                 for element in self.system.xyz.specie_labels:
                     fout.write(" %s" % element)
                 fout.write("\n")
-                fout.write("DIM = %d %d %d\n" % (self.supercelln[0], self.supercelln[1], self.supercelln[2]))
+                fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
                 fout.write("MP = 8 8 8\n")
             with open("pdos.conf", 'w') as fout:
                 fout.write("ATOM_NAME =")
                 for element in self.system.xyz.specie_labels:
                     fout.write(" %s" % element)
                 fout.write("\n")
-                fout.write("DIM = %d %d %d\n" % (self.supercelln[0], self.supercelln[1], self.supercelln[2]))
+                fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
                 fout.write("MP = 8 8 8\n")
                 fout.write("PDOS = 1 2, 3 4 5 5\n")
             with open("band.conf", 'w') as fout:
@@ -141,7 +141,7 @@ class phonopy_run(siesta):
                 fout.write("BAND_POINTS = 101\n")
                 fout.write("BAND_CONNECTION = .TRUE.\n")
 
-                fout.write("DIM = %d %d %d\n" % (self.supercelln[0], self.supercelln[1], self.supercelln[2]))
+                fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
                 #fout.write("BAND = 0.5 0.5 0.5 0.0 0.0 0.0 0.5 0.5 0.0 0.0 0.5 0.0\n")
                 fout.write("BAND =")
                 # --------------

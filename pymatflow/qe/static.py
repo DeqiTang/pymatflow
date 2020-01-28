@@ -530,9 +530,11 @@ class static_run(pwscf):
             with open(os.path.join(directory, "band-structure.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 fout.write("#PBS -N %s\n" % jobname)
-                fout.write("#PBS -l nodes=%d;ppn=%d\n" % (nodes, ppn))
-                fout.write("mpirun -np %d -machinefile $PBS_NODEFILE %s < %s > %s\n" % (nodes*ppn, "pw.x", inpname1, output1))
-                fout.write("mpirun -np %d -machinefile $PBS_NODEFILE %s < %s > %s\n" % (nodes*ppn, "bands.x", inpname2, output2))
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("cd $PBS_O_WORKDIR\n")
+                fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("pw.x", inpname1, output1))
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("bands.x", inpname2, output2))
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
