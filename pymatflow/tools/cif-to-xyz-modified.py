@@ -17,6 +17,13 @@ if __name__ == "__main__":
             help="the output xyz file")
     args = parser.parse_args()
 
+    # output inofrmation
+    print("=====================================\n")
+    print("      cif-to-xyz-modified.xyz\n")
+    print("-------------------------------------\n")
+    print("convert from cif to xyz-modified\n")
+    print("with the help from cif2cell\n")
+
     os.system("cif2cell %s --cartesian > tmp-cif2cell-xxx.dat" % args.cif)
     with open("tmp-cif2cell-xxx.dat", 'r') as fin:
         lines = fin.readlines()

@@ -150,6 +150,8 @@ setup(
         "pymatflow/tools/qe-fix-atoms.py",
         "pymatflow/tools/xyzinfo.py",
         "pymatflow/tools/cif-to-xyz-modified.py",
+        "pymatflow/tools/cif-to-pdb.py",
+        "pymatflow/tools/pdb-to-cif.py",
         "pymatflow/remote/scripts/thq.py",
         "pymatflow/remote/scripts/thcancel.py",
         "pymatflow/remote/scripts/thpull.py",

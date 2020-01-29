@@ -56,6 +56,8 @@ class pwscf:
         self.cell.set_params(cell)
 
     def set_kpoints(self, kpoints_option="automatic", kpoints_mp=[2, 2, 2, 0, 0, 0], tpiba_b_from=None, tpiba_b_manual=None):
+        # about the format of tpiba_b_from and tpiba_b_manual
+        # see corressponding comment for function self.arts.set_kpoints()
         self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp, tpiba_b_from=tpiba_b_from, tpiba_b_manual=tpiba_b_manual)
  
     def set_atomic_forces(self, pressure=None, pressuredir=None):
