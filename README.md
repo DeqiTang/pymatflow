@@ -25,7 +25,7 @@ With scripts to provide preparing and/or post-processing for your Emulations(DFT
 
 
 ## About the th\*.py scripts
-in order to use th\*.py scripts and the function of --auto in running scripts(like qe-relax.py), you have to prepare a server.conf file in ~/.emuhelper/server.conf, in format like this:
+in order to use th\*.py scripts and the function of --auto in running scripts(like qe-relax.py), you have to prepare a server.conf file in ~/.pymatflow/server.conf, in format like this:
 ```
 [server]
 ip = x.x.x.x

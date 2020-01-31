@@ -110,6 +110,7 @@ setup(
         "pymatflow/qe/scripts/qe-pw-dielectric.py",
         "pymatflow/qe/scripts/qe-relax-tetragonal.py",
         "pymatflow/qe/scripts/qe-relax-cubic.py",
+        "pymatflow/qe/scripts/qe-relax-hexagonal.py",
         "pymatflow/qe/post/scripts/post-qe-dos.py",
         "pymatflow/qe/post/scripts/post-qe-pdos.py",
         "pymatflow/qe/post/scripts/post-qe-neb.py",
