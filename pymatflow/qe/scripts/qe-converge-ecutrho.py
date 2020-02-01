@@ -29,9 +29,9 @@ if __name__ == "__main__":
             choices=["automatic", "gamma", "tpiba_b"],
             help="Kpoints generation scheme option for the SCF or non-SCF calculation")
 
-    parser.add_argument("--kpoints-mp", type=int, nargs="+",
-            default=[1, 1, 1, 0, 0, 0],
-            help="Monkhorst-Pack kpoint grid, in format like --kpoints-mp 1 1 1 0 0 0")   
+    parser.add_argument("--kpoints-option", type=str, default="automatic", 
+            choices=["automatic", "gamma", "crystal_b"],
+            help="Kpoints generation scheme option for the SCF or non-SCF calculation")
 
     parser.add_argument("--conv-thr", help="conv_thr", type=float, default=1.0e-6)
 

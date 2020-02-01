@@ -26,7 +26,7 @@ if __name__ == "__main__":
     parser.add_argument("--ecutwfc", help="ecutwfc", type=int, default=100)
 
     parser.add_argument("--kpoints-option", type=str, default="automatic", 
-            choices=["automatic", "gamma", "tpiba_b"],
+            choices=["automatic", "gamma", "crystal_b"],
             help="Kpoints generation scheme option for the SCF or non-SCF calculation")
 
     parser.add_argument("--kpoints-mp", type=int, nargs="+",

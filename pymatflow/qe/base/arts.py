@@ -138,7 +138,7 @@ class qe_arts:
                 ))
         elif self.kpoints_option == "gamma":
             fout.write("K_POINTS gamma\n")
-        elif self.kpoints_option == "tpiba_b" and self.tpiba_b_from == 'seekpath':
+        elif self.kpoints_option == "crystal_b" and self.crystal_b_from == 'seekpath':
             fout.write("K_POINTS %s\n" % self.kpoints_option)
             nks = 2
             for i in range(1, len(self.kpoints_seekpath["path"])):
@@ -161,27 +161,27 @@ class qe_arts:
                     point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][1]]
                     fout.write("%f %f %f %d  #%s\n" % (point[0], point[1], point[2], 5, self.kpoints_seekpath["path"][i][1]))
             #
-        elif self.kpoints_option == "tpiba_b" and self.tpiba_b_from == 'manual':
+        elif self.kpoints_option == "crystal_b" and self.crystal_b_from == 'manual':
             fout.write("K_POINTS %s\n" % self.kpoints_option)
-            fout.write("%d\n" % len(self.tpiba_b_manual))
-            for i in range(len(self.tpiba_b_manual)):
+            fout.write("%d\n" % len(self.crystal_b_manual))
+            for i in range(len(self.crystal_b_manual)):
                 fout.write("%f %f %f %d #%s\n" % (
-                    self.tpiba_b_manual[i][0],
-                    self.tpiba_b_manual[i][1],
-                    self.tpiba_b_manual[i][2],
-                    self.tpiba_b_manual[i][3],
-                    self.tpiba_b_manual[i][4],
+                    self.crystal_b_manual[i][0],
+                    self.crystal_b_manual[i][1],
+                    self.crystal_b_manual[i][2],
+                    self.crystal_b_manual[i][3],
+                    self.crystal_b_manual[i][4],
                     ))
-        elif self.kpoints_option == "crystal_b":
+        elif self.kpoints_option == "tpiba_b":
             pass
         
 
-    def set_kpoints(self, kpoints_mp=[1, 1, 1, 0, 0, 0], option="automatic", tpiba_b_from="seekpath", tpiba_b_manual=None):
+    def set_kpoints(self, kpoints_mp=[1, 1, 1, 0, 0, 0], option="automatic", crystal_b_from="seekpath", crystal_b_manual=None):
         """
-        tpiba_b_from:
-            how to set the tpiba_b can be 'seekpath' or 'manual'
-        tpiba_b_manual:
-            manual set tpiba_b kpoints, in format like this
+        crystal_b_from:
+            how to set the crystal_b: can be 'seekpath' or 'manual'
+        crystal_b_manual:
+            manual set crystal_b kpoints, in format like this
             [[k1, k2, k3, n, 'label(in uppercase)'], [0.0, 0.0, 0.0, 5, GAMMA], ...]
         TODO: 
             considering using seekpath to get the kpoints automatically from structure
@@ -197,11 +197,20 @@ class qe_arts:
             must know how to modify the k points to be applicable to your original
             structure.
             
+            seekpath generated high symmetry are in crystal coordinates not cartesian.
+            so we should set K_POINTS in qe to {crystal_b}
+            p.s. like there are cartesian and crystal(fractional) coordinates in real 
+            space for structure coordinates, there are also cartesian and crystal coordinates
+            for reciprocal space for kpoint. in qe, tpiba and tpiba_b are cartesian coordinates
+            in unit of 2pi/a, the latter with suffix '_b' means 'for band structure'. 
+            and crystal and crysta_b are in crystal coordinated. seek-path generated k points
+            are in reciprocal crystal coordinate, so we should use crystal_b for band structure
+            calculation using seekpath generated high symmetry kpoing.
         Plan:
             build a wrapper to the seekpath in a separate file[not decided now]
         """
-        self.tpiba_b_from = tpiba_b_from
-        self.tpiba_b_manual = tpiba_b_manual
+        self.crystal_b_from = crystal_b_from
+        self.crystal_b_manual = crystal_b_manual
         if option == "automatic":
             self.kpoints_option = option
             self.kpoints_mp = kpoints_mp
@@ -212,6 +221,17 @@ class qe_arts:
         # --------------
         # using seekpath
         # --------------
+        """
+            seekpath generated high symmetry are in crystal coordinates not cartesian.
+            so we should set K_POINTS in qe to {crystal_b}
+            p.s. like there are cartesian and crystal(fractional) coordinates in real 
+            space for structure coordinates, there are also cartesian and crystal coordinates
+            for reciprocal space for kpoint. in qe, tpiba and tpiba_b are cartesian coordinates
+            in unit of 2pi/a, the latter with suffix '_b' means 'for band structure'. 
+            and crystal and crysta_b are in crystal coordinated. seek-path generated k points
+            are in reciprocal crystal coordinate, so we should use crystal_b for band structure
+            calculation using seekpath generated high symmetry kpoing.
+        """
         lattice = self.xyz.cell   # = [self.xyz.cell[0:3], self.xyz.cell[3:6], self.xyz.cell[6:9]]
         positions = []
         numbers = []
@@ -226,7 +246,7 @@ class qe_arts:
             numbers.append(self.xyz.specie_labels[atom.name])
         structure = (lattice, positions, numbers)
         self.kpoints_seekpath = seekpath.get_path(structure)
-        if option == "tpiba_b":
+        if option == "crystal_b":
             self.kpoints_option = option
             return
 

@@ -43,7 +43,7 @@ if __name__ == "__main__":
             help="Kinetic energy cutoff for charge density and potential in unit of Rydberg, default value: 400 Ry")
 
     parser.add_argument("--kpoints-option", type=str, default="automatic", 
-            choices=["automatic", "gamma", "tpiba_b"],
+            choices=["automatic", "gamma", "crystal_b"],
             help="Kpoints generation scheme option for the SCF or non-SCF calculation")
 
     parser.add_argument("--kpoints-mp", type=int, nargs="+",
