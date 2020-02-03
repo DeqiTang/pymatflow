@@ -37,7 +37,8 @@ class vib_run(cp2k):
     
 
     def vib(self, directory="tmp-cp2k-vib", inpname="vib.inp", output="vib.out", 
-            mpi="", runopt="gen"):
+            mpi="", runopt="gen",
+            jobname="vibrational-analysis", nodes=1, ppn=2):
         """
         directory:
             wheere the calculation will happen
@@ -59,6 +60,8 @@ class vib_run(cp2k):
         
             # gen server job comit file
             self.gen_yh(directory=directory, cmd="cp2k.popt", inpname=inpname, output=output)
+            # gen pbs server job comit file
+            self.gen_pbs(directory=directory, cmd="cp2k.popt", inpname=inpname, output=output, jobname=jobname, nodes=nodes, ppn=ppn)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

@@ -38,7 +38,8 @@ class static_mp2_run(cp2k):
         self.atom.basic_setting(run_type="MP2")
 
 
-    def scf_mp2(self, directory="tmp-cp2k-static-mp2", inpname="static-scf-mp2.inp", output="static-scf-mp2.out", mpi="", runopt="gen"):
+    def scf_mp2(self, directory="tmp-cp2k-static-mp2", inpname="static-scf-mp2.inp", output="static-scf-mp2.out", mpi="", runopt="gen",
+            jobname="mp2", nodes=1, ppn=32):
         """
         directory:
             directory is and path where the calculation will happen.
@@ -69,6 +70,8 @@ class static_mp2_run(cp2k):
 
             # gen server job comit file
             self.gen_yh(directory=directory, cmd="cp2k.popt", inpname=inpname, output=output)
+            # gen pbs server job comit file
+            self.gen_pbs(directory=directory, cmd="cp2k.popt", inpname=inpname, output=output, jobname=jobname, nodes=nodes, ppn=ppn)
     
         if runopt == "run" or runopt == "genrun":
            os.chdir(directory)

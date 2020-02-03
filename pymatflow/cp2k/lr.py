@@ -31,7 +31,8 @@ class lr_run(cp2k):
         self.glob.basic_setting(run_type="LINEAR_RESPONSE")
         self.force_eval.basic_setting()
 
-    def lr(self, directory="tmp-cp2k-lr", inpname="lr.inp", output="lr.out", mpi="", runopt="gen"):
+    def lr(self, directory="tmp-cp2k-lr", inpname="lr.inp", output="lr.out", mpi="", runopt="gen",
+            jobname="linear-response", nodes=1, ppn=32):
         """
         directory:
             where the calculation will happen
@@ -53,6 +54,8 @@ class lr_run(cp2k):
  
             # gen server job comit file
             self.gen_yh(cmd="cp2k.popt", directory=directory, inpname=inpname, output=output)   
+            # gen pbs server job comit file
+            self.gen_pbs(cmd="cp2k.popt", directory=directory, inpname=inpname, output=output, jobname=jobname, nodes=nodes, ppn=ppn)   
 
         if runopt == "run" or runopt == "genrun":
            os.chdir(directory)

@@ -1,38 +1,37 @@
-#!/usr/bin/evn python
+#!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
-import numpy as np
-import sys
+
 import os
 import shutil
-import pymatgen as mg
-
 import argparse
-from pymatflow.cp2k.md import md_run
+
+
+from pymatflow.cp2k.opt import opt_run
 from pymatflow.remote.ssh import ssh
 from pymatflow.remote.rsync import rsync
 
 """
 Usage:
-    python aimd_cp2k.py xxx.xyz 
-    xxx.xyz is the input structure file
-
-    make sure the xyz structure file and pseudopotential file
-    for all the elements of the system is in the directory.
 """
 
 params = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-aimd")
-    
+    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-geo-opt-cubic")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+
+    parser.add_argument("--mpi", type=str, default="",
+            help="MPI command: like 'mpirun -np 4'")
 
     parser.add_argument("--runopt", type=str, default="genrun", 
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
+    parser.add_argument("-p", "--printout-option", nargs="+", type=int,
+            default=[],
+            help="Properties printout option(0, 1, 2 implemented now), you can also activate multiple prinout-option at the same time")
 
     parser.add_argument("--ls-scf", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],
@@ -50,7 +49,7 @@ if __name__ == "__main__":
             help="XC_FUNCTIONAL type")
 
     parser.add_argument("--cutoff", type=int, default=100,
-            help="CUTOFF, default value: 100 Ry")
+            help="CUTOFF, default value: 100 Ry, if you find your SCF hard to converge, you can try increasing CUTOFF")
 
     parser.add_argument("--rel-cutoff", type=int, default=60,
             help="REL_CUTOFF, default value: 60 Ry")
@@ -82,21 +81,34 @@ if __name__ == "__main__":
 
     parser.add_argument("--window-size", help="Size of the energy window centred at the Fermi level for ENERGY_WINDOW type smearing", type=float, default=0)
 
+    # motion/geo_opt related
+    parser.add_argument("--optimizer", type=str, default="BFGS",
+            help="optimization algorithm for geometry optimization: BFGS, CG, LBFGS")
+    parser.add_argument("--max-iter", type=int, default=200,
+            help="maximum number of geometry optimization steps.")
+    parser.add_argument("--type", type=str, default="MINIMIZATION",
+            help="specify which kind of geometry optimization to perform: MINIMIZATION(default), TRANSITION_STATE")
+    parser.add_argument("--max-dr", type=float, default=3e-3,
+            help="Convergence criterion for the maximum geometry change between the current and the last optimizer iteration.")
+    parser.add_argument("--max-force", type=float, default=4.50000000E-004,
+            help="Convergence criterion for the maximum force component of the current configuration.")
+    parser.add_argument("--rms-dr", type=float, default=1.50000000E-003,
+            help="Convergence criterion for the root mean square (RMS) geometry change between the current and the last optimizer iteration.")
+    parser.add_argument("--rms-force", type=float, default=3.00000000E-004,
+            help="Convergence criterion for the root mean square (RMS) force of the current configuration.")
+    # -----------------------------------------
+    # na nc stepa stepc for hexagonal cell
+    # -----------------------------------------
+    parser.add_argument("--na", type=int, default=10,
+            help="number of a used")
+    parser.add_argument("--nc", type=int, default=10,
+            help="number of c used")
+    parser.add_argument("--stepa", type=float, default=0.05,
+            help="a step")
+    parser.add_argument("--stepc", type=float, default=0.05,
+            help="c step")
 
-    # motion related parameters
-    parser.add_argument("--md-steps", type=int, default=1000,
-            help="MOTION/MD/STEPS")
-    parser.add_argument("--timestep", type=float, default=5.0e-1,
-            help="MOTION/MD/TIMESTEP, default and also recommended is 0.5 fs.")
-    parser.add_argument("--ensemble", type=str, default="NVE",
-            choices=["NVE",  "NVT","HYDROSTATICSHOCK", "ISOKIN", "LANGEVIN", "MSST", "MSST_DAMPED"],
-            help="MOTION/MD/ENSEMBLE")
-    parser.add_argument("--temperature", type=str, default=300,
-            help="The temperature in K used to initialize the velocities with init and pos restart, and in the NPT/NVT simulations")
-    parser.add_argument("--temp-tol", type=float, default=0.0,
-            help="MOTION/MD/TEMP_TOL")
-    parser.add_argument("--traj-format", type=str, default="XMOL",
-            help="type of output trajectory for MOTION, note: DCD format can be visualized by vmd")
+
 
     # -----------------------------------------------------------------
     #                      for server handling
@@ -106,7 +118,7 @@ if __name__ == "__main__":
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
-    parser.add_argument("--jobname", type=str, default="geo-opt",
+    parser.add_argument("--jobname", type=str, default="opt-cubic",
             help="jobname on the pbs server")
     parser.add_argument("--nodes", type=int, default=1,
             help="Nodes used in server")
@@ -114,11 +126,12 @@ if __name__ == "__main__":
             help="ppn of the server")
 
 
+
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================   
     args = parser.parse_args()
-
+    
     params["FORCE_EVAL-DFT-LS_SCF"] = args.ls_scf
     params["FORCE_EVAL-DFT-QS-METHOD"] = args.qs_method
     params["FORCE_EVAL-DFT-MGRID-CUTOFF"] = args.cutoff
@@ -135,17 +148,82 @@ if __name__ == "__main__":
     params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"] = args.alpha
     params["FORCE_EVAL-DFT-KPOINTS-SCHEME"] = args.kpoints_scheme
 
-    params["MOTION-MD-STEPS"] = args.md_steps
-    params["MOTION-MD-TIMESTEP"] = args.timestep
-    params["MOTION-MD-ENSEMBLE"] = args.ensemble
-    params["MOTION-MD-TEMPERATURE"] = args.temperature
-    params["MOTION-MD-TEMP_TOL"] = args.temp_tol
-    params["MOTION-PRINT-TRAJECTORY-FORMAT"] = args.traj_format
+    params["MOTION-GEO_OPT-MAX_ITER"] = args.max_iter
+    params["MOTION-GEO_OPT-OPTIMIZER"] = args.optimizer
+    params["MOTION-GEO_OPT-TYPE"] = args.type
+    params["MOTION-GEO_OPT-MAX_DR"] = args.max_dr
+    params["MOTION-GEO_OPT-MAX_FORCE"] = args.max_force
+    params["MOTION-GEO_OPT-RMS_DR"] = args.rms_dr
+    params["MOTION-GEO_OPT-RMS_FORCE"] = args.rms_force
 
-    task = md_run()
+    task = opt_run()
     task.get_xyz(args.file)
+    task.set_geo_opt()
     task.set_params(params=params)
-    task.aimd(directory=args.directory, runopt=args.runopt, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+    #task.geo_opt(directory=args.directory, mpi=args.mpi, runopt=args.runopt, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+
+    if os.path.exists(args.directory):
+        shutil.rmtree(args.directory)
+    os.mkdir(args.directory)
+
+    shutil.copyfile(task.force_eval.subsys.xyz.file, os.path.join(args.directory, task.force_eval.subsys.xyz.file))
+    
+    # 
+    os.chdir(args.directory)
+    
+    with open("geo-opt.inp.template", 'w') as fout:
+        task.glob.to_input(fout)
+        task.force_eval.to_input(fout)
+        task.motion.to_input(fout)
+
+
+    # gen pbs script
+    with open("geo-opt-cubic.pbs", 'w') as fout:
+        fout.write("#!/bin/bash\n")
+        fout.write("#PBS -N %s\n" % args.jobname)
+        fout.write("#PBS -l nodes=%d:ppn=%d\n" % (args.nodes, args.ppn))
+        fout.write("\n")
+        fout.write("cd $PBS_O_WORKDIR\n")
+        fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+        fout.write("\n")
+        fout.write("# get begin and end line number of the cell block in geo-opt.inp.template\n")
+        fout.write("cell_block_begin=`cat geo-opt.inp.template | grep -n \'&CELL\' | head -n 1 | cut -d \':\' -f1`\n")
+        fout.write("cell_block_end=`cat geo-opt.inp.template | grep -n \'&END CELL\' | head -n 1 | cut -d \':\' -f1`\n")
+        fout.write("\n")
+
+        a = task.force_eval.subsys.xyz.cell[0][0]
+    
+        fout.write("for a in `seq -w %f %f %f`\n" % (a-args.na/2*args.stepa, args.stepa, a+args.na/2*args.stepa))
+        fout.write("do\n")
+        fout.write("  cat geo-opt.inp.template | head -n +${cell_block_begin} > geo-opt-${a}.inp\n")
+        fout.write("  cat >> geo-opt-${a}.inp <<EOF\n")
+        fout.write("\t\t\tA ${a} 0.000000 0.000000\n")
+        fout.write("\t\t\tB 0.000000 ${a} 0.000000\n")
+        fout.write("\t\t\tC 0.000000 0.000000 ${a}\n")
+        fout.write("\t\t\tPERIODIC xyz\n")
+        fout.write("EOF\n")
+        fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
+        fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -inp geo-opt-${a}.inp > geo-opt-${a}.out\n")
+        fout.write("done\n")
+
+    # generate result analysis script
+    with open("get_energy.sh", 'w') as fout:
+        fout.write("#!/bin/bash\n")
+        fout.write("cat > energy-latconst.data <<EOF\n")
+        fout.write("# format: a energy(Ry)\n")
+        fout.write("EOF\n")
+        fout.write("for a in `seq -w %f %f %f`\n" % (a-args.na/2*args.stepa, args.stepa, a+args.na/2*args.stepa))
+        fout.write("do\n")
+        fout.write("  energy=`cat geo-opt-${a}.out | grep 'ENERGY| Total FORCE_EVAL' | tail -n -1`\n")
+        fout.write("  cat >> energy-latconst.data <<EOF\n")
+        fout.write("${a} ${energy:48-1}\n")
+        fout.write("EOF\n")
+        fout.write("done\n")
+
+    os.chdir("../")
+
+
+
 
     # server handle
     if args.auto == 0:
@@ -168,8 +246,9 @@ if __name__ == "__main__":
         if args.server == "pbs":
             ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_pbs.conf"))
             ctl.login()
-            ctl.submit(workdir=args.directory, jobfile="md.pbs", server="pbs")
+            ctl.submit(workdir=args.directory, jobfile="geo-opt-cubic.pbs", server="pbs")
         elif args.server == "yh":
             ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_yh.conf"))
             ctl.login()
-            ctl.submit(workdir=args.directory, jobfile="md.inp.sub", server="yh")
+            ctl.submit(workdir=args.directory, jobfile="geo-opt-cubic.sub", server="yh")
+        

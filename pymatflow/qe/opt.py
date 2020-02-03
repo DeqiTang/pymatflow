@@ -28,7 +28,7 @@ class opt_run(pwscf):
         """
         directory: a place for all the generated files
         """
-        self.set_relax()
+        #self.set_relax()
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -70,7 +70,7 @@ class opt_run(pwscf):
         """
         directory: a place for all the generated files
         """
-        self.set_vc_relax()
+        #self.set_vc_relax()
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)

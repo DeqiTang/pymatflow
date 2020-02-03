@@ -50,7 +50,8 @@ class md_run(cp2k):
         self.motion.set_type("MD")
 
 
-    def aimd(self, directory="tmp-cp2k-aimd", inpname="aimd.inp", output="aimd.out", mpi="", runopt="gen"):
+    def aimd(self, directory="tmp-cp2k-aimd", inpname="aimd.inp", output="aimd.out", mpi="", runopt="gen",
+            jobname="aimd", nodes=1, ppn=32):
         """
         directory:
             directory is and path where the calculation will happen.
@@ -72,6 +73,8 @@ class md_run(cp2k):
 
             # gen server job comit file
             self.gen_yh(cmd="cp2k.popt", directory=directory, inpname=inpname, output=output)
+            # gen pbs server job comit file
+            self.gen_pbs(cmd="cp2k.popt", directory=directory, inpname=inpname, output=output, jobname=jobname, nodes=nodes, ppn=ppn)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

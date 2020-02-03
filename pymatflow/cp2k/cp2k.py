@@ -107,13 +107,7 @@ class cp2k:
             elif item.split("-")[0].upper() == "VIBRATIONAL_ANALYSIS":
                 self.vibrational_analysis.set_params({item.replace("VIBRATIONAL_ANALYSIS-", ""): params[item]})
 
-    def gen_yh(self, inpname, output, directory, cmd="cp2k.psmp"):
-        """
-        generating yhbatch job script for calculation
-        """
-        with open(os.path.join(directory, inpname.split(".inp")[0]+".sub"), 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("yhrun -N 1 -n 24 %s -in %s | tee %s\n" % (cmd, inpname, output))
+   
 
     def set_vdw(self, usevdw=False):
         if usevdw == True:
@@ -170,3 +164,26 @@ class cp2k:
             self.force_eval.dft.printout.xray_diffraction_spectrum.status = True
         if 13 in option:
             self.force_eval.properties.resp.status = True
+
+    def gen_yh(self, inpname, output, directory, cmd="cp2k.psmp"):
+        """
+        generating yhbatch job script for calculation
+        """
+        with open(os.path.join(directory, inpname.split(".inp")[0]+".sub"), 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("yhrun -N 1 -n 24 %s -in %s | tee %s\n" % (cmd, inpname, output))
+
+
+    def gen_pbs(self, inpname, output, directory, cmd="cp2k.popt", jobname="cp2k", nodes=1, ppn=32):
+        """
+        generating pbs job script for calculation
+        """
+        with open(os.path.join(directory, inpname.split(".inp")[0]+".pbs"), 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("#PBS -N %s\n" % jobname)
+            fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+            fout.write("\n")
+            fout.write("cd $PBS_O_WORKDIR\n")
+            fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+            fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s -in %s > %s\n" % (cmd, inpname, output))
+

@@ -54,7 +54,8 @@ class neb_run(cp2k):
 
 
     def neb(self, directory="tmp-cp2k-neb", inpname="neb.inp", output="neb.out", 
-            mpi="", runopt="gen"):
+            mpi="", runopt="gen",
+            jobname="neb", nodes=1, ppn=32):
         """
         directory:
             where the calculation will happen
@@ -81,6 +82,8 @@ class neb_run(cp2k):
  
             # gen server job comit file
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt")
+            # gen pbs server job comit file
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt", jobname=jobname, nodes=nodes, ppn=ppn)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

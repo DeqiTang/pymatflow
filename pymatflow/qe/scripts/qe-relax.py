@@ -120,6 +120,7 @@ if __name__ == "__main__":
  
     task = opt_run()
     task.get_xyz(args.file)
+    task.set_relax()
     task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
     task.set_params(control=control, system=system, electrons=electrons, ions=ions)
     task.relax(directory=args.directory, runopt=args.runopt, mpi=args.mpi, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)

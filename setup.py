@@ -65,6 +65,9 @@ setup(
         "pymatflow/cp2k/scripts/cp2k-lr.py",
         "pymatflow/cp2k/scripts/cp2k-phonopy.py",
         "pymatflow/cp2k/scripts/cp2k-md-vib.py",
+        "pymatflow/cp2k/scripts/cp2k-geo-opt-hexagonal.py",
+        "pymatflow/cp2k/scripts/cp2k-geo-opt-tetragonal.py",
+        "pymatflow/cp2k/scripts/cp2k-geo-opt-cubic.py",
         "pymatflow/cp2k/post/scripts/post-single-point-cp2k.py",
         "pymatflow/cp2k/post/scripts/post-geo-opt-cp2k.py",
         "pymatflow/cp2k/post/scripts/post-pdos-without-convolute.py",
@@ -164,7 +167,9 @@ setup(
         "pymatflow/remote/scripts/sz-q.py",
         "pymatflow/remote/scripts/threport.py",
         "pymatflow/flow/scripts/flow-run.py",
-        "pymatflow/flow/scripts/flow-pes.py",
+        "pymatflow/flow/scripts/flow-pes-static.py",
+        "pymatflow/flow/scripts/flow-pes-relax.py",
+        "pymatflow/flow/scripts/flow-pes-relax-cp2k.py",
         ],
     #entry_points = {
     #    'console_scripts': [

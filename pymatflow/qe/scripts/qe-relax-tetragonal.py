@@ -244,38 +244,116 @@ if __name__ == "__main__":
         a = task.arts.xyz.cell[0][0]
         c = task.arts.xyz.cell[2][2]
     
-        fout.write("for a in `seq -w %f %f %f`\n" % (a-args.na/2*args.stepa, args.stepa, a+args.na/2*args.stepa))
-        fout.write("do\n")
-        fout.write("  for c in `seq -w %f %f %f`\n" % (c-args.nc/2*args.stepc, args.stepc, c+args.nc/2*args.stepc))
-        fout.write("  do\n")
-        fout.write("    cp relax.in.template relax-${a}-${c}.in\n")
-        fout.write("    cat >> relax-${a}-${c}.in <<EOF\n")
-        fout.write("\n")
-        fout.write("CELL_PARAMETERS angstrom\n")
-        fout.write("${a} 0.000000 0.000000\n")
-        fout.write("0.000000 ${a} 0.000000\n")
-        fout.write("0.000000 0.000000 ${c}\n")
-        fout.write("EOF\n")
-        fout.write("    mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < relax-${a}-${c}.in > relax-${a}-${c}.out\n")
-        fout.write("  done\n")
-        fout.write("done\n")
+        fout.write("v11=%f\n" % task.arts.xyz.cell[0][0])
+        fout.write("v12=%f\n" % task.arts.xyz.cell[0][1])
+        fout.write("v13=%f\n" % task.arts.xyz.cell[0][2])
+        fout.write("v21=%f\n" % task.arts.xyz.cell[1][0])
+        fout.write("v22=%f\n" % task.arts.xyz.cell[1][1])
+        fout.write("v23=%f\n" % task.arts.xyz.cell[1][2])
+        fout.write("v31=%f\n" % task.arts.xyz.cell[2][0])
+        fout.write("v32=%f\n" % task.arts.xyz.cell[2][1])
+        fout.write("v33=%f\n" % task.arts.xyz.cell[2][2])
+        
+        if args.na >= 2:
+            # a is optimized
+            fout.write("for a in `seq -w %f %f %f`\n" % (a-args.na/2*args.stepa, args.stepa, a+args.na/2*args.stepa))
+            fout.write("do\n")
+            if args.nc >= 2:
+                # optimize both a and c
+                fout.write("  for c in `seq -w %f %f %f`\n" % (c-args.nc/2*args.stepc, args.stepc, c+args.nc/2*args.stepc))
+                fout.write("  do\n")
+                fout.write("    cp relax.in.template relax-${a}-${c}.in\n")
+                fout.write("    cat >> relax-${a}-${c}.in <<EOF\n")
+                fout.write("\n")
+                fout.write("CELL_PARAMETERS angstrom\n")
+                fout.write("${a} 0.000000 0.000000\n")
+                fout.write("0.000000 ${a} 0.000000\n")
+                fout.write("0.000000 0.000000 ${c}\n")
+                fout.write("EOF\n")
+                fout.write("    mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < relax-${a}-${c}.in > relax-${a}-${c}.out\n")
+                fout.write("  done\n")
+            else:
+                # only optimize a
+                fout.write("    cp relax.in.template relax-${a}.in\n")
+                fout.write("    cat >> relax-${a}.in <<EOF\n")
+                fout.write("\n")
+                fout.write("CELL_PARAMETERS angstrom\n")
+                fout.write("${a} 0.000000 0.000000\n")
+                fout.write("0.000000 ${a} 0.000000\n")
+                fout.write("0.000000 0.000000 ${v33}\n")
+                fout.write("EOF\n")
+                fout.write("    mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < relax-${a}.in > relax-${a}.out\n")
+            fout.write("done\n")
+        else:
+            # a is not optimized
+            if args.nc >= 2:
+                # only optimize c
+                fout.write("for c in `seq -w %f %f %f`\n" % (c-args.nc/2*args.stepc, args.stepc, c+args.nc/2*args.stepc))
+                fout.write("do\n")
+                fout.write("  cp relax.in.template relax-${c}.in\n")
+                fout.write("  cat >> relax-${c}.in<<EOF\n")
+                fout.write("\n")
+                fout.write("CELL_PARAMETERS angstrom\n")
+                fout.write("${v11} 0.000000 0.000000\n")
+                fout.write("0.000000 ${v22} 0.000000\n")
+                fout.write("0.000000 0.000000 ${c}\n")
+                fout.write("EOF\n")
+                fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < relax-${c}.in > relax-${c}.out\n")
+                fout.write("done\n")
+            else:
+                # neither a or c is optimized
+                pass
 
     # generate result analysis script
     with open("get_energy.sh", 'w') as fout:
         fout.write("#!/bin/bash\n")
-        fout.write("cat > energy-latconst.data <<EOF\n")
-        fout.write("# format: a c energy(Ry)\n")
-        fout.write("EOF\n")
-        fout.write("for a in `seq -w %f %f %f`\n" % (a-args.na/2*args.stepa, args.stepa, a+args.na/2*args.stepa))
-        fout.write("do\n")
-        fout.write("  for c in `seq -w %f %f %f`\n" % (c-args.nc/2*args.stepc, args.stepc, c+args.nc/2*args.stepc))
-        fout.write("  do\n")
-        fout.write("    energy=`cat relax-${a}-${c}.out | grep '!    total energy' | tail -1`\n")
-        fout.write("    cat >> energy-latconst.data <<EOF\n")
-        fout.write("${a} ${c} ${energy:32:-2}\n")
-        fout.write("EOF\n")
-        fout.write("  done\n")
-        fout.write("done\n")
+        # the comment
+        if args.na >= 2 and args.nc >= 2:
+            fout.write("cat > energy-latconst.data <<EOF\n")
+            fout.write("# format: a c energy(Ry)\n")
+            fout.write("EOF\n")
+        if args.na >= 2 and args.nc < 2:
+            fout.write("cat > energy-latconst.data <<EOF\n")
+            fout.write("# format: a energy(Ry)\n")
+            fout.write("EOF\n")
+        if args.na < 2 and args.nc >= 2:
+            fout.write("cat > energy-latconst.data <<EOF\n")
+            fout.write("# format: c energy(Ry)\n")
+            fout.write("EOF\n")
+        # end
+        if args.na >= 2:
+            # a is optimized
+            fout.write("for a in `seq -w %f %f %f`\n" % (a-args.na/2*args.stepa, args.stepa, a+args.na/2*args.stepa))
+            fout.write("do\n")
+            if args.nc >= 2:
+                # both a and c are optimized
+                fout.write("  for c in `seq -w %f %f %f`\n" % (c-args.nc/2*args.stepc, args.stepc, c+args.nc/2*args.stepc))
+                fout.write("  do\n")
+                fout.write("    energy=`cat relax-${a}-${c}.out | grep '!    total energy' | tail -1`\n")
+                fout.write("    cat >> energy-latconst.data <<EOF\n")
+                fout.write("${a} ${c} ${energy:32:-2}\n")
+                fout.write("EOF\n")
+                fout.write("  done\n")
+            else:
+                fout.write("  energy=`cat relax-${a}.out | grep '!    total energy' | tail -1`\n")
+                fout.write("  cat >> energy-latconst.data <<EOF\n")
+                fout.write("${a} ${energy:32:-2}\n")
+                fout.write("EOF\n")
+            fout.write("done\n")
+        else:
+            # a is not optimized
+            if args.nc >= 2:
+                # only c is optimized
+                fout.write("for c in `seq -w %f %f %f`\n" % (c-args.nc/2*args.stepc, args.stepc, c+args.nc/2*args.stepc))
+                fout.write("do\n")
+                fout.write("  energy=`cat relax-${c}.out | grep '!    total energy' | tail -1`\n")
+                fout.write("  cat >> energy-latconst.data <<EOF\n")
+                fout.write("${c} ${energy:32:-2}\n")
+                fout.write("EOF\n")
+                fout.write("done\n")
+            else:
+                # neither a nor c is optimized
+                pass
 
     os.chdir("../")
 

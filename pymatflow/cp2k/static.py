@@ -42,7 +42,8 @@ class static_run(cp2k):
 
     
     def scf(self, directory="tmp-cp2k-static", inpname="static-scf.inp", output="static-scf.out",
-            mpi="", runopt="gen"):
+            mpi="", runopt="gen",
+            jobname="static-scf", nodes=1, ppn=32):
         """
         directory:
             directory is and path where the calculation will happen.
@@ -63,13 +64,16 @@ class static_run(cp2k):
 
             # gen server job comit file
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt")
+            # gen pbs server job comit file
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt", jobname=jobname, nodes=nodes, ppn=ppn)
     
         if runopt == "run" or runopt == "genrun":
            os.chdir(directory)
            os.system("cp2k.psmp -in %s | tee %s" % (inpname, output))
            os.chdir("../")    
     
-    def converge_cutoff(self, emin, emax, step, rel_cutoff, directory="tmp-cp2k-cutoff", runopt="gen"):
+    def converge_cutoff(self, emin, emax, step, rel_cutoff, directory="tmp-cp2k-cutoff", runopt="gen",
+            jobname="converge-cutoff", nodes=1, ppn=32):
         """
         Note:
             this function is used to do the converge test for CUTOFF.
@@ -107,13 +111,27 @@ class static_run(cp2k):
                     self.force_eval.to_input(fout)
 
             # gen yhbatch running script
-            with open("converge-cutoff.sub", 'w') as fout:
+            with open(os.path.join(directory, "converge-cutoff.sub"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 for i in range(n_test + 1):
                     cutoff = int(emin + i * step)
                     inpname = "cutoff-%d.inp" % cutoff
                     out_f_name = "cutoff-%d.out" % cutoff
                     fout.write("yhrun -N 1 -n 24 cp2k.popt -in %s | tee %s\n" % (inpname, out_f_name))
+
+            # gen pbs running script
+            with open(os.path.join(directory, "converge-cutoff.pbs"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#PBS -N %s\n" % jobname)
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("\n")
+                fout.write("cd $PBS_O_WORKDIR\n")
+                fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+                for i in range(n_test + 1):
+                    cutoff = int(emin + i * step)
+                    inpname = "cutoff-%d.inp" % cutoff
+                    out_f_name = "cutoff-%d.out" % cutoff
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -in %s > %s\n" % (inpname, out_f_name))
 
         # run
         if runopt == "run" or runopt == "genrun":
@@ -125,7 +143,8 @@ class static_run(cp2k):
                 os.system("cp2k.psmp -in %s | tee %s" % (inpname, output))
             os.chdir("../")
 
-    def converge_rel_cutoff(self, emin, emax, step, cutoff, directory="tmp-cp2k-rel-cutoff", runopt="gen"):
+    def converge_rel_cutoff(self, emin, emax, step, cutoff, directory="tmp-cp2k-rel-cutoff", runopt="gen",
+            jobname="converge-rel-cutoff", nodes=1, ppn=32):
         """
         Note:
             this function is used to do the converge test of REL_CUTOFF.
@@ -158,13 +177,27 @@ class static_run(cp2k):
                     self.force_eval.to_input(fout)
 
             # gen yhbatch running script
-            with open("converge-rel-cutoff.sub", 'w') as fout:
+            with open(os.path.join(directory, "converge-rel-cutoff.sub"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 for i in range(n_test + 1):
                     rel_cutoff = int(emin + i * step)
                     inpname = "rel-cutoff-%d.inp" % rel_cutoff
                     out_f_name = "rel-cutoff-%d.out" % rel_cutoff
                     fout.write("yhrun -N 1 -n 24 cp2k.popt -in %s | tee %s\n" % (inpname, out_f_name))
+
+            # gen pbs running script
+            with open("converge-rel-cutoff.pbs", 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#PBS -N %s\n" % jobname)
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("\n")
+                fout.write("cd $PBS_O_WORKDIR\n")
+                fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+                for i in range(n_test + 1):
+                    rel_cutoff = int(emin + i * step)
+                    inpname = "rel-cutoff-%d.inp" % rel_cutoff
+                    out_f_name = "rel-cutoff-%d.out" % rel_cutoff
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -in %s > %s\n" % (inpname, out_f_name))
 
         # run
         if runopt == "run" or runopt == "genrun":
@@ -177,7 +210,8 @@ class static_run(cp2k):
             os.chdir("../")
 
 
-    def converge_kpoints_auto(self, kmin, kmax, step, directory="tmp-cp2k-kpoints-auto", runopt="gen"):
+    def converge_kpoints_auto(self, kmin, kmax, step, directory="tmp-cp2k-kpoints-auto", runopt="gen",
+            jobname="converge-kpoints-auto", nodes=1, ppn=32):
         """
         Note:
             this function is used to do the converge test for KPONTS-AUTO.
@@ -212,13 +246,27 @@ class static_run(cp2k):
                     self.force_eval.to_input(fout)
 
             # gen yhbatch running script
-            with open("converge-kpoints.sub", 'w') as fout:
+            with open(os.path.join(directory, "converge-kpoints.sub"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 for i in range(n_test + 1):
                     kpoint = int(kmin + i * step)
                     inpname = "kpoints-%d.inp" % kpoint
                     out_f_name = "kpoints-%d.out" % kpoint
                     fout.write("yhrun -N 1 -n 24 cp2k.popt -in %s | tee %s\n" % (inpname, out_f_name))
+
+            # gen pbs running script
+            with open(os.path.join(directory, "converge-kpoints.pbs"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#PBS -N %s\n" % jobname)
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("\n")
+                fout.write("cd $PBS_O_WORKDIR\n")
+                fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+                for i in range(n_test + 1):
+                    kpoint = int(kmin + i * step)
+                    inpname = "kpoints-%d.inp" % kpoint
+                    out_f_name = "kpoints-%d.out" % kpoint
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -in %s > %s\n" % (inpname, out_f_name))
 
         # run
         if runopt == "run" or runopt == "genrun":
@@ -231,7 +279,8 @@ class static_run(cp2k):
             os.chdir("../")
 
     def converge_kpoints_manual(self, directory="tmp-cp2k-kpoints-manual", mpi="", runopt="gen",
-            kpoints_list=[[1, 1, 1], [2, 2, 2], [3, 3, 3]]):
+            kpoints_list=[[1, 1, 1], [2, 2, 2], [3, 3, 3]],
+            jobname="converge-kpoints-manual", nodes=1, ppn=32):
         """
         Note:
             this function is used to do the converge test for KPOINTS-MANUAL.
@@ -260,12 +309,25 @@ class static_run(cp2k):
                     self.force_eval.to_input(fout)
 
             # gen yhbatch running script
-            with open("converge-kpoints.sub", 'w') as fout:
+            with open(os.path.join(directory, "converge-kpoints.sub"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 for i in range(len(kpoints_list)):
                     inpname = "kpoints-%dx%dx%d.inp" % (kpoints_list[i][0], kpoints_list[i][1], kpoints_list[i][2])
                     out_f_name = "kpoints-%dx%dx%d.out" % (kpoints_list[i][0], kpoints_list[i][1], kpoints_list[i][2])
                     fout.write("yhrun -N 1 -n 24 cp2k.popt -in %s | tee %s\n" % (inpname, out_f_name))
+
+            # gen obs running script
+            with open(os.path.join(directory, "converge-kpoints.pbs"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#PBS -N %s\n" % jobname)
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("\n")
+                fout.write("cd $PBS_O_WORKDIR\n")
+                fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+                for i in range(len(kpoints_list)):
+                    inpname = "kpoints-%dx%dx%d.inp" % (kpoints_list[i][0], kpoints_list[i][1], kpoints_list[i][2])
+                    out_f_name = "kpoints-%dx%dx%d.out" % (kpoints_list[i][0], kpoints_list[i][1], kpoints_list[i][2])
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -in %s > %s\n" % (inpname, out_f_name))
 
         # run
         if runopt == "run" or runopt == "genrun":

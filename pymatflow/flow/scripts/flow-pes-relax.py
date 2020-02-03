@@ -6,7 +6,7 @@ import shutil
 import argparse
 import pymatgen as mg
 
-from pymatflow.qe.static import static_run
+from pymatflow.qe.opt import opt_run
 from pymatflow.remote.ssh import ssh
 from pymatflow.remote.rsync import rsync
 
@@ -21,12 +21,13 @@ usage:
 control = {}
 system = {}
 electrons = {}
+ions = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-d", "--directory", type=str, default="tmp-pes-static",
-            help="Directory for the static running.")
+    parser.add_argument("-d", "--directory", type=str, default="tmp-pes-relax",
+            help="Directory for the pes relax running.")
     parser.add_argument("-f", "--file", type=str,
             help="The xyz file name.")
     parser.add_argument("--runopt", type=str, default="genrun", 
@@ -38,14 +39,14 @@ if __name__ == "__main__":
     # -------------------------------------------------------------------
     #                       scf related parameters
     # -------------------------------------------------------------------
-    parser.add_argument("--ecutwfc", type=int, default=100,
-            help="Kinetic energy cutoff for wave functions in unit of Rydberg, default value: 100 Ry")
+    parser.add_argument("--ecutwfc", 
+            type=int, default=100)
 
-    parser.add_argument("--ecutrho", type=int, default=400,
-            help="Kinetic energy cutoff for charge density and potential in unit of Rydberg, default value: 400 Ry")
+    parser.add_argument("--ecutrho", 
+            type=int, default=400)
 
     parser.add_argument("--kpoints-option", type=str, default="automatic", 
-            choices=["automatic", "gamma", "tpiba_b"],
+            choices=["automatic", "gamma", "crystal_b"],
             help="Kpoints generation scheme option for the SCF or non-SCF calculation")
 
     parser.add_argument("--kpoints-mp", type=int, nargs="+",
@@ -53,7 +54,7 @@ if __name__ == "__main__":
             help="Monkhorst-Pack kpoint grid, in format like --kpoints-mp 1 1 1 0 0 0")
 
     parser.add_argument("--conv-thr", type=float, default=1.0e-6,
-            help="Convergence threshold for SCF calculation.")
+            help="the conv_thr for scf, when doing geometric optimization better use a strict covnergec for scf")
 
     parser.add_argument("--occupations", type=str, default="smearing",
             choices=["smearing", "tetrahedra", "tetrahedra_lin", "tetrahedra_opt", "fixed", "from_input"],
@@ -66,16 +67,24 @@ if __name__ == "__main__":
     parser.add_argument("--degauss", type=float, default=0.001,
             help="Value of the gaussian spreading (Ry) for brillouin-zone integration in metals.(defualt: 0.001 Ry)")
 
-    parser.add_argument("--vdw-corr", type=str, default="none",
-            choices=["dft-d", "dft-d3", "ts", "xdm"],
-            help="Type of Van der Waals correction in the calculation")
+    parser.add_argument("--vdw-corr", help="vdw_corr = dft-d, dft-d3, ts-vdw, xdm", type=str, default="none")
 
-    parser.add_argument("--nbnd", type=int, default=None,
-            help="Number of electronic states (bands) to be calculated")
 
-    parser.add_argument("--tstress", type=str, default=".false.",
-            choices=[".true.", ".false."],
-            help="calculate stress. default=.false.")
+    # -------------------------------------------------------------------
+    #               geometric optimization related parameters
+    # -------------------------------------------------------------------
+    parser.add_argument("--etot-conv-thr", 
+            type=float, default=1.0e-4,
+            help="convergence threshold of energy for geometric optimization")
+
+    parser.add_argument("--forc-conv-thr", 
+            type=float, default=1.0e-3,
+            help="convergence threshold for force in optimization,(usually it is more important than energy)")
+
+    parser.add_argument("--nstep",
+            type=int, default=50,
+            help="maximum ion steps for geometric optimization")
+
 
     # -----------------------------------------------------------
     #           ATOMIC_FORCES
@@ -112,7 +121,7 @@ if __name__ == "__main__":
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
-    parser.add_argument("--jobname", type=str, default="pes-search",
+    parser.add_argument("--jobname", type=str, default="pes-relax",
             help="jobname on the pbs server")
     parser.add_argument("--nodes", type=int, default=1,
             help="Nodes used in server")
@@ -121,26 +130,26 @@ if __name__ == "__main__":
 
 
     # ==========================================================
-    # transfer parameters from the arg parser to static_run setting
-    # ==========================================================   
+    # transfer parameters from the arg parser to opt_run setting
+    # ==========================================================
     args = parser.parse_args()
-    xyzfile = args.file
-    control["tstress"] = args.tstress
+    control["etot_conv_thr"] = args.etot_conv_thr
+    control["forc_conv_thr"] = args.forc_conv_thr
+    control["nstep"] = args.nstep
     system["ecutwfc"] = args.ecutwfc
     system["ecutrho"] = args.ecutrho
     system["occupations"] = args.occupations
     system["smearing"] = args.smearing
     system["degauss"] = args.degauss
     system["vdw_corr"] = args.vdw_corr
-    system["nbnd"] = args.nbnd
     electrons["conv_thr"] = args.conv_thr
-    
-
-    task = static_run()
-    task.get_xyz(xyzfile)
+ 
+    task = opt_run()
+    task.get_xyz(args.file)
+    task.set_relax()
     task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
-    task.set_params(control=control, system=system, electrons=electrons)
-
+    task.set_params(control=control, system=system, electrons=electrons, ions=ions)
+    
 
     if os.path.exists(args.directory):
         shutil.rmtree(args.directory)
@@ -167,11 +176,11 @@ if __name__ == "__main__":
     #@@@@ we shift z in the bash script
     #----------------------------------------------
 
-    with open("static-scf.in.template", 'w') as fout:
+    with open("relax.in.template", 'w') as fout:
         task.control.to_in(fout)
         task.system.to_in(fout)
         task.electrons.to_in(fout)
-        #task.ions.to_int(fout)
+        task.ions.to_in(fout)
 
         fout.write("ATOMIC_SPECIES\n")
         upf_all = [s for s in os.listdir("./") if s.split(".")[-1] == "UPF"]
@@ -202,10 +211,10 @@ if __name__ == "__main__":
 
 
     # write job control script
-    with open("pes.pbs", 'w') as fout:
+    with open("pes-relax.pbs", 'w') as fout:
         fout.write("#!/bin/bash\n")
         fout.write("#PBS -N %s\n" % "pes")
-        fout.write("#PBS -l nodes=%d:ppn=%d\n" % (1, 32))
+        fout.write("#PBS -l nodes=%d:ppn=%d\n" % (args.nodes, args.ppn))
         fout.write("\n")
         fout.write("cd $PBS_O_WORKDIR\n")
         fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
@@ -221,12 +230,27 @@ if __name__ == "__main__":
         fout.write("do\n")
         fout.write("  mkdir -p _${deltax}_${deltay}_\n")
         fout.write("  cp *.UPF _${deltax}_${deltay}_\n")
-        fout.write("  cp static-scf.in.template _${deltax}_${deltay}_/static-scf.in\n")
-        fout.write("  cat >> _${deltax}_${deltay}_/static-scf.in<<EOF\n")
+        fout.write("  cp relax.in.template _${deltax}_${deltay}_/relax.in\n")
+        fout.write("  cat >> _${deltax}_${deltay}_/relax.in<<EOF\n")
         fout.write("\n")
         fout.write("ATOMIC_POSITIONS angstrom\n")
         fout.write("EOF\n")
-        fout.write("  cat %s | tail -n +3 | head -n -${last_n_move} >> _${deltax}_${deltay}_/static-scf.in\n" % (args.file))
+        #fout.write("  cat %s | tail -n +3 | head -n -${last_n_move} >> _${deltax}_${deltay}_/relax.in\n" % (args.file))
+        fout.write("  # read the main structure atoms(unmoved) and put them into the input file\n")
+        fout.write("  natom=`cat %s | head -n 1`\n" % args.file)
+        fout.write("  end_of_fix=`echo \"${natom} - ${last_n_move} + 2\" | bc`\n")
+        fout.write("  for i in `seq -w 3 1 ${end_of_fix}`\n")
+        fout.write("  do\n")
+        fout.write("    atom=`cat %s | head -n ${i} | tail -n 1`\n" % (args.file))
+        fout.write("    label=`echo $atom | cut -d ' ' -f1`\n")
+        fout.write("    x=`echo $atom | cut -d ' ' -f2`\n")
+        fout.write("    y=`echo $atom | cut -d ' ' -f3`\n")
+        fout.write("    z=`echo $atom | cut -d ' ' -f4`\n")
+        fout.write("    cat >> _${deltax}_${deltay}_/relax.in<<EOF\n")
+        fout.write("${label} ${x} ${y} ${z} 0 0 0\n")
+        fout.write("EOF\n")
+        fout.write("  done\n")
+        fout.write("\n")
         fout.write("  # read the last n atoms and modify the x y z of them and put them into the input file\n")
         fout.write("  for i in `seq -w 1 1 ${last_n_move}`\n")
         fout.write("  do\n")
@@ -239,17 +263,80 @@ if __name__ == "__main__":
         fout.write("    x=`echo \"${x} + ${deltax}\" | bc`\n")
         fout.write("    y=`echo \"${y} + ${deltay}\" | bc`\n")
         fout.write("    z=`echo \"${z} + ${zshift}\" | bc`\n")
-        fout.write("    cat >> _${deltax}_${deltay}_/static-scf.in<<EOF\n")
-        fout.write("${label} ${x} ${y} ${z}\n")
+        fout.write("    cat >> _${deltax}_${deltay}_/relax.in<<EOF\n")
+        fout.write("${label} ${x} ${y} ${z} 0 0 1\n")
         fout.write("EOF\n")
         fout.write("  done\n")
         fout.write("  # run the calculation\n")
         fout.write("  cd _${deltax}_${deltay}_\n")
-        fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("pw.x", "static-scf.in", "static-scf.out"))
+        fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("pw.x", "relax.in", "relax.out"))
         fout.write("  cd ../\n")
         fout.write("done\n")
         fout.write("done\n")
-    
+
+
+    # write bash script to generate the xyz trajectory file -> (unrelaxed original traj)
+    # note: bash script runs slowly to generate the trajectory file
+    #       we might better use python to directly genrate the trajectory file
+    with open("get_traj_unrelaxed.sh", 'w') as fout:
+        fout.write("#!/bin/bash\n")
+        fout.write("\n")
+        fout.write("output_trajfile=trajectory-unrelaxed.xyz\n")
+        fout.write("# z of atoms to move will be shifted by zshift\n")
+        fout.write("zshift=%f\n" % args.zshift)
+        fout.write("\n")
+        fout.write("# last_n_move atoms to move\n")
+        fout.write("last_n_move=%d\n" % args.last_n_move)
+        fout.write("for deltax in `seq -w %.3f %.3f %.3f`\n" % (args.xrange[0], args.xrange[2], args.xrange[1]))
+        fout.write("do\n")
+        fout.write("for deltay in `seq -w %.3f %.3f %.3f`\n" % (args.yrange[0], args.yrange[2], args.yrange[1]))
+        fout.write("do\n")
+        fout.write("  cat %s | head -n 1 >> ${output_trajfile}\n" % args.file)
+        fout.write("  cat >> ${output_trajfile}<<EOF\n")
+        fout.write("${deltax} ${deltay}\n")
+        fout.write("EOF\n")
+        fout.write("  cat %s | tail -n +3 | head -n -${last_n_move} >> ${output_trajfile}\n" % (args.file))
+        fout.write("  # read the last n atoms and modify the x y z of them and put them into the trajectory file\n")
+        fout.write("  for i in `seq -w 1 1 ${last_n_move}`\n")
+        fout.write("  do\n")
+        fout.write("    lastn=`echo \"${last_n_move} + 1 - ${i}\" | bc`\n")
+        fout.write("    atom=`cat %s | tail -n -${last_n_move} | tail -n -${lastn} | head -n 1`\n" % (args.file))
+        fout.write("    label=`echo $atom | cut -d ' ' -f1`\n")
+        fout.write("    x=`echo $atom | cut -d ' ' -f2`\n")
+        fout.write("    y=`echo $atom | cut -d ' ' -f3`\n")
+        fout.write("    z=`echo $atom | cut -d ' ' -f4`\n")
+        fout.write("    x=`echo \"${x} + ${deltax}\" | bc`\n")
+        fout.write("    y=`echo \"${y} + ${deltay}\" | bc`\n")
+        fout.write("    z=`echo \"${z} + ${zshift}\" | bc`\n")
+        fout.write("    cat >> ${output_trajfile}<<EOF\n")
+        fout.write("${label} ${x} ${y} ${z}\n")
+        fout.write("EOF\n")
+        fout.write("  done\n")
+        fout.write("done\n")
+        fout.write("done\n")
+
+    # write bash script to generate the xyz trajectory file -> (relaxed)
+    with open("get_traj_relaxed.sh", 'w') as fout:
+        fout.write("#!/bin/bash\n")
+        fout.write("\n") 
+        fout.write("\n")
+        fout.write("output_trajfile=trajectory-relaxed.xyz\n")
+        fout.write("natom=`cat %s | head -n 1`\n" % args.file)
+        fout.write("for deltax in `seq -w %.3f %.3f %.3f`\n" % (args.xrange[0], args.xrange[2], args.xrange[1]))
+        fout.write("do\n")
+        fout.write("for deltay in `seq -w %.3f %.3f %.3f`\n" % (args.yrange[0], args.yrange[2], args.yrange[1]))
+        fout.write("do\n")
+        fout.write("  echo ${natom} >> ${output_trajfile}\n")
+        fout.write("  cat >> ${output_trajfile}<<EOF\n")
+        fout.write("${deltax} ${deltay}\n")
+        fout.write("EOF\n")
+        fout.write("  begin_final=`cat _${deltax}_${deltay}_/relax.out | grep -n \"Begin final\" | cut -d ':' -f1`\n")
+        fout.write("  end_final=`cat _${deltax}_${deltay}_/relax.out | grep -n \"End final\" | cut -d ':' -f1`\n")
+        fout.write("  cat _${deltax}_${deltay}_/relax.out | head -n +${end_final} | tail -n +${begin_final} | head -n -1 | tail -n +4 >> ${output_trajfile}\n")
+        fout.write("done\n")
+        fout.write("done\n")
+
+
     # write result analysis file
     with open("get_pes.sh", 'w') as fout:
         fout.write("#!/bin/bash\n")
@@ -261,7 +348,7 @@ if __name__ == "__main__":
         fout.write("do\n")
         fout.write("for deltay in `seq -w %.3f %.3f %.3f`\n" % (args.yrange[0], args.yrange[2], args.yrange[1]))
         fout.write("do\n")
-        fout.write("  energy=`cat _${deltax}_${deltay}_/static-scf.out | grep '!    total energy' | tail -1`\n")
+        fout.write("  energy=`cat _${deltax}_${deltay}_/relax.out | grep '!    total energy' | tail -1`\n")
         fout.write("  cat >> pes.data<<EOF\n")
         fout.write("${deltax} ${deltay} ${energy:32:-2}\n")
         fout.write("EOF\n")
@@ -300,8 +387,8 @@ if __name__ == "__main__":
         if args.server == "pbs":
             ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_pbs.conf"))
             ctl.login()
-            ctl.submit(workdir=args.directory, jobfile="pes.pbs", server="pbs")
+            ctl.submit(workdir=args.directory, jobfile="pes-relax.pbs", server="pbs")
         elif args.server == "yh":
             ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_yh.conf"))
             ctl.login()
-            ctl.submit(workdir=args.directory, jobfile="pes.sub", server="yh")
+            ctl.submit(workdir=args.directory, jobfile="pes-relax.sub", server="yh")

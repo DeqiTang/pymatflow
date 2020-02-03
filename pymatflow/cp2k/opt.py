@@ -27,17 +27,14 @@ class opt_run(cp2k):
         TODO: 
         """
         super().__init__()
-        #self.glob = cp2k_glob()
-        #self.force_eval = cp2k_force_eval()
-        #self.motion = cp2k_motion()
         
         self.run_type = "GEO_OPT" # default is GEO_OPT, can also do CELL_OPT
 
-        self.glob.basic_setting(run_type="ENERGY_FORCE")
         self.force_eval.basic_setting()
 
 
-    def geo_opt(self, directory="tmp-cp2k-geo-opt", inpname="geo-opt.inp", output="geo-opt.out", mpi="", runopt="gen"):
+    def geo_opt(self, directory="tmp-cp2k-geo-opt", inpname="geo-opt.inp", output="geo-opt.out", mpi="", runopt="gen",
+            jobname="geo-opt", nodes=1, ppn=32):
         """
         directory:
             where the calculation will happen
@@ -60,6 +57,8 @@ class opt_run(cp2k):
  
             # gen server job comit file
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt")       
+            # gen pbs server job comit file
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt", jobname=jobname, nodes=nodes, ppn=ppn)       
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -67,7 +66,8 @@ class opt_run(cp2k):
             os.chdir("../")
 
 
-    def cell_opt(self, directory="tmp-cp2k-cell-opt", inpname="cell-opt.inp", output="cell-opt.out", mpi="", runopt="gen"):
+    def cell_opt(self, directory="tmp-cp2k-cell-opt", inpname="cell-opt.inp", output="cell-opt.out", mpi="", runopt="gen",
+            jobname="cell-opt", nodes=1, ppn=32):
         """
         directory:
             where the calculation will happen
@@ -90,6 +90,8 @@ class opt_run(cp2k):
  
             # gen server job comit file
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt")       
+            # gen pbs server job comit file
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt", jobname=jobname, nodes=nodes, ppn=ppn)       
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
