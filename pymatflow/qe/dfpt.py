@@ -262,11 +262,27 @@ class dfpt_run:
 
     def set_matdyn(self, matdyn_input={}, qpoints=None):
         """
+        # qpoints is in format like this:
+        # [[kx, ky, kz, xcoord, label], ...] like [[0.0, 0,0, 0.0, 0.0, 'GAMMA']]
+        # if the label is a str like 'GAMMA', 'K', etc, the q point is a specialk,
+        # if the label is None, then the q points is not a specialk
+
         matdyn.x
             Calculate phonons at generic q points using IFC
         if Born effective charge Z* not found in output ifc file of q2r.x q2r.fc
         TO-LO splittting at q=0 will be absent! and
         if Adirection for q wast not specified: TO-LO splitting will be absent!
+
+        Note:
+            a good way is to obtain the qpoints through k points in qe band calculation
+            when you define the k points line defined by high symmetry k point in 
+            band structure calculation, the bands.x output file will contains all
+            the kpoints used in addition to the high symmetry k point, and the corresponding
+            x coordinates of the high symmetry k point for plot. for x coordinates for
+            k points other than high symmetry k point, refer to the output band structure data
+            of bands.x in gnuplot format, the first column is the corresonding x coordinates
+            for all the kpoints calculated. 
+            and this process is achived already by script: pymatflow.qe.scripts.qe-get-matdyn-qpoints-from-bands-calc.py
         """
         self.matdyn_input = {
                 "flfrc": "q2r.fc", # File with IFC's
@@ -277,20 +293,15 @@ class dfpt_run:
             self.matdyn_input[item] = matdyn_input[item]
 
         # setting of qpoints
-
         self.matdyn_qpoints = {
                 "qpoint-option": None,
-                "nqpoint": 0,
-                "qpoints": [[]],
+                "nqpoint": len(qpoints),
+                "qpoints": qpoints, # [[kx, ky, kz, xcoord, label], ...] like [[0.0, 0,0, 0.0, 0.0, 'GAMMA']]
                 }
-
-        # I decide to use seekpath to give the main qpoints and 
-        # make an interpolation between those qpoints to give 
-        # more qpoints.
-        #qpoints = np.random.randn(100, 4)
-        #nqpoints = len(qpoints)
-        #
-
+        # self.matdyn_qpoints["qpoints"] is in format like this:
+        # [[kx, ky, kz, xcoord, label], ...] like [[0.0, 0,0, 0.0, 0.0, 'GAMMA']]
+        # if the label is a str like 'GAMMA', 'K', etc, the q point is a specialk,
+        # if the label is None, then the q points is not a specialk
 
     def matdyn(self, directory="tmp-qe-static", inpname="matdyn.in", output="matdyn.out", mpi="", runopt="gen",
             jobname="matdyn", nodes=1, ppn=32):
@@ -317,7 +328,11 @@ class dfpt_run:
                 fout.write("/\n")
                 fout.write("%d\n" % self.matdyn_qpoints["nqpoint"]) # Number of q points
                 for i in range(self.matdyn_qpoints["nqpoint"]):
-                    fout.write("%f %f %f %f\n" % (self.matdyn_qpoints["qpoints"][i][0], self.matdyn_qpoints["qpoints"][i][1], self.matdyn_qpoints["qpoints"][i][2], self.matdyn_qpoints["qpoints"][i][3]))
+                    if self.matdyn_qpoints["qpoints"][i][4] == None:
+                        fout.write("%f %f %f %f\n" % (self.matdyn_qpoints["qpoints"][i][0], self.matdyn_qpoints["qpoints"][i][1], self.matdyn_qpoints["qpoints"][i][2], self.matdyn_qpoints["qpoints"][i][3]))
+                    else:
+                        fout.write("%f %f %f %f #%s\n" % (self.matdyn_qpoints["qpoints"][i][0], self.matdyn_qpoints["qpoints"][i][1], self.matdyn_qpoints["qpoints"][i][2], self.matdyn_qpoints["qpoints"][i][3], self.matdyn_qpoints["qpoints"][i][4]))
+
 
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="matdyn.x")
@@ -328,11 +343,16 @@ class dfpt_run:
             os.system("%s matdyn.x < %s | tee %s" % (mpi, inpname, output))
             os.chdir("../")
 
-    def plotband(self, directory="tmp-qe-static", inpname="plotband.in", output="plotband.out", frequencies_file="matdyn.freq", mpi="", runopt="gen", freq_min=0, freq_max=600, efermi=0, freq_step=100.0, freq_reference=0.0,
+    def plotband_for_matdyn(self, directory="tmp-qe-static", inpname="plotband.in", output="plotband.out", frequencies_file="matdyn.freq", mpi="", runopt="gen", freq_min=0, freq_max=600, efermi=0, freq_step=100.0, freq_reference=0.0,
             jobname="plotband", nodes=1, ppn=32):
         """
         plotband.x
             Plot the phonon dispersion
+        Note:
+            it seems plotband.x is not implemented parallelly,
+            when I use 1 node 32 cores to run it, it will never
+            stop.
+            so we should alway use one node one core to run it.
         """
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
