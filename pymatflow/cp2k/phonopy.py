@@ -53,8 +53,8 @@ class phonopy_run(cp2k):
         self.supercell_n = [1, 1, 1]
 
 
-    def phonopy(self, directory="tmp-cp2k-phonopy",
-            mpi="", runopt="gen"):
+    def phonopy(self, directory="tmp-cp2k-phonopy", mpi="", runopt="gen",
+            jobname="cp2k-phonopy", nodes=1, ppn=32):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -130,7 +130,7 @@ class phonopy_run(cp2k):
                     fout.write("yhrun -N 1 -n 24 cp2k.popt -in phonon-supercell-%s.inp > phonon-supercell-%s.inp.out\n" % (disp, disp))
 
             # generate pbs file
-            with open(os.path.join(directory, "phonopy-job.sub"), 'w') as fout:
+            with open(os.path.join(directory, "phonopy-job.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n\n")
                 fout.write("#PBS -N %s\n" % jobname)
                 fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
@@ -140,124 +140,6 @@ class phonopy_run(cp2k):
                 for disp in disps:
                     fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -in phonon-supercell-%s.inp > phonon-supercell-%s.inp.out\n" % (disp, disp))            
 
-            # generate the result analysis bash script and necessary config files
-            os.chdir(directory) 
-            with open("mesh.conf", 'w') as fout:
-                fout.write("ATOM_NAME =")
-                for element in self.force_eval.subsys.xyz.specie_labels:
-                    fout.write(" %s" % element)
-                fout.write("\n")
-                fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
-                fout.write("MP = 8 8 8\n")
-            with open("pdos.conf", 'w') as fout:
-                fout.write("ATOM_NAME =")
-                for element in self.force_eval.subsys.xyz.specie_labels:
-                    fout.write(" %s" % element)
-                fout.write("\n")
-                fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
-                fout.write("MP = 8 8 8\n")
-                fout.write("PDOS = 1 2, 3 4 5 5\n")
-            # plot the phonon band
-            # 注意设置Primitive Axis要设置正确!
-            with open("band.conf", 'w') as fout:
-                fout.write("ATOM_NAME =")
-                for element in self.force_eval.subsys.xyz.specie_labels:
-                    fout.write(" %s" % element)
-                fout.write("\n")
-                # the use of PRIMITIVE_AXES will find the primitive cell of the structure
-                # and use it to analyse the phonon band structure
-                # however, the use of primitive cell will not affect the q path setting
-                # so whether we use PRIMITIVE cell or not, we can set the same q path
-                fout.write("PRIMITIVE_AXES = AUTO\n") # we can also specify a matrix, but AUTO is recommended now in phonopy
-                fout.write("GAMMA_CENTER = .TRUE.\n")
-                fout.write("BAND_POINTS = 101\n")
-                fout.write("BAND_CONNECTION = .TRUE.\n")
-
-                fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
-                #fout.write("BAND = 0.5 0.5 0.5 0.0 0.0 0.0 0.5 0.5 0.0 0.0 0.5 0.0\n")
-                fout.write("BAND =")
-                # --------------
-                # using seekpath to set q path
-                # --------------
-                lattice = self.force_eval.subsys.xyz.cell #[self.force_eval.subsys.xyz.cell[0:3], self.force_eval.subsys.xyz.cell[3:6], self.force_eval.subsys.xyz.cell[6:9]]
-                positions = []
-                numbers = []
-                a = np.sqrt(self.force_eval.subsys.xyz.cell[0][0]**2 + self.force_eval.subsys.xyz.cell[0][1]**2 + self.force_eval.subsys.xyz.cell[0][2]**2)
-                b = np.sqrt(self.force_eval.subsys.xyz.cell[1][0]**2 + self.force_eval.subsys.xyz.cell[1][1]**2 + self.force_eval.subsys.xyz.cell[1][2]**2)
-                c = np.sqrt(self.force_eval.subsys.xyz.cell[2][0]**2 + self.force_eval.subsys.xyz.cell[2][1]**2 + self.force_eval.subsys.xyz.cell[2][2]**2)
-                for atom in self.force_eval.subsys.xyz.atoms:
-                    positions.append([atom.x / a, atom.y / b, atom.z / c])
-                    numbers.append(self.force_eval.subsys.xyz.specie_labels[atom.name])
-                structure = (lattice, positions, numbers)
-                kpoints_seekpath = seekpath.get_path(structure)
-                point = kpoints_seekpath["point_coords"][kpoints_seekpath["path"][0][0]]
-                fout.write(" %f %f %f" % (point[0], point[1], point[2])) #self.arts..kpoints_seekpath["path"][0][0]
-                point = kpoints_seekpath["point_coords"][kpoints_seekpath["path"][0][1]]
-                fout.write(" %f %f %f" % (point[0], point[1], point[2])) #self.arts.kpoints_seekpath["path"][0][1]
-                for i in range(1, len(kpoints_seekpath["path"])):
-                    if kpoints_seekpath["path"][i][0] == kpoints_seekpath["path"][i-1][1]:
-                        point = kpoints_seekpath["point_coords"][kpoints_seekpath["path"][i][1]]
-                        fout.write(" %f %f %f" % (point[0], point[1], point[2])) #self.arts.kpoints_seekpath["path"][i][1]))
-                    else:
-                        point = kpoints_seekpath["point_coords"][kpoints_seekpath["path"][i][0]]
-                        fout.write(" %f %f %f" % (point[0], point[1], point[2])) #self.arts.kpoints_seekpath["path"][i][0]))
-                        point = kpoints_seekpath["point_coords"][kpoints_seekpath["path"][i][1]]
-                        fout.write(" %f %f %f" % (point[0], point[1], point[2]))  #self.kpoints_seekpath["path"][i][1]))
-                fout.write("\n")
-                fout.write("BAND_LABELS =")
-                point = kpoints_seekpath["path"][0][0]
-                if point == "GAMMA":
-                    fout.write(" $\Gamma$")
-                else:
-                    fout.write(" $%s$" % point)
-                point = kpoints_seekpath["path"][0][1]
-                if point == "GAMMA":
-                    fout.write(" $\Gamma$")
-                else:
-                    fout.write(" $%s$" % point)
-                for i in range(1, len(kpoints_seekpath["path"])):
-                    if kpoints_seekpath["path"][i][0] == kpoints_seekpath["path"][i-1][1]:
-                        point = kpoints_seekpath["path"][i][1]
-                        if point == "GAMMA":
-                            fout.write(" $\Gamma$")
-                        else:
-                            fout.write(" $%s$" % point)
-                    else:
-                        point = kpoints_seekpath["path"][i][0]
-                        if point == "GAMMA":
-                            fout.write(" $\Gamma$")
-                        else:
-                            fout.write(" $%s$" % point)
-                        point = kpoints_seekpath["path"][i][1]
-                        if point == "GAMMA":
-                            fout.write(" $\Gamma$")
-                        else:
-                            fout.write(" $%s$" % point)
-                fout.write("\n")
-            
-            with open("phonopy-analysis.sh", 'w') as fout:
-                fout.write("#!/bin/bash\n\n")
-                fout.write("# get the FORCE_SETS\n")
-                base_project_name = "ab-initio"
-                phonopy_command = "phonopy --cp2k -f "
-                for disp in disps:
-                    # important: different disp calculation should have different PROJECT name
-                    #f_name = "abinitio" + "-supercell-" + disp + "-forces-1_0.xyz"
-                    f_name = "ab-initio" + "-supercell-" + disp + "-forces-1_0.xyz"
-                    phonopy_command = phonopy_command + f_name + " "
-                fout.write("%s\n" % phonopy_command)
-                fout.write("# plot The density of states (DOS)\n")
-                fout.write("phonopy --cp2k -p mesh.conf -c %s\n" % inp_name)
-                fout.write("# Thermal properties are calculated with the sampling mesh by:\n")
-                fout.write("phonopy --cp2k -t mesh.conf -c %s\n" % inp_name)
-                fout.write("# Thermal properties can be plotted by:\n")
-                fout.write("phonopy --cp2k -t -p mesh.conf -c %s\n" % inp_name)
-                fout.write("# calculate Projected DOS and plot it\n")
-                fout.write("phonopy --cp2k -p pdos.conf -c %s\n" % inp_name)
-                fout.write("# get the band structure\n")
-                fout.write("phonopy --cp2k -c %s -p band.conf\n" % inp_name)
-            os.chdir("../")
-            # end generate the result analysis bash script and necessray config file
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

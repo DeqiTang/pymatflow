@@ -170,3 +170,11 @@ task.geo_opt(directory="xxx")
 注意再作能带计算的时候，如果pw.x的band类型计算的高对称点的设定是以crystal_b的方式进行，那么要注意在进行pw.x的band类型计算后，再用band.x计算后在band.x输出文件中，你会发现高对称点的坐标不一定一样了，因为band.x输出的k点坐标不是crystal_b类型，你会发现其类型被转换成了tpiba_b，单位是2pi/a。所以你会发现如果是四方晶胞，且a=8.82，c=6.22，时，crystal_b类型的A(0.5, 0.5, 0.5)在bands.x的输出文件中会对应于点(0.5, 0.5, 0.709)，0.5与0.709的比值恰好等于c与a的比值。因为crystal_b类型的kx, ky, kz的单位是对应的2pi/a, 2pi/b, 2pi/c，那么当转换为tpiba_b时，都以2pi/a为单位，则新的坐标肯定只有kx不会变，ky，kz均会变化，只不过这里四方a=b，那么ky坐标变化比例为1，也就不变了。但是c != a，于是kz变了。
 
 然后此脚本会根据能带结构计算中的k点来给出matdyn.x计算用得到的q点，从Quantum Espresso官网给出的Summer school on [Advanced Materials and Molecular Modelling with Quantum ESPRESSO](http://qe2019.ijs.si/), Ljubljana, Slovenia, September 15-20, 2019教程的[Github仓库](https://gitlab.com/QEF/material-for-ljubljana-qe-summer-school)的Day-3/example1b的matdyn.Si.in文件中的q点设置我们可以初步判断matdyn.x的q点应该也是tpiba_b类型(我还不能完全确定!!!!!!!)，那么本脚本在给出q点的时候主要就要统一使用bands.x输出中的tpiba_b类型的k点，就算pw.x的band类型的计算输入文件中以crystal_b类型给出高对称点，我们也只需要利用到其中对应的#label注释，然后对应高对称点转化为tpiba_b后，也是在bands.x的输出中，所以在给出matdyn.x的qpint的时候我们以bands.x中的输出为准。
+
+
+
+## 关于各程序中K点的设置
+
+此前已经将由seekpath生成高对称点以及K点路径集成到了能带计算和Phonopy声子谱计算中，但是我发现seekpath给出的k点对应的cell参数与输入的参数相比可能是变化了的，因此可能不值得信赖。
+
+我打算将集成的seekpath生成k点部分改写为手动读取K点文件，然后以后计算时单独提供K点文件，如果要用seekpath，也可以用脚本生成可用的K点文件，然后pymatflow读取来进行计算。目前QE已经实现了手动读取，但是还没有移除掉内部的seekpath部分代码。
