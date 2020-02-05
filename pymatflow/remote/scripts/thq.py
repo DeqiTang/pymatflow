@@ -18,7 +18,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # server handle
     ctl = ssh()
-    ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
+    ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_yh.conf"))
     ctl.login()
     if args.all == "yes":
         ctl.execute("yhqueue")

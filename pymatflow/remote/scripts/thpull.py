@@ -25,6 +25,6 @@ if __name__ == "__main__":
     # server handle
 
     mover = rsync()
-    mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server.conf"))
+    mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_yh.conf"))
 
     mover.copy(source=os.path.join(mover.user+"@"+mover.ip+":"+mover.serverdir, args.directory)+"/", target=args.directory, exclude=args.exclude)

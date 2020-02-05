@@ -120,13 +120,62 @@ class bands_post:
                 fout.write("set title 'Bandstructure'\n")
                 fout.write("set xlabel 'K'\n")
                 fout.write("set ylabel 'Energy(eV)'\n")
-                fout.write("set xtics(")
-                for point in self.specialk:
-                    if point["label"] == "GAMMA":
-                        fout.write("'%s' %f, " % ("{/symbol G}", point["xcoord"]))
+                #fout.write("set xtics(")
+                #for point in self.specialk:
+                #    if point["label"] == "GAMMA":
+                #        fout.write("'%s' %f, " % ("{/symbol G}", point["xcoord"]))
+                #    else:
+                #        fout.write("'%s' %f, " % (point["label"], point["xcoord"]))
+                #fout.write(")\n")
+                
+                locs = [self.specialk[i]["xcoord"] for i in range(len(self.specialk))]
+                labels = ["{/symbol G}" if self.specialk[i]["label"] == "GAMMA" else "%s" % self.specialk[i]["label"] for i in range(len(self.specialk))]
+                #
+                # sometime the xcoord of two specialk might be the same
+                # either caused from physical reason or when you specif
+                # 0 to connect the two special k point.
+                # whatever the reason we should join the two label to one
+                # label like K|U
+                locs_refined = []
+                labels_refined = []
+                labels_refined.append(labels[0])
+                locs_refined.append(locs[0])
+                for i in range(1, len(labels)):
+                    if locs[i]  == locs[i-1]:
+                        # join labels[i] and labels[i-1]
+                        labels_refined[-1] = "%s | %s" % (labels[i-1], labels[i])
                     else:
-                        fout.write("'%s' %f, " % (point["label"], point["xcoord"]))
+                        labels_refined.append(labels[i])
+                        locs_refined.append(locs[i])
+                fout.write("set xtics(")
+                for i in range(len(labels_refined)):
+                    fout.write("'%s' %f, " % (labels_refined[i], locs_refined[i]))
                 fout.write(")\n")
+
+                print("===================================================\n")
+                print("               post-qe-bands.py\n")
+                print("----------------------------------------------------\n")
+                print("engine: matplotlib\n")
+                print("----------------------------------------------------\n")
+                print("Note:\n")
+                print("sometime the xcoord of two neighbor specialk might be\n")
+                print("the same either from physical reason or when you specify\n")
+                print("0 to connect the two special k point in pw.x band calc.\n")
+                print("whatever the reason we should join the two label to one\n")
+                print("label like K|U\n")
+                print("in this way when you want a k path like:\n")
+                print("Gamma–X–M–Gamma–Z–R–A–Z|X–R|M–A\n")
+                print("you can specify 0 to connect Z and X\n")
+                print("and 0 to connect R and M in pw.x band structure calc.\n")
+                print("then post-qe-bands.py can deal with that automatically\n")
+                print("------------------------------------------------------\n")
+                print("original specialk and the correponding xcoord:\n")
+                print(locs)
+                print(labels)
+                print("refined specialk and the corresponding xcoord:\n")
+                print(locs_refined)
+                print(labels_refined)
+
                 fout.write("set grid xtics ytics\n")
                 fout.write("set autoscale\n")
                 fout.write("# fermi energy shifted to zero by use using 1:($2-%f) in plot function\n" % self.efermi)
@@ -166,11 +215,53 @@ class bands_post:
             plt.xlabel("Kpoints")
             plt.grid(which="major", axis="x", linewidth=0.75, linestyle="-", color="0.75")
             plt.grid(which="major", axis="y", linewidth=0.75, linestyle="-", color="0.75")
-            
+                        
             locs = [self.specialk[i]["xcoord"] for i in range(len(self.specialk))]
             labels = [r"$\Gamma$" if self.specialk[i]["label"] == "GAMMA" else r"$%s$" % self.specialk[i]["label"] for i in range(len(self.specialk))]
             plt.xticks(locs, labels)
-
+            #
+            # sometime the xcoord of two specialk might be the same
+            # either caused from physical reason or when you specif
+            # 0 to connect the two special k point.
+            # whatever the reason we should join the two label to one
+            # label like K|U
+            locs_refined = []
+            labels_refined = []
+            labels_refined.append(labels[0])
+            locs_refined.append(locs[0])
+            for i in range(1, len(labels)):
+                if locs[i]  == locs[i-1]:
+                    # join labels[i] and labels[i-1]
+                    labels_refined[-1] = r"$%s | %s$" % (labels[i-1].split("$")[1], labels[i].split("$")[1])
+                else:
+                    labels_refined.append(labels[i])
+                    locs_refined.append(locs[i])
+            print("===================================================\n")
+            print("               post-qe-bands.py\n")
+            print("----------------------------------------------------\n")
+            print("engine: matplotlib\n")
+            print("----------------------------------------------------\n")
+            print("Note:\n")
+            print("sometime the xcoord of two neighbor specialk might be\n")
+            print("the same either from physical reason or when you specify\n")
+            print("0 to connect the two special k point in pw.x band calc.\n")
+            print("whatever the reason we should join the two label to one\n")
+            print("label like K|U\n")
+            print("in this way when you want a k path like:\n")
+            print("Gamma–X–M–Gamma–Z–R–A–Z|X–R|M–A\n")
+            print("you can specify 0 to connect Z and X\n")
+            print("and 0 to connect R and M in pw.x band structure calc.\n")
+            print("then post-qe-bands.py can deal with that automatically\n")
+            print("------------------------------------------------------\n")
+            print("original specialk and the correponding xcoord:\n")
+            print(locs)
+            print(labels)
+            print("refined specialk and the corresponding xcoord:\n")
+            print(locs_refined)
+            print(labels_refined)
+            # ---------------------------------------------------------------
+            #plt.xticks(locs, labels) # do not use this, it is unrefined
+            plt.xticks(locs_refined, labels_refined)
             #plt.legend()    
             plt.tight_layout()
             plt.savefig("bandstructure-maplotlib.png")

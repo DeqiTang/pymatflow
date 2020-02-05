@@ -137,6 +137,15 @@ class qe_arts:
         elif self.kpoints_option == "gamma":
             fout.write("K_POINTS gamma\n")
         elif self.kpoints_option == "crystal_b":
+            # there is a trick:
+            # when self.crystal_b[i][4] == "|"
+            # we set the number of k point to connect to the next high symmetry kpoint to 0
+            # then after the pw.x calculation and bands.x calculation, we can see from the
+            # output of bands.x, the two nieghbor high symmetry kpoints
+            # have the same x coordinates, and that can be processed by qe.post.bands and 
+            # the corresponding post-qe-bands.py, and the label in the processed band strucutre
+            # image would be in format of 'label|label', for example 'K|U'
+            # this is very fantastic !!!
             fout.write("K_POINTS %s\n" % self.kpoints_option)
             fout.write("%d\n" % len(self.crystal_b))
             for i in range(len(self.crystal_b)):

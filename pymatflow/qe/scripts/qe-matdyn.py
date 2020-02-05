@@ -54,6 +54,10 @@ if __name__ == "__main__":
     matdyn_input["asr"] = args.asr
 
     # get qpoints either from --qpoints or from --qpoints-file
+    # qpoints is in format like this:
+    # [[kx, ky, kz, xcoord, label], ...] like [[0.0, 0,0, 0.0, 0.0, 'GAMMA']]
+    # if the label is a str like 'GAMMA', 'K', etc, the q point is a specialk,
+    # if the label is None, then the q points is not a special
     qpoints = []
     if args.qpoints != None:
        # qpoints read from script argument args.qpoints
@@ -110,7 +114,6 @@ if __name__ == "__main__":
                 ])
         #
         # get information on high symmetry q point
-
 
 
     task = dfpt_run()
