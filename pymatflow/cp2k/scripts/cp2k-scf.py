@@ -56,6 +56,12 @@ if __name__ == "__main__":
     parser.add_argument("-k", "--kpoints-scheme", type=str,
             default="GAMMA",
             help="DFT-KPOINTS-SCHEME(str): can be NONE, GAMMA, MONKHORST-PACK, MACDONALD, GENERAL. when you set MONKHORST-PACK, you should also add the three integers like 'monkhorst-pack 3 3 3'")
+   
+    parser.add_argument("--kpath", type=str, nargs="+", default=None,
+            help="manual input kpath for band structure calculation")
+
+    parser.add_argument("--kpath-file", type=str, default="kpath-from-seekpath.txt",
+            help="file to read the kpath for band structure calculation")
     
     parser.add_argument("--diag", type=str, default="TRUE",
             #choices=["TRUE", "FALSE", "true", "false"],
@@ -204,12 +210,74 @@ if __name__ == "__main__":
     params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-RANGE"] = args.properties_resp_slab_sampling_range
     params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-SURF_DIRECTION"] = args.properties_resp_slab_sampling_surf_direction
     params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST"] = args.properties_resp_slab_sampling_atom_list
-    
+   
+    # if band structure is in the printout option get the kpath
+    if 2 in args.printout_option and args.kpath != None:
+        # kpath from script argument args.kpath
+        kpath = []
+        for kpoint in args.kpath:
+            if kpoint.split()[4] != "|":
+                kpath.append([
+                    float(kpoint.split()[0]),
+                    float(kpoint.split()[1]),
+                    float(kpoint.split()[2]),
+                    kpoint.split()[3].upper(),
+                    int(kpoint.split()[4]),
+                    ])
+            elif kpoint.split()[4] == "|":
+                kpath.append([
+                    float(kpoint.split()[0]),
+                    float(kpoint.split()[1]),
+                    float(kpoint.split()[2]),
+                    kpoint.split()[3].upper(),
+                    "|",
+                    ])
+    elif 2 in args.printout_option and args.kpath == None:
+        # kpath read from file specified by args.kpath_file
+        # file is in format like this
+        """
+        5 
+        0.0 0.0 0.0 #GAMMA 15
+        x.x x.x x.x #XXX |
+        x.x x.x x.x #XXX 10
+        x.x x.x x.x #XXX 15
+        x.x x.x x.x #XXX 20
+        """
+        # if there is a '|' behind the label it means the path is 
+        # broken after that point!!!
+        kpath = []
+        with open(args.kpath_file, 'r') as fin:
+            kpath_file = fin.readlines()
+        nk = int(kpath_file[0])
+        for i in range(nk):
+            if kpath_file[i+1].split("\n")[0].split()[4] != "|":
+                kpath.append([
+                    float(kpath_file[i+1].split()[0]),
+                    float(kpath_file[i+1].split()[1]),
+                    float(kpath_file[i+1].split()[2]),
+                    kpath_file[i+1].split()[3].split("#")[1].upper(),
+                    int(kpath_file[i+1].split()[4]),
+                    ])
+            elif kpath_file[i+1].split("\n")[0].split()[4] == "|":
+                kpath.append([
+                    float(kpath_file[i+1].split()[0]),
+                    float(kpath_file[i+1].split()[1]),
+                    float(kpath_file[i+1].split()[2]),
+                    kpath_file[i+1].split()[3].split("#")[1].upper(),
+                    '|',
+                    ])
+    else:
+        pass
+        # 2 not in args.printout_option
+        # do not calculate the band structure
+        # no need to set the kpath
 
     task = static_run()
     task.get_xyz(args.file)
     task.set_params(params=params)
     task.set_printout(option=args.printout_option)
+    if 2 in args.printout_option:
+        task.force_eval.dft.printout.band_structure.set_band(kpath=kpath)
     task.set_vdw(usevdw=True if args.usevdw.lower() == "true" else False)
     task.scf(directory=args.directory, mpi=args.mpi, runopt=args.runopt, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
 

@@ -116,13 +116,7 @@ class static_run(abinit):
             self.electrons.params["tolvrs"] = None
             self.electrons.params["toldfe"] = None
             #self.electrons.params["irdden"] = 1 # actually irdden will be 1 by default if iscf < 0
-            # 
-            # set kpoints
-            # --------------
-            # using seekpath
-            # --------------
-            self.electrons.kpoints.set_band(self.system)
-
+            
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.electrons.to_in(fout)
                 self.system.to_in(fout)

@@ -8,15 +8,15 @@ from pymatflow.base.xyz import base_xyz
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of phonopy running", type=str, default="tmp-abinit-phonopy")
+    parser.add_argument("-d", "--directory", help="directory of phonopy running", type=str, default="tmp-cp2k-phonopy")
     parser.add_argument("-f", "--file", help="input structure file", type=str, default=None)
    
 
-    parser.add_argument("--qpoints", type=str, nargs="+", default=None,
-            help="manual input qpoints with labels to set the BAND for phonopy analysis")
+    parser.add_argument("--qpath", type=str, nargs="+", default=None,
+            help="manual input qpath with labels to set the BAND for phonopy analysis")
     
-    parser.add_argument("--qpoints-file", type=str, default="kpath-from-seekpath.txt",
-            help="file to read the qpoints to set the BAND for phonopy analysis")
+    parser.add_argument("--qpath-file", type=str, default="kpath-from-seekpath.txt",
+            help="file to read the qpath to set the BAND for phonopy analysis")
 
     parser.add_argument("--mp", type=int, nargs="+",
             default=[8, 8, 8],
@@ -31,23 +31,25 @@ if __name__ == "__main__":
     xyz = base_xyz()
     xyz.get_xyz(args.file)
   
-    # obtain the qpoints 
-    qpoints = [] # [[kx, ky, kz, label, end_indicator], ...] like [[0.0, 0.0, 0.0, 'GAMMA', None], ...]
-    # if end_indicator in a qpoint is None, then it will connect to the following point,
-    # if end_indicator in a qpoint is '|', then it will not connect to the following point,
-    if args.qpoints != None:
-        # qpoints from script argument args.qpoints
-        for qpoint in args.qpoints:
-            if len(qpoint.split()) == 4:
-                qpoints.append([
+    # obtain the qpath 
+    qpath = [] # [[kx, ky, kz, label, end_indicator], ...] like [[0.0, 0.0, 0.0, 'GAMMA', None], ...]
+    # [[kx, ky, kz, label, connect_indicator], ...] like [[0.0, 0.0, 0.0, 'GAMMA', 15], ...]
+    # if connect_indicator in a kpoint is an integer, then it will connect to the following point
+    # through the number of kpoints defined by connect_indicator.       
+    # if connect_indicator in a kpoint is '|', then it will not connect to the following point,
+    if args.qpath != None:
+        # qpath from script argument args.qpath
+        for qpoint in args.qpath:
+            if qpoint.split()[4] != "|":
+                qpath.append([
                     float(qpoint.split()[0]),
                     float(qpoint.split()[1]),
                     float(qpoint.split()[2]),
                     qpoint.split()[3].upper(),
-                    None,
+                    None, # this value is actually not used by phonopy so we just set it to None if it is not "|"
                     ])
-            elif len(qpoint.split()) == 5 and qpoint.split()[4] == "|":
-                qpoints.append([
+            elif qpoint.split()[4] == "|":
+                qpath.append([
                     float(qpoint.split()[0]),
                     float(qpoint.split()[1]),
                     float(qpoint.split()[2]),
@@ -55,36 +57,36 @@ if __name__ == "__main__":
                     "|",
                     ])
     else:
-        # qpoints read from file specified by args.qpoints_file
+        # qpath read from file specified by args.qpath_file
         # file is in format like this
         """
-        3
-        0.0 0.0 0.0 #GAMMA
+        4
+        0.0 0.0 0.0 #GAMMA 15
         x.x x.x x.x #XXX |
-        x.x x.x x.x #XXX
+        x.x x.x x.x #XXX 15
+        x.x x.x x.x #XXX 10
         """
-        # if there is a '|' behind the label it means the path is 
-        # broken after that point!!!
-        with open(args.qpoints_file, 'r') as fin:
-            qpoints_file = fin.readlines()
-        nq = int(qpoints_file[0])
+        with open(args.qpath_file, 'r') as fin:
+            qpath_file = fin.readlines()
+        nq = int(qpath_file[0])
         for i in range(nq):
-            if len(qpoints_file[i+1].split()) == 4:
-                qpoints.append([
-                    float(qpoints_file[i+1].split()[0]),
-                    float(qpoints_file[i+1].split()[1]),
-                    float(qpoints_file[i+1].split()[2]),
-                    qpoints_file[i+1].split()[3].split("#")[1].upper(),
-                    None,
+            if qpath_file[i+1].split("\n")[0].split()[4] != "|":
+                qpath.append([
+                    float(qpath_file[i+1].split()[0]),
+                    float(qpath_file[i+1].split()[1]),
+                    float(qpath_file[i+1].split()[2]),
+                    qpath_file[i+1].split()[3].split("#")[1].upper(),
+                    None, # this value is actually not used by phonopy so we just set it to None if it is not "|"
                     ])
-            elif len(qpoints_file[i+1].split()) == 5 and qpoints_file[i+1].split("\n")[0].split()[4] == "|":
-                qpoints.append([
-                    float(qpoints_file[i+1].split()[0]),
-                    float(qpoints_file[i+1].split()[1]),
-                    float(qpoints_file[i+1].split()[2]),
-                    qpoints_file[i+1].split()[3].split("#")[1].upper(),
+            elif qpath_file[i+1].split("\n")[0].split()[4] == "|":
+                qpath.append([
+                    float(qpath_file[i+1].split()[0]),
+                    float(qpath_file[i+1].split()[1]),
+                    float(qpath_file[i+1].split()[2]),
+                    qpath_file[i+1].split()[3].split("#")[1].upper(),
                     '|',
                     ])
+    #
 
     # get the disps information
     os.chdir(args.directory)
@@ -133,7 +135,7 @@ if __name__ == "__main__":
         fout.write("BAND_CONNECTION = .TRUE.\n")
         fout.write("DIM = %d %d %d\n" % (args.supercell_n[0], args.supercell_n[1], args.supercell_n[2]))
         fout.write("BAND =")
-        for qpoint in qpoints:
+        for qpoint in qpath:
             if qpoint[4] == None:
                 fout.write(" %f %f %f" % (qpoint[0], qpoint[1], qpoint[2]))
             elif qpoint[4] == "|":
@@ -142,7 +144,7 @@ if __name__ == "__main__":
                 pass
         fout.write("\n")
         fout.write("BAND_LABELS =")
-        for qpoint in qpoints:
+        for qpoint in qpath:
             if qpoint[4] == None:
                 if qpoint[3].upper() == "GAMMA":
                     fout.write(" $\Gamma$")

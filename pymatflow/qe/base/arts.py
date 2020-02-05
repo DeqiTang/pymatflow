@@ -6,7 +6,6 @@ import pymatgen as mg
 import os
 import sys
 import re
-import seekpath
 
 from pymatflow.base.xyz import base_xyz
 
@@ -35,7 +34,6 @@ class qe_arts:
 
         self.kpoints_option = "automatic"
         self.kpoints_mp = [1, 1, 1, 0, 0, 0]
-        self.kpoints_seekpath = None
 
         self.ifstatic = True # used to determine how to put atomic coordinates to input file
         self.atomic_forces_status = False # default is no force acting on system
@@ -138,79 +136,40 @@ class qe_arts:
                 ))
         elif self.kpoints_option == "gamma":
             fout.write("K_POINTS gamma\n")
-        elif self.kpoints_option == "crystal_b" and self.crystal_b_from == 'seekpath':
+        elif self.kpoints_option == "crystal_b":
             fout.write("K_POINTS %s\n" % self.kpoints_option)
-            nks = 2
-            for i in range(1, len(self.kpoints_seekpath["path"])):
-                if self.kpoints_seekpath["path"][i][0] == self.kpoints_seekpath["path"][i-1][1]:
-                    nks = nks + 1
-                else:
-                    nks = nks + 2
-            fout.write("%d\n" % nks)
-            point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][0][0]]
-            fout.write("%f %f %f %d  #%s\n" % (point[0], point[1], point[2], 5, self.kpoints_seekpath["path"][0][0]))
-            point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][0][1]]
-            fout.write("%f %f %f %d  #%s\n" % (point[0], point[1], point[2], 5, self.kpoints_seekpath["path"][0][1]))
-            for i in range(1, len(self.kpoints_seekpath["path"])):
-                if self.kpoints_seekpath["path"][i][0] == self.kpoints_seekpath["path"][i-1][1]:
-                    point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][1]]
-                    fout.write("%f %f %f %d  #%s\n" % (point[0], point[1], point[2], 5, self.kpoints_seekpath["path"][i][1]))
-                else:
-                    point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][0]]
-                    fout.write("%f %f %f %d  #%s\n" % (point[0], point[1], point[2], 5, self.kpoints_seekpath["path"][i][0]))
-                    point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][1]]
-                    fout.write("%f %f %f %d  #%s\n" % (point[0], point[1], point[2], 5, self.kpoints_seekpath["path"][i][1]))
-            #
-        elif self.kpoints_option == "crystal_b" and self.crystal_b_from == 'manual':
-            fout.write("K_POINTS %s\n" % self.kpoints_option)
-            fout.write("%d\n" % len(self.crystal_b_manual))
-            for i in range(len(self.crystal_b_manual)):
+            fout.write("%d\n" % len(self.crystal_b))
+            for i in range(len(self.crystal_b)):
                 fout.write("%f %f %f %d #%s\n" % (
-                    self.crystal_b_manual[i][0],
-                    self.crystal_b_manual[i][1],
-                    self.crystal_b_manual[i][2],
-                    self.crystal_b_manual[i][3],
-                    self.crystal_b_manual[i][4],
+                    self.crystal_b[i][0],
+                    self.crystal_b[i][1],
+                    self.crystal_b[i][2],
+                    self.crystal_b[i][4] if self.crystal_b[i][4] != "|" else  0, # 0 is for the disconnected k point
+                    self.crystal_b[i][3],
                     ))
         elif self.kpoints_option == "tpiba_b":
             pass
         
 
-    def set_kpoints(self, kpoints_mp=[1, 1, 1, 0, 0, 0], option="automatic", crystal_b_from="seekpath", crystal_b_manual=None):
+    def set_kpoints(self, kpoints_mp=[1, 1, 1, 0, 0, 0], option="automatic", crystal_b=None):
         """
-        crystal_b_from:
-            how to set the crystal_b: can be 'seekpath' or 'manual'
-        crystal_b_manual:
-            manual set crystal_b kpoints, in format like this
-            [[k1, k2, k3, n, 'label(in uppercase)'], [0.0, 0.0, 0.0, 5, GAMMA], ...]
+        crystal_b:
+            the high symmetry k point path used in bands structure calculation
+            in format like this:
+            
+            [[kx, ky, kz, label, connect_indicator], ...] like [[0.0, 0.0, 0.0, 'GAMMA', 15], ...]
+            
+            if connect_indicator in a kpoint is an integer, then it will connect to the following point
+            through the number of kpoints defined by connect_indicator.
+            
+            if connect_indicator in a kpoint is '|', then it will not connect to the following point,
         TODO: 
-            considering using seekpath to get the kpoints automatically from structure
-            https://github.com/giovannipizzi/seekpath/tree/develop/seekpath
         Note:
             "automatic" was controlled by kpoints_mp
             "gamma" was also handled internally
-            other kpoints are set while seekpath
-
-            seekpath will automatically find the primitive cell of the structure
-            input by you. and the k points it gives is corresponding with that 
-            primitive cell, if you stick to the use the original structure, you
-            must know how to modify the k points to be applicable to your original
-            structure.
-            
-            seekpath generated high symmetry are in crystal coordinates not cartesian.
-            so we should set K_POINTS in qe to {crystal_b}
-            p.s. like there are cartesian and crystal(fractional) coordinates in real 
-            space for structure coordinates, there are also cartesian and crystal coordinates
-            for reciprocal space for kpoint. in qe, tpiba and tpiba_b are cartesian coordinates
-            in unit of 2pi/a, the latter with suffix '_b' means 'for band structure'. 
-            and crystal and crysta_b are in crystal coordinated. seek-path generated k points
-            are in reciprocal crystal coordinate, so we should use crystal_b for band structure
-            calculation using seekpath generated high symmetry kpoing.
+            "crystal_b" as controlled by crystal_b
         Plan:
-            build a wrapper to the seekpath in a separate file[not decided now]
         """
-        self.crystal_b_from = crystal_b_from
-        self.crystal_b_manual = crystal_b_manual
         if option == "automatic":
             self.kpoints_option = option
             self.kpoints_mp = kpoints_mp
@@ -218,36 +177,9 @@ class qe_arts:
         if option == "gamma":
             self.kpoints_option = option
             return
-        # --------------
-        # using seekpath
-        # --------------
-        """
-            seekpath generated high symmetry are in crystal coordinates not cartesian.
-            so we should set K_POINTS in qe to {crystal_b}
-            p.s. like there are cartesian and crystal(fractional) coordinates in real 
-            space for structure coordinates, there are also cartesian and crystal coordinates
-            for reciprocal space for kpoint. in qe, tpiba and tpiba_b are cartesian coordinates
-            in unit of 2pi/a, the latter with suffix '_b' means 'for band structure'. 
-            and crystal and crysta_b are in crystal coordinated. seek-path generated k points
-            are in reciprocal crystal coordinate, so we should use crystal_b for band structure
-            calculation using seekpath generated high symmetry kpoing.
-        """
-        lattice = self.xyz.cell   # = [self.xyz.cell[0:3], self.xyz.cell[3:6], self.xyz.cell[6:9]]
-        positions = []
-        numbers = []
-        #a = np.sqrt(self.xyz.cell[0]**2 + self.xyz.cell[1]**2 + self.xyz.cell[2]**2)
-        #b = np.sqrt(self.xyz.cell[3]**2 + self.xyz.cell[4]**2 + self.xyz.cell[5]**2)
-        #c = np.sqrt(self.xyz.cell[6]**2 + self.xyz.cell[7]**2 + self.xyz.cell[8]**2)
-        a = np.sqrt(self.xyz.cell[0][0]**2 + self.xyz.cell[0][1]**2 + self.xyz.cell[0][2]**2)
-        b = np.sqrt(self.xyz.cell[1][0]**2 + self.xyz.cell[1][1]**2 + self.xyz.cell[1][2]**2)
-        c = np.sqrt(self.xyz.cell[2][0]**2 + self.xyz.cell[2][1]**2 + self.xyz.cell[2][2]**2)
-        for atom in self.xyz.atoms:
-            positions.append([atom.x / a, atom.y / b, atom.z / c])
-            numbers.append(self.xyz.specie_labels[atom.name])
-        structure = (lattice, positions, numbers)
-        self.kpoints_seekpath = seekpath.get_path(structure)
         if option == "crystal_b":
             self.kpoints_option = option
+            self.crystal_b = crystal_b
             return
 
     def write_atomic_forces(self, fout):

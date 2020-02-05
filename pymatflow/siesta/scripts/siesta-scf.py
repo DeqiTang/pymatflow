@@ -48,14 +48,12 @@ if __name__ == "__main__":
     parser.add_argument("--pdos-block", type=float, nargs="+",
             default=[-20, 10, 0.2, 500])
     #------------------------------------------------------------------------------------------------
-    #parser.add_argument("--bandlines", nargs="+", type=str,
-    #        default=["1 0.0 0.0 0.0 \Gamma", "20 1.0 1.0 1.0 L", "20 2.0 0.0 0.0 X"],
-    #        help="BandLines for band structre calculation(either choose BandLines or BandPoints)")
-    #parser.add_argument("--bandpoints", nargs="+", type=str,
-    #        default=["0.0 0.0 0.0", "1.0 0.0 0.0", "0.5 0.5 0.5"],
-    #        help="BandPoints for band structure calculation(either choose BandPoints or BandLines)")
-    # we now use seekapth to calculate the BandLines automatically so it is not needed to be set by 
-    # user manually.
+    parser.add_argument("--bandlines", nargs="+", type=str,
+            help="BandLines for band structre calculation")
+
+    parser.add_argument("--bandlines-file", type=str, default="kpath-from-seekpath.txt",
+            help="BandLines for band structure calculation from file")
+    
     #------------------------------------------------------------------------------------------------
     parser.add_argument("--polarization-grids", nargs="+", type=str,
             default=["10 3 3 no", "2 20 2 no", "4 4 15 no"],
@@ -108,6 +106,67 @@ if __name__ == "__main__":
     params["OccupationFunction"] = args.occupation
     params["ElectronicTemperature"] = args.electronic_temperature
 
+    # if band structure is in the properties get the bandlines
+    if 3 in args.properties and args.bandlines != None:
+        # bandlines from script argument args.bandlines
+        bandlines = []
+        for kpoint in args.bandlines:
+            if kpoint.split()[4] != "|":
+                bandlines.append([
+                    float(kpoint.split()[0]),
+                    float(kpoint.split()[1]),
+                    float(kpoint.split()[2]),
+                    kpoint.split()[3].upper(),
+                    int(kpoint.split()[4]),
+                    ])
+            elif kpoint.split()[4] == "|":
+                bandlines.append([
+                    float(kpoint.split()[0]),
+                    float(kpoint.split()[1]),
+                    float(kpoint.split()[2]),
+                    kpoint.split()[3].upper(),
+                    "|",
+                    ])
+    elif 3 in args.properties and args.bandlines == None:
+        # bandlines read from file specified by args.bandlines_file
+        # file is in format like this
+        """
+        5 
+        0.0 0.0 0.0 #GAMMA 15
+        x.x x.x x.x #XXX |
+        x.x x.x x.x #XXX 10
+        x.x x.x x.x #XXX 15
+        x.x x.x x.x #XXX 20
+        """
+        # if there is a '|' behind the label it means the path is 
+        # broken after that point!!!
+        bandlines = []
+        with open(args.bandlines_file, 'r') as fin:
+            bandlines_file = fin.readlines()
+        nk = int(bandlines_file[0])
+        for i in range(nk):
+            if bandlines_file[i+1].split("\n")[0].split()[4] != "|":
+                bandlines.append([
+                    float(bandlines_file[i+1].split()[0]),
+                    float(bandlines_file[i+1].split()[1]),
+                    float(bandlines_file[i+1].split()[2]),
+                    bandlines_file[i+1].split()[3].split("#")[1].upper(),
+                    int(bandlines_file[i+1].split()[4]),
+                    ])
+            elif bandlines_file[i+1].split("\n")[0].split()[4] == "|":
+                bandlines.append([
+                    float(bandlines_file[i+1].split()[0]),
+                    float(bandlines_file[i+1].split()[1]),
+                    float(bandlines_file[i+1].split()[2]),
+                    bandlines_file[i+1].split()[3].split("#")[1].upper(),
+                    '|',
+                    ])
+    else:
+        pass
+        # 3 not in args.properties
+        # do not calculate the band structure
+        # no need to set the bandlines
+    # end the setting of bandlines
 
     task = static_run()
     task.get_xyz(args.file)
@@ -126,6 +185,9 @@ if __name__ == "__main__":
         optical_vector = args.optical_vector,
         wannier90_unkgrid = args.wannier90_unkgrid,
         )
+
+    if 3 in args.properties:
+        task.properties.bandlines = bandlines
 
     task.set_params(params=params)
     task.set_kpoints(kpoints_mp=args.kpoints_mp)

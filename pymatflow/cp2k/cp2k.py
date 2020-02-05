@@ -141,7 +141,9 @@ class cp2k:
             self.force_eval.dft.printout.pdos.status = True
         if 2 in option:
             self.force_eval.dft.printout.band_structure.status = True
-            self.force_eval.dft.printout.band_structure.set_band(self.force_eval.subsys.xyz)
+            # simply set status to True will not work !!!!
+            # you have to also set kpath throught the following commented function
+            #self.force_eval.dft.printout.band_structure.set_band(kpath=kpath)
         if 3 in option:
             self.force_eval.dft.printout.e_density_cube.status = True
         if 4 in option:

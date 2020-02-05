@@ -44,18 +44,15 @@ if __name__ == "__main__":
             choices=["automatic", "gamma", "crystal_b"],
             help="Kpoints generation scheme option for band calculation")
 
-    parser.add_argument("--kpoints-mp", type=str, default="1 1 1 0 0 0",
-            help="Monkhorst-Pack kpoint grid, in format like '1 1 1 0 0 0'")
-
-    parser.add_argument("--crystal-b-from", type=str, default="seekpath",
-            choices=["seekpath", "manual"],
-            help="the crystal_b kpoints from ? canbe seekpath or manual")
+    parser.add_argument("--kpoints-mp", type=str, nargs="+",
+            default=[1, 1, 1, 0, 0, 0],
+            help="Monkhorst-Pack kpoint grid, in format like --kpoints-mp 1 1 1 0 0 0")
     
-    parser.add_argument("--crystal-b-manual", type=str, nargs="+", default=None,
-            help="manual input crystal_b, like --crystal-b-manual '0.000000 0.000000 0.000000 5  GAMMA' '0.500000 0.000000 0.000000 5  X'")
+    parser.add_argument("--crystal-b", type=str, nargs="+", default=None,
+            help="manual input kpath in crystal_b, like --crystal-b '0.000000 0.000000 0.000000 GAMMA 5' '0.500000 0.000000 0.000000 X 5' '0.0000 0.000 0.50000 A |' '0.5 0.5 0.5 R '")
 
-    parser.add_argument("--crystal-b-manual-file", type=str, default='crystal-b.txt',
-            help="manual input crystal_b read from the file")
+    parser.add_argument("--crystal-b-file", type=str, default='kpath-from-seekpath.txt',
+            help="manual input kpath in crystal_b read from the file")
 
     parser.add_argument("--conv-thr", type=float, default=1.0e-6,
             help="Convergence threshold for SCF calculation.")
@@ -113,42 +110,70 @@ if __name__ == "__main__":
     bands["lsym"] = args.lsym
 
     # --------------------------------------------------------------
-    # process tpiba_b_manual
-    crystal_b_manual = []
-    if args.crystal_b_from == 'manual' and args.crystal_b_manual != None:
-       # crystal_b_manual read from script argument args.crystal_b_manual
-       for point in args.crystal_b_manual:
-           crystal_b_manual.append([
-               float(point.split()[0]), 
-               float(point.split()[1]), 
-               float(point.split()[2]),
-               int(point.split()[3]),
-               point.split()[4].upper()
-               ])
-    elif args.crystal_b_from == 'manual' and args.crystal_b_manual == None:
-        # crystal_b_manual read from a file contains manual K_POINTS crystal_b setting
-        # crystal_b_manual_file in format like this:
-        # K_POINTS crystal_b
-        # 2
-        # 0.000000 0.000000 0.000000 5  #GAMMA
-        # 0.500000 0.000000 0.000000 5  #X
-        # 0.000000 0.500000 0.000000 5  #Y
-        with open(args.crystal_b_manual_file, 'r') as fin:
-          fin.readline()
-          fin.readline()
-          for point in fin:
-              crystal_b_manual.append([
-                  float(point.split()[0]), 
-                  float(point.split()[1]), 
-                  float(point.split()[2]),
-                  int(point.split()[3]),
-                  point.split()[4].split("#")[1].upper()
-               ])
+    # process crystal_b
 
+    if args.crystal_b != None:
+        # crystal_b from script argument args.crystal_b
+        crystal_b = []
+        for kpoint in args.crystal_b:
+            if kpoint.split()[4] != "|":
+                crystal_b.append([
+                    float(kpoint.split()[0]),
+                    float(kpoint.split()[1]),
+                    float(kpoint.split()[2]),
+                    kpoint.split()[3].upper(),
+                    int(kpoint.split()[4]),
+                    ])
+            elif kpoint.split()[4] == "|":
+                crystal_b.append([
+                    float(kpoint.split()[0]),
+                    float(kpoint.split()[1]),
+                    float(kpoint.split()[2]),
+                    kpoint.split()[3].upper(),
+                    "|",
+                    ])
+    elif args.crystal_b == None:
+        # crystal_b read from file specified by args.crystal_b_file
+        # file is in format like this
+        """
+        5 
+        0.0 0.0 0.0 #GAMMA 15
+        x.x x.x x.x #XXX |
+        x.x x.x x.x #XXX 10
+        x.x x.x x.x #XXX 15
+        x.x x.x x.x #XXX 20
+        """
+        # if there is a '|' behind the label it means the path is 
+        # broken after that point!!!
+        crystal_b = []
+        with open(args.crystal_b_file, 'r') as fin:
+            crystal_b_file = fin.readlines()
+        nk = int(crystal_b_file[0])
+        for i in range(nk):
+            if crystal_b_file[i+1].split("\n")[0].split()[4] != "|":
+                crystal_b.append([
+                    float(crystal_b_file[i+1].split()[0]),
+                    float(crystal_b_file[i+1].split()[1]),
+                    float(crystal_b_file[i+1].split()[2]),
+                    crystal_b_file[i+1].split()[3].split("#")[1].upper(),
+                    int(crystal_b_file[i+1].split()[4]),
+                    ])
+            elif crystal_b_file[i+1].split("\n")[0].split()[4] == "|":
+                crystal_b.append([
+                    float(crystal_b_file[i+1].split()[0]),
+                    float(crystal_b_file[i+1].split()[1]),
+                    float(crystal_b_file[i+1].split()[2]),
+                    crystal_b_file[i+1].split()[3].split("#")[1].upper(),
+                    '|',
+                    ])
+    else:
+        pass
     # --------------------------------------------------------------------
+
+    
     task = static_run()
     task.get_xyz(args.file)
-    task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp, crystal_b_from=args.crystal_b_from, crystal_b_manual=crystal_b_manual)
+    task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp, crystal_b=crystal_b)
     task.set_params(control=control, system=system, electrons=electrons)
     task.set_bands(bands_input=bands)
     task.bands(directory=args.directory, mpi=args.mpi, runopt=args.runopt, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)

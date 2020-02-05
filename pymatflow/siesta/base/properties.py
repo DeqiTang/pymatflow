@@ -7,8 +7,6 @@ import os
 import shutil
 import pymatgen as mg
 
-import seekpath
-
 
 """
 Usage:
@@ -37,6 +35,8 @@ class siesta_properties:
         self.params = {
                 }
         self.options = []
+
+        self.bandlines = None
 
         self.polarization_grids = [
                 "10 3 3 no",
@@ -112,56 +112,34 @@ class siesta_properties:
         option:
             0: using BandLines to specify kpoints for band calculation
             1: using BandPoints to specify kpoints for band calculation [not implemented now]
-        self.bandlines:
-            a list of strings in format like below:
-            ["1 0.000 0.000 0.000 \Gamma", ..., "20 1.0 1.0 1.0 L"]
-        self. bandpoints:
-            a list of strings in format like below:
-            ["0.000 0.000 0.000", "1.000 0.000 0.000"]
+
+        self.bandlines:             please use ReciprocalLatticeVectors (Crystal) coordinates
+            the high symmetry k point path used in bands structure calculation
+            in format like this:
+            
+            [[kx, ky, kz, label, connect_indicator], ...] like [[0.0, 0.0, 0.0, 'GAMMA', 15], ...]
+            
+            if connect_indicator in a kpoint is an integer, then it will connect to the following point
+            through the number of kpoints defined by connect_indicator.
+            
+            if connect_indicator in a kpoint is '|', then it will not connect to the following point,
+        
         """
-        fout.write("BandLinesScale pi/a\n")
+        #fout.write("BandLinesScale pi/a\n")
+        fout.write("BandLinesScale ReciprocalLatticeVectors\n")
         fout.write("WriteKbands false\n") # do not write kbands to the standard out
         fout.write("WriteBands false\n") # do not write bands to the standard out
         if option == 0:
-            # --------------
-            # using seekpath
-            # --------------
-            lattice = self.xyz.cell  # [self.xyz.cell[0:3], self.xyz.cell[3:6], self.xyz.cell[6:9]]
-            positions = []
-            numbers = []
-            #a = np.sqrt(self.xyz.cell[0]**2 + self.xyz.cell[1]**2 + self.xyz.cell[2]**2)
-            #b = np.sqrt(self.xyz.cell[3]**2 + self.xyz.cell[4]**2 + self.xyz.cell[5]**2)
-            #c = np.sqrt(self.xyz.cell[6]**2 + self.xyz.cell[7]**2 + self.xyz.cell[8]**2)
-            a = np.sqrt(self.xyz.cell[0][0]**2 + self.xyz.cell[0][1]**2 + self.xyz.cell[0][2]**2)
-            b = np.sqrt(self.xyz.cell[1][0]**2 + self.xyz.cell[1][1]**2 + self.xyz.cell[1][2]**2)
-            c = np.sqrt(self.xyz.cell[2][0]**2 + self.xyz.cell[2][1]**2 + self.xyz.cell[2][2]**2)
-            for atom in self.xyz.atoms:
-                positions.append([atom.x / a, atom.y / b, atom.z / c])
-                numbers.append(self.xyz.specie_labels[atom.name])
-            structure = (lattice, positions, numbers)
-            self.kpoints_seekpath = seekpath.get_path(structure)
-
             fout.write("%block BandLines\n")
-            point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][0][0]]
-            fout.write("%d %f %f %f %s\n" % (1, point[0], point[1], point[2], self.kpoints_seekpath["path"][0][0]))
-            point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][0][1]]
-            fout.write("%d %f %f %f %s\n" % (20, point[0], point[1], point[2], self.kpoints_seekpath["path"][0][1]))
-            for i in range(1, len(self.kpoints_seekpath["path"])):
-                if self.kpoints_seekpath["path"][i][0] == self.kpoints_seekpath["path"][i-1][1]:
-                    point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][1]]
-                    fout.write("%d %f %f %f %s\n" % (20, point[0], point[1], point[2], self.kpoints_seekpath["path"][i][1]))
-                else:
-                    point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][0]]
-                    fout.write("%d %f %f %f %s\n" % (20, point[0], point[1], point[2], self.kpoints_seekpath["path"][i][0]))
-                    point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][1]]
-                    fout.write("%d %f %f %f %s\n" % (20, point[0], point[1], point[2], self.kpoints_seekpath["path"][i][1]))
+            fout,write("%d %f %f %f %s\n" % (1, self.bandlines[0][0], self.bandlines[0][1], self.bandlines[0][2], self.bandlines[0][3]))
+            for i in range(1, len(self.bandlines)):
+                fout.write("%d %f %f %f %s\n" % (
+                    self.bandlines[i-1][4] if type(self.bandlines[i-1][4]) == int else 0,
+                    self.bandlines[i][0], self.bandlines[i][1], self.bandlines[i][2], self.bandlines[i][3],
+                    ))
             fout.write("%endblock BandLines\n")
             fout.write("\n")
         elif option == 1:
-            #fout.write("%block BandPoints\n")
-            #for point in self.bandpoints:
-            #    fout.write("%.3f %.3f %.3f\n" % (float(point.split()[0]), float(point.split()[1]), float(point.split()[2])))
-            #fout.write("%endblock BandPoints\n")
             pass
 
     def to_fdf_charge(self, fout):

@@ -15,6 +15,7 @@ class kpoints:
         kptopt == 1.
     Reference:
         https://docs.abinit.org/variables/basic/#kptopt
+        https://docs.abinit.org/variables/gstate/#kptbounds
     """
     def __init__(self):
         self.params = {
@@ -70,57 +71,42 @@ class kpoints:
         #
         if self.params["kptopt"] < 0:
             # for band structure calculation using kptbounds and ndivk(ndivsm), iscf must equal to -2
+            # for format of self.params["kptbounds"] see self.set_band()
             fout.write("kptopt %d\n" % self.params["kptopt"])
             fout.write("ndivsm %d\n" % 10)
             fout.write("kptbounds\n")
-            point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][0][0]]
-            fout.write("%f %f %f #%s\n" % (point[0], point[1], point[2], self.kpoints_seekpath["path"][0][0]))
-            point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][0][1]]
-            fout.write("%f %f %f #%s\n" % (point[0], point[1], point[2], self.kpoints_seekpath["path"][0][1]))
-            for i in range(1, len(self.kpoints_seekpath["path"])):
-                if self.kpoints_seekpath["path"][i][0] == self.kpoints_seekpath["path"][i-1][1]:
-                    point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][1]]
-                    fout.write("%f %f %f #%s\n" % (point[0], point[1], point[2], self.kpoints_seekpath["path"][i][1]))
-                else:
-                    point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][0]]
-                    fout.write("%f %f %f #%s\n" % (point[0], point[1], point[2], self.kpoints_seekpath["path"][i][0]))
-                    point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][1]]
-                    fout.write("%f %f %f #%s\n" % (point[0], point[1], point[2], self.kpoints_seekpath["path"][i][1]))
+            for i in range(len(self.params["kptbounds"])):
+                fout.write("%f %f %f #%s\n" % (
+                    self.params["kptbounds"][i][0],
+                    self.params["kptbounds"][i][1],
+                    self.params["kptbounds"][i][2],
+                    self.params["kptbounds"][i][3],
+                    ))
         # end
         #
         fout.write("\n")
 
-    def set_band(self, system):
+    def set_band(self, kptbounds=None):
         """
-        system is an instance of abinit.base.system.abinit_system
+        self.params["kptbounds"]: 
+            the high symmetry k point path used in bands structure calculation
+            in format like this:
+            
+            [[kx, ky, kz, label, connect_indicator], ...] like [[0.0, 0.0, 0.0, 'GAMMA', 15], ...]
+            
+            if connect_indicator in a kpoint is an integer, then it will connect to the following point
+            through the number of kpoints defined by connect_indicator.
+            
+            if connect_indicator in a kpoint is '|', then it will not connect to the following point,
         """
-        import seekpath
-        lattice = system.xyz.cell  # [system.xyz.cell[0:3], system.xyz.cell[3:6], system.xyz.cell[6:9]]
-        positions = []
-        numbers = []
-        #a = np.sqrt(system.xyz.cell[0]**2 + system.xyz.cell[1]**2 + system.xyz.cell[2]**2)
-        #b = np.sqrt(system.xyz.cell[3]**2 + system.xyz.cell[4]**2 + system.xyz.cell[5]**2)
-        #c = np.sqrt(system.xyz.cell[6]**2 + system.xyz.cell[7]**2 + system.xyz.cell[8]**2)
-        a = np.sqrt(system.xyz.cell[0][0]**2 + system.xyz.cell[0][1]**2 + system.xyz.cell[0][2]**2)
-        b = np.sqrt(system.xyz.cell[1][0]**2 + system.xyz.cell[1][1]**2 + system.xyz.cell[1][2]**2)
-        c = np.sqrt(system.xyz.cell[2][0]**2 + system.xyz.cell[2][1]**2 + system.xyz.cell[2][2]**2)
-        for atom in system.xyz.atoms:
-            positions.append([atom.x / a, atom.y / b, atom.z / c])
-            numbers.append(system.xyz.specie_labels[atom.name])
-        structure = (lattice, positions, numbers)
-        self.kpoints_seekpath = seekpath.get_path(structure)
-        nks = 2
-        for i in range(1, len(self.kpoints_seekpath["path"])):
-            if self.kpoints_seekpath["path"][i][0] == self.kpoints_seekpath["path"][i-1][1]:
-                nks = nks + 1
-            else:
-                nks = nks + 2
-        self.params["kptopt"] = - (nks - 1)
+        self.params["kptbounds"] = kptbounds
+        self.params["kptopt"] = - (len(self.params["kptbounds"]) - 1)
         #
 
     def set_params(self, kpoints):
         for item in kpoints:
             self.params[item] = kpoints[item]
+
 
 class abinit_electrons:
     """

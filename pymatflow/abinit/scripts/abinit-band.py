@@ -27,6 +27,12 @@ if __name__ == "__main__":
     parser.add_argument("--mpi", type=str, default="",
             help="MPI command: like 'mpirun -np 4'")
 
+    parser.add_argument("--kptbounds", type=str, nargs="+", default=None,
+            help="manual input kpath for band structure calculation")
+
+    parser.add_argument("--kptbounds-file", type=str, default="kpath-from-seekpath.txt",
+            help="file to read the kpath for band structure calculation")
+
     parser.add_argument("--properties", nargs="+", type=int,
             default=[],
             help="options for properties calculation")
@@ -60,8 +66,70 @@ if __name__ == "__main__":
     electrons_params["vdw_xc"] = args.vdw_xc
     electrons_params["vdw_tol"] = args.vdw_tol
 
+    # --------------------------------------------------------------
+    # process kptbounds
+    
+    if args.kptbounds != None:
+        # kptbounds from script argument args.kptbounds.
+        kptbounds = []
+        for kpoint in args.kptbounds:
+            if kpoint.split()[4] != "|":
+                kptbounds.append([
+                    float(kpoint.split()[0]),
+                    float(kpoint.split()[1]),
+                    float(kpoint.split()[2]),
+                    kpoint.split()[3].upper(),
+                    int(kpoint.split()[4]),
+                    ])
+            elif kpoint.split()[4] == "|":
+                kptbounds.append([
+                    float(kpoint.split()[0]),
+                    float(kpoint.split()[1]),
+                    float(kpoint.split()[2]),
+                    kpoint.split()[3].upper(),
+                    "|",
+                    ])
+    elif args.kptbounds == None:
+        # kptbounds read from file specified by args.kptbounds_file
+        # file is in format like this
+        """
+        5 
+        0.0 0.0 0.0 #GAMMA 15
+        x.x x.x x.x #XXX |
+        x.x x.x x.x #XXX 10
+        x.x x.x x.x #XXX 15
+        x.x x.x x.x #XXX 20
+        """
+        # if there is a '|' behind the label it means the path is 
+        # broken after that point!!!
+        kptbounds = []
+        with open(args.kptbounds_file, 'r') as fin:
+            kptbounds_file = fin.readlines()
+        nk = int(kptbounds_file[0])
+        for i in range(nk):
+            if kptbounds_file[i+1].split("\n")[0].split()[4] != "|":
+                kptbounds.append([
+                    float(kptbounds_file[i+1].split()[0]),
+                    float(kptbounds_file[i+1].split()[1]),
+                    float(kptbounds_file[i+1].split()[2]),
+                    kptbounds_file[i+1].split()[3].split("#")[1].upper(),
+                    int(kptbounds_file[i+1].split()[4]),
+                    ])
+            elif kptbounds_file[i+1].split("\n")[0].split()[4] == "|":
+                kptbounds.append([
+                    float(kptbounds_file[i+1].split()[0]),
+                    float(kptbounds_file[i+1].split()[1]),
+                    float(kptbounds_file[i+1].split()[2]),
+                    kptbounds_file[i+1].split()[3].split("#")[1].upper(),
+                    '|',
+                    ])
+    else:
+        pass
+    # --------------------------------------------------------------------
+
 
     task = static_run()
     task.get_xyz(args.file)
     task.set_params(electrons=electrons_params)
+    task.electrons.kpoints.set_band(kptbounds=kptbounds)
     task.band(directory=args.directory, mpi=args.mpi, runopt=args.runopt)

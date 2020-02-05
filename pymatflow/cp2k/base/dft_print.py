@@ -2,7 +2,6 @@
 # _*_ coding: utf-8 _*_
 
 import numpy as np
-import seekpath
 
 # ===============================
 # CP2K / FORCE_EVAL / DFT / PRINT
@@ -40,56 +39,38 @@ class cp2k_dft_print_band_structure:
         self.params["FILE_NAME"] = "bands.bs"
 
     def to_input(self, fout):
-        # self.kpoints_seekpath is defined by self.set_band()
         # so when you activate band calculation by setting self.status to True,
-        # you should also pass an instance of base_xyz to self.set_band()
-        # to set the kpoints path using seekpath program
+        # you should also pass an kpath to self.set_band()
+        # to set the kpoints path used in band structure calculation 
         fout.write("\t\t\t&BAND_STRUCTURE\n")
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("\t\t\t\t%s %s\n" % (item, self.params[item]))
-        fout.write("\t\t\t\t&KPOINT_SET\n")
-        fout.write("\t\t\t\t\tUNITS B_VECTOR\n")
-        point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][0][0]]
-        fout.write("\t\t\t\t\tSPECIAL_POINT %s %f %f %f\n" % (self.kpoints_seekpath["path"][0][0], point[0], point[1], point[2]))
-        point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][0][1]]
-        fout.write("\t\t\t\t\tSPECIAL_POINT %s %f %f %f\n" % (self.kpoints_seekpath["path"][0][1], point[0], point[1], point[2]))
-        for i in range(1, len(self.kpoints_seekpath["path"])):
-            if self.kpoints_seekpath["path"][i][0] == self.kpoints_seekpath["path"][i-1][1]:
-                point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][1]]
-                fout.write("\t\t\t\t\tSPECIAL_POINT %s %f %f %f\n" % (self.kpoints_seekpath["path"][i][1], point[0], point[1], point[2]))
-            else:
-                point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][0]]
-                fout.write("\t\t\t\t\tSPECIAL_POINT %s %f %f %f\n" % (self.kpoints_seekpath["path"][i][0], point[0], point[1], point[2]))
-                point = self.kpoints_seekpath["point_coords"][self.kpoints_seekpath["path"][i][1]]
-                fout.write("\t\t\t\t\tSPECIAL_POINT %s %f %f %f\n" % (self.kpoints_seekpath["path"][i][1], point[0], point[1], point[2]))
-        fout.write("\t\t\t\t\tNPOINTS 20\n")
-        fout.write("\t\t\t\t&END KPOINT_SET\n")
+        for i in range(len(self.kpath) - 1):
+            if self.kpath[i][4] != "|" and type(self.kpath[i][4] == int):
+                fout.write("\t\t\t\t&KPOINT_SET\n")
+                fout.write("\t\t\t\t\tUNITS B_VECTOR\n")
+                fout.write("\t\t\t\t\tSPECIAL_POINT %s %f %f %f\n" % (self.kpath[i][3], self.kpath[i][0], self.kpath[i][1], self.kpath[i][2]))
+                fout.write("\t\t\t\t\tSPECIAL_POINT %s %f %f %f\n" % (self.kpath[i+1][3], self.kpath[i+1][0], self.kpath[i+1][1], self.kpath[i+1][2]))
+                fout.write("\t\t\t\t\tNPOINTS %d\n" % self.kpath[i][4])
+                fout.write("\t\t\t\t&END KPOINT_SET\n")
         fout.write("\t\t\t&END BAND_STRUCTURE\n")
 
-    def set_band(self, xyz):
+    def set_band(self, kpath=None):
         """
-        xyz is an instance of base_xyz, it is used by seekpath to generate k-path
+        kpath: 
+            the high symmetry k point path used in bands structure calculation
+            in format like this:
+            
+            [[kx, ky, kz, label, connect_indicator], ...] like [[0.0, 0.0, 0.0, 'GAMMA', 15], ...]
+            
+            if connect_indicator in a kpoint is an integer, then it will connect to the following point
+            through the number of kpoints defined by connect_indicator.
+            
+            if connect_indicator in a kpoint is '|', then it will not connect to the following point,
         """
         self.band_structure = True
-        # --------------
-        # using seekpath
-        # --------------
-        lattice = xyz.cell  # [xyz.cell[0:3], xyz.cell[3:6], xyz.cell[6:9]]
-        positions = []
-        numbers = []
-        #a = np.sqrt(xyz.cell[0]**2 + xyz.cell[1]**2 + xyz.cell[2]**2)
-        #b = np.sqrt(xyz.cell[3]**2 + xyz.cell[4]**2 + xyz.cell[5]**2)
-        #c = np.sqrt(xyz.cell[6]**2 + xyz.cell[7]**2 + xyz.cell[8]**2)
-        a = np.sqrt(xyz.cell[0][0]**2 + xyz.cell[0][1]**2 + xyz.cell[0][2]**2)
-        b = np.sqrt(xyz.cell[1][0]**2 + xyz.cell[1][1]**2 + xyz.cell[1][2]**2)
-        c = np.sqrt(xyz.cell[2][0]**2 + xyz.cell[2][1]**2 + xyz.cell[2][2]**2)
-        for atom in xyz.atoms:
-            positions.append([atom.x / a, atom.y / b, atom.z / c])
-            numbers.append(xyz.specie_labels[atom.name])
-        structure = (lattice, positions, numbers)
-        self.kpoints_seekpath = seekpath.get_path(structure)
-
+        self.kpath = kpath
 
     def set_params(self, params):
         for item in params:
