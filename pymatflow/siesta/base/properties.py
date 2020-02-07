@@ -131,10 +131,10 @@ class siesta_properties:
         fout.write("WriteBands false\n") # do not write bands to the standard out
         if option == 0:
             fout.write("%block BandLines\n")
-            fout,write("%d %f %f %f %s\n" % (1, self.bandlines[0][0], self.bandlines[0][1], self.bandlines[0][2], self.bandlines[0][3]))
+            fout.write("%d %f %f %f %s\n" % (1, self.bandlines[0][0], self.bandlines[0][1], self.bandlines[0][2], self.bandlines[0][3]))
             for i in range(1, len(self.bandlines)):
                 fout.write("%d %f %f %f %s\n" % (
-                    self.bandlines[i-1][4] if type(self.bandlines[i-1][4]) == int else 0,
+                    self.bandlines[i-1][4] if type(self.bandlines[i-1][4]) == int else 1, # I want to set it to 0 like in qe, but it won't work normally, so set to 1 now.
                     self.bandlines[i][0], self.bandlines[i][1], self.bandlines[i][2], self.bandlines[i][3],
                     ))
             fout.write("%endblock BandLines\n")

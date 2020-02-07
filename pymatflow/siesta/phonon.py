@@ -28,7 +28,8 @@ class phonon_run(siesta):
         self.ions.basic_setting(option="phonon")
 
     def phonon(self, directory="tmp-siesta-phonon", inpname="phonon.fdf", output="phonon.out",
-            mpi="", runopt="gen", borncharge=False):
+            mpi="", runopt="gen", borncharge=False,
+            jobname="phonon", nodes=1, ppn=32):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -52,6 +53,8 @@ class phonon_run(siesta):
 
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="siesta")
+            # gen pbs script
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="siesta", jobname=jobname, nodes=nodes, ppn=ppn)
 
         if runopt == "run" or runopt == "genrun":
             # run the simulation

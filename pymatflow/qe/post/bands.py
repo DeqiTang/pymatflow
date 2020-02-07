@@ -111,6 +111,27 @@ class bands_post:
             currently bandrange only works when option == 'matplotlib'
         """
         if option == "gnuplot":
+            # from self.bandfile_gnu build an file contain part all all of the band structure data
+            # depending on bandrange 
+            with open(self.bandfile_dat, 'r') as fout:
+                lines = fout.readlines()
+                nbnd = int(lines[0].split()[2].split(",")[0])
+
+            with open(self.bandfile_gnu, 'r') as fin:
+                band_data_gnu = fin.readlines()
+            len_xcoord = 0
+            for line in band_data_gnu:
+                if len(line.split()) == 0:
+                    break
+                len_xcoord += 1
+            begin = int(nbnd*bandrange[0])
+            end = int(nbnd*bandrange[1])
+            with open(self.bandfile_gnu+".bandrange", 'w') as fout:
+                for i in range(begin, end):
+                    for k in range((i*(len_xcoord+1)), i*(len_xcoord+1)+len_xcoord, 1):
+                        fout.write(band_data_gnu[k])
+                    fout.write("\n")
+            #
             with open("bandplot.gp", 'w') as fout:
                 fout.write("set terminal gif\n")
                 fout.write("set output 'bandstructure.gif'\n")
@@ -181,7 +202,7 @@ class bands_post:
                 fout.write("# fermi energy shifted to zero by use using 1:($2-%f) in plot function\n" % self.efermi)
                 fout.write("# and data in %s file is not modified at all, and is as it is\n" % self.bandfile_gnu)
                 fout.write("plot ")
-                fout.write("'%s' using 1:($2-%f) w l" % (self.bandfile_gnu, self.efermi))
+                fout.write("'%s' using 1:($2-%f) w l" % (self.bandfile_gnu+".bandrange", self.efermi))
                 # 
                 #for i in range(len(self.specialk) - 1):
                 #    fout.write(", %f, t" % (self.specialk[i]["xcoord"]))
@@ -189,6 +210,7 @@ class bands_post:
                 #
                 fout.write("\n")
             os.system("gnuplot bandplot.gp")
+            os.system("eog bandstructure.gif")
 
         elif option == "matplotlib":
             
@@ -218,7 +240,7 @@ class bands_post:
                         
             locs = [self.specialk[i]["xcoord"] for i in range(len(self.specialk))]
             labels = [r"$\Gamma$" if self.specialk[i]["label"] == "GAMMA" else r"$%s$" % self.specialk[i]["label"] for i in range(len(self.specialk))]
-            plt.xticks(locs, labels)
+            #plt.xticks(locs, labels)
             #
             # sometime the xcoord of two specialk might be the same
             # either caused from physical reason or when you specif

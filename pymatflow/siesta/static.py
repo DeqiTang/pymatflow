@@ -26,7 +26,8 @@ class static_run(siesta):
 
 
     def scf(self, directory="tmp-siesta-static", inpname="static-scf.fdf", output="static-scf.out",
-            mpi="", runopt="gen", properties=[]):
+            mpi="", runopt="gen", properties=[],
+            jobname="static-scf", nodes=1, ppn=32):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -44,6 +45,8 @@ class static_run(siesta):
 
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="siesta")
+            # gen pbs script
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="siesta", jobname=jobname, nodes=nodes, ppn=ppn)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -51,7 +54,8 @@ class static_run(siesta):
             os.chdir("../")
 
     def scf_restart(self, directory="tmp-siesta-static", inpname="static-scf-restart.fdf", output="static-scf-restart.out",
-            mpi="", runopt="gen", properties=[]):
+            mpi="", runopt="gen", properties=[],
+            jobname="static-scf", nodes=1, ppn=32):
 
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
@@ -73,6 +77,8 @@ class static_run(siesta):
            
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="siesta")
+            # gen pbs script
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="siesta", jobname=jobname, nodes=nodes, ppn=ppn)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -80,7 +86,8 @@ class static_run(siesta):
             os.chdir("../")
 
 
-    def converge_cutoff(self, emin, emax, step, directory="tmp-siesta-cutoff", mpi="", runopt="gen"):
+    def converge_cutoff(self, emin, emax, step, directory="tmp-siesta-cutoff", mpi="", runopt="gen",
+            jobname="meshcutoff-test", nodes=1, ppn=32):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -109,6 +116,19 @@ class static_run(siesta):
                     inp_name = "cutoff-%d.fdf" % meshcutoff
                     out_f_name = "cutoff-%d.out" % meshcutoff
                     fout.write("yhrun -N 1 -n 24 siesta < %s > %s\n" % (inp_name, out_f_name))
+            # gen pbs running script
+            with open("converge-cutoff.pbs", 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#PBS -N %s\n" % jobname)
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("\n")
+                fout.write("cd $PBS_O_WORKDIR\n")
+                fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+                for i in range(n_test + 1):
+                    meshcutoff = int(emin + i * step)
+                    inp_name = "cutoff-%d.fdf" % meshcutoff
+                    out_f_name = "cutoff-%d.out" % meshcutoff
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE siesta < %s > %s\n" % (inp_name, out_f_name))
 
         if runopt == "run" or runopt == "genrun":
             # run

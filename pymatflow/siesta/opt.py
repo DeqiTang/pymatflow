@@ -28,7 +28,8 @@ class opt_run(siesta):
 
 
     def opt(self, directory="tmp-siesta-opt", inpname="geometric-optimization.fdf", output="geometric-optimization.out",
-            mpi="", runopt="gen", mode=0):
+            mpi="", runopt="gen", mode=0,
+            jobname="siesta-opt", nodes=1, ppn=32):
         """
         mode:
             0: do not vary the cell
@@ -50,6 +51,8 @@ class opt_run(siesta):
 
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="siesta")
+            # gen pbs script
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="siesta", jobname=jobname, nodes=nodes, ppn=ppn)
 
         if runopt == "run" or runopt == "genrun":
             # run the simulation

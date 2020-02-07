@@ -27,7 +27,8 @@ class md_run(siesta):
         self.ions.basic_setting(option="md")
 
     def md(self, directory="tmp-siesta-md", inpname="molecular-dynamics.fdf", output="molecular-dynamics.out",
-            mpi="", runopt="gen"):
+            mpi="", runopt="gen",
+            jobname="siesta-md", nodes=1, ppn=32):
         """
         """
         if runopt == "gen" or runopt == "genrun":
@@ -45,6 +46,8 @@ class md_run(siesta):
 
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="siesta")
+            # gen pbs script
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="siesta", jobname=jobname, nodes=nodes, ppn=ppn)
 
         if runopt == "run" or runopt == "genrun":
             # run the simulation

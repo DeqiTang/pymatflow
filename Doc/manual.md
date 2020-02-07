@@ -179,8 +179,38 @@ task.geo_opt(directory="xxx")
 
 我打算将集成的seekpath生成k点部分改写为手动读取K点文件，然后以后计算时单独提供K点文件，如果要用seekpath，也可以用脚本生成可用的K点文件，然后pymatflow读取来进行计算。目前QE已经实现了手动读取，但是还没有移除掉内部的seekpath部分代码。
 
+对于`Quantum ESPRESSO`有一个技巧就是:
+
+在pw.x的bands类型计算的crystal_b类型的高对称点设置时，如果某个点后的 整数个连接点被设置为0，那么其效果是最后可以从bands.x的输出中查看到两个高对称点的xcoord是一样的。这是合理的，因为两个点之间的链接数为0，那么中间距离肯定就是0了。这样有一个好处就是，我们在设置$\Gamma–X–M–\Gamma–Z–R–A–Z|X–R|M–A$类型的布里渊区K-Path的时候，我们可以设置高对称点$Z|X$、$R|M$中链接的$Z$和$X$以及$R$和$M$的点数为0，那么最后相对应的$Z$与$X$以及$R$与$M$点的xcoord就会是一样的，我们在作能带图的时候就可以用$Z|X$、$R|M$这样的符号来表示，很方便。并且我的qe.post.band已经能够自动处理这种情况，从pw.x的bands计算输入文件中读取高对称点符号，从bands.x输出中获得对应高对称点的xcoord，下一步就是很不错的一步，对以后的高对称点label和xcoord进行refine处理，如果发现某两个相邻点的xcoord一样，那么就将两个合并，丢掉一个xcoord，并且将两个label进行合并为"xxx|xxx"的形式。
+
+在SIESTA的Bandsline模式中，我也想这样实现，但是不幸的是SIESTA中设置0个点来连接相邻高对称点时，计算输出的SystemLabel.bands文件中可以看到，程序直接从0个连接点处断开，后面的点就没输出了，意味着按照QE那种设置0个点链接断开点的技巧$\Gamma–X–M–\Gamma–Z–R–A–Z|X–R|M–A$这样一条路径，最后只会计算输出$\Gamma–X–M–\Gamma–Z–R–A–Z$，SIESTA读取到链接Z到X的点为0个时，就会舍弃后面的！！！！这个方法是行不通的，我又尝试了设置为1个点来链接，但是SystemLabel.bands文件末查到的对应两个高对称点的xcoord就不一样了，这不适合脚本向qe后处理那样自动处理。
+
 **`post-xxx-phonoy.py`**的使用
 
 `--qpath`参数，与能带计算中的``--kpath`参数格式一样，尽管phonoy不需要单独设置每个高对称q点之间链接点的数量，但是为了使用习惯的一致性，`--qpath`参数仍然需要`--qpath '0.0 0.0 0.0 GAMMA 10' ' 0.5 0.0 0.0 X |'`这样来设置。其中每个q点的最后一个值如果是"|"，那么表示其未与后面的q链接。如果不是"|"就表示是链接的。由于该值不会被脚本传递给Phonopy使用，因此除了"|"以外的任何合法字符都会被认为是表明是链接状态。
 
 如果是在其它脚本中`--kpath`的每个k点的最后一个参数应该要么是"|"要么是一个整数，表示该点与后面的点断开或者以该整数个点进行链接。
+
+### K点的单位类型
+
+就像实空间坐标有直角坐标(Cartesian)和晶体坐标(Crystal又叫做分数坐标Fractional)一样，倒易空间的K点也有直角坐标和晶体坐标(有时也叫作reciprocal坐标)。QE的crystal_b、CP2K的B_VECTOR、SIESTA的ReciprocalLatticeVectors类型的BandLinesScale、Abinit的kpt、kptbounds，以及vasp设置rec类型的K点都是晶体坐标或者说reciproca primitive vector形式。这样的kx、ky、kz的单位长度其实就分别是b1、b2、b3。
+
+QE的tpiba_b类型的K点就是直角坐标，kx、ky、kz的单位长度都是2pi/a。
+
+晶体坐标类型的K点大多都是有理数，使用起来比较方便。
+
+## TODO
+
+* VASP计算数据的提取，单独作PDOS、BAND图。
+* QE考虑SOC，以及对应PDOS、BAND分析工具对SOC的支持。
+* QE的DFPT计算声子谱的后处理，作图考虑"|".
+* phonopy声子谱数据的提取，额外作图。
+* Abinit、提交脚本的支持。
+* Abinit的Phonopy和能带测试。
+* SIESTA的Phonopy和能带测试。
+  * 目前我在服务器上安装的SIESTA计算退出似乎有异常，在计算完一个disp后无法正常继续计算下一个disp，且仍然占用计算资源，我发现作业脚本应该没问题，或许是SIESTA安装有问题。
+* CP2K能带后处理。
+* 一个单独的SeekPath模块用于为各类计算器准备K点，目前已经有了脚本，但是我想设计出模块，方便以后高通量计算使用。以前其实每个计算器都耦合了，但是我把它们移除了，打算单独抽出来，统一一个kpath的数据格式，来供各计算器使用。
+* 各类计算时间信息的分析。
+* 为各类计算编写保障性代码。
+* 

@@ -35,7 +35,8 @@ class phonopy_run(siesta):
 
 
     def phonopy(self, directory="tmp-siesta-phonopy", inpname="phono-with-phonopy.fdf", output="phono-with-phonopy.out",
-            mpi="", runopt="gen"):
+            mpi="", runopt="gen",
+            jobname="siesta-phonopy", nodes=1, ppn=32):
         """
         """
         if runopt == "gen" or runopt == "genrun":
@@ -110,6 +111,18 @@ class phonopy_run(siesta):
                     fout.write("yhrun -N 1 -n 24 siesta < supercell-%s.fdf > supercell-%s.out\n" % (disp, disp))
                     fout.write("cd ../\n")
 
+            # gen pbs script
+            with open(os.path.join(directory, "phonopy-job.pbs"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#PBS -N %s\n" % jobname)
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("\n")
+                fout.write("cd $PBS_O_WORKDIR\n")
+                fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+                for disp in disp_dirs:
+                    fout.write("cd disp-%s\n" % disp)
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE siesta < supercell-%s.fdf > supercell-%s.out\n" % (disp, disp))
+                    fout.write("cd ../\n")
 
         if runopt == "run" or runopt == "genrun":
             # run the simulation

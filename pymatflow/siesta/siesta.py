@@ -47,7 +47,20 @@ class siesta:
         """
         generating yhbatch job script for calculation
         """
-        with open(os.path.join(directory, inpname+".sub"), 'w') as fout:
+        with open(os.path.join(directory, inpname.split(".fdf")[0]+".sub"), 'w') as fout:
             fout.write("#!/bin/bash\n")
             fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % (cmd, inpname, output))
+
+    def gen_pbs(self, inpname, output, directory, cmd="siesta", jobname="siesta", nodes=1, ppn=32):
+        """
+        generating pbs job script for calculation
+        """
+        with open(os.path.join(directory, inpname.split(".fdf")[0]+".pbs"), 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("#PBS -N %s\n" % jobname)
+            fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+            fout.write("\n")
+            fout.write("cd $PBS_O_WORKDIR\n")
+            fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+            fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
 
