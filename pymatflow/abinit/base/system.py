@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
-import pymatgen as mg
 
+import pymatflow.base as base
 from pymatflow.base.xyz import base_xyz
 
 
@@ -42,7 +42,7 @@ class abinit_system:
         fout.write("\n\n")
         fout.write("znucl ")
         for element in self.xyz.specie_labels:
-            fout.write(str(mg.Element[element].number))
+            fout.write(str(base.element[element].number))
             fout.write(" ")
         fout.write("\n")
         fout.write("\n")

@@ -5,7 +5,6 @@ import numpy as np
 import sys
 import os
 import shutil
-import pymatgen as mg
 
 from emuhelper.abinit.base.xyz import abinit_xyz
 

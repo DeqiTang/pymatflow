@@ -5,7 +5,7 @@ import numpy as np
 import sys
 import os
 import shutil
-import pymatgen as mg
+import pymatflow.base as base
 
 from pymatflow.cp2k.base.dft_almo_scf import cp2k_dft_almo_scf
 from pymatflow.cp2k.base.dft_auxiliary_density_matrix_method import cp2k_dft_auxiliary_density_matrix_method
@@ -170,7 +170,7 @@ class cp2k_dft:
         """
         n_electrons = 0
         for atom in xyz.atoms:
-            n_electrons += mg.Element(atom.name).number
+            n_electrons += base.element[atom.name].number
         if n_electrons % 2 == 1:
             self.params["LSD"] = ".TRUE."
         else:

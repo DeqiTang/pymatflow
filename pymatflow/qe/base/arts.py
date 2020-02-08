@@ -2,11 +2,11 @@
 # _*_ coding: utf-8 _*_
 
 import numpy as np
-import pymatgen as mg
 import os
 import sys
 import re
 
+import pymatflow.base as base
 from pymatflow.base.xyz import base_xyz
 
 
@@ -48,7 +48,7 @@ class qe_arts:
                 if upf.split(".")[0] == element:
                     pseudo_file =upf
                     break
-            fout.write("%s %f %s\n" % (element, mg.Element(element).atomic_mass, pseudo_file))
+            fout.write("%s %f %s\n" % (element, base.element[element].mass, pseudo_file))
             pseudo_file = None
             # after pseudo_file used, set it to None to avoid it will be used in the next element
         fout.write("\n")

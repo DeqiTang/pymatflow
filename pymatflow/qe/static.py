@@ -4,7 +4,6 @@
 import os
 import sys
 import shutil
-import pymatgen as mg
 import matplotlib.pyplot as plt
 
 from pymatflow.qe.pwscf import pwscf

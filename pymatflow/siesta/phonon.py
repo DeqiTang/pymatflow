@@ -5,7 +5,6 @@ import numpy as np
 import sys
 import os
 import shutil
-import pymatgen as mg
 
 from pymatflow.siesta.siesta import siesta
 #from pymatflow.siesta.base.system import siesta_system

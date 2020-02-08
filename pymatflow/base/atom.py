@@ -1,11 +1,7 @@
-#!/usr/bin/evn python
-# _*_ coding: utf-8 _*_
-
 import numpy as np
 import sys
 import os
 import shutil
-import pymatgen as mg
 
 
 """

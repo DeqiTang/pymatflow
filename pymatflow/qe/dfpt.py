@@ -5,7 +5,6 @@ import os
 import sys
 import shutil
 import numpy as np
-import pymatgen as mg
 import matplotlib.pyplot as plt
 
 from pymatflow.qe.base.control import qe_control

@@ -5,7 +5,6 @@ import numpy as np
 import sys
 import os
 import shutil
-import pymatgen as mg
 
 from emuhelper.orca.base.xyz import orca_xyz
 
@@ -50,7 +49,7 @@ os.chdir("./tmp-converge-multiplicity")
 n_test = int(sys.argv[2])
 n_electrons = 0
 for atom in xyz.atoms:
-    n_electrons += mg.Element(atom.name).number
+    n_electrons += base.element[atom.name].number
 
 if n_electrons % 2 == 1:
     multiplicity = [2*i+2 for i in range(n_test)]

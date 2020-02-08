@@ -5,7 +5,6 @@ import os
 import sys
 import shutil
 import numpy as np
-import pymatgen as mg
 import matplotlib.pyplot as plt
 
 from pymatflow.cp2k.cp2k import cp2k

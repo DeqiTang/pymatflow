@@ -6,7 +6,6 @@ import sys
 import os
 import shutil
 import seekpath
-import pymatgen as mg
 import matplotlib.pyplot as plt
 
 from pymatflow.abinit.abinit import abinit

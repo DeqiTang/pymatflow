@@ -6,9 +6,6 @@ import sys
 import shutil
 import numpy as np
 
-#from pymatflow.cp2k.base.glob import cp2k_glob
-#from pymatflow.cp2k.base.force_eval import cp2k_force_eval
-
 from pymatflow.cp2k.cp2k import cp2k
 
 """

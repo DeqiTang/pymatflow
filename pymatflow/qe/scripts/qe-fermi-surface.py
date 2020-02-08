@@ -33,7 +33,7 @@ if __name__ == "__main__":
     parser.add_argument("--auto", type=int, default=0,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
-            choices=["pbs", "yh"]
+            choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
     parser.add("--jobname", type=str, default="pwscf-scf",
             help="jobname on the pbs server")

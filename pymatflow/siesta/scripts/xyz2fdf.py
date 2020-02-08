@@ -3,8 +3,8 @@
 
 import numpy as np
 import sys
-import pymatgen as mg
 
+import pymatflow.base as base
 
 """
 Usage:
@@ -63,7 +63,7 @@ class XYZ:
         species = list(species)
         species_with_order = {}
         for i in species:
-            species_with_order[i] = mg.Element(i).number
+            species_with_order[i] = base.element[i].number
         tmp = sorted(zip(species_with_order.values(), species_with_order.keys()))
         for i in range(len(tmp)):
             tmp[i] = list(tmp[i])
@@ -78,7 +78,7 @@ class XYZ:
         with open(fname, 'a') as fout:
             fout.write("%block ChemicalSpeciesLabel\n")
             for element in self.specie_labels:
-                fout.write("\t%d\t%d\t%s\n" % (self.specie_labels[element], mg.Element(element).number, element))
+                fout.write("\t%d\t%d\t%s\n" % (self.specie_labels[element], base.element[element].number, element))
             fout.write("%endblock ChemicalSpeciesLabel\n")
             fout.write("\n")
 

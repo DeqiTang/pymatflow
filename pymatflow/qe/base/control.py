@@ -2,7 +2,6 @@
 # _*_ coding: utf-8 _*_
 
 import sys
-import pymatgen as mg
 
 """
 usage:

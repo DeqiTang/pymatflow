@@ -5,8 +5,8 @@ import numpy as np
 import sys
 import os
 import shutil
-import pymatgen as mg
 
+import pymatflow.base as base
 from pymatflow.base.atom import Atom
 from pymatflow.base.xyz import base_xyz
 
@@ -49,7 +49,7 @@ class abinit_xyz(base_xyz):
             fout.write("\n")
             fout.write("znucl ")
             for element in self.specie_labels:
-                fout.write(str(mg.Element[element].number))
+                fout.write(str(base.element[element].number))
                 fout.write(" ")
             fout.write("\n")
             fout.write("\n")

@@ -6,7 +6,6 @@ import os
 import shutil
 import seekpath
 import numpy as np
-import pymatgen as mg
 
 from pymatflow.cp2k.base.xyz import cp2k_xyz
 

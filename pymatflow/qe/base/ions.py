@@ -3,7 +3,6 @@
 
 import sys
 
-import pymatgen as mg
 
 """
 usage:

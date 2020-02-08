@@ -5,7 +5,6 @@ import numpy as np
 import sys
 import os
 import shutil
-import pymatgen as mg
 
 from pymatflow.base.atom import Atom
 from pymatflow.base.xyz import base_xyz
@@ -33,7 +32,7 @@ class siesta_xyz(base_xyz):
         with open(fname, 'a') as fout:
             fout.write("%block ChemicalSpeciesLabel\n")
             for element in self.specie_labels:
-                fout.write("\t%d\t%d\t%s\n" % (self.specie_labels[element], mg.Element(element).number, element))
+                fout.write("\t%d\t%d\t%s\n" % (self.specie_labels[element], base.element[element].number, element))
             fout.write("%endblock ChemicalSpeciesLabel\n")
             fout.write("\n")
 

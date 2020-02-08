@@ -21,12 +21,21 @@ path = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-qe-neb")
-    parser.add_argument("--restart-mode", help="restart_mode", type=str, default="from_scratch")
-    parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
+
+    parser.add_argument("-d", "--directory", type=str, default="tmp-qe-neb",
+            help="directory of the calculation")
+
+    parser.add_argument("--restart-mode", type=str, default="from_scratch",
+            help="restart_mode")
+
+    parser.add_argument("--runopt", type=str, default="genrun",
+            help="gen, run, or genrun")
+
     parser.add_argument("--mpi", type=str, default="",
             help="MPI command: like 'mpirun -np 4'")
-    parser.add_argument("--images", help="the image xyz file(--images first.xyz imtermediate-1.xyz intermediate-2.xyz ... last.xyz)", nargs='+', type=str)
+
+    parser.add_argument("--images", type=str, nargs="+",
+            help="the image xyz file(--images first.xyz imtermediate-1.xyz intermediate-2.xyz ... last.xyz)")
 
 
     # -------------------------------------------------------------------
@@ -70,18 +79,34 @@ if __name__ == "__main__":
     # --------------------------------------------------------------
     #                params for neb namelist &path
     # --------------------------------------------------------------
-    parser.add_argument("--string-method", help="string_method", type=str, default="neb")
-    parser.add_argument("--nstep-path", help="nstep_path", type=int, default=100)
-    parser.add_argument("--opt-scheme", help="Specify the type of optimization scheme(sd, broyden, broyden2, quick-min, langevin)", type=str, default="broyden")
+    parser.add_argument("--string-method", type=str, default="neb",
+            help="string_method")
 
-    parser.add_argument("--num-of-images", help="number of total images(including the initial and final image). about how to set proper number of images: usually the inter-image distance between 1~2Bohr is OK", type=int, default=5)
+    parser.add_argument("--nstep-path", type=int, default=100,
+            help="nstep_path")
 
-    parser.add_argument("--k-max", help="Set them to use a Variable Elastic Constants scheme elastic constants are in the range [ k_min, k_max  ], this is useful to rise the resolution around the saddle point", type=float, default=0.3e0)
-    parser.add_argument("--k-min", help="Set them to use a Variable Elastic Constants scheme elastic constants are in the range [ k_min, k_max  ], this is useful to rise the resolution around the saddle point", type=float, default=0.2e0)
-    parser.add_argument("--ci-scheme", help="Specify the type of Climbing Image scheme(no-CI, auto, manual)", type=str, default="auto")
-    parser.add_argument("--path_thr", help="path_thr", type=float, default=0.05)
-    parser.add_argument("--ds", help="Optimisation step length ( Hartree atomic units )", type=float, default=1.e0)
-    parser.add_argument("--first-last-opt", type=bool, default=False)
+    parser.add_argument("--opt-scheme", type=str, default="broyden",
+            help="Specify the type of optimization scheme(sd, broyden, broyden2, quick-min, langevin)")
+
+    parser.add_argument("--num-of-images", type=int, default=5,
+            help="number of total images(including the initial and final image). about how to set proper number of images: usually the inter-image distance between 1~2Bohr is OK")
+
+    parser.add_argument("--k-max", type=float, default=0.3e0,
+            help="Set them to use a Variable Elastic Constants scheme elastic constants are in the range [ k_min, k_max  ], this is useful to rise the resolution around the saddle point")
+
+    parser.add_argument("--k-min", type=float, default=0.2e0,
+            help="Set them to use a Variable Elastic Constants scheme elastic constants are in the range [ k_min, k_max  ], this is useful to rise the resolution around the saddle point")
+
+    parser.add_argument("--ci-scheme", type=str, default="auto",
+            help="Specify the type of Climbing Image scheme(no-CI, auto, manual)")
+
+    parser.add_argument("--path_thr", type=float, default=0.05,
+            help="path_thr")
+
+    parser.add_argument("--ds", type=float, default=1.e0, help="Optimisation step length ( Hartree atomic units )")
+
+    parser.add_argument("--first-last-opt", type=bool, default=False,
+            help="whether to optimize the first and last image")
     
     # -----------------------------------------------------------------
     #                      for server handling
@@ -91,7 +116,7 @@ if __name__ == "__main__":
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
-    parser.add("--jobname", type=str, default="qe-neb",
+    parser.add_argument("--jobname", type=str, default="qe-neb",
             help="jobname on the pbs server")
     parser.add_argument("--nodes", type=int, default=1,
             help="Nodes used in server")

@@ -5,7 +5,6 @@ import os
 import sys
 import numpy as np
 import shutil
-import pymatgen as mg
 import matplotlib.pyplot as plt
 
 from pymatflow.siesta.base.system import siesta_system

@@ -5,10 +5,8 @@ import numpy as np
 import sys
 import os
 import shutil
-import seekpath
-import pymatgen as mg
 
-
+import pymatflow.base as base
 from pymatflow.siesta.siesta import siesta
 #from pymatflow.siesta.base.system import siesta_system
 #from pymatflow.siesta.base.electrons import siesta_electrons
@@ -63,10 +61,9 @@ class phonopy_run(siesta):
                 fout.write("NumberOfSpecies %s\n" % self.system.xyz.nspecies)
 
         
-                import pymatgen as mg
                 fout.write("%block ChemicalSpeciesLabel\n")
                 for element in self.system.xyz.specie_labels:
-                    fout.write("\t%d\t%d\t%s\n" % (self.system.xyz.specie_labels[element], mg.Element(element).number, element))
+                    fout.write("\t%d\t%d\t%s\n" % (self.system.xyz.specie_labels[element], base.element[element].number, element))
                 fout.write("%endblock ChemicalSpeciesLabel\n")
                 fout.write("\n")
 

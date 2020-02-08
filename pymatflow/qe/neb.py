@@ -135,9 +135,9 @@ class neb_run(pwscf):
                 fout.write("END_ENGINE_INPUT\n")
                 fout.write("END\n")
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="neb.x")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="neb.x", jobname=jobname, nodes=nodes, ppn=ppn)
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -188,15 +188,7 @@ class neb_run(pwscf):
         fout.write("\n")
         fout.write("END_POSITIONS\n")
 
-
-    def gen_yh(self, directory, inpname, output):
-        """
-        generating yhbatch job script for calculation
-        """
-        with open(os.path.join(directory, inpname.split(".in")[0]+".sub"), 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("yhrun -N 1 -n 24 neb.x -inp %s > %s\n" % (inpname, output))
-
+    
     def set_basic_path(self):
         self.path["string_method"] = 'neb'
         self.path["nstep_path"] = 100
@@ -208,4 +200,23 @@ class neb_run(pwscf):
         self.path["path_thr"] = 0.05e0
         self.path["ds"] = 1.0e0
 
+    def gen_yh(self, inpname, output, directory, cmd="neb.x"):
+        """
+        generating yhbatch job script for calculation
+        """
+        with open(os.path.join(directory, inpname.split(".in")[0]+".sub"), 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("yhrun -N 1 -n 24 %s -inp %s > %s\n" % (cmd, inpname, output))
 
+    def gen_pbs(self, inpname, output, directory, cmd="neb.x", jobname="neb.x", nodes=1, ppn=32):
+        """
+        generating pbs job script for calculation
+        """
+        with open(os.path.join(directory, inpname.split(".in")[0]+".pbs"), 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("#PBS -N %s\n" % jobname)
+            fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+            fout.write("\n")
+            fout.write("cd $PBS_O_WORKDIR\n")
+            fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+            fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s -inp %s > %s\n" % (cmd, inpname, output))

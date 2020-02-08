@@ -5,7 +5,6 @@ import numpy as np
 import sys
 import os
 import shutil
-import pymatgen as mg
 
 from pymatflow.cp2k.base.atom_print import cp2k_atom_print
 
