@@ -15,7 +15,7 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--directory", help="previously projwfc running directory", type=str, default="tmp-qe-static")
     parser.add_argument("--pwxbandsin", help="input file for the pw.x band calculation", type=str, default="static-bands.in")
     parser.add_argument("--bandsxout", help="outputfile of the band,x calculation", type=str, default="bands.out")
-    parser.add_argument("--option", type=str, default="matplotlib",
+    parser.add_argument("--engine", type=str, default="matplotlib",
             choices=["matplotlib", "gnuplot"],
             help="choosing gnuplot or matplotlib to do the band plot")
 
@@ -28,4 +28,5 @@ if __name__ == "__main__":
 
     os.chdir(args.directory)
     task = bands_post(pwxbandsin=args.pwxbandsin, bandsxout=args.bandsxout)
-    task.plot_band(option=args.option, bandrange=args.bandrange)
+    task.plot_band(option=args.engine, bandrange=args.bandrange)
+    os.chdir("../")

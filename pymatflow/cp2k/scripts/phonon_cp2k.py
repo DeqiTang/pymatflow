@@ -11,7 +11,7 @@ from emuhelper.cp2k.base.xyz import cp2k_xyz
 
 """
 Usage:
-    python phonon_cp2k.py xxx.xyz 
+    python phonon_cp2k.py xxx.xyz
     xxx.xyz is the input structure file
 
     make sure the xyz structure file and pseudopotential file
@@ -74,7 +74,7 @@ class cp2k_xyz_phonopy(cp2k_xyz):
                 fout.write("\t\t&END KIND\n")
 
 
-# OK now we can use XYZ class to extract information 
+# OK now we can use XYZ class to extract information
 # from the xyz file: sys.argv[1]
 
 #cutoff_min = int(sys.argv[2]) # in Ry: 1 Ry = 13.6 ev
@@ -247,4 +247,3 @@ os.system("phonopy --cp2k -c %s -p --dim='%s' --pa='1 0 0 0 1 0 0 0 1' --band='1
 # analyse the result
 
 import matplotlib.pyplot as plt
-

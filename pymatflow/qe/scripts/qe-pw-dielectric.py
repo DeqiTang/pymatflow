@@ -25,9 +25,11 @@ if __name__ == "__main__":
             help="Directory for the static running.")
     parser.add_argument("-f", "--file", type=str,
             help="The xyz file name.")
-    parser.add_argument("--runopt", type=str, default="genrun", 
+            
+    parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
+
     parser.add_argument("--mpi", type=str, default="",
             help="MPI command: like 'mpirun -np 4'")
 
@@ -40,7 +42,7 @@ if __name__ == "__main__":
     parser.add_argument("--ecutrho", type=int, default=None,
             help="Kinetic energy cutoff for charge density and potential in unit of Rydberg, default value: None")
 
-    parser.add_argument("--kpoints-option", type=str, default="automatic", 
+    parser.add_argument("--kpoints-option", type=str, default="automatic",
             choices=["automatic", "gamma", "crystal_b"],
             help="Kpoints generation scheme option for the SCF or non-SCF calculation")
 
@@ -54,7 +56,7 @@ if __name__ == "__main__":
     parser.add_argument("--occupations", type=str, default="tetrahedra",
             choices=["smearing", "tetrahedra", "tetrahedra_lin", "tetrahedra_opt", "fixed", "from_input"],
             help="Occupation method for the calculation.")
-    
+
     parser.add_argument("--smearing", type=str, default="gaussian",
             choices=["gaussian", "methfessel-paxton", "marzari-vanderbilt", "fermi-dirac"],
             help="Smearing type for occupations by smearing, default is gaussian in this script")
@@ -72,11 +74,11 @@ if __name__ == "__main__":
     parser.add_argument("--tstress", type=str, default=".false.",
             choices=[".true.", ".false."],
             help="calculate stress. default=.false.")
-    
+
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
+    parser.add_argument("--auto", type=int, default=3,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"]
@@ -92,9 +94,9 @@ if __name__ == "__main__":
 
     # ==========================================================
     # transfer parameters from the arg parser to static_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
-    
+
     control_params["tstress"] = args.tstress
     system_params["ecutwfc"] = args.ecutwfc
     system_params["ecutrho"] = args.ecutrho
@@ -104,7 +106,7 @@ if __name__ == "__main__":
     system_params["vdw_corr"] = args.vdw_corr
     system_params["nbnd"] = args.nbnd
     electrons_params["conv_thr"] = args.conv_thr
-    
+
 
     dielectric_pw(xyz_f=args.file, directory=args.directory, runopt=args.runopt, mpi=args.mpi, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
 

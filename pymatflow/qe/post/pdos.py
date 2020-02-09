@@ -19,7 +19,7 @@ class pdos_post:
         """
         this function first try to get fermi energy from the nscfout file
         and if nscfout doesn't exist it will try to extract fermi energy
-        from scfout. if both don't exist, it will stop the program and 
+        from scfout. if both don't exist, it will stop the program and
         print out the warnnig, which guarantee that the fermi energy is
         always shifted to 0
 
@@ -117,7 +117,7 @@ class pdos_post:
         # set formats
         font = {'size': fontsize}
         plt.tick_params(labelsize=fontsize)
-        
+
         plt.grid(which="major", axis="x", linewidth=0.75, linestyle="-", color="0.75")
         plt.grid(which="major", axis="y", linewidth=0.75, linestyle="-", color="0.75")
         plt.title("Projected Density of States")
@@ -144,12 +144,12 @@ class pdos_post:
         # plot the data in the specified percentage range
         begin = int(len(self.energies)*plotrange[0])
         end = int(len(self.energies)*plotrange[1])
-        
+
         # atom projected dos
         for atmorb in self.data:
             if self.get_atom_num(atmorb) in atomtoproj:
                 plt.plot(self.energies[begin:end], self.data[atmorb][begin:end, 2], label="Atom(%d):%s-%s" % (self.get_atom_num(atmorb), self.get_elem_type(atmorb), self.get_orb_type(atmorb)))
-        
+
         # plot the total dos in the specified percentage range
         plt.plot(self.energies[begin:end], self.tdos[begin:end, 2], label="Total-DOS")
         #
@@ -193,7 +193,7 @@ class pdos_post:
         plt.legend()
         plt.tight_layout()
         plt.savefig("%s" % filename)
-        plt.close()   
+        plt.close()
 
     def get_elem_type(self, atmorb):
         """
@@ -249,13 +249,14 @@ class pdos_post:
 
     def export(self, directory="tmp-qe-static", plotrange=[0, 1.0], atomtoproj=[], fontsize=10):
         os.chdir(directory)
-        self.plot_elem_orb_proj(plotrange=plotrange, filename="pdos-specified-range.png", fontsize=fontsize)
-        self.plot_atom_orb_proj(plotrange=plotrange, atomtoproj=atomtoproj, filename="pdos-atomproj-specified-range.png", fontsize=fontsize)
-        self.plot_tdos(plotrange=plotrange, filename="tdos-specified-range.png")
+        os.system("mkdir -p post-processing")
+        self.plot_elem_orb_proj(plotrange=plotrange, filename="post-processing/pdos-specified-range.png", fontsize=fontsize)
+        self.plot_atom_orb_proj(plotrange=plotrange, atomtoproj=atomtoproj, filename="post-processing/pdos-atomproj-specified-range.png", fontsize=fontsize)
+        self.plot_tdos(plotrange=plotrange, filename="post-processing/tdos-specified-range.png")
         # also plot the all data
-        self.plot_elem_orb_proj(plotrange=[0, 1.0], filename="pdos-all-energy-available.png", fontsize=fontsize)
-        self.plot_atom_orb_proj(plotrange=[0, 1.0], atomtoproj=atomtoproj, filename="pdos-atomproj-all-energy-available.png", fontsize=fontsize)
-        self.plot_tdos(plotrange=[0, 1.0], filename="tdos-all-energy-available.png")
-        self.markdown_report()
+        self.plot_elem_orb_proj(plotrange=[0, 1.0], filename="post-processing/pdos-all-energy-available.png", fontsize=fontsize)
+        self.plot_atom_orb_proj(plotrange=[0, 1.0], atomtoproj=atomtoproj, filename="post-processing/pdos-atomproj-all-energy-available.png", fontsize=fontsize)
+        self.plot_tdos(plotrange=[0, 1.0], filename="post-processing/tdos-all-energy-available.png")
+        self.markdown_report(md="post-processing/pdos-report.md")
         os.chdir("../")
     #

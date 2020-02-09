@@ -14,21 +14,24 @@ usage:
 control = {}
 system = {}
 electrons = {}
-    
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-d", "--directory", type=str, default="tmp-qe-static",
             help="Directory for the static running.")
+            
     parser.add_argument("-f", "--file", type=str,
             help="The xyz file name.")
-    parser.add_argument("--runopt", type=str, default="genrun", 
+
+    parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
+
     parser.add_argument("--mpi", type=str, default="",
             help="MPI command: like 'mpirun -np 4'")
- 
+
     # -------------------------------------------------------------------
     #                       scf related parameters
     # -------------------------------------------------------------------
@@ -38,7 +41,7 @@ if __name__ == "__main__":
     parser.add_argument("--ecutrho", type=int, default=None,
             help="Kinetic energy cutoff for charge density and potential in unit of Rydberg, default value: None")
 
-    parser.add_argument("--kpoints-option", type=str, default="automatic", 
+    parser.add_argument("--kpoints-option", type=str, default="automatic",
             choices=["automatic", "gamma", "crystal_b"],
             help="Kpoints generation scheme option for the SCF or non-SCF calculation")
 
@@ -52,7 +55,7 @@ if __name__ == "__main__":
     parser.add_argument("--occupations", type=str, default="smearing",
             choices=["smearing", "tetrahedra", "tetrahedra_lin", "tetrahedra_opt", "fixed", "from_input"],
             help="Occupation method for the calculation.")
-    
+
     parser.add_argument("--smearing", type=str, default="gaussian",
             choices=["gaussian", "methfessel-paxton", "marzari-vanderbilt", "fermi-dirac"],
             help="Smearing type for occupations by smearing, default is gaussian in this script")
@@ -65,12 +68,12 @@ if __name__ == "__main__":
             help="Type of Van der Waals correction in the calculation")
 
     parser.add_argument("--nbnd", type=int, default=None,
-            help="Number of electronic states (bands) to be calculated")  
+            help="Number of electronic states (bands) to be calculated")
 
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
+    parser.add_argument("--auto", type=int, default=3,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
@@ -85,7 +88,7 @@ if __name__ == "__main__":
 
     # ==========================================================
     # transfer parameters from the arg parser to static_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
     xyzfile = args.file
     system["ecutwfc"] = args.ecutwfc

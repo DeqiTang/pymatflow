@@ -14,11 +14,13 @@ usage:
 inputmopdos = {}
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()    
+    parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", help="directory for the static running", type=str, default="tmp-qe-static")
     parser.add_argument("--mpi", help="MPI commadn", type=str, default="")
     parser.add_argument("-f", "--file", help="the xyz file", type=str)
-    parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
+    parser.add_argument("--runopt", type=str, default="gen",
+            choices=["gen", "run", "genrun"],
+            help="Generate or run or both at the same time.")
     parser.add_argument("--fileout", help="prefix of output files containging molecular PDOS", type=str, default="molecularpdos")
     parser.add_argument("--ngauss", help="gaussian broadening type", type=int, default=0)
     parser.add_argument("--degauss", help="gaussian broadening in Ry", type=float, default=0.001)
@@ -29,7 +31,7 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
+    parser.add_argument("--auto", type=int, default=3,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"]
@@ -71,7 +73,7 @@ if __name__ == "__main__":
 
     task = static_run()
     task.get_xyz(args.file)
-    
+
     task.set_molecularpdos(inputmopdos=inputmopdos)
     task.molecularpdos(directory=args.directory, runopt=args.runopt, mpi=args.mpi, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
 

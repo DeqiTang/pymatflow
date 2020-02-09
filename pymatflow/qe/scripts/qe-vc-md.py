@@ -20,27 +20,31 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", help="directory for the vc-md running", type=str, default="tmp-qe-vc-md")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
-    parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
+    
+    parser.add_argument("--runopt", type=str, default="gen",
+            choices=["gen", "run", "genrun"],
+            help="Generate or run or both at the same time.")
+
     parser.add_argument("--mpi", help="MPI command", type=str, default="")
     parser.add_argument("--nstep", help="maximum ion steps", type=int, default=50)
     parser.add_argument("--ecutwfc", help="ecutwfc", type=int, default=100)
     parser.add_argument("--ecutrho", type=int, default=None,
             help="Kinetic energy cutoff for charge density and potential in unit of Rydberg, default value: None")
-    
-    parser.add_argument("--kpoints-option", type=str, default="automatic", 
+
+    parser.add_argument("--kpoints-option", type=str, default="automatic",
             choices=["automatic", "gamma", "crystal_b"],
             help="Kpoints generation scheme option for the SCF or non-SCF calculation")
 
     parser.add_argument("--kpoints-mp", type=int, nargs="+",
             default=[1, 1, 1, 0, 0, 0],
             help="Monkhorst-Pack kpoint grid, in format like --kpoints-mp 1 1 1 0 0 0")
-    
+
     parser.add_argument("--conv-thr", help="conv_thr of scf", type=float, default=1.e-6)
 
     parser.add_argument("--occupations", type=str, default="smearing",
             choices=["smearing", "tetrahedra", "tetrahedra_lin", "tetrahedra_opt", "fixed", "from_input"],
             help="Occupation method for the calculation.")
-    
+
     parser.add_argument("--smearing", type=str, default="gaussian",
             choices=["gaussian", "methfessel-paxton", "marzari-vanderbilt", "fermi-dirac"],
             help="Smearing type for occupations by smearing, default is gaussian in this script")
@@ -53,7 +57,7 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
+    parser.add_argument("--auto", type=int, default=3,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"]
@@ -68,7 +72,7 @@ if __name__ == "__main__":
 
     # ==========================================================
     # transfer parameters from the arg parser to static_run setting
-    # ==========================================================   
+    # ==========================================================
 
     args = parser.parse_args()
     xyzfile = args.file
@@ -80,7 +84,7 @@ if __name__ == "__main__":
     system["degauss"] = args.degauss
     system["vdw_corr"] = args.vdw_corr
     electrons["conv_thr"] = args.conv_thr
- 
+
     task = md_run()
     task.get_xyz(args.file)
     task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)

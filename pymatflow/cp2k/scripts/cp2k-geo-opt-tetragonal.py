@@ -8,7 +8,7 @@ import argparse
 
 
 from pymatflow.cp2k.opt import opt_run
-from pymatflow.base.server import server_handle
+from pymatflow.remote.server import server_handle
 
 """
 Usage:
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     parser.add_argument("--mpi", type=str, default="",
             help="MPI command: like 'mpirun -np 4'")
 
-    parser.add_argument("--runopt", type=str, default="genrun", 
+    parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
@@ -35,9 +35,9 @@ if __name__ == "__main__":
     parser.add_argument("--ls-scf", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="use linear scaling scf method")
-    
+
     parser.add_argument("--qs-method", type=str, default="GPW",
-            choices=["AM1", "DFTB", "GAPW", "GAPW_XC", "GPW", "LRIGPW", "MNDO", "MNDOD", 
+            choices=["AM1", "DFTB", "GAPW", "GAPW_XC", "GPW", "LRIGPW", "MNDO", "MNDOD",
                 "OFGPW", "PDG", "PM3", "PM6", "PM6-FM", "PNNL", "RIGPW", "RM1"],
             help="specify the electronic structure method")
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     parser.add_argument("-k", "--kpoints-scheme", type=str,
             default="GAMMA",
             help="DFT-KPOINTS-SCHEME(str): can be NONE, GAMMA, MONKHORST-PACK, MACDONALD, GENERAL. when you set MONKHORST-PACK, you should also add the three integers like 'monkhorst-pack 3 3 3'")
-    
+
     parser.add_argument("--diag", type=str, default="TRUE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="whether choosing tranditional diagonalization for SCF")
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
+    parser.add_argument("--auto", type=int, default=3,
             choices=[0, 1, 2, 3],
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
@@ -129,9 +129,9 @@ if __name__ == "__main__":
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
-    
+
     params["FORCE_EVAL-DFT-LS_SCF"] = args.ls_scf
     params["FORCE_EVAL-DFT-QS-METHOD"] = args.qs_method
     params["FORCE_EVAL-DFT-MGRID-CUTOFF"] = args.cutoff
@@ -167,10 +167,10 @@ if __name__ == "__main__":
     os.mkdir(args.directory)
 
     shutil.copyfile(task.force_eval.subsys.xyz.file, os.path.join(args.directory, task.force_eval.subsys.xyz.file))
-    
-    # 
+
+    #
     os.chdir(args.directory)
-    
+
     with open("geo-opt.inp.template", 'w') as fout:
         task.glob.to_input(fout)
         task.force_eval.to_input(fout)
@@ -193,7 +193,7 @@ if __name__ == "__main__":
 
         a = task.force_eval.subsys.xyz.cell[0][0]
         c = task.force_eval.subsys.xyz.cell[2][2]
-        
+
         fout.write("v11=%f\n" % task.force_eval.subsys.xyz.cell[0][0])
         fout.write("v12=%f\n" % task.force_eval.subsys.xyz.cell[0][1])
         fout.write("v13=%f\n" % task.force_eval.subsys.xyz.cell[0][2])
@@ -309,4 +309,3 @@ if __name__ == "__main__":
 
 
     server_handle(auto=args.auto, directory=args.directory, jobfilebase="geo-opt-tetragonal", server=args.server)
-        

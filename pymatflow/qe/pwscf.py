@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
 
 import os
 import sys
@@ -26,15 +24,15 @@ class pwscf:
         self.ions = qe_ions()
         self.cell = qe_cell()
         self.arts = qe_arts()
-        
-        #self.control.basic_setting("scf") 
+
+        #self.control.basic_setting("scf")
         self.electrons.basic_setting()
         self.set_kpoints() # default kpoint setting
 
     def get_xyz(self, xyzfile):
         """
         xyz_f:
-            a modified xyz formatted file(the second line specifies the cell of the 
+            a modified xyz formatted file(the second line specifies the cell of the
             system).
         """
         self.arts.xyz.get_xyz(xyzfile)
@@ -45,7 +43,7 @@ class pwscf:
     def set_params(self, control={}, system={}, electrons={}, ions={}, cell={}):
         # check if user try to set occupations and smearing and degauss
         # through system. if so, use self.set_occupations() which uses
-        # self.system.set_occupations() to set them, as self.system.set_params() 
+        # self.system.set_occupations() to set them, as self.system.set_params()
         # is suppressed from setting occupations related parameters
         self.set_occupations(system)
         self.control.set_params(control)
@@ -58,17 +56,75 @@ class pwscf:
         # about the format of crystal_b
         # see corresponding comment for function self.arts.set_kpoints()
         self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp, crystal_b=crystal_b)
- 
+
+    def run(self, directory="tmp-pwscf", inpname="pwscf.in", output="pwscf.out", mpi="", runopt="gen",
+            jobname="pwscf", nodes=1, ppn=32):
+        """
+        directory: the place where all the magic happening
+
+        parameters:
+            directory: the overall static calculation directory
+
+        runopt: determine whether the calculation is executed.
+                there are three values: 'gen', 'genrun', 'run'
+                'gen': only generate the input files
+                'genrun': generate input files and run
+                'run': run from the previously generated input files
+                P.S.  run is run by local command directly rather than
+                      commit the job through job manager
+        Note:
+            two mode of generating the input files: (1) a brand new calculation
+            remove the directory if it already exists and create a brand new
+            directory for calculation. (2) a new calculation but if there exists
+            the directory already, will not remove it but just generate the input
+            files inside.
+        """
+        if runopt == 'gen' or runopt == 'genrun':
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
+
+            #os.system("cp *.UPF %s/" % directory)
+            #os.system("cp %s %s/" % (self.arts.xyz.file, directory))
+
+            # do not copy too many files at the same time or it will be slow
+            # so we do not copy all UPF files in the directory but just copy
+            # those used in the calculation.
+            shutil.copyfile(self.arts.xyz.file, os.path.join(directory, self.arts.xyz.file))
+            all_upfs = [s for s in os.listdir() if s.split(".")[-1] == "UPF"]
+            for element in self.arts.xyz.specie_labels:
+                for upf in all_upfs:
+                    if upf.split(".")[0] == element:
+                        shutil.copyfile(upf, os.path.join(directory, upf))
+                        break
+            #
+
+            with open(os.path.join(directory, inpname), 'w') as fout:
+                self.control.to_in(fout)
+                self.system.to_in(fout)
+                self.electrons.to_in(fout)
+                self.arts.to_in(fout)
+
+            # gen yhbatch script
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pw.x")
+            # gen pbs scripts
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="pw.x", jobname=jobname, nodes=nodes, ppn=ppn)
+
+        if runopt == 'genrun' or runopt == 'run':
+            os.chdir(directory)
+            os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
+            os.chdir("../")
+
     def set_atomic_forces(self, pressure=None, pressuredir=None):
-        self.arts.set_atomic_forces(pressure=pressure, direction=pressuredir)       
+        self.arts.set_atomic_forces(pressure=pressure, direction=pressuredir)
 
     def set_occupations(self, system):
         """
             # check if user try to set occupations and smearing and degauss
-            # through system. if so, use self.system.set_occupations() to 
+            # through system. if so, use self.system.set_occupations() to
             # set them, as self.system.set_params() is suppressed from setting
             # occupations related parameters
-            # if occupations == None, use default smearing occupation. and 
+            # if occupations == None, use default smearing occupation. and
             # if occupations == "tetrahedra" the value set for smearing and degauss is ignored.
             # if occupations == "smearing", the value of smearing and degauss
             # should be legacy, not None or other illegal values.
@@ -120,4 +176,3 @@ class pwscf:
             fout.write("cd $PBS_O_WORKDIR\n")
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
             fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
-

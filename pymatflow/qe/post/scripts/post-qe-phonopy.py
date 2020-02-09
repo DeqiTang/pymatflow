@@ -10,11 +10,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", help="directory of phonopy running", type=str, default="tmp-qe-phonopy")
     parser.add_argument("-f", "--file", help="input structure file", type=str, default=None)
-   
+
 
     parser.add_argument("--qpath", type=str, nargs="+", default=None,
             help="manual input qpath with labels to set the BAND for phonopy analysis")
-    
+
     parser.add_argument("--qpath-file", type=str, default="kpath-from-seekpath.txt",
             help="file to read the qpath to set the BAND for phonopy analysis")
 
@@ -27,15 +27,15 @@ if __name__ == "__main__":
             help="supercell_n used in phonopy calculation")
 
     args = parser.parse_args()
-    
+
     xyz = base_xyz()
     xyz.get_xyz(args.file)
-  
-    # obtain the qpath 
+
+    # obtain the qpath
     qpath = [] # [[kx, ky, kz, label, end_indicator], ...] like [[0.0, 0.0, 0.0, 'GAMMA', None], ...]
     # [[kx, ky, kz, label, connect_indicator], ...] like [[0.0, 0.0, 0.0, 'GAMMA', 15], ...]
     # if connect_indicator in a kpoint is an integer, then it will connect to the following point
-    # through the number of kpoints defined by connect_indicator.       
+    # through the number of kpoints defined by connect_indicator.
     # if connect_indicator in a kpoint is '|', then it will not connect to the following point,
     if args.qpath != None:
         # qpath from script argument args.qpath
@@ -95,7 +95,7 @@ if __name__ == "__main__":
     with open("pos.data", 'r') as fin:
         for line in fin:
             disps.append(line.split(".")[0].split("-")[1])
-    os.chdir("../") 
+    os.chdir("../")
 
     os.chdir(args.directory)
 
@@ -108,9 +108,9 @@ if __name__ == "__main__":
         fout.write("\n")
         fout.write("DIM = %d %d %d\n" % (args.supercell_n[0], args.supercell_n[1], args.supercell_n[2]))
         fout.write("MP = %d %d %d\n" % (args.mp[0], args.mp[1], args.mp[2]))
- 
-            
-                        
+
+
+
     with open("pdos.conf", 'w') as fout:
         fout.write("ATOM_NAME =")
         for element in xyz.specie_labels:
@@ -177,4 +177,3 @@ if __name__ == "__main__":
     os.system("bash phonopy-analysis.sh")
 
     os.chdir("../")
-

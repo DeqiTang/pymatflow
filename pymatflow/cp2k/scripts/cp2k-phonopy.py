@@ -19,12 +19,12 @@ if __name__ == "__main__":
             type=str, default="tmp-cp2k-phonopy",
             help="directory where the calculation happens")
 
-    parser.add_argument("-f", "--file", 
+    parser.add_argument("-f", "--file",
             type=str,
             help="the xyz file containing the structure to be simulated")
 
 
-    parser.add_argument("--runopt", type=str, default="genrun", 
+    parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
@@ -45,9 +45,9 @@ if __name__ == "__main__":
     parser.add_argument("--ls-scf", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="DFT-LS_SCF: use linear scaling scf method")
-    
+
     parser.add_argument("--qs-method", type=str, default="GPW",
-            choices=["AM1", "DFTB", "GAPW", "GAPW_XC", "GPW", "LRIGPW", "MNDO", "MNDOD", 
+            choices=["AM1", "DFTB", "GAPW", "GAPW_XC", "GPW", "LRIGPW", "MNDO", "MNDOD",
                 "OFGPW", "PDG", "PM3", "PM6", "PM6-FM", "PNNL", "RIGPW", "RM1"],
             help="DFT-QS-METHOD: specify the electronic structure method")
 
@@ -66,7 +66,7 @@ if __name__ == "__main__":
     parser.add_argument("-k", "--kpoints-scheme", type=str,
             default="GAMMA",
             help="DFT-KPOINTS-SCHEME(str): can be NONE, GAMMA, MONKHORST-PACK, MACDONALD, GENERAL. when you set MONKHORST-PACK, you should also add the three integers like 'monkhorst-pack 3 3 3'")
-    
+
     parser.add_argument("--diag", type=str, default="TRUE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="whether choosing tranditional diagonalization for SCF")
@@ -134,7 +134,7 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
+    parser.add_argument("--auto", type=int, default=3,
             choices=[0, 1, 2, 3],
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
@@ -150,7 +150,7 @@ if __name__ == "__main__":
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
 
     params["FORCE_EVAL-DFT-LS_SCF"] = args.ls_scf

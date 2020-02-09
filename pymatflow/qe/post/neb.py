@@ -26,13 +26,13 @@ class neb_post:
             self.job_done = True
         else:
             self.job_done = False
-        # 
+        #
         self.run_info["activation energy(->)"] = []
         self.run_info["activation eenrgy(<-)"] = []
         self.run_info["climbing image"] = []
         self.run_info["path length"] = []
         self.run_info["inter image distance"] = []
-       
+
         for line in self.lines:
             if len(line.split()) == 0:
                 continue
@@ -91,30 +91,28 @@ class neb_post:
 
 
 
-    def min_energy_path_gp(self, nebint='pwscf.int', nebdat='pwscf.dat', inpname="min-energy-path.gp", runopt="gen"):
-
-        if runopt == "gen" or runopt == "genrun":
-            with open(inpname, 'w') as fout:
-                #fout.write("set term postscript enhanced\n")
-                fout.write("set term gif\n")
-                #fout.write("set output 'min-energy-path.eps'\n")
-                fout.write("set output 'min-energy-path.gif'\n")
-                fout.write("set title 'Minimum Energy Path'\n")
-                fout.write("set xlabel 'Reaction coordinate / arb. u.'\n")
-                fout.write("set ylabel 'E - E_{IS} / eV'\n")
-                fout.write("set format y '%.2f'\n")
-                fout.write("set grid xtics ytics\n")
-                fout.write("set xzeroaxis lt -1\n")
-                fout.write("plot  [0:1][:] \\\n")
-                fout.write("    '%s' notitle w l lt 2 lw 4, \\\n" % nebint)
-                fout.write("    '%s' notitle w points lt 1 pt 7 ps 1.5\n" % nebdat)
-                #fout.write("pause -1\n")
-
-        if runopt == "run" or runopt == "genrun":
-            os.system("gnuplot %s" % inpname)
+    def min_energy_path_gp(self, nebint='pwscf.int', nebdat='pwscf.dat', gpname="min-energy-path.gp"):
+        with open(os.path.join("post-processing", gpname), 'w') as fout:
+            #fout.write("set term postscript enhanced\n")
+            fout.write("set term gif\n")
+            #fout.write("set output 'min-energy-path.eps'\n")
+            fout.write("set output 'min-energy-path.gif'\n")
+            fout.write("set title 'Minimum Energy Path'\n")
+            fout.write("set xlabel 'Reaction coordinate / arb. u.'\n")
+            fout.write("set ylabel 'E - E_{IS} / eV'\n")
+            fout.write("set format y '%.2f'\n")
+            fout.write("set grid xtics ytics\n")
+            fout.write("set xzeroaxis lt -1\n")
+            fout.write("plot  [0:1][:] \\\n")
+            fout.write("    '%s' notitle w l lt 2 lw 4, \\\n" % os.path.join("../", nebint))
+            fout.write("    '%s' notitle w points lt 1 pt 7 ps 1.5\n" % os.path.join("../", nebdat))
+            #fout.write("pause -1\n")
+        os.chdir("post-processing")
+        os.system("gnuplot %s" % gpname)
+        os.chdir("../")
 
     def min_energy_path_matplotlib(self, nebint='pwscf.int', nebdat='pwscf.dat'):
-        # read data 
+        # read data
         with open(nebint, 'r') as fout:
             energy_path = np.loadtxt(fout)
         with open(nebdat, 'r') as fout:
@@ -132,10 +130,10 @@ class neb_post:
         plt.grid(which="major", axis="y", linewidth=0.75, linestyle="-", color="0.75")
         plt.legend()
         plt.tight_layout()
-        plt.savefig("minimum-energy-path.png")
+        plt.savefig("post-processing/minimum-energy-path.png")
 
 
-    def md_report(self, md):
+    def md_report(self, md="neb-report.md"):
         """
         when writing Chinese to a file you must specify
         encoding='utf-8' when open the file for writing
@@ -151,7 +149,7 @@ class neb_post:
             # depending on the value of seconds in the time string, there are two situations:
             # when second is smaller than 10  it will be divided from xx:xx x, and when second
             # is larger or equal to 10 it will be together(xx:xx:xx).
-            # so we have to preprocess it to build the right time string to pass into 
+            # so we have to preprocess it to build the right time string to pass into
             # datetime.datetime.strptime()
             if len(self.run_info["start-time"].split()) == 8:
                 start_str = self.run_info["start-time"].split()[5]+"-"+self.run_info["start-time"].split()[7]
@@ -200,7 +198,7 @@ class neb_post:
             fout.write("![min energy path](min-energy-path.gif)\n")
             fout.write("\n")
 
-    def export(self, directory="tmp-qe-neb", nebint="pwscf.int", nebdat="pwscf.dat", nebout="neb.out", inpname="min-energy-path.gp", md="neb-report.md"):
+    def export(self, directory="tmp-qe-neb", nebint="pwscf.int", nebdat="pwscf.dat", nebout="neb.out", gpname="min-energy-path.gp", md="neb-report.md"):
         #
         # first check whether there is a previous neb running
         if not os.path.exists(directory):
@@ -209,11 +207,12 @@ class neb_post:
             print("===================================================\n")
             print("min_energy_path_gp plotting:\n")
             print("  directory of previous neb calculattion not found!\n")
-            sys.exit(1)       
+            sys.exit(1)
         os.chdir(directory)
+        os.system("mkdir -p post-processing")
         # use gnuplot to plot minimum energy path
-        self.min_energy_path_gp(nebint=nebint, nebdat=nebdat, inpname=inpname, runopt="genrun")
+        self.min_energy_path_gp(nebint=nebint, nebdat=nebdat, gpname=gpname)
         # use matplotlib to plot minimum energy path
         self.min_energy_path_matplotlib(nebint=nebint, nebdat=nebdat)
-        self.md_report(md=md)
+        self.md_report(md=os.path.join("post-processing", md))
         os.chdir("../")

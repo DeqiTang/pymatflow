@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
-import os 
+import os
 import argparse
 
 from pymatflow.cp2k.static import static_run
-from pymatflow.base.server import server_handle
+from pymatflow.remote.server import server_handle
 
 """
 usage: cp2k-converge-rel-cutoff.py xxx.xyz emin emax step cutoff
@@ -18,16 +18,16 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-rel-cutoff")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
 
-    parser.add_argument("--runopt", type=str, default="genrun", 
+    parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
     parser.add_argument("--ls-scf", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="use linear scaling scf method")
-    
+
     parser.add_argument("--qs-method", type=str, default="GPW",
-            choices=["AM1", "DFTB", "GAPW", "GAPW_XC", "GPW", "LRIGPW", "MNDO", "MNDOD", 
+            choices=["AM1", "DFTB", "GAPW", "GAPW_XC", "GPW", "LRIGPW", "MNDO", "MNDOD",
                 "OFGPW", "PDG", "PM3", "PM6", "PM6-FM", "PNNL", "RIGPW", "RM1"],
             help="specify the electronic structure method")
 
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     parser.add_argument("-k", "--kpoints-scheme", type=str,
             default="GAMMA",
             help="DFT-KPOINTS-SCHEME(str): can be NONE, GAMMA, MONKHORST-PACK, MACDONALD, GENERAL. when you set MONKHORST-PACK, you should also add the three integers like 'monkhorst-pack 3 3 3'")
-    
+
     parser.add_argument("--diag", type=str, default="TRUE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="whether choosing tranditional diagonalization for SCF")
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
+    parser.add_argument("--auto", type=int, default=3,
             choices=[0, 1, 2, 3],
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
@@ -90,7 +90,7 @@ if __name__ == "__main__":
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
 
 

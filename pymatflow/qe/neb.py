@@ -4,7 +4,7 @@
 import os
 import re
 import shutil
-import pymatgen as mg
+import pymatflow.base as base
 import matplotlib.pyplot as plt
 
 from pymatflow.qe.pwscf import pwscf
@@ -15,11 +15,11 @@ class neb_run(pwscf):
     Reference:
         http://www.quantum-espresso.org/Doc/INPUT_NEB.html
     Note:
-        check the official manual for neb for some knowledge 
+        check the official manual for neb for some knowledge
         about using neb.x (which is helpfule!)
 
-        A gross estimate of the required number of iterations is 
-        (number of images) * (number of atoms) * 3. 
+        A gross estimate of the required number of iterations is
+        (number of images) * (number of atoms) * 3.
         Atoms that do not move should not be counted
 
         the neb calculation is usually difficult to converge,
@@ -37,7 +37,7 @@ class neb_run(pwscf):
         self.set_basic_path()
 
         self.control.basic_setting("scf")
-        
+
     def get_images(self, images):
         """
         images:
@@ -63,7 +63,7 @@ class neb_run(pwscf):
         super().set_params(control=control, system=system, electrons=electrons)
 
         # must set "wf_collect = False", or it will come across with erros in davcio
-        # Error in routine davcio (10): 
+        # Error in routine davcio (10):
         # error while reading from file ./tmp/pwscf_2/pwscf.wfc1
         self.control.params["wf_collect"] = False
 
@@ -98,7 +98,7 @@ class neb_run(pwscf):
                         if upf.split(".")[0] == element:
                             shutil.copyfile(upf, os.path.join(directory, upf))
                             break
-                # 
+                #
             elif restart_mode == "restart":
                 self.path["restart_mode"] = restart_mode
                 # first check whether there is a previous neb running
@@ -111,7 +111,7 @@ class neb_run(pwscf):
                     sys.exit(1)
                 # this assumes the previous neb run and the current neb run are using the same inpname
                 os.chdir(directory)
-                os.system("mv %s %s.old" % (inpname, inpname)) 
+                os.system("mv %s %s.old" % (inpname, inpname))
                 os.chdir("../")
 
             with open(os.path.join(directory, inpname), 'w') as fout:
@@ -156,7 +156,7 @@ class neb_run(pwscf):
                 if match is not None and match.string.split(".")[-1] == 'UPF':
                     pseudo_file = match.string
                     break
-            fout.write("%s %f %s\n" % (element, mg.Element(element).atomic_mass, pseudo_file))
+            fout.write("%s %f %s\n" % (element, base.element[element].mass, pseudo_file))
         fout.write("\n")
         cell = self.arts.xyz.cell
         fout.write("CELL_PARAMETERS angstrom\n")
@@ -188,7 +188,7 @@ class neb_run(pwscf):
         fout.write("\n")
         fout.write("END_POSITIONS\n")
 
-    
+
     def set_basic_path(self):
         self.path["string_method"] = 'neb'
         self.path["nstep_path"] = 100

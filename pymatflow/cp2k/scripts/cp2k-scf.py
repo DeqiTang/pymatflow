@@ -5,7 +5,7 @@ import os
 import argparse
 
 from pymatflow.cp2k.static import static_run
-from pymatflow.base.server import server_handle
+from pymatflow.remote.server import server_handle
 
 """
 usage:
@@ -24,9 +24,9 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--file", type=str,
             help="the xyz file containing the structure to be simulated")
 
-    parser.add_argument("--runopt", type=str, default="genrun", 
+    parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
-            help="generate or run or both at the same time.")
+            help="Generate or run or both at the same time.")
 
     parser.add_argument("--mpi", type=str, default="",
             help="mpi command: like --mpi='mpirun -np 4'")
@@ -34,9 +34,9 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------
     #                    force_eval/dft related parameters
     # ------------------------------------------------------------------
-    
+
     parser.add_argument("--qs-method", type=str, default="gpw",
-            choices=["am1", "dftb", "gapw", "gapw_xc", "gpw", "lrigpw", "mndo", "mndod", 
+            choices=["am1", "dftb", "gapw", "gapw_xc", "gpw", "lrigpw", "mndo", "mndod",
                 "ofgpw", "pdg", "pm3", "pm6", "pm6-fm", "pnnl", "rigpw", "rm1"],
             help="dft-qs-method: specify the electronic structure method")
 
@@ -55,13 +55,13 @@ if __name__ == "__main__":
     parser.add_argument("-k", "--kpoints-scheme", type=str,
             default="GAMMA",
             help="DFT-KPOINTS-SCHEME(str): can be NONE, GAMMA, MONKHORST-PACK, MACDONALD, GENERAL. when you set MONKHORST-PACK, you should also add the three integers like 'monkhorst-pack 3 3 3'")
-   
+
     parser.add_argument("--kpath", type=str, nargs="+", default=None,
             help="manual input kpath for band structure calculation")
 
     parser.add_argument("--kpath-file", type=str, default="kpath-from-seekpath.txt",
             help="file to read the kpath for band structure calculation")
-    
+
     parser.add_argument("--diag", type=str, default="TRUE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="whether choosing tranditional diagonalization for SCF")
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     parser.add_argument("--smear", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="switch on or off smearing for occupation")
-    
+
     parser.add_argument("--smear-method", type=str, default="FERMI_DIRAC",
             help="smearing type: FERMI_DIRAC, ENERGY_WINDOW")
 
@@ -139,11 +139,11 @@ if __name__ == "__main__":
     parser.add_argument("--dft-print-e-density-cube-stride", type=int, nargs="+",
             default=[1, 1, 1],
             help="DFT-PRINT-E_DENSITY_CUBE-STRIDE")
-    
+
     # ------------------------------------------------------------------
     #                    force_eval/properties related parameters
     # ------------------------------------------------------------------
- 
+
     parser.add_argument("--properties-resp-slab-sampling-range", type=float, nargs="+",
             default=[0.3, 3.0],
             help="PROPERTIES-RESP-SLAB_SAMPLING-RANGE.")
@@ -160,7 +160,7 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
+    parser.add_argument("--auto", type=int, default=3,
             choices=[0, 1, 2, 3],
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
@@ -178,7 +178,7 @@ if __name__ == "__main__":
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
 
     params["FORCE_EVAL-DFT-LS_SCF"] = args.ls_scf
@@ -210,7 +210,7 @@ if __name__ == "__main__":
     params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-RANGE"] = args.properties_resp_slab_sampling_range
     params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-SURF_DIRECTION"] = args.properties_resp_slab_sampling_surf_direction
     params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST"] = args.properties_resp_slab_sampling_atom_list
-   
+
     # if band structure is in the printout option get the kpath
     if 2 in args.printout_option and args.kpath != None:
         # kpath from script argument args.kpath
@@ -236,14 +236,14 @@ if __name__ == "__main__":
         # kpath read from file specified by args.kpath_file
         # file is in format like this
         """
-        5 
+        5
         0.0 0.0 0.0 #GAMMA 15
         x.x x.x x.x #XXX |
         x.x x.x x.x #XXX 10
         x.x x.x x.x #XXX 15
         x.x x.x x.x #XXX 20
         """
-        # if there is a '|' behind the label it means the path is 
+        # if there is a '|' behind the label it means the path is
         # broken after that point!!!
         kpath = []
         with open(args.kpath_file, 'r') as fin:

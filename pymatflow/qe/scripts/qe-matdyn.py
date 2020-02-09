@@ -14,12 +14,14 @@ usage:
 matdyn_input = {}
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()    
+    parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", help="directory for the static running", type=str, default="tmp-qe-static")
     parser.add_argument("--mpi", help="MPI commadn", type=str, default="")
     parser.add_argument("-f", "--file", help="the xyz file", type=str)
-    parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
-   
+    parser.add_argument("--runopt", type=str, default="gen",
+            choices=["gen", "run", "genrun"],
+            help="Generate or run or both at the same time.")
+
     # --------------------------------------------------------------
     # for matdyn
     # --------------------------------------------------------------
@@ -33,7 +35,7 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
+    parser.add_argument("--auto", type=int, default=3,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
@@ -63,16 +65,16 @@ if __name__ == "__main__":
        for point in args.qpoints:
            if len(point.split()) == 4:
                qpoints.append([
-                   float(point.split()[0]), 
-                   float(point.split()[1]), 
+                   float(point.split()[0]),
+                   float(point.split()[1]),
                    float(point.split()[2]),
                    float(point.split()[3]),
                    None,
                    ])
            elif len(point.split()) == 5:
                 qpoints.append([
-                   float(point.split()[0]), 
-                   float(point.split()[1]), 
+                   float(point.split()[0]),
+                   float(point.split()[1]),
                    float(point.split()[2]),
                    float(point.split()[3]),
                    point.split()[4].upper(),
@@ -97,16 +99,16 @@ if __name__ == "__main__":
                 continue
             if len(lines[i+1].split()) == 4:
                 qpoints.append([
-                    float(lines[i+1].split()[0]), 
-                    float(lines[i+1].split()[1]), 
+                    float(lines[i+1].split()[0]),
+                    float(lines[i+1].split()[1]),
                     float(lines[i+1].split()[2]),
                     float(lines[i+1].split()[3]),
                     None,
                 ])
             else:
                 qpoints.append([
-                    float(lines[i+1].split()[0]), 
-                    float(lines[i+1].split()[1]), 
+                    float(lines[i+1].split()[0]),
+                    float(lines[i+1].split()[1]),
                     float(lines[i+1].split()[2]),
                     float(lines[i+1].split()[3]),
                     lines[i+1].split("\n")[0].split("#")[1].upper(),

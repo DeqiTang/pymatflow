@@ -22,11 +22,14 @@ if __name__ == "__main__":
 
     parser.add_argument("-d", "--directory", type=str, default="tmp-qe-static",
             help="Directory for the static running.")
+
     parser.add_argument("-f", "--file", type=str,
             help="The xyz file containing the structure to be simulated.")
-    parser.add_argument("--runopt", type=str, default="genrun", 
+
+    parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
+            
     parser.add_argument("--mpi", type=str, default="",
             help="MPI command: like 'mpirun -np 4'")
 
@@ -39,14 +42,14 @@ if __name__ == "__main__":
     parser.add_argument("--ecutrho", type=int, default=None,
             help="Kinetic energy cutoff for charge density and potential in unit of Rydberg, default value: None")
 
-    parser.add_argument("--kpoints-option", type=str, default="crystal_b", 
+    parser.add_argument("--kpoints-option", type=str, default="crystal_b",
             choices=["automatic", "gamma", "crystal_b"],
             help="Kpoints generation scheme option for band calculation")
 
     parser.add_argument("--kpoints-mp", type=str, nargs="+",
             default=[1, 1, 1, 0, 0, 0],
             help="Monkhorst-Pack kpoint grid, in format like --kpoints-mp 1 1 1 0 0 0")
-    
+
     parser.add_argument("--crystal-b", type=str, nargs="+", default=None,
             help="manual input kpath in crystal_b, like --crystal-b '0.000000 0.000000 0.000000 GAMMA 5' '0.500000 0.000000 0.000000 X 5' '0.0000 0.000 0.50000 A |' '0.5 0.5 0.5 R '")
 
@@ -59,7 +62,7 @@ if __name__ == "__main__":
     parser.add_argument("--occupations", type=str, default="smearing",
             choices=["smearing", "tetrahedra", "tetrahedra_lin", "tetrahedra_opt", "fixed", "from_input"],
             help="Occupation method for the calculation.")
-    
+
     parser.add_argument("--smearing", type=str, default="gaussian",
             choices=["gaussian", "methfessel-paxton", "marzari-vanderbilt", "fermi-dirac"],
             help="Smearing type for occupations by smearing, default is gaussian in this script")
@@ -80,11 +83,11 @@ if __name__ == "__main__":
     parser.add_argument("--lsym", type=str, default=".true.",
             choices=[".true.", ".false."],
             help="set lsym variable in bands.x input.")
-  
+
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
+    parser.add_argument("--auto", type=int, default=3,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
@@ -135,14 +138,14 @@ if __name__ == "__main__":
         # crystal_b read from file specified by args.crystal_b_file
         # file is in format like this
         """
-        5 
+        5
         0.0 0.0 0.0 #GAMMA 15
         x.x x.x x.x #XXX |
         x.x x.x x.x #XXX 10
         x.x x.x x.x #XXX 15
         x.x x.x x.x #XXX 20
         """
-        # if there is a '|' behind the label it means the path is 
+        # if there is a '|' behind the label it means the path is
         # broken after that point!!!
         crystal_b = []
         with open(args.crystal_b_file, 'r') as fin:
@@ -169,7 +172,7 @@ if __name__ == "__main__":
         pass
     # --------------------------------------------------------------------
 
-    
+
     task = static_run()
     task.get_xyz(args.file)
     task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp, crystal_b=crystal_b)

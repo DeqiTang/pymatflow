@@ -12,12 +12,14 @@ usage:
 """
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()    
+    parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", help="directory for the static running", type=str, default="tmp-qe-static")
     parser.add_argument("--mpi", help="MPI commadn", type=str, default="")
     parser.add_argument("-f", "--file", help="the xyz file", type=str)
-    parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
-   
+    parser.add_argument("--runopt", type=str, default="gen",
+            choices=["gen", "run", "genrun"],
+            help="Generate or run or both at the same time.")
+
     # --------------------------------------------------------------
     # for plotband
     # --------------------------------------------------------------
@@ -31,11 +33,11 @@ if __name__ == "__main__":
             help="freq step")
     parser.add_argument("--freq-reference", type=float, default=0.0,
             help="freq reference")
-   
+
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
+    parser.add_argument("--auto", type=int, default=3,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
@@ -62,4 +64,3 @@ if __name__ == "__main__":
     task.plotband_for_matdyn(directory=args.directory, mpi=args.mpi, runopt=args.runopt, freq_min=args.freq_min, freq_max=args.freq_max, efermi=args.efermi, freq_step=args.freq_step, freq_reference=args.freq_reference, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
 
     server_handle(auto=args.auto, directory=args.directory, jobfilebase="plotband", server=args.server)
-

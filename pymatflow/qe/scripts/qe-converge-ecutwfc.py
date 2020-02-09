@@ -2,7 +2,7 @@
 # _*_ coding: utf-8 _*_
 
 import os
-import argparse 
+import argparse
 
 from pymatflow.qe.static import static_run
 from pymatflow.remote.server import server_handle
@@ -18,16 +18,20 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-qe-ecutwfc")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
-    parser.add_argument("--runopt", help="gen run genrun", type=str, default="genrun")
+    
+    parser.add_argument("--runopt", type=str, default="gen",
+            choices=["gen", "run", "genrun"],
+            help="Generate or run or both at the same time.")
+
     parser.add_argument("--range", help="ecutwfc test range", nargs='+', type=int)
 
-    parser.add_argument("--kpoints-option", type=str, default="automatic", 
+    parser.add_argument("--kpoints-option", type=str, default="automatic",
             choices=["automatic", "gamma", "crystal_b"],
             help="Kpoints generation scheme option for the SCF or non-SCF calculation")
 
     parser.add_argument("--kpoints-mp", type=int, nargs="+",
             default=[1, 1, 1, 0, 0, 0],
-            help="Monkhorst-Pack kpoint grid, in format like --kpoints-mp 1 1 1 0 0 0")   
+            help="Monkhorst-Pack kpoint grid, in format like --kpoints-mp 1 1 1 0 0 0")
 
     parser.add_argument("--conv-thr", help="conv_thr", type=float, default=1.0e-6)
 
@@ -37,7 +41,7 @@ if __name__ == "__main__":
     parser.add_argument("--occupations", type=str, default="smearing",
             choices=["smearing", "tetrahedra", "tetrahedra_lin", "tetrahedra_opt", "fixed", "from_input"],
             help="Occupation method for the calculation.")
-    
+
     parser.add_argument("--smearing", type=str, default="gaussian",
             choices=["gaussian", "methfessel-paxton", "marzari-vanderbilt", "fermi-dirac"],
             help="Smearing type for occupations by smearing, default is gaussian in this script")
@@ -52,7 +56,7 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
+    parser.add_argument("--auto", type=int, default=3,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
@@ -70,13 +74,13 @@ if __name__ == "__main__":
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================
     args = parser.parse_args()
-    
+
     system_params["occupations"] = args.occupations
     system_params["smearing"] = args.smearing
     system_params["degauss"] = args.degauss
     system_params["vdw_corr"] = args.vdw_corr
     electrons_params["conv_thr"] = args.conv_thr
-    
+
     task = static_run()
     task.get_xyz(args.file)
     task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)

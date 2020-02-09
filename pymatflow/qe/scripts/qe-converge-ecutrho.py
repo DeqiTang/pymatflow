@@ -19,16 +19,22 @@ electrons_params = {}
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-qe-ecutrho")
-    parser.add_argument("-f", "--file", help="the xyz file name", type=str)    
-    parser.add_argument("--runopt", help="gen run genrun", type=str, default="genrun")
+
+    parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+
+    parser.add_argument("--runopt", type=str, default="gen",
+            choices=["gen", "run", "genrun"],
+            help="Generate or run or both at the same time.")
+
     parser.add_argument("--range", help="ecutrho test range", nargs='+', type=int)
+
     parser.add_argument("--ecutwfc", help="ecutwfc value", type=int)
- 
-    parser.add_argument("--kpoints-option", type=str, default="automatic", 
+
+    parser.add_argument("--kpoints-option", type=str, default="automatic",
             choices=["automatic", "gamma", "tpiba_b"],
             help="Kpoints generation scheme option for the SCF or non-SCF calculation")
 
-    parser.add_argument("--kpoints-option", type=str, default="automatic", 
+    parser.add_argument("--kpoints-option", type=str, default="automatic",
             choices=["automatic", "gamma", "crystal_b"],
             help="Kpoints generation scheme option for the SCF or non-SCF calculation")
 
@@ -37,7 +43,7 @@ if __name__ == "__main__":
     parser.add_argument("--occupations", type=str, default="smearing",
             choices=["smearing", "tetrahedra", "tetrahedra_lin", "tetrahedra_opt", "fixed", "from_input"],
             help="Occupation method for the calculation.")
-    
+
     parser.add_argument("--smearing", type=str, default="gaussian",
             choices=["gaussian", "methfessel-paxton", "marzari-vanderbilt", "fermi-dirac"],
             help="Smearing type for occupations by smearing, default is gaussian in this script")
@@ -52,7 +58,7 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
+    parser.add_argument("--auto", type=int, default=3,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
@@ -75,7 +81,7 @@ if __name__ == "__main__":
     system_params["degauss"] = args.degauss
     system_params["vdw_corr"] = args.vdw_corr
     electrons_params["conv_thr"] = args.conv_thr
-    
+
     task = static_run()
     task.get_xyz(xyzfile)
     task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)

@@ -5,7 +5,7 @@ import os
 import argparse
 
 from pymatflow.cp2k.opt import opt_run
-from pymatflow.base.server import server_handle
+from pymatflow.remote.server import server_handle
 
 """
 Usage:
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     parser.add_argument("--mpi", type=str, default="",
             help="MPI command: like 'mpirun -np 4'")
 
-    parser.add_argument("--runopt", type=str, default="genrun", 
+    parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
@@ -33,9 +33,9 @@ if __name__ == "__main__":
     parser.add_argument("--ls-scf", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="use linear scaling scf method")
-    
+
     parser.add_argument("--qs-method", type=str, default="GPW",
-            choices=["AM1", "DFTB", "GAPW", "GAPW_XC", "GPW", "LRIGPW", "MNDO", "MNDOD", 
+            choices=["AM1", "DFTB", "GAPW", "GAPW_XC", "GPW", "LRIGPW", "MNDO", "MNDOD",
                 "OFGPW", "PDG", "PM3", "PM6", "PM6-FM", "PNNL", "RIGPW", "RM1"],
             help="specify the electronic structure method")
 
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
+    parser.add_argument("--auto", type=int, default=3,
             choices=[0, 1, 2, 3],
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
@@ -114,7 +114,7 @@ if __name__ == "__main__":
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
     directory = args.directory
     xyzfile = args.file
@@ -150,4 +150,3 @@ if __name__ == "__main__":
     task.cell_opt(directory=directory, mpi=args.mpi, runopt=args.runopt, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
 
     server_handle(auto=args.auto, directory=args.directory, jobfilebase="cell-opt", server=args.server)
-

@@ -19,7 +19,9 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--directory", type=str, default="tmp-qe-static",
             help="directory of the calculation")
 
-    parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
+    parser.add_argument("--runopt", type=str, default="gen",
+            choices=["gen", "run", "genrun"],
+            help="Generate or run or both at the same time.")
 
 
     # ------------------------------------------------------
@@ -41,11 +43,11 @@ if __name__ == "__main__":
             help="ipol in lr_control in turbo_lanczos.x calc")
 
 
- 
+
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
+    parser.add_argument("--auto", type=int, default=3,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
@@ -59,14 +61,14 @@ if __name__ == "__main__":
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
-   
+
     lr_input_tl["prefix"] = args.prefix
     lr_input_tl["outdir"] = args.outdir
     lr_input_ts["prefix"] = args.prefix
     lr_input_ts["outdir"] = args.outdir
-    
+
     lr_control_tl["itermax"] =args.itermax
     lr_control_tl["ipol"] = args.ipol
 

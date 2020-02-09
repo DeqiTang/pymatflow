@@ -5,7 +5,7 @@ import os
 import argparse
 
 from pymatflow.cp2k.neb import neb_run
-from pymatflow.base.server import server_handle
+from pymatflow.remote.server import server_handle
 
 """
 usage:
@@ -19,8 +19,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-neb")
 
-    parser.add_argument("--runopt", type=str, default="genrun",
-            help="runopt: 'gen', 'run', 'genrun'")
+    parser.add_argument("--runopt", type=str, default="gen",
+            choices=["gen", "run", "genrun"],
+            help="Generate or run or both at the same time.")
 
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
 
@@ -28,13 +29,13 @@ if __name__ == "__main__":
             default=[],
             help="Properties printout option(0, 1, 2 implemented now), you can also activate multiple prinout-option at the same time")
 
-    
+
     # ------------------------------------------------------------------
     #                    force_eval/dft related parameters
     # ------------------------------------------------------------------
-    
+
     parser.add_argument("--qs-method", type=str, default="gpw",
-            choices=["am1", "dftb", "gapw", "gapw_xc", "gpw", "lrigpw", "mndo", "mndod", 
+            choices=["am1", "dftb", "gapw", "gapw_xc", "gpw", "lrigpw", "mndo", "mndod",
                 "ofgpw", "pdg", "pm3", "pm6", "pm6-fm", "pnnl", "rigpw", "rm1"],
             help="dft-qs-method: specify the electronic structure method")
 
@@ -53,7 +54,7 @@ if __name__ == "__main__":
     parser.add_argument("-k", "--kpoints-scheme", type=str,
             default="GAMMA",
             help="DFT-KPOINTS-SCHEME(str): can be NONE, GAMMA, MONKHORST-PACK, MACDONALD, GENERAL. when you set MONKHORST-PACK, you should also add the three integers like 'monkhorst-pack 3 3 3'")
-    
+
     parser.add_argument("--diag", type=str, default="TRUE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="whether choosing tranditional diagonalization for SCF")
@@ -68,7 +69,7 @@ if __name__ == "__main__":
     parser.add_argument("--smear", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="switch on or off smearing for occupation")
-    
+
     parser.add_argument("--smear-method", type=str, default="FERMI_DIRAC",
             help="smearing type: FERMI_DIRAC, ENERGY_WINDOW")
 
@@ -121,7 +122,7 @@ if __name__ == "__main__":
     parser.add_argument("--align-frames", type=str, default="TRUE",
             choices=["TRUE", "FALSE", "true", "false"],
             help="Enables the alignment of the frames at the beginning of a BAND calculation. This keyword does not affect the rotation of the replicas during a BAND calculation.")
-    
+
     parser.add_argument("--rotate-frames", type=str, default="TRUE",
             choices=["TRUE", "FALSE", "true", "false"],
             help="Compute at each BAND step the RMSD and rotate the frames in order to minimize it.")
@@ -130,7 +131,7 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
+    parser.add_argument("--auto", type=int, default=3,
             choices=[0, 1, 2, 3],
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
@@ -146,7 +147,7 @@ if __name__ == "__main__":
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
 
     params["FORCE_EVAL-DFT-LS_SCF"] = args.ls_scf

@@ -15,12 +15,14 @@ usage:
 dynmat_input = {}
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()    
+    parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", help="directory for the static running", type=str, default="tmp-qe-static")
     parser.add_argument("--mpi", help="MPI commadn", type=str, default="")
     parser.add_argument("-f", "--file", help="the xyz file", type=str)
-    parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
-   
+    parser.add_argument("--runopt", type=str, default="gen",
+            choices=["gen", "run", "genrun"],
+            help="Generate or run or both at the same time.")
+
     # --------------------------------------------------------------
     # for dynmat
     # --------------------------------------------------------------
@@ -38,7 +40,7 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
+    parser.add_argument("--auto", type=int, default=3,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
@@ -55,7 +57,7 @@ if __name__ == "__main__":
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================
     args = parser.parse_args()
-    
+
     dynmat_input["fildyn"] = args.fildyn
     dynmat_input["asr"] = args.asr
     dynmat_input["q(1)"] = args.qi[0]

@@ -15,7 +15,7 @@ from pymatflow.cp2k.cp2k import cp2k
 
 """
 Usage:
-    python phonon_cp2k.py xxx.xyz 
+    python phonon_cp2k.py xxx.xyz
     xxx.xyz is the input structure file
 
     make sure the xyz structure file and pseudopotential file
@@ -45,7 +45,7 @@ class phonopy_run(cp2k):
         super().__init__()
         #self.glob = cp2k_glob()
         #self.force_eval = cp2k_force_eval()
-        
+
         self.glob.basic_setting(run_type="ENERGY_FORCE")
         self.force_eval.basic_setting()
 
@@ -54,11 +54,12 @@ class phonopy_run(cp2k):
 
     def phonopy(self, directory="tmp-cp2k-phonopy", mpi="", runopt="gen",
             jobname="cp2k-phonopy", nodes=1, ppn=32):
+        self.force_eval.check_spin()
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
-            
+
             os.chdir(directory)
             shutil.copyfile("../%s" % self.force_eval.subsys.xyz.file, "%s" % self.force_eval.subsys.xyz.file)
 
@@ -78,7 +79,7 @@ class phonopy_run(cp2k):
                 fout.write("&END FORCE_EVAL\n")
 
 
-            # build the phonopy running files 
+            # build the phonopy running files
             os.system("phonopy --cp2k -c %s -d --dim='%d %d %d'" % (inp_name, self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
             # now phonon-supercell-00x.inp is generated which will be used to construct input for cp2k
             # in the past the above command will generate the supercell-00x.inp which can not be the
@@ -90,7 +91,7 @@ class phonopy_run(cp2k):
             with open("geo.data", 'r') as fin:
                 for line in fin:
                     disps.append(line.split(".")[0].split("-")[2])
-            
+
             #for disp in disps:
             #    in_name = "phonon-supercell-%s.inp" % disp
             #    if os.path.exists(in_name) is not True:
@@ -137,7 +138,7 @@ class phonopy_run(cp2k):
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
                 for disp in disps:
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -in phonon-supercell-%s.inp > phonon-supercell-%s.inp.out\n" % (disp, disp))            
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -in phonon-supercell-%s.inp > phonon-supercell-%s.inp.out\n" % (disp, disp))
 
 
         if runopt == "run" or runopt == "genrun":
@@ -186,4 +187,3 @@ class phonopy_run(cp2k):
                 fout.write("\t\t\tBASIS_SET DZVP-MOLOPT-SR-GTH\n")
                 fout.write("\t\t\tPOTENTIAL GTH-PBE\n")
                 fout.write("\t\t&END KIND\n")
-

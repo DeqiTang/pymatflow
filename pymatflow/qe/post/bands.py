@@ -8,7 +8,7 @@ class bands_post:
     """
     def __init__(self, pwxbandsin, bandsxout):
         """
-        pwxbandin: 
+        pwxbandin:
             the input file for the pw.x band calculation. used to get the special kpoints names.
         bandsxout:
             used to get the x coordinate of the special kpoints
@@ -40,7 +40,7 @@ class bands_post:
                 nspecialk = int(self.pwxbandsin[i+1].split()[0])
                 special_k_begin = i + 2
                 special_k_end = i + 1 + nspecialk
-        
+
         for i in range(special_k_begin, special_k_end + 1):
             print(self.pwxbandsin[i].split("#"))
             kpoint = {"label": self.pwxbandsin[i].split("#")[1].split()[0], "coord": [float(self.pwxbandsin[i].split()[0]), float(self.pwxbandsin[i].split()[1]), float(self.pwxbandsin[i].split()[2])], "xcoord": None}
@@ -110,9 +110,10 @@ class bands_post:
 
             currently bandrange only works when option == 'matplotlib'
         """
+        os.system("mkdir -p post-processing")
         if option == "gnuplot":
             # from self.bandfile_gnu build an file contain part all all of the band structure data
-            # depending on bandrange 
+            # depending on bandrange
             with open(self.bandfile_dat, 'r') as fout:
                 lines = fout.readlines()
                 nbnd = int(lines[0].split()[2].split(",")[0])
@@ -126,18 +127,18 @@ class bands_post:
                 len_xcoord += 1
             begin = int(nbnd*bandrange[0])
             end = int(nbnd*bandrange[1])
-            with open(self.bandfile_gnu+".bandrange", 'w') as fout:
+            with open(os.path.join("post-processing", self.bandfile_gnu+".bandrange"), 'w') as fout:
                 for i in range(begin, end):
                     for k in range((i*(len_xcoord+1)), i*(len_xcoord+1)+len_xcoord, 1):
                         fout.write(band_data_gnu[k])
                     fout.write("\n")
             #
-            with open("bandplot.gp", 'w') as fout:
+            with open(os.path.join("post-processing", "bandplot.gp"), 'w') as fout:
                 fout.write("set terminal gif\n")
                 fout.write("set output 'bandstructure.gif'\n")
                 fout.write("unset key\n")
                 fout.write("set parametric\n")
-                
+
                 fout.write("set title 'Bandstructure'\n")
                 fout.write("set xlabel 'K'\n")
                 fout.write("set ylabel 'Energy(eV)'\n")
@@ -148,7 +149,7 @@ class bands_post:
                 #    else:
                 #        fout.write("'%s' %f, " % (point["label"], point["xcoord"]))
                 #fout.write(")\n")
-                
+
                 locs = [self.specialk[i]["xcoord"] for i in range(len(self.specialk))]
                 labels = ["{/symbol G}" if self.specialk[i]["label"] == "GAMMA" else "%s" % self.specialk[i]["label"] for i in range(len(self.specialk))]
                 #
@@ -203,17 +204,19 @@ class bands_post:
                 fout.write("# and data in %s file is not modified at all, and is as it is\n" % self.bandfile_gnu)
                 fout.write("plot ")
                 fout.write("'%s' using 1:($2-%f) w l" % (self.bandfile_gnu+".bandrange", self.efermi))
-                # 
+                #
                 #for i in range(len(self.specialk) - 1):
                 #    fout.write(", %f, t" % (self.specialk[i]["xcoord"]))
                 #fout.write(", %f, t\n" % self.specialk[-1]["xcoord"])
                 #
                 fout.write("\n")
+            os.chdir("post-processing")
             os.system("gnuplot bandplot.gp")
             os.system("eog bandstructure.gif")
+            os.chdir("../")
 
         elif option == "matplotlib":
-            
+
             import numpy as np
             import matplotlib.pyplot as plt
 
@@ -224,20 +227,20 @@ class bands_post:
 
             with open(self.bandfile_gnu, 'r') as fout:
                 data =  np.loadtxt(fout)
-           
+
             begin = int(nbnd*bandrange[0])
             end = int(nbnd*bandrange[1])
-            
+
             for i in range(begin, end):
                 # here minus self.efermi means the plot will shift efermi to 0
                 # band the data variable is not modified.
                 plt.plot(data[i*nks:(i+1)*nks, 0], data[i*nks:(i+1)*nks, 1] - self.efermi)
-            plt.title("Band Structure") 
+            plt.title("Band Structure")
             plt.ylabel(r"$\mathit{E}-\mathit{E}_\mathrm{f} (eV)$")
             plt.xlabel("Kpoints")
             plt.grid(which="major", axis="x", linewidth=0.75, linestyle="-", color="0.75")
             plt.grid(which="major", axis="y", linewidth=0.75, linestyle="-", color="0.75")
-                        
+
             locs = [self.specialk[i]["xcoord"] for i in range(len(self.specialk))]
             labels = [r"$\Gamma$" if self.specialk[i]["label"] == "GAMMA" else r"$%s$" % self.specialk[i]["label"] for i in range(len(self.specialk))]
             #plt.xticks(locs, labels)
@@ -284,7 +287,7 @@ class bands_post:
             # ---------------------------------------------------------------
             #plt.xticks(locs, labels) # do not use this, it is unrefined
             plt.xticks(locs_refined, labels_refined)
-            #plt.legend()    
+            #plt.legend()
             plt.tight_layout()
-            plt.savefig("bandstructure-maplotlib.png")
+            plt.savefig(os.path.join("post-processing", "bandstructure-maplotlib.png"))
             #

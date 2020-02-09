@@ -18,7 +18,9 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--directory", type=str, default="tmp-qe-static",
             help="directory of the calculation")
 
-    parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
+    parser.add_argument("--runopt", type=str, default="gen",
+            choices=["gen", "run", "genrun"],
+            help="Generate or run or both at the same time.")
 
 
     # ----------------------------------------------------------
@@ -26,7 +28,7 @@ if __name__ == "__main__":
     # ----------------------------------------------------------
     parser.add_argument("--calculation", type=str, default="eps",
             help="calculation in inputpp for epsilon.x")
-    
+
     parser.add_argument("--prefix", type=str, default="pwscf",
             help="prefix used in pw.x")
 
@@ -37,7 +39,7 @@ if __name__ == "__main__":
     #                            ENERGY_GRID
     # ----------------------------------------------------------
     parser.add_argument("--smeartype", type=str, default="gaussian",
-            help="smeartype in ENERGY_GRID in epsilon.x calc") 
+            help="smeartype in ENERGY_GRID in epsilon.x calc")
 
     parser.add_argument("--intersmear", type=float, default=0.1,
             help="intersmear in ENERGY_GRID in epsilon.x calc")
@@ -53,7 +55,7 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
+    parser.add_argument("--auto", type=int, default=3,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
@@ -67,9 +69,9 @@ if __name__ == "__main__":
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
-   
+
     inputpp["calculation"] = args.calculation
     inputpp["prefix"] = args.prefix
     inputpp["outdir"] = args.outdir
@@ -79,7 +81,7 @@ if __name__ == "__main__":
     energy_grid["wmin"] = args.wmin
     energy_grid["wmax"] = args.wmax
     energy_grid["nw"] = args.nw
-    
+
     task = tddfpt_run()
     #task.get_xyz(args.file)
     task.set_epsilon(inputpp=inputpp, energy_grid=energy_grid)

@@ -20,7 +20,9 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--directory", type=str, default="tmp-qe-static",
             help="directory of the calculation")
 
-    parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
+    parser.add_argument("--runopt", type=str, default="gen",
+            choices=["gen", "run", "genrun"],
+            help="Generate or run or both at the same time.")
 
     # ---------------------------------------------------------------
     #                       lr_input
@@ -30,7 +32,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--outdir", type=str, default="./tmp",
             help="outdir used in pw.x")
- 
+
     # -------------------------------------------------------------
     #                         lr_dav
     # -------------------------------------------------------------
@@ -68,7 +70,7 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
+    parser.add_argument("--auto", type=int, default=3,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
@@ -82,9 +84,9 @@ if __name__ == "__main__":
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
-   
+
     lr_input_td["prefix"] = args.prefix
     lr_input_td["outdir"] = args.outdir
     lr_input_ts["prefix"] = args.prefix
@@ -100,7 +102,7 @@ if __name__ == "__main__":
     lr_dav_td["step"] = args.step
     lr_dav_td["broadening"] = args.broadening
     lr_dav_td["reference"] = args.reference
-    
+
     task = tddfpt_run()
     #task.get_xyz(args.file)
     task.set_turbo_davidson(lr_input=lr_input_td, lr_dav=lr_dav_td)
