@@ -8,7 +8,7 @@ from pymatflow.base.xyz import base_xyz
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of phonopy running", type=str, default="tmp-cp2k-phonopy")
+    parser.add_argument("-d", "--directory", help="directory of phonopy running", type=str, default="tmp-qe-phonopy")
     parser.add_argument("-f", "--file", help="input structure file", type=str, default=None)
    
 

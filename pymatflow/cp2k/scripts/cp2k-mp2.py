@@ -5,8 +5,7 @@ import os
 import argparse
 
 from pymatflow.cp2k.mp2 import static_mp2_run
-from pymatflow.remote.ssh import ssh
-from pymatflow.remote.rsync import rsync
+from pymatflow.base.server import server_handle
 """
 usage:
 """
@@ -160,7 +159,8 @@ if __name__ == "__main__":
     #                      for server handling
     # -----------------------------------------------------------------
     parser.add_argument("--auto", type=int, default=0,
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
@@ -214,29 +214,4 @@ if __name__ == "__main__":
     task.set_printout(args.printout_option)
     task.scf_mp2(directory=args.directory, mpi=args.mpi, runopt=args.runopt, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
 
-    # server handle
-    if args.auto == 0:
-        pass
-    elif args.auto == 1:
-        mover = rsync()
-        if args.server == "pbs":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_pbs.conf"))
-        elif args.server == "yh":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_yh.conf"))
-        mover.copy_default(source=os.path.abspath(args.directory))
-    elif args.auto == 2:
-        mover = rsync()
-        if args.server == "pbs":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_pbs.conf"))
-        elif args.server == "yh":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_yh.conf"))
-        mover.copy_default(source=os.path.abspath(args.directory))
-        ctl = ssh()
-        if args.server == "pbs":
-            ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_pbs.conf"))
-            ctl.login()
-            ctl.submit(workdir=args.directory, jobfile="static-scf-mp2.pbs", server="pbs")
-        elif args.server == "yh":
-            ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_yh.conf"))
-            ctl.login()
-            ctl.submit(workdir=args.directory, jobfile="static-scf-mp2.inp.sub", server="yh")
+    server_handle(auto=args.auto, directory=args.directory, jobfilebase="static-scf-mp2", server=args.server)

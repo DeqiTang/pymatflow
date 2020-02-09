@@ -4,8 +4,7 @@
 import argparse
 
 from pymatflow.qe.md import md_run
-from pymatflow.remote.ssh import ssh
-from pymatflow.remote.rsync import rsync
+from pymatflow.remote.server import server_handle
 
 """
 usage: qe-md.py xxx.xyz
@@ -25,7 +24,8 @@ if __name__ == "__main__":
     parser.add_argument("--mpi", help="MPI command", type=str, default="")
     parser.add_argument("--nstep", help="maximum ion steps", type=int, default=50)
     parser.add_argument("--ecutwfc", help="ecutwfc", type=int, default=100)
-    parser.add_argument("--ecutrho", help="ecutrho", type=int, default=400)
+    parser.add_argument("--ecutrho", type=int, default=None,
+            help="Kinetic energy cutoff for charge density and potential in unit of Rydberg, default value: None")
     
     parser.add_argument("--kpoints-option", type=str, default="automatic", 
             choices=["automatic", "gamma", "crystal_b"],
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     #                      for server handling
     # -----------------------------------------------------------------
     parser.add_argument("--auto", type=int, default=0,
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"]
             help="type of remote server, can be pbs or yh")
@@ -87,30 +87,4 @@ if __name__ == "__main__":
     task.set_params(control=control, system=system, electrons=electrons, ions=ions, cell=cell)
     task.vc_md(directory=args.directory, runopt=args.runopt, mpi=args.mpi, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
 
-    # server handle
-    if args.auto == 0:
-        pass
-    elif args.auto == 1:
-        mover = rsync()
-        if args.server == "pbs":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_pbs.conf"))
-            pass
-        elif args.server == "yh":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_yh.conf"))
-        mover.copy_default(source=os.path.abspath(args.directory))
-    elif args.auto == 2:
-        mover = rsync()
-        if args.server == "pbs":
-            pass
-        elif args.server == "yh":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_yh.conf"))
-        mover.copy_default(source=os.path.abspath(args.directory))
-        ctl = ssh()
-        if args.server == "pbs":
-            ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_pbs.conf"))
-            ctl.login()
-            ctl.submit(workdir=args.directory, jobfile="vc-md.pbs", server="pbs")
-        elif args.server == "yh":
-            ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_yh.conf"))
-            ctl.login()
-            ctl.submit(workdir=args.directory, jobfile="vc-md.sub", server="yh")
+    server_handle(auto=args.auto, directory=args.directory, jobfilebase="vc-md", server=args.server)

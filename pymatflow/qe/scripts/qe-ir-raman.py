@@ -4,9 +4,7 @@
 import os
 import sys
 from pymatflow.qe.static import static_run
-from pymatflow.remote.ssh import ssh
-from pymatflow.remote.rsync import rsync
-
+from pymatflow.remote.server import server_handle
 
 """
 usage:

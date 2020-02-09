@@ -7,9 +7,7 @@ import argparse
 #from pymatflow.qe.static import static_run
 from pymatflow.qe.dielectric import dielectric_pw
 
-from pymatflow.remote.ssh import ssh
-from pymatflow.remote.rsync import rsync
-
+from pymatflow.remote.server import server_handle
 
 """
 usage:
@@ -39,8 +37,8 @@ if __name__ == "__main__":
     parser.add_argument("--ecutwfc", type=int, default=100,
             help="Kinetic energy cutoff for wave functions in unit of Rydberg, default value: 100 Ry")
 
-    parser.add_argument("--ecutrho", type=int, default=400,
-            help="Kinetic energy cutoff for charge density and potential in unit of Rydberg, default value: 400 Ry")
+    parser.add_argument("--ecutrho", type=int, default=None,
+            help="Kinetic energy cutoff for charge density and potential in unit of Rydberg, default value: None")
 
     parser.add_argument("--kpoints-option", type=str, default="automatic", 
             choices=["automatic", "gamma", "crystal_b"],
@@ -79,7 +77,7 @@ if __name__ == "__main__":
     #                      for server handling
     # -----------------------------------------------------------------
     parser.add_argument("--auto", type=int, default=0,
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"]
             help="type of remote server, can be pbs or yh")
@@ -110,18 +108,4 @@ if __name__ == "__main__":
 
     dielectric_pw(xyz_f=args.file, directory=args.directory, runopt=args.runopt, mpi=args.mpi, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
 
-    # server handle
-    if args.auto == 0:
-        pass
-    elif args.auto == 1:
-        mover = rsync()
-        mover.get_info(os.path.join(os.path.expanduser("~"), ".emuhelper/server.conf"))
-        mover.copy_default(source=os.path.abspath(args.directory))
-    elif args.auto == 2:
-        mover = rsync()
-        mover.get_info(os.path.join(os.path.expanduser("~"), ".emuhelper/server.conf"))
-        mover.copy_default(source=os.path.abspath(args.directory))
-        ctl = ssh()
-        ctl.get_info(os.path.join(os.path.expanduser('~'), ".emuhelper/server.conf"))
-        ctl.login()
-        ctl.submit(workdir=args.directory, jobfile="dielectric-pw.in.sub")
+    server_handle(auto=args.auto, directory=args.directory, jobfilebase="dielectric-pw", server=args.server)

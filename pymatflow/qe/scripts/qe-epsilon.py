@@ -1,73 +1,88 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
-import argparse 
+import argparse
 
-from pymatflow.qe.static import static_run
-from pymatflow.remote.ssh import ssh
-from pymatflow.remote.rsync import rsync
+from pymatflow.qe.tddfpt import tddfpt_run
+from pymatflow.remote.server import server_handle
 
 """
 usage:
-    qe-epsilon.py xxx.xyz
 """
+
+inputpp = {}
+energy_grid = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of the static running", type=str, default="tmp-qe-static")
-    parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+    parser.add_argument("-d", "--directory", type=str, default="tmp-qe-static",
+            help="directory of the calculation")
+
     parser.add_argument("--runopt", help="gen, run, or genrun", type=str, default="genrun")
+
+
+    # ----------------------------------------------------------
+    #                        INPUTPP
+    # ----------------------------------------------------------
+    parser.add_argument("--calculation", type=str, default="eps",
+            help="calculation in inputpp for epsilon.x")
+    
+    parser.add_argument("--prefix", type=str, default="pwscf",
+            help="prefix used in pw.x")
+
+    parser.add_argument("--outdir", type=str, default="./tmp",
+            help="outdir used in pw.x")
+
+    # ----------------------------------------------------------
+    #                            ENERGY_GRID
+    # ----------------------------------------------------------
+    parser.add_argument("--smeartype", type=str, default="gaussian",
+            help="smeartype in ENERGY_GRID in epsilon.x calc") 
+
+    parser.add_argument("--intersmear", type=float, default=0.1,
+            help="intersmear in ENERGY_GRID in epsilon.x calc")
+
+    parser.add_argument("--wmin", type=float, default=0.0,
+            help="wmin in ENERGY_GRID in epsilon.x calc")
+
+    parser.add_argument("--wmax", type=float, default=15.0,
+            help="wmax in ENERGY_GRID in epsilon.x calc")
+
+    parser.add_argument("--nw", type=int, default=1000,)
 
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
     parser.add_argument("--auto", type=int, default=0,
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
-            choices=["pbs", "yh"]
+            choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
-    parser.add("--jobname", type=str, default="pwscf-scf",
+    parser.add_argument("--jobname", type=str, default="turbo_lanczos",
             help="jobname on the pbs server")
     parser.add_argument("--nodes", type=int, default=1,
             help="Nodes used in server")
     parser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
 
-
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================   
     args = parser.parse_args()
-    xyzfile = args.file
+   
+    inputpp["calculation"] = args.calculation
+    inputpp["prefix"] = args.prefix
+    inputpp["outdir"] = args.outdir
 
-    task = static_run()
-    task.get_xyz(args.file)
+    energy_grid["smeartype"] = args.smeartype
+    energy_grid["intersmear"] = args.intersmear
+    energy_grid["wmin"] = args.wmin
+    energy_grid["wmax"] = args.wmax
+    energy_grid["nw"] = args.nw
+    
+    task = tddfpt_run()
+    #task.get_xyz(args.file)
+    task.set_epsilon(inputpp=inputpp, energy_grid=energy_grid)
     task.epsilon(directory=args.directory, runopt=args.runopt, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
 
-    # server handle
-    if args.auto == 0:
-        pass
-    elif args.auto == 1:
-        mover = rsync()
-        if args.server == "pbs":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_pbs.conf"))
-            pass
-        elif args.server == "yh":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_yh.conf"))
-        mover.copy_default(source=os.path.abspath(args.directory))
-    elif args.auto == 2:
-        mover = rsync()
-        if args.server == "pbs":
-            pass
-        elif args.server == "yh":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_yh.conf"))
-        mover.copy_default(source=os.path.abspath(args.directory))
-        ctl = ssh()
-        if args.server == "pbs":
-            ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_pbs.conf"))
-            ctl.login()
-            ctl.submit(workdir=args.directory, jobfile="epsilon.pbs", server="pbs")
-        elif args.server == "yh":
-            ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_yh.conf"))
-            ctl.login()
-            ctl.submit(workdir=args.directory, jobfile="epsilon.sub", server="yh")
+    server_handle(auto=args.auto, directory=args.directory, jobfilebase="epsilon", server=args.server)

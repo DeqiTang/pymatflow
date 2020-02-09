@@ -56,7 +56,7 @@ class bands_post:
                 break # break for loop in the first high-symmetry
         for i in range(nspecialk):
             print(self.bandsxout[xcoord_begin+i])
-            self.specialk[i]["xcoord"] = float(self.bandsxout[xcoord_begin+i].split()[7])
+            self.specialk[i]["xcoord"] = float(self.bandsxout[xcoord_begin+i].split()[-1].split("\n")[0])
         #
         # get the xxx.data.gnu file names and xxx.dat file names
         for line in self.bandsxout:

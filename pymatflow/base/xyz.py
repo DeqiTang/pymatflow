@@ -4,8 +4,7 @@ import sys
 import os
 import shutil
 import copy
-import pymatgen as mg
-
+import pymatflow.base as base
 from pymatflow.base.atom import Atom
 
 """
@@ -68,7 +67,7 @@ class base_xyz:
         species = list(species)
         species_with_order = {}
         for i in species:
-            species_with_order[i] = mg.Element(i).number
+            species_with_order[i] = base.element[i].number
         tmp = sorted(zip(species_with_order.values(), species_with_order.keys()))
         for i in range(len(tmp)):
             tmp[i] = list(tmp[i])

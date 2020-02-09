@@ -36,8 +36,8 @@ if __name__ == "__main__":
     parser.add_argument("--ecutwfc", type=int, default=100,
             help="Kinetic energy cutoff for wave functions in unit of Rydberg, default value: 100 Ry")
 
-    parser.add_argument("--ecutrho", type=int, default=400,
-            help="Kinetic energy cutoff for charge density and potential in unit of Rydberg, default value: 400 Ry")
+    parser.add_argument("--ecutrho", type=int, default=None,
+            help="Kinetic energy cutoff for charge density and potential in unit of Rydberg, default vaslue: None")
 
     parser.add_argument("--kpoints-option", type=str, default="automatic", 
             choices=["automatic", "gamma", "crystal_b"],
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     #                      for server handling
     # -----------------------------------------------------------------
     parser.add_argument("--auto", type=int, default=0,
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")

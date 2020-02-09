@@ -96,6 +96,10 @@ class pwscf:
             elif system["occupations"] == "from_input":
                 self.system.set_occupations(occupations="from_input")
 
+
+    def set_spin(self):
+        pass
+
     def gen_yh(self, inpname, output, directory, cmd="pw.x"):
         """
         generating yhbatch job script for calculation
