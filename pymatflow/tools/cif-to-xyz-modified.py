@@ -6,6 +6,8 @@ import argparse
 
 """
 rely on cif2cell: pip install cif2cell
+in order to install cif2cell you must make sure python-dev
+or python-devel(yum) is installed
 """
 
 

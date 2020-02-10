@@ -22,7 +22,7 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--file", type=str,
             help="the xyz file name")
 
-    parser.add_argument("--runopt", type=str, default="genrun", 
+    parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
             help="OccupationFunction(FD or MP)")
     parser.add_argument("--electronic-temperature", type=int ,default=300,
             help="Electronic Temperature")
-    
+
     # ==================================================
     #           ions relaed parameter
     # ==================================================
@@ -69,12 +69,13 @@ if __name__ == "__main__":
             help="Stress tolerance in variable-cell CG optimization. default=1 GPa")
     parser.add_argument("--targetpressure", type=float, default=0,
             help="Target pressure for Parrinello-Rahman method, variable cell optimizations, and annealing options.")
-  
+
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+    parser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
@@ -87,13 +88,13 @@ if __name__ == "__main__":
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
     xyzfile = args.file
     directory = args.directory
 
     params = {}
-    
+
     params["MeshCutoff"] = args.meshcutoff
     params["SolutionMethod"] = args.solution_method
     params["XC.funtional"] = args.functional

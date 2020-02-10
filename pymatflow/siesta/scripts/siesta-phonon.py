@@ -17,7 +17,7 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-siesta-phonon")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
 
-    parser.add_argument("--runopt", type=str, default="genrun", 
+    parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
@@ -46,12 +46,13 @@ if __name__ == "__main__":
             default=["10 3 3 no", "2 20 2 no", "4 4 15 no"],
             help="PolarizationGrids for Bohrn Effective Charge calculation")
 
-    
+
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+    parser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
@@ -65,11 +66,11 @@ if __name__ == "__main__":
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
     xyzfile = args.file
     directory = args.directory
-   
+
     params = {}
 
     params["MeshCutoff"] = args.meshcutoff

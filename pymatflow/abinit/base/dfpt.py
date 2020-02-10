@@ -32,8 +32,8 @@ class abinit_dfpt:
                 "dfpt_sciss": None,
                 }
         #self.kpoints = kpoints()
-                
-    def to_in(self, fout):
+
+    def to_input(self, fout):
         # fout: a file stream for writing
         # ------------
         # 检查输入参数
@@ -60,7 +60,7 @@ class abinit_dfpt:
                 fout.write("\n")
         fout.write("\n")
 
-    
+
     def basic_setting(self):
         self.params["rfdir"] = [1, 1, 1]
         #self.params["nqpt"] = 1
@@ -69,4 +69,3 @@ class abinit_dfpt:
     def set_params(self, params):
         for item in params:
             self.params[item] = params[item]
-

@@ -4,6 +4,7 @@
 import sys
 import argparse
 
+from pymatflow.remote.server import server_handle
 from pymatflow.abinit.md import md_run
 
 """
@@ -23,7 +24,7 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--file", type=str,
             help="The xyz file name.")
 
-    parser.add_argument("--runopt", type=str, default="genrun",
+    parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
@@ -39,7 +40,7 @@ if __name__ == "__main__":
     parser.add_argument("--ixc", type=int, default=11,
             choices=[1, 2, 3 ,4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 27, 28, 40, 41, 42],
             help="type of exchage-correlation functional. for more information, refer to https://docs.abinit.org/variables/basic/#ixc")
- 
+
     parser.add_argument("--kptopt", type=int, default=1,
             help="Kpoints Generation scheme option: 0, 1, 2, 3, 4 or a negative value. for more information, refer to https://docs.abinit.org/variables/basic/#kptopt")
 
@@ -76,9 +77,27 @@ if __name__ == "__main__":
             default=0,
             help="whether to optimize the cell shape and dimension")
 
+
+    # -----------------------------------------------------------------
+    #                      for server handling
+    # -----------------------------------------------------------------
+    parser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+    parser.add_argument("--server", type=str, default="pbs",
+            choices=["pbs", "yh"],
+            help="type of remote server, can be pbs or yh")
+    parser.add_argument("--jobname", type=str, default="opt-cubic",
+            help="jobname on the pbs server")
+    parser.add_argument("--nodes", type=int, default=1,
+            help="Nodes used in server")
+    parser.add_argument("--ppn", type=int, default=32,
+            help="ppn of the server")
+
+
     # ==========================================================
     # transfer parameters from the arg parser to static_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
 
     electrons_params["ecut"] = args.ecut
@@ -101,5 +120,3 @@ if __name__ == "__main__":
     task.set_params(electrons=electrons_params, ions=ions_params)
     task.set_kpoints(kpoints=kpoints_params)
     task.md(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
-
-

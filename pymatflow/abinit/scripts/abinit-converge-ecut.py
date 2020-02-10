@@ -2,8 +2,10 @@
 # _*_ coding: utf-8 _*_
 
 import sys
-import argparse 
+import argparse
 
+
+from pymatflow.remote.server import server_handle
 from pymatflow.abinit.static import static_run
 
 """
@@ -25,7 +27,7 @@ if __name__ == "__main__":
     parser.add_argument("--range", nargs="+", type=int,
             help="ecut test range")
 
-    parser.add_argument("--runopt", type=str, default="genrun",
+    parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
@@ -42,10 +44,26 @@ if __name__ == "__main__":
     parser.add_argument("--ngkpt", nargs="+", type=int,
             default=[1, 1, 1],
             help="number of grid points for kpoints generation. for more information, refer to https://docs.abinit.org/variables/basic/#ngkpt")
-    
+
+    # -----------------------------------------------------------------
+    #                      for server handling
+    # -----------------------------------------------------------------
+    parser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+    parser.add_argument("--server", type=str, default="pbs",
+            choices=["pbs", "yh"],
+            help="type of remote server, can be pbs or yh")
+    parser.add_argument("--jobname", type=str, default="opt-cubic",
+            help="jobname on the pbs server")
+    parser.add_argument("--nodes", type=int, default=1,
+            help="Nodes used in server")
+    parser.add_argument("--ppn", type=int, default=32,
+            help="ppn of the server")
+
     # ==========================================================
     # transfer parameters from the arg parser to static_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
 
     electrons_params["ixc"] = args.ixc
@@ -53,7 +71,7 @@ if __name__ == "__main__":
     kpoints_params["kptopt"] = args.kptopt
     kpoints_params["ngkpt"] = args.ngkpt
 
-    
+
     task = static_run()
     task.get_xyz(args.file)
     task.set_params(electrons=electrons_parmas)

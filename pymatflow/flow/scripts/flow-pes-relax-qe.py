@@ -4,11 +4,11 @@
 import os
 import shutil
 import argparse
-import pymatgen as mg
+
+import pymatflow.base as base
 
 from pymatflow.qe.opt import opt_run
-from pymatflow.remote.ssh import ssh
-from pymatflow.remote.rsync import rsync
+from pymatflow.remote.server import server_handle
 
 
 import matplotlib.pyplot as plt
@@ -30,7 +30,7 @@ if __name__ == "__main__":
             help="Directory for the pes relax running.")
     parser.add_argument("-f", "--file", type=str,
             help="The xyz file name.")
-    parser.add_argument("--runopt", type=str, default="genrun", 
+    parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
     parser.add_argument("--mpi", type=str, default="",
@@ -39,13 +39,13 @@ if __name__ == "__main__":
     # -------------------------------------------------------------------
     #                       scf related parameters
     # -------------------------------------------------------------------
-    parser.add_argument("--ecutwfc", 
+    parser.add_argument("--ecutwfc",
             type=int, default=100)
 
-    parser.add_argument("--ecutrho", 
+    parser.add_argument("--ecutrho",
             type=int, default=400)
 
-    parser.add_argument("--kpoints-option", type=str, default="automatic", 
+    parser.add_argument("--kpoints-option", type=str, default="automatic",
             choices=["automatic", "gamma", "crystal_b"],
             help="Kpoints generation scheme option for the SCF or non-SCF calculation")
 
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     parser.add_argument("--occupations", type=str, default="smearing",
             choices=["smearing", "tetrahedra", "tetrahedra_lin", "tetrahedra_opt", "fixed", "from_input"],
             help="Occupation method for the calculation.")
-    
+
     parser.add_argument("--smearing", type=str, default="gaussian",
             choices=["gaussian", "methfessel-paxton", "marzari-vanderbilt", "fermi-dirac"],
             help="Smearing type for occupations by smearing, default is gaussian in this script")
@@ -73,11 +73,11 @@ if __name__ == "__main__":
     # -------------------------------------------------------------------
     #               geometric optimization related parameters
     # -------------------------------------------------------------------
-    parser.add_argument("--etot-conv-thr", 
+    parser.add_argument("--etot-conv-thr",
             type=float, default=1.0e-4,
             help="convergence threshold of energy for geometric optimization")
 
-    parser.add_argument("--forc-conv-thr", 
+    parser.add_argument("--forc-conv-thr",
             type=float, default=1.0e-3,
             help="convergence threshold for force in optimization,(usually it is more important than energy)")
 
@@ -95,10 +95,10 @@ if __name__ == "__main__":
             choices=["x", "y", "z"],
             help="specify direction of pressure acting on system.")
 
-    
+
 
     # ---------------------------------------------------------------
-    # for PES 
+    # for PES
     # ---------------------------------------------------------------
     parser.add_argument("--last-n-move", type=int,
             default=1,
@@ -116,8 +116,9 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+    parser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
@@ -143,13 +144,13 @@ if __name__ == "__main__":
     system["degauss"] = args.degauss
     system["vdw_corr"] = args.vdw_corr
     electrons["conv_thr"] = args.conv_thr
- 
+
     task = opt_run()
     task.get_xyz(args.file)
     task.set_relax()
     task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
     task.set_params(control=control, system=system, electrons=electrons, ions=ions)
-    
+
 
     if os.path.exists(args.directory):
         shutil.rmtree(args.directory)
@@ -162,7 +163,7 @@ if __name__ == "__main__":
             if upf.split(".")[0] == element:
                 shutil.copyfile(upf, os.path.join(args.directory, upf))
                 break
-    # 
+    #
 
     os.chdir(args.directory)
 
@@ -172,7 +173,7 @@ if __name__ == "__main__":
     #task.arts.xyz.to_xyz(args.file.split(".xyz")[0]+".zshifted.xyz")
     # end shift z of the atoms
     #----------------------------------------------
-    #@@@@ now we don't shift z here in python 
+    #@@@@ now we don't shift z here in python
     #@@@@ we shift z in the bash script
     #----------------------------------------------
 
@@ -189,11 +190,11 @@ if __name__ == "__main__":
                 if upf.split(".")[0] == element:
                     pseudo_file =upf
                     break
-            fout.write("%s %f %s\n" % (element, mg.Element(element).atomic_mass, pseudo_file))
+            fout.write("%s %f %s\n" % (element, base.element[element].mass, pseudo_file))
             pseudo_file = None
             # after pseudo_file used, set it to None to avoid it will be used in the next element
         fout.write("\n")
-        
+
         # write cell
         cell = task.arts.xyz.cell
         fout.write("CELL_PARAMETERS angstrom\n")
@@ -218,7 +219,7 @@ if __name__ == "__main__":
         fout.write("\n")
         fout.write("cd $PBS_O_WORKDIR\n")
         fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
-      
+
         fout.write("# z of atoms to move will be shifted by zshift\n")
         fout.write("zshift=%f\n" % args.zshift)
         fout.write("\n")
@@ -318,7 +319,7 @@ if __name__ == "__main__":
     # write bash script to generate the xyz trajectory file -> (relaxed)
     with open("get_traj_relaxed.sh", 'w') as fout:
         fout.write("#!/bin/bash\n")
-        fout.write("\n") 
+        fout.write("\n")
         fout.write("\n")
         fout.write("output_trajfile=trajectory-relaxed.xyz\n")
         fout.write("natom=`cat %s | head -n 1`\n" % args.file)
@@ -361,34 +362,9 @@ if __name__ == "__main__":
         fout.write("splot 'pes.data'\n")
         fout.write("EOF\n")
         fout.write("gnuplot plot.gnuplot\n")
-    
+
     os.chdir("../")
 
 
-
     # server handle
-    if args.auto == 0:
-        pass
-    elif args.auto == 1:
-        mover = rsync()
-        if args.server == "pbs":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_pbs.conf"))
-        elif args.server == "yh":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_yh.conf"))
-        mover.copy_default(source=os.path.abspath(args.directory))
-    elif args.auto == 2:
-        mover = rsync()
-        if args.server == "pbs":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_pbs.conf"))
-        elif args.server == "yh":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_yh.conf"))
-        mover.copy_default(source=os.path.abspath(args.directory))
-        ctl = ssh()
-        if args.server == "pbs":
-            ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_pbs.conf"))
-            ctl.login()
-            ctl.submit(workdir=args.directory, jobfile="pes-relax.pbs", server="pbs")
-        elif args.server == "yh":
-            ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_yh.conf"))
-            ctl.login()
-            ctl.submit(workdir=args.directory, jobfile="pes-relax.sub", server="yh")
+    server_handle(auto=args.auto, directory=args.directory, jobfilebase="pes-relax", server=args.server)

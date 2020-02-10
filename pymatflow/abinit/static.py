@@ -6,9 +6,7 @@ import shutil
 import matplotlib.pyplot as plt
 
 from pymatflow.abinit.abinit import abinit
-#from pymatflow.abinit.base.electrons import abinit_electrons
-#from pymatflow.abinit.base.system import abinit_system
-#from pymatflow.abinit.base.properties import abinit_properties
+
 
 class static_run(abinit):
     """
@@ -20,44 +18,55 @@ class static_run(abinit):
         #self.system = abinit_system()
         #self.electrons = abinit_electrons()
         #self.properties = abinit_properties()
-        self.guard.set_queen(queen="static", electrons=self.electrons, system=self.system)
+        self.input.guard.set_queen(queen="static", electrons=self.input.electrons, system=self.input.system)
 
-        self.electrons.basic_setting()
+        self.input.electrons.basic_setting()
 
-        
-    def scf(self, directory="tmp-abinit-static", inpname="static-scf.in", mpi="", runopt="gen"):
+
+    def scf(self, directory="tmp-abinit-static", inpname="static-scf.in", mpi="", runopt="gen",
+        jobname="abinit-scf", nodes=1, ppn=32):
+        self.files.name = "static-scf.files"
+        self.files.main_in = "static-scf.in"
+        self.files.main_out = "static-scf.out"
+        self.files.wavefunc_in = "static-scf-i"
+        self.files.wavefunc_out = "static-scf-o"
+        self.files.tmp = "tmp"
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.psp8 %s/" % directory)
             os.system("cp *.GGA_PBE-JTH.xml %s/" % directory)
-            os.system("cp %s %s/" % (self.system.xyz.file, directory))
+            os.system("cp %s %s/" % (self.input.system.xyz.file, directory))
 
-            self.electrons.set_scf_nscf("scf")
+            self.input.electrons.set_scf_nscf("scf")
             #
-            self.guard.check_all()
-            with open(os.path.join(directory, inpname), 'w') as fout:
-                self.electrons.to_in(fout)
-                self.properties.to_in(fout)
-                self.system.to_in(fout)
+            self.input.guard.check_all()
 
-            with open(os.path.join(directory, inpname.split(".")[0]+".files"), 'w') as fout:
-                fout.write("%s\n" % inpname)
-                fout.write("%s.out\n" % inpname.split(".")[0])
-                fout.write("%s-input\n" % inpname.split(".")[0])
-                fout.write("%s-output\n" % inpname.split(".")[0])
-                fout.write("temp\n")
-                for element in self.system.xyz.specie_labels:
-                    fout.write("%s\n" % (element + ".psp8"))
-                    #fout.write("%s\n" % (element + ".GGA_PBE-JTH.xml"))
+
+
+            # generate pbs job submit script
+            self.gen_pbs(directory=directory, script="static-scf.pbs", cmd="abinit", jobname=jobname, nodes=nodes, ppn=ppn)
+
+            # generate local bash job run script
+            self.gen_bash(directory=directory, script="static-scf.sh", cmd="abinit", mpi=mpi)
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("abinit < %s" % inpname.split(".")[0]+".files")
+            #os.system("abinit < %s" % inpname.split(".")[0]+".files")
+            os.system("bash %s" % "static-scf.sh")
             os.chdir("../")
- 
-    def nscf(self, directory="tmp-abinit-static", inpname="static-nscf.in", mpi="", runopt="gen"):
+
+    def nscf(self, directory="tmp-abinit-static", mpi="", runopt="gen",
+        jobname="staic-nscf", nodes=1, ppn=32):
         # first check whether there is a previous scf running
+
+        self.files.name = "static-nscf.files"
+        self.files.main_in = "static-nscf.in"
+        self.files.main_out = "static-nscf.out"
+        self.files.wavefunc_in = "static-scf-o"
+        self.files.wavefunc_out = "static-nscf-o"
+        self.files.tmp = "tmp"
         if not os.path.exists(directory):
             print("===================================================\n")
             print("                 Warning !!!\n")
@@ -67,34 +76,33 @@ class static_run(abinit):
             sys.exit(1)
         if runopt == "gen" or runopt == "genrun":
 
-            self.electrons.set_scf_nscf("nscf")
-            self.electrons.params["irdwfk"] = 1
-            self.electrons.params["irdden"] = 1
+            self.input.electrons.set_scf_nscf("nscf")
+            self.input.electrons.params["irdwfk"] = 1
+            self.input.electrons.params["irdden"] = 1
             # dos
-            self.electrons.params["nband"] = 10
-            self.electrons.params["dosdeltae"] = 0.00005
-            self.electrons.params["occopt"] = 7
-            self.electrons.params["tsmear"] = 0.0001
+            self.input.electrons.params["nband"] = 10
+            self.input.electrons.params["dosdeltae"] = 0.00005
+            self.input.electrons.params["occopt"] = 7
+            self.input.electrons.params["tsmear"] = 0.0001
             # end dos
-            with open(os.path.join(directory, inpname), 'w') as fout:
-                self.electrons.to_in(fout)
-                self.properties.to_in(fout)
-                self.system.to_in(fout)
 
-            with open(os.path.join(directory, inpname.split(".")[0]+".files"), 'w') as fout:
-                fout.write("%s\n" % inpname)
-                fout.write("%s.out\n" % inpname.split(".")[0])
-                fout.write("%s-output\n" % "static-scf")
-                fout.write("%s-output\n" % inpname.split(".")[0])
-                fout.write("temp\n")
-                for element in self.system.xyz.specie_labels:
-                    fout.write("%s\n" % (element + ".psp8"))
-                    #fout.write("%s\n" % (element + ".GGA_PBE-JTH.xml"))
+            #
+            self.input.guard.check_all()
+
+
+
+            # generate pbs job submit script
+            self.gen_pbs(directory=directory, script="static-nscf.pbs", cmd="abinit", jobname=jobname, nodes=nodes, ppn=ppn)
+
+            # generate local bash job run script
+            self.gen_bash(directory=directory, script="static-nscf.sh", cmd="abinit", mpi=mpi)
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("abinit < %s" % inpname.split(".")[0]+".files")
+            #os.system("abinit < %s" % inpname.split(".")[0]+".files")
+            os.system("bash %s" % "static-nscf.sh")
             os.chdir("../")
- 
+
 
     def band(self, directory="tmp-abinit-static", inpname="static-band.in", mpi="", runopt="gen"):
         """
@@ -116,7 +124,7 @@ class static_run(abinit):
             self.electrons.params["tolvrs"] = None
             self.electrons.params["toldfe"] = None
             #self.electrons.params["irdden"] = 1 # actually irdden will be 1 by default if iscf < 0
-            
+
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.electrons.to_in(fout)
                 self.system.to_in(fout)
@@ -133,7 +141,7 @@ class static_run(abinit):
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("abinit < %s" % inpname.split(".")[0]+".files")
-            os.chdir("../") 
+            os.chdir("../")
 
     def converge_ecut(self, emin, emax, step, directory="tmp-abinit-ecut", mpi="", runopt="gen"):
         if runopt == "gen" or runopt == "genrun":
@@ -142,7 +150,7 @@ class static_run(abinit):
             os.mkdir(directory)
             os.system("cp *.psp8 %s/" % directory)
             os.system("cp %s %s/" % (self.system.xyz.file, directory))
-   
+
             os.chdir(directory)
             n_test = int((emax - emin) / step)
             for i in range(n_test + 1):

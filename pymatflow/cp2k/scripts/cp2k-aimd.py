@@ -146,4 +146,4 @@ if __name__ == "__main__":
     task.set_params(params=params)
     task.aimd(directory=args.directory, runopt=args.runopt, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
 
-    server_handle(auto=args.auto, directory=args.directory, jobfilebase="md", server=args.server)
+    server_handle(auto=args.auto, directory=args.directory, jobfilebase="aimd", server=args.server)

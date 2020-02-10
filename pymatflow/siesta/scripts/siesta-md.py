@@ -4,8 +4,7 @@
 import argparse
 
 from pymatflow.siesta.md import md_run
-from pymatflow.remote.ssh import ssh
-from pymatflow.remote.rsync import rsync
+from pymatflow.remote.server import server_handle
 
 """
 usage:
@@ -23,7 +22,7 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--file", type=str,
             help="the xyz file name")
 
-    parser.add_argument("--runopt", type=str, default="genrun", 
+    parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
@@ -77,8 +76,9 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+    parser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
@@ -91,7 +91,7 @@ if __name__ == "__main__":
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
 
     params = {}
@@ -111,37 +111,11 @@ if __name__ == "__main__":
     params["MD.InitialTemperature"] = args.initial_temp
     params["MD.TargetTemperature"] = args.target_temp
     params["MD.VariableCell"] = args.vc
-    
+
     task = md_run()
     task.get_xyz(args.file)
     task.set_params(params=params)
     task.set_kpoints(kpoints_mp=args.kpoints_mp)
     task.md(directory=args.directory, runopt=args.runopt, mpi=args.mpi)
 
-
-    # server handle
-    if args.auto == 0:
-        pass
-    elif args.auto == 1:
-        mover = rsync()
-        if args.server == "pbs":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_pbs.conf"))
-        elif args.server == "yh":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_yh.conf"))
-        mover.copy_default(source=os.path.abspath(args.directory))
-    elif args.auto == 2:
-        mover = rsync()
-        if args.server == "pbs":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_pbs.conf"))
-        elif args.server == "yh":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_yh.conf"))
-        mover.copy_default(source=os.path.abspath(args.directory))
-        ctl = ssh()
-        if args.server == "pbs":
-            ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_pbs.conf"))
-            ctl.login()
-            ctl.submit(workdir=args.directory, jobfile="molecular-dynamics.pbs", server="pbs")
-        elif args.server == "yh":
-            ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_yh.conf"))
-            ctl.login()
-            ctl.submit(workdir=args.directory, jobfile="molecular-dynamics.sub", server="yh")
+    server_handle(auto=args.auto, directory=args.directory, jobfilebase="molecular-dynamics", server=args.server)

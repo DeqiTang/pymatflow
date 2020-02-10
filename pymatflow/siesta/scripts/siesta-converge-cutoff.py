@@ -18,7 +18,7 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-siesta-converge-cutoff")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
 
-    parser.add_argument("--runopt", type=str, default="genrun", 
+    parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
@@ -39,12 +39,13 @@ if __name__ == "__main__":
     parser.add_argument("--occupation", help="OccupationFunction(FD or MP)", type=str, default="FD")
     parser.add_argument("--electronic-temperature", help="Electronic Temperature", type=int, default=300)
 
-   
+
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+    parser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
@@ -57,7 +58,7 @@ if __name__ == "__main__":
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
     xyzfile = args.file
 
@@ -68,7 +69,7 @@ if __name__ == "__main__":
     params["XC.authors"] = args.authors
     params["DM.Tolerance"] = args.tolerance
     params["DM.NumberPulay"] = args.numberpulay
-    params["DM.MixingWeight"] = args.mixing   
+    params["DM.MixingWeight"] = args.mixing
     params["OccupationFunction"] = args.occupation
     params["ElectronicTemperature"] = args.electronic_temperature
 
@@ -104,4 +105,3 @@ if __name__ == "__main__":
             ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_yh.conf"))
             ctl.login()
             ctl.submit(workdir=args.directory, jobfile="converge-cutoff.sub", server="yh")
-

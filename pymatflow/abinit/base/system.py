@@ -12,7 +12,7 @@ class abinit_system:
     def __init__(self):
         self.xyz = base_xyz()
 
-    def to_in(self, fout):
+    def to_input(self, fout):
         # fout: a file stream for writing
         cell = self.xyz.cell
         fout.write("# ==================================\n")
@@ -33,7 +33,7 @@ class abinit_system:
         # abinit 不允许输入文件列数超过264, 因此如果原子数太多
         # 这里的typat要分多行列出
         # 利用余数设置如果一行超过30个原子就换行
-        i = 0 
+        i = 0
         for atom in self.xyz.atoms:
             fout.write("%d " % self.xyz.specie_labels[atom.name])
             if i % 30 == 29:
@@ -51,4 +51,3 @@ class abinit_system:
             fout.write("%.9f %.9f %.9f\n" % (atom.x, atom.y, atom.z))
         fout.write("\n")
         #
-

@@ -19,7 +19,7 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-siesta-static")
     parser.add_argument("-f", "--file", help="the xyz file name", type=str)
 
-    parser.add_argument("--runopt", type=str, default="genrun", 
+    parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
@@ -38,8 +38,8 @@ if __name__ == "__main__":
 
     parser.add_argument("--occupation", help="OccupationFunction(FD or MP)", type=str, default="FD")
     parser.add_argument("--electronic-temperature", help="Electronic Temperature", type=int, default=300)
-    
-    
+
+
     # ------------------------------
     # properties related parameter
     # ------------------------------
@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--bandlines-file", type=str, default="kpath-from-seekpath.txt",
             help="BandLines for band structure calculation from file")
-    
+
     #------------------------------------------------------------------------------------------------
     parser.add_argument("--polarization-grids", nargs="+", type=str,
             default=["10 3 3 no", "2 20 2 no", "4 4 15 no"],
@@ -91,8 +91,9 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+    parser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
@@ -106,10 +107,10 @@ if __name__ == "__main__":
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
     directory = args.directory
-   
+
     params["MeshCutoff"] = args.meshcutoff
     params["SolutionMethod"] = args.solution_method
     params["XC.funtional"] = args.functional
@@ -145,14 +146,14 @@ if __name__ == "__main__":
         # bandlines read from file specified by args.bandlines_file
         # file is in format like this
         """
-        5 
+        5
         0.0 0.0 0.0 #GAMMA 15
         x.x x.x x.x #XXX |
         x.x x.x x.x #XXX 10
         x.x x.x x.x #XXX 15
         x.x x.x x.x #XXX 20
         """
-        # if there is a '|' behind the label it means the path is 
+        # if there is a '|' behind the label it means the path is
         # broken after that point!!!
         bandlines = []
         with open(args.bandlines_file, 'r') as fin:

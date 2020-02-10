@@ -3,6 +3,8 @@
 
 import sys
 import argparse
+
+from pymatflow.remote.server import server_handle
 from pymatflow.abinit.static import static_run
 
 """
@@ -20,7 +22,7 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--file", type=str,
             help="The xyz file name, containing the structure to be simulated")
 
-    parser.add_argument("--runopt", type=str, default="genrun",
+    parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
@@ -55,10 +57,27 @@ if __name__ == "__main__":
     parser.add_argument("--vdw-tol", type=float,
             default=None,
             help="Van Der Waals tolerance, only work when vdw_xc == 5 or 6 or 7. to be included in the potential a pair of atom must have contribution to the energy larger than vdw_tol. default value is 1.0e-10. fore more information, refer to https://docs.abinit.org/variables/vdw/#vdw_tol")
-    
+
+    # -----------------------------------------------------------------
+    #                      for server handling
+    # -----------------------------------------------------------------
+    parser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+    parser.add_argument("--server", type=str, default="pbs",
+            choices=["pbs", "yh"],
+            help="type of remote server, can be pbs or yh")
+    parser.add_argument("--jobname", type=str, default="opt-cubic",
+            help="jobname on the pbs server")
+    parser.add_argument("--nodes", type=int, default=1,
+            help="Nodes used in server")
+    parser.add_argument("--ppn", type=int, default=32,
+            help="ppn of the server")
+
+
     # ==========================================================
     # transfer parameters from the arg parser to static_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
 
     electrons_params["ecut"] = args.ecut
@@ -68,7 +87,7 @@ if __name__ == "__main__":
 
     # --------------------------------------------------------------
     # process kptbounds
-    
+
     if args.kptbounds != None:
         # kptbounds from script argument args.kptbounds.
         kptbounds = []
@@ -93,14 +112,14 @@ if __name__ == "__main__":
         # kptbounds read from file specified by args.kptbounds_file
         # file is in format like this
         """
-        5 
+        5
         0.0 0.0 0.0 #GAMMA 15
         x.x x.x x.x #XXX |
         x.x x.x x.x #XXX 10
         x.x x.x x.x #XXX 15
         x.x x.x x.x #XXX 20
         """
-        # if there is a '|' behind the label it means the path is 
+        # if there is a '|' behind the label it means the path is
         # broken after that point!!!
         kptbounds = []
         with open(args.kptbounds_file, 'r') as fin:

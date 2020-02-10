@@ -33,8 +33,8 @@ class kpoints:
         self.params["shiftk"] = np.full([self.params["nshiftk"], 3], 0.5)
         #self.params["shiftk"] = np.zeros([self.params["nshiftk"], 3])
 
-    
-    def to_in(self, fout):
+
+    def to_input(self, fout):
         # fout: a file stream for writing
         fout.write("# kpoints setting\n")
         #
@@ -88,15 +88,15 @@ class kpoints:
 
     def set_band(self, kptbounds=None):
         """
-        self.params["kptbounds"]: 
+        self.params["kptbounds"]:
             the high symmetry k point path used in bands structure calculation
             in format like this:
-            
+
             [[kx, ky, kz, label, connect_indicator], ...] like [[0.0, 0.0, 0.0, 'GAMMA', 15], ...]
-            
+
             if connect_indicator in a kpoint is an integer, then it will connect to the following point
             through the number of kpoints defined by connect_indicator.
-            
+
             if connect_indicator in a kpoint is '|', then it will not connect to the following point,
         """
         self.params["kptbounds"] = kptbounds
@@ -120,8 +120,8 @@ class abinit_electrons:
                 "diemac": None,
                 }
         self.kpoints = kpoints()
-                
-    def to_in(self, fout):
+
+    def to_input(self, fout):
         # fout: a file stream for writing
         # ------------
         # 检查输入参数
@@ -138,11 +138,11 @@ class abinit_electrons:
                 fout.write("\n")
         #fout.write("\n")
         # 输入k点
-        self.kpoints.to_in(fout)
+        self.kpoints.to_input(fout)
         #
         fout.write("\n")
 
-    
+
     def check_all_params(self):
         # this function is responsible for calling other
         # check function to control the overall parameters
@@ -172,7 +172,7 @@ class abinit_electrons:
             print("[toldfe, tolwfr, toldff, tolrff, tolvrs]\n")
             #print(nonzeros)
             sys.exit(1)
-    
+
     def check_kpoints(self):
         # there should be no kpoints related setting in self.params
         tmp = [
@@ -222,7 +222,5 @@ class abinit_electrons:
         if mode == "nscf":
             # -3 is good for band structure calculation
             # -2 is good for dos calculation
-            self.params["iscf"] = -3 
+            self.params["iscf"] = -3
             self.params["nstep"] = 0
-
-

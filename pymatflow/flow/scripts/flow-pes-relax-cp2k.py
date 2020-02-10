@@ -4,11 +4,11 @@
 import os
 import shutil
 import argparse
-import pymatgen as mg
+
+import pymatflow.base as base
 
 from pymatflow.cp2k.opt import opt_run
-from pymatflow.remote.ssh import ssh
-from pymatflow.remote.rsync import rsync
+from pymatflow.remote.server import server_handle
 
 
 import matplotlib.pyplot as plt
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     parser.add_argument("--mpi", type=str, default="",
             help="MPI command: like 'mpirun -np 4'")
 
-    parser.add_argument("--runopt", type=str, default="genrun", 
+    parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
@@ -40,9 +40,9 @@ if __name__ == "__main__":
     parser.add_argument("--ls-scf", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="use linear scaling scf method")
-    
+
     parser.add_argument("--qs-method", type=str, default="GPW",
-            choices=["AM1", "DFTB", "GAPW", "GAPW_XC", "GPW", "LRIGPW", "MNDO", "MNDOD", 
+            choices=["AM1", "DFTB", "GAPW", "GAPW_XC", "GPW", "LRIGPW", "MNDO", "MNDOD",
                 "OFGPW", "PDG", "PM3", "PM6", "PM6-FM", "PNNL", "RIGPW", "RM1"],
             help="specify the electronic structure method")
 
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     parser.add_argument("-k", "--kpoints-scheme", type=str,
             default="GAMMA",
             help="DFT-KPOINTS-SCHEME(str): can be NONE, GAMMA, MONKHORST-PACK, MACDONALD, GENERAL. when you set MONKHORST-PACK, you should also add the three integers like 'monkhorst-pack 3 3 3'")
-    
+
     parser.add_argument("--diag", type=str, default="TRUE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="whether choosing tranditional diagonalization for SCF")
@@ -103,7 +103,7 @@ if __name__ == "__main__":
 
 
     # ---------------------------------------------------------------
-    # for PES 
+    # for PES
     # ---------------------------------------------------------------
     parser.add_argument("--last-n-move", type=int,
             default=1,
@@ -121,8 +121,9 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=0,
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+    parser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
@@ -138,9 +139,9 @@ if __name__ == "__main__":
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
-    # ==========================================================   
+    # ==========================================================
     args = parser.parse_args()
-    
+
     params["FORCE_EVAL-DFT-LS_SCF"] = args.ls_scf
     params["FORCE_EVAL-DFT-QS-METHOD"] = args.qs_method
     params["FORCE_EVAL-DFT-MGRID-CUTOFF"] = args.cutoff
@@ -169,20 +170,20 @@ if __name__ == "__main__":
     task.get_xyz(args.file)
     task.set_params(params=params)
     #task.geo_opt(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
-    
+
 
     if os.path.exists(args.directory):
         shutil.rmtree(args.directory)
     os.mkdir(args.directory)
 
     shutil.copyfile(task.force_eval.subsys.xyz.file, os.path.join(args.directory, task.force_eval.subsys.xyz.file))
-    # 
+    #
 
     os.chdir(args.directory)
 
     # shift z of the specified atoms by args.shfitz
     #----------------------------------------------
-    #@@@@ now we don't shift z here in python 
+    #@@@@ now we don't shift z here in python
     #@@@@ we shift z in the bash script
     #----------------------------------------------
 
@@ -199,11 +200,11 @@ if __name__ == "__main__":
                 if upf.split(".")[0] == element:
                     pseudo_file =upf
                     break
-            fout.write("%s %f %s\n" % (element, mg.Element(element).atomic_mass, pseudo_file))
+            fout.write("%s %f %s\n" % (element, base.element[element].mass, pseudo_file))
             pseudo_file = None
             # after pseudo_file used, set it to None to avoid it will be used in the next element
         fout.write("\n")
-        
+
         # write cell
         cell = task.arts.xyz.cell
         fout.write("CELL_PARAMETERS angstrom\n")
@@ -228,7 +229,7 @@ if __name__ == "__main__":
         fout.write("\n")
         fout.write("cd $PBS_O_WORKDIR\n")
         fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
-      
+
         fout.write("# z of atoms to move will be shifted by zshift\n")
         fout.write("zshift=%f\n" % args.zshift)
         fout.write("\n")
@@ -328,7 +329,7 @@ if __name__ == "__main__":
     # write bash script to generate the xyz trajectory file -> (relaxed)
     with open("get_traj_relaxed.sh", 'w') as fout:
         fout.write("#!/bin/bash\n")
-        fout.write("\n") 
+        fout.write("\n")
         fout.write("\n")
         fout.write("output_trajfile=trajectory-relaxed.xyz\n")
         fout.write("natom=`cat %s | head -n 1`\n" % args.file)
@@ -371,34 +372,9 @@ if __name__ == "__main__":
         fout.write("splot 'pes.data'\n")
         fout.write("EOF\n")
         fout.write("gnuplot plot.gnuplot\n")
-    
+
     os.chdir("../")
 
 
-
     # server handle
-    if args.auto == 0:
-        pass
-    elif args.auto == 1:
-        mover = rsync()
-        if args.server == "pbs":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_pbs.conf"))
-        elif args.server == "yh":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_yh.conf"))
-        mover.copy_default(source=os.path.abspath(args.directory))
-    elif args.auto == 2:
-        mover = rsync()
-        if args.server == "pbs":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_pbs.conf"))
-        elif args.server == "yh":
-            mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_yh.conf"))
-        mover.copy_default(source=os.path.abspath(args.directory))
-        ctl = ssh()
-        if args.server == "pbs":
-            ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_pbs.conf"))
-            ctl.login()
-            ctl.submit(workdir=args.directory, jobfile="pes-relax.pbs", server="pbs")
-        elif args.server == "yh":
-            ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_yh.conf"))
-            ctl.login()
-            ctl.submit(workdir=args.directory, jobfile="pes-relax.sub", server="yh")
+    server_handle(auto=args.auto, directory=args.directory, jobfilebase="pes-relax", server=args.server)

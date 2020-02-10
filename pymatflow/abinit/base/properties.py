@@ -9,7 +9,7 @@ class abinit_properties:
         self.params = {
                 }
 
-    def to_in(self, fout):
+    def to_input(self, fout):
         # fout: a file stream for writing
         fout.write("# ======================================\n")
         fout.write("# properties calculation related setting\n")
@@ -39,7 +39,7 @@ class abinit_properties:
             self.do_elf()
         if 4 in option:
             pass
-    
+
     def do_dos(self):
         self.params["prtdos"] = 2
 
@@ -51,6 +51,6 @@ class abinit_properties:
         self.params["nberry"] = 8
         self.params["dberry"] = "1 1 1 1"
         self.params["rfdir"] = "1 1 1"
-         
+
     def piezoelectric(self):
         self.params["piezoflag"] = 3

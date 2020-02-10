@@ -20,9 +20,9 @@ Note:
     参考: https://atztogo.github.io/phonopy/abinit.html
 """
 
-        
 
-# OK now we can use XYZ class to extract information 
+
+# OK now we can use XYZ class to extract information
 # from the xyz file: sys.argv[1]
 
 #ecut_min = int(sys.argv[2]) # in Ry: 1 Ry = 13.6 ev

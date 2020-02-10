@@ -12,7 +12,7 @@ class abinit_ions:
                 "tolmxde": None,
                 "tolmxf": None,
                 }
-    def to_in(self, fout):
+    def to_input(self, fout):
         # fout: a file stream for writing
         fout.write("# ============================\n")
         fout.write("# ions moving related settting\n")
@@ -41,7 +41,7 @@ class abinit_ions:
             self.params["dtion"] = 100
             self.params["ntime"] = 1000
             self.params["nctime"] = 1
-            self.params["mdtemp(1)"] = 300 
+            self.params["mdtemp(1)"] = 300
             self.params["mdtemp(2)"] = 300
             self.params["tolmxf"] = 5.0e-4 # Ha/Bohr
 

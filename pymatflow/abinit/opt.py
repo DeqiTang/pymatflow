@@ -12,40 +12,48 @@ class opt_run(abinit):
     """
     def __init__(self):
         super().__init__()
-        self.electrons.basic_setting()
-        self.ions.basic_setting(mode="opt")
+        self.input.electrons.basic_setting()
+        self.input.ions.basic_setting(mode="opt")
 
-        self.guard.set_queen(queen="opt", electrons=self.electrons, ions=self.ions, system=self.system)
+        self.input.guard.set_queen(queen="opt", electrons=self.input.electrons, ions=self.input.ions, system=self.input.system)
 
 
-    def optimize(self, directory="tmp-abinit-opt", inpname="geometric-optimization.in", mpi="", runopt="gen"):
+    def optimize(self, directory="tmp-abinit-opt", mpi="", runopt="gen",
+        jobname="abinit-opt", nodes=1, ppn=32):
+
+        self.input.electrons.set_scf_nscf("scf")
+        self.input.guard.check_all()
+
+        self.files.name = "optimization.files"
+        self.files.main_in = "optimization.in"
+        self.files.main_out = "optimization.out"
+        self.files.wavefunc_in = "optimization-i"
+        self.files.wavefunc_out = "optimization-o"
+        self.files.tmp = "tmp"
+
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
-            os.system("cp *.psp8 %s/" % directory) 
-            os.system("cp %s %s/" % (self.system.xyz.file, directory))
+            os.system("cp *.psp8 %s/" % directory)
+            os.system("cp *.GGA_PBE-JTH.xml %s/" % directory)
+            os.system("cp %s %s/" % (self.input.system.xyz.file, directory))
 
             #
-            self.guard.check_all()
-            with open(os.path.join(directory, inpname), 'w') as fout:
-                self.electrons.to_in(fout)
-                self.ions.to_in(fout)
-                self.system.to_in(fout)
 
-            with open(os.path.join(directory, inpname.split(".")[0]+".files"), 'w') as fout:
-                fout.write("%s\n" % inpname)
-                fout.write("%s.out\n" % inpname.split(".")[0])
-                fout.write("%si\n" % inpname.split(".")[0])
-                fout.write("%so\n" % inpname.split(".")[0])
-                fout.write("temp\n")
-                for element in self.system.xyz.specie_labels:
-                    fout.write("%s\n" % (element + ".psp8"))
+
+
+            # generate pbs job submit script
+            self.gen_pbs(directory=directory, script="optimization.pbs", cmd="abinit", jobname=jobname, nodes=nodes, ppn=ppn)
+            # generate local bash job run script
+            self.gen_bash(directory=directory, script="optimization.sh", cmd="abinit", mpi=mpi)
+
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("abinit < %s" % inpname.split(".")[0]+".files")
+            #os.system("abinit < %s" % inpname.split(".")[0]+".files")
+            os.system("bash %s" % "optimization.sh")
             os.chdir("../")
-    
+
     def analysis(self, directory="tmp-abinit-opt", inpname="geometric-optimization.in"):
         pass

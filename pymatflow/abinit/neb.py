@@ -17,9 +17,9 @@ class neb_run(abinit):
         """
         super().__init__()
         self.images = []
-        self.electrons.basic_setting()
-        
-        self.guard.set_queen(queen="neb", electrons=self.electrons, system=self.system)
+        self.input.electrons.basic_setting()
+
+        self.input.guard.set_queen(queen="neb", electrons=self.input.electrons, system=self.input.system)
 
         self.params = {
                 "imgmov": 5,
@@ -49,7 +49,16 @@ class neb_run(abinit):
             system.xyz.get_xyz(image)
             self.images.append(system)
 
-    def neb(self, directory="tmp-abinit-neb", inpname="neb.in", mpi="", runopt="gen"):
+    def neb(self, directory="tmp-abinit-neb", mpi="", runopt="gen",
+        jobname="abinit-neb", nodes=1, ppn=32):
+
+        self.files.name = "neb.files"
+        self.files.main_in = "neb.in"
+        self.files.main_out = "neb.out"
+        self.files.wavefunc_in = "neb-i"
+        self.files.wavefunc_out = "neb-o"
+        self.files.tmp = "tmp"
+
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -59,12 +68,21 @@ class neb_run(abinit):
             for image in self.images:
                 os.system("cp %s %s/" % (image.xyz.file, directory))
 
-            self.electrons.set_scf_nscf("scf")
+            self.input.electrons.set_scf_nscf("scf")
             #
-            self.guard.check_all()
-            with open(os.path.join(directory, inpname), 'w') as fout:
-                self.electrons.to_in(fout)
-                self.images_to_in(fout)
+            self.input.guard.check_all()
+
+            script="neb.pbs"
+            with open(os.path.join(directory, script),  'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#PBS -N %s\n" % jobname)
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("\n")
+                fout.write("cd $PBS_O_WORKDIR\n")
+                fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+                fout.write("cat > %s<<EOF\n" % self.files.main_in)
+                self.input.electrons.to_input(fout)
+                self.images_to_input(fout)
                 fout.write("\n")
                 fout.write("# ===============================\n")
                 fout.write("# neb related setting\n")
@@ -72,23 +90,20 @@ class neb_run(abinit):
                 for item in self.params:
                     if self.params[item] is not None:
                         fout.write("%s %s\n" % (item, str(self.params[item])))
-                
-            with open(os.path.join(directory, inpname.split(".")[0]+".files"), 'w') as fout:
-                fout.write("%s\n" % inpname)
-                fout.write("%s.out\n" % inpname.split(".")[0])
-                fout.write("%si\n" % inpname.split(".")[0])
-                fout.write("%so\n" % inpname.split(".")[0])
-                fout.write("temp\n")
-                for element in self.images[0].xyz.specie_labels:
-                    fout.write("%s\n" % (element + ".psp8"))
-                    #fout.write("%s\n" % (element + ".GGA_PBE-JTH.xml"))
+                fout.write("EOF\n")
+                fout.write("cat > %s<<EOF\n" % self.files.name)
+                #self.files.to_files(fout, system=self.input.system)
+                self.files.to_files(fout, system=self.images[0])
+                fout.write("EOF\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s\n" % ("abinit", self.files.name))
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("abinit < %s" % inpname.split(".")[0]+".files")
             os.chdir("../")
 
-    def images_to_in(self, fout):
-        self.images[0].to_in(fout)
+    def images_to_input(self, fout):
+        self.images[0].to_input(fout)
         fout.write("\n")
         fout.write("xangst_lastimg\n")
         for atom in self.images[-1].xyz.atoms:

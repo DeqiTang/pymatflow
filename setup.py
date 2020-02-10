@@ -172,8 +172,8 @@ setup(
         "pymatflow/remote/scripts/sz-q.py",
         "pymatflow/remote/scripts/threport.py",
         "pymatflow/flow/scripts/flow-run.py",
-        "pymatflow/flow/scripts/flow-pes-static.py",
-        "pymatflow/flow/scripts/flow-pes-relax.py",
+        "pymatflow/flow/scripts/flow-pes-static-qe.py",
+        "pymatflow/flow/scripts/flow-pes-relax-qe.py",
         "pymatflow/flow/scripts/flow-pes-relax-cp2k.py",
         ],
     #entry_points = {
@@ -186,6 +186,3 @@ setup(
         'clean': CleanCommand,
     }
 )
-
-
-

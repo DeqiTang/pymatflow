@@ -16,18 +16,21 @@ Note:
     参考: https://atztogo.github.io/phonopy/abinit.html
 """
 
-        
+
 class phonopy_run(abinit):
     """
     """
     def __init__(self):
         super().__init__()
-    
-        self.electrons.basic_setting()
+
+        #self.input.guard.set_queen(queen="static", electrons=self.input.electrons, system=self.input.system)
+
+        self.input.electrons.basic_setting()
 
         self.supercell_n = [1, 1, 1]
 
-    def phonopy(self, directory="tmp-abinit-phonopy", head_inpname="head-phonon.in", pos_inpname="pos.in", mpi="", runopt="gen"):
+    def phonopy(self, directory="tmp-abinit-phonopy", head_inpname="head-phonon.in", pos_inpname="pos.in", mpi="", runopt="gen",
+        jobname="phonopy", nodes=1, ppn=32):
         """
         """
         if runopt == "gen" or runopt == "genrun":
@@ -36,21 +39,21 @@ class phonopy_run(abinit):
             os.mkdir(directory)
             os.system("cp *.psp8 %s/" % directory)
             os.system("cp *.GGA_PBE-JTH.xml %s/" % directory)
-            os.system("cp %s %s/" % (self.system.xyz.file, directory))
-           
+            os.system("cp %s %s/" % (self.input.system.xyz.file, directory))
 
-            self.electrons.set_scf_nscf("scf")
+
+            self.input.electrons.set_scf_nscf("scf")
             #
             with open(os.path.join(directory, head_inpname), 'w') as fout:
-                self.electrons.to_in(fout)
+                self.input.electrons.to_in(fout)
             with open(os.path.join(directory, pos_inpname), 'w') as fout:
-                self.system.to_in(fout)
-   
+                self.input.system.to_in(fout)
+
             os.chdir(directory)
             os.system("phonopy --abinit -d --dim='%d %d %d' -c %s" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2], pos_inpname))
-        
+
             disps = self.get_disps("./")
-        
+
             for disp in disps:
                 os.mkdir("disp-%s" % disp)
                 os.system("cp ./*.psp8 ./disp-%s/" % (disp))
@@ -66,15 +69,15 @@ class phonopy_run(abinit):
                 # 也是没有错的, 而且原本xxx.files文件中给出元素赝势的顺序业余输入文件中znucl的一致, 便可以成功进行后续
                 # 计算了.
                 os.system("cat %s > ./disp-%s/supercell-%s.in" % (head_inpname, disp, disp))
-                os.system("head %s -n -%d >> ./disp-%s/supercell-%s.in" % (pos_inpname, (self.system.xyz.natom + 2), disp, disp))
-                os.system("tail supercell-%s.in -n %d >> ./disp-%s/supercell-%s.in" % (disp, (self.system.xyz.natom + 1), disp, disp))
+                os.system("head %s -n -%d >> ./disp-%s/supercell-%s.in" % (pos_inpname, (self.input.system.xyz.natom + 2), disp, disp))
+                os.system("tail supercell-%s.in -n %d >> ./disp-%s/supercell-%s.in" % (disp, (self.input.system.xyz.natom + 1), disp, disp))
                 with open("./disp-%s/supercell-%s.files" % (disp, disp), 'w') as fout:
                     fout.write("supercell-%s.in\n" % disp)
                     fout.write("supercell-%s.out\n" % disp)
                     fout.write("supercell-%si\n" % disp)
                     fout.write("supercell-%so\n" % disp)
                     fout.write("temp\n")
-                    for element in self.system.xyz.specie_labels:
+                    for element in self.input.system.xyz.specie_labels:
                         fout.write("%s\n" % (element + ".psp8"))
             os.chdir("../")
 
@@ -85,7 +88,20 @@ class phonopy_run(abinit):
                     fout.write("cd disp-%s\n" % disp)
                     fout.write("yhrun -N 1 -n 24 abinit < supercell-%s.files\n" % disp)
                     fout.write("cd ../\n")
-            
+
+            # generate pbs scripts
+            with open(os.path.join(directory, "phonopy-job.pbs"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#PBS -N %s\n" % jobname)
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("\n")
+                fout.write("cd $PBS_O_WORKDIR\n")
+                fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+                for disp in disps:
+                    fout.write("cd disp-%s\n" % disp)
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE abinit < supercell-%s.files\n" % disp)
+                    fout.write("cd ../\n")
+
 
         if runopt == "run" or runopt == "genrun":
             # run the simulation
@@ -96,8 +112,8 @@ class phonopy_run(abinit):
                 os.system("abinit < supercell-%s.files" % disp)
                 os.chdir("../")
             os.chdir("../")
-    
-    
+
+
     def get_disps(self, directory="./"):
         os.chdir(directory)
         os.system("ls | grep 'supercell-' > geo.data")
