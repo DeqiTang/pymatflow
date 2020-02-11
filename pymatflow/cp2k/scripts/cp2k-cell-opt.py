@@ -14,12 +14,16 @@ Usage:
 
 """
 
-params = {}
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-cell-opt")
-    parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+
+    parser.add_argument("-d", "--directory", type=str, default="tmp-cp2k-cell-opt",
+            help="directory of the calculation")
+
+    parser.add_argument("-f", "--file", type=str,
+            help="the xyz file name")
 
     parser.add_argument("--mpi", type=str, default="",
             help="MPI command: like 'mpirun -np 4'")
@@ -28,10 +32,11 @@ if __name__ == "__main__":
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
-    # -----------------------------------------------------
-    # -----------------------------------------------------
+    # --------------------------------------------------------------------------
+    # FORCE_EVAL related parameters
+    # --------------------------------------------------------------------------
     parser.add_argument("--ls-scf", type=str, default="FALSE",
-            #choices=["TRUE", "FALSE", "true", "false"],
+            choices=["TRUE", "FALSE", "true", "false"],
             help="use linear scaling scf method")
 
     parser.add_argument("--qs-method", type=str, default="GPW",
@@ -56,43 +61,57 @@ if __name__ == "__main__":
             help="REL_CUTOFF, default value: 60 Ry")
 
     parser.add_argument("--diag", type=str, default="TRUE",
-            #choices=["TRUE", "FALSE", "true", "false"],
+            choices=["TRUE", "FALSE", "true", "false"],
             help="whether choosing tranditional diagonalization for SCF")
 
     parser.add_argument("--ot", type=str, default="FALSE",
-            #choices=["TRUE", "FALSE", "true", "false"],
+            choices=["TRUE", "FALSE", "true", "false"],
             help="whether choosing orbital transformation for SCF")
 
     parser.add_argument("--alpha", type=float, default=0.4,
             help="DFT-SCF-MIXING-ALPHA")
 
     parser.add_argument("--smear", type=str, default="FALSE",
-            #choices=["TRUE", "FALSE", "true", "false"],
+            choices=["TRUE", "FALSE", "true", "false"],
             help="switch on or off smearing for occupation")
 
-    parser.add_argument("--added-mos", help="ADDED_MOS for SCF", type=int, default=0)
+    parser.add_argument("--added-mos", type=int, default=0,
+            help="ADDED_MOS for SCF")
 
-    parser.add_argument("--smear-method", help="smearing type: FERMI_DIRAC, ENERGY_WINDOW", type=str, default="FERMI_DIRAC")
+    parser.add_argument("--smear-method", type=str, default="FERMI_DIRAC",
+            help="smearing type: FERMI_DIRAC, ENERGY_WINDOW")
 
-    parser.add_argument("--electronic-temp", help="ELECTRON_TEMPERATURE for FERMI_DIRAC SMEAR", type=float, default=300)
+    parser.add_argument("--electronic-temp", type=float, default=300,
+            help="ELECTRON_TEMPERATURE for FERMI_DIRAC SMEAR")
 
-    parser.add_argument("--window-size", help="Size of the energy window centred at the Fermi level for ENERGY_WINDOW type smearing", type=float, default=0)
-    # motion/cell_opt related
+    parser.add_argument("--window-size", type=float, default=0,
+            help="Size of the energy window centred at the Fermi level for ENERGY_WINDOW type smearing")
+
+    # --------------------------------------------------------------------------
+    # MOTION/CELL_OPT related parameters
+    # --------------------------------------------------------------------------
     parser.add_argument("--optimizer", type=str, default="BFGS",
             help="optimization algorithm for geometry optimization: BFGS, CG, LBFGS")
+
     parser.add_argument("--max-iter", type=int, default=200,
             help="maximum number of geometry optimization steps.")
+
     parser.add_argument("--type", type=str, default="DIRECT_CELL_OPT",
             choices=["DIRECT_CELL_OPT", "GEO_OPT", "MD"],
             help="specify which kind of geometry optimization to perform: DIRECT_CELL_OPT(default), GEO_OPT, MD")
+
     parser.add_argument("--max-dr", type=float, default=3e-3,
             help="Convergence criterion for the maximum geometry change between the current and the last optimizer iteration.")
+
     parser.add_argument("--max-force", type=float, default=4.50000000E-004,
             help="Convergence criterion for the maximum force component of the current configuration.")
+
     parser.add_argument("--rms-dr", type=float, default=1.50000000E-003,
             help="Convergence criterion for the root mean square (RMS) geometry change between the current and the last optimizer iteration.")
+
     parser.add_argument("--rms-force", type=float, default=3.00000000E-004,
             help="Convergence criterion for the root mean square (RMS) force of the current configuration.")
+
     parser.add_argument("--pressure-tolerance", type=float, default=1.00000000E+002,
             help="Specifies the Pressure tolerance (compared to the external pressure) to achieve during the cell optimization.")
 
@@ -102,13 +121,17 @@ if __name__ == "__main__":
     parser.add_argument("--auto", type=int, default=3,
             choices=[0, 1, 2, 3],
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
+
     parser.add_argument("--jobname", type=str, default="cell-opt",
             help="jobname on the pbs server")
+
     parser.add_argument("--nodes", type=int, default=1,
             help="Nodes used in server")
+
     parser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
 
@@ -116,8 +139,8 @@ if __name__ == "__main__":
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================
     args = parser.parse_args()
-    directory = args.directory
-    xyzfile = args.file
+    params = {}
+
     params["FORCE_EVAL-DFT-LS_SCF"] = args.ls_scf
     params["FORCE_EVAL-DFT-QS-METHOD"] = args.qs_method
     params["FORCE_EVAL-DFT-MGRID-CUTOFF"] = args.cutoff
@@ -144,9 +167,9 @@ if __name__ == "__main__":
     params["MOTION-CELL_OPT-PRESSURE_TOLERANCE"] = args.pressure_tolerance
 
     task = opt_run()
-    task.get_xyz(xyzfile)
+    task.get_xyz(args.file)
     task.set_cell_opt()
     task.set_params(params=params)
-    task.cell_opt(directory=directory, mpi=args.mpi, runopt=args.runopt, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+    task.cell_opt(directory=args.directory, mpi=args.mpi, runopt=args.runopt, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
 
     server_handle(auto=args.auto, directory=args.directory, jobfilebase="cell-opt", server=args.server)

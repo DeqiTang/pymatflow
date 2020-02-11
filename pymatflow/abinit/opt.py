@@ -40,9 +40,6 @@ class opt_run(abinit):
             os.system("cp %s %s/" % (self.input.system.xyz.file, directory))
 
             #
-
-
-
             # generate pbs job submit script
             self.gen_pbs(directory=directory, script="optimization.pbs", cmd="abinit", jobname=jobname, nodes=nodes, ppn=ppn)
             # generate local bash job run script

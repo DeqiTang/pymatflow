@@ -9,6 +9,8 @@ from pymatflow.remote.server import server_handle
 """
 usage:
    siesta-opt.py xxx.xyz
+requirements:
+    --vc must always be "false"
 """
 
 if __name__ == "__main__":
@@ -72,7 +74,7 @@ if __name__ == "__main__":
     #           ions relaed parameter
     # ==================================================
     parser.add_argument("--vc", type=str, default="false",
-            choices=["true", "false"],
+            choices=["false"],
             help="MD.VariableCell")
 
     parser.add_argument("--forcetol", type=float, default=0.04,
@@ -83,6 +85,14 @@ if __name__ == "__main__":
 
     parser.add_argument("--targetpressure", type=float, default=0,
             help="Target pressure for Parrinello-Rahman method, variable cell optimizations, and annealing options.")
+
+    # --------------------------------------------------------------------------
+    # na stepa
+    # --------------------------------------------------------------------------
+    parser.add_argument("--na", type=int, default=10,
+            help="number of a used")
+    parser.add_argument("--stepa", type=float, default=0.05,
+            help="a step")
 
     # -----------------------------------------------------------------
     #                      for server handling
@@ -132,7 +142,92 @@ if __name__ == "__main__":
     task.get_xyz(args.file)
     task.set_params(params=params)
     task.set_kpoints(kpoints_mp=args.kpoints_mp)
-    task.opt(directory=directory, runopt=args.runopt, mpi=args.mpi, mode=args.mode)
-
+    #task.opt(directory=directory, runopt=args.runopt, mpi=args.mpi, mode=args.mode)
     # server handle
-    server_handle(auto=args.auto, directory=args.directory, jobfilebase="geometric-optimization", server=args.server)
+    #server_handle(auto=args.auto, directory=args.directory, jobfilebase="geometric-optimization", server=args.server)
+
+    if os.path.exists(args.directory):
+        shutil.rmtree(args.directory)
+    os.mkdir(args.directory)
+
+    for element in task.system.xyz.specie_labels:
+        shutil.copyfile("%s.psf" % element, os.path.join(args.directory, "%s.psf" % element))
+
+    shutil.copyfile(task.system.xyz.file, os.path.join(args.directory, task.system.xyz.file))
+
+    #
+    os.chdir(args.directory)
+    # gen pbs script
+    with open("opt-cubic.pbs", 'w') as fout:
+        fout.write("#!/bin/bash\n")
+        fout.write("#PBS -N %s\n" % args.jobname)
+        fout.write("#PBS -l nodes=%d:ppn=%d\n" % (args.nodes, args.ppn))
+        fout.write("\n")
+        fout.write("cd $PBS_O_WORKDIR\n")
+        fout.write("cat > optimization.fdf<<EOF\n")
+        task.system.to_input(fout)
+        task.electrons.to_input(fout)
+        task.ions.to_input(fout)
+        fout.write("EOF\n")
+        fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+
+        a = task.system.xyz.cell[0][0]
+
+        fout.write("v11=%f\n" % task.system.xyz.cell[0][0])
+        fout.write("v12=%f\n" % task.system.xyz.cell[0][1])
+        fout.write("v13=%f\n" % task.system.xyz.cell[0][2])
+        fout.write("v21=%f\n" % task.system.xyz.cell[1][0])
+        fout.write("v22=%f\n" % task.system.xyz.cell[1][1])
+        fout.write("v23=%f\n" % task.system.xyz.cell[1][2])
+        fout.write("v31=%f\n" % task.system.xyz.cell[2][0])
+        fout.write("v32=%f\n" % task.system.xyz.cell[2][1])
+        fout.write("v33=%f\n" % task.system.xyz.cell[2][2])
+
+        fout.write("lat_vec_begin=`cat optimization.fdf | grep -n \'%block LatticeVectors\' | cut -d ":" -f 1`")
+        fout.write("lat_vec_end=`cat optimization.fdf | grep -n \'%endblock LatticeVectors\' | cut -d ":" -f 1`")
+        fout.write("for a in `seq -w %f %f %f`\n" % (a-args.na/2*args.stepa, args.stepa, a+args.na/2*args.stepa))
+        fout.write("do\n")
+        fout.write("  mkdir relax-${a}\n")
+        fout.write("  cp *.psf relax-${a}/\n")
+        fout.write("  cat optimization.fdf | head -n +${lat_vec_begin} > relax-${a}/optimization.fdf\n")
+        fout.write("  cat > relax-${a}/optimization.fdf<<EOF\n")
+        fout.write("${a} 0.000000 0.000000\n")
+        fout.write("0.000000 ${a} 0.000000\n")
+        fout.write("0.000000 0.000000 ${a}\n")
+        fout.write("EOF\n")
+        fout.write("  cat optimization.fdf | tail -n +${lat_vec_end} >> relax-${a}/optimization.fdf\n")
+        fout.write("  cd relax-${a}/\n")
+        fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE siesta < optimization.fdf > optimization.out\n")
+        fout.write("  cd ../\n")
+        fout.write("done\n")
+
+    # generate result analysis script
+    os.system("mkdir -p post-processing")
+
+    with open("post-processing/get_energy.sh", 'w') as fout:
+        fout.write("#!/bin/bash\n")
+        # the comment
+        fout.write("cat > energy-latconst.data <<EOF\n")
+        fout.write("# format: a energy(eV)\n")
+        fout.write("EOF\n")
+        # end
+        fout.write("for a in `seq -w %f %f %f`\n" % (a-args.na/2*args.stepa, args.stepa, a+args.na/2*args.stepa))
+        fout.write("do\n")
+        #fout.write("  energy=`cat ../relax-${a}/optimization.out | grep 'siesta: E_KS(eV) =' | tail -1 | cut -d "=" -f 1`\n")
+        fout.write("  cat >> energy-latconst.data <<EOF\n")
+        fout.write("${a} ${energy}\n")
+        fout.write("EOF\n")
+        fout.write("done\n")
+        fout.write("cat > energy-latconst.gp<<EOF\n")
+        fout.write("set term gif\n")
+        fout.write("set output 'energy-latconst.gif'\n")
+        fout.write("set title Energy Latconst\n")
+        fout.write("set xlabel 'latconst(a)'\n")
+        fout.write("set ylabel 'Energy'\n")
+        fout.write("plot 'energy-latconst.data' w l\n")
+        fout.write("EOF\n")
+
+    #os.system("cd post-processing; bash get_energy.sh; cd ../")
+    os.chdir("../")
+
+    server_handle(auto=args.auto, directory=args.directory, jobfilebase="opt-cubic", server=args.server)

@@ -5,33 +5,33 @@ import numpy as np
 import sys
 import os
 import shutil
-
 import argparse
+
 from pymatflow.cp2k.md import md_run
 from pymatflow.remote.server import server_handle
 
 """
 Usage:
-    python aimd_cp2k.py xxx.xyz
-    xxx.xyz is the input structure file
-
-    make sure the xyz structure file and pseudopotential file
-    for all the elements of the system is in the directory.
+    cp2k-aimd.py -f xxx.xyz [--options]
 """
 
-params = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-cp2k-aimd")
 
-    parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+    parser.add_argument("-d", "--directory", type=str, default="tmp-cp2k-aimd",
+            help="the root directory to do the aimd calculation ")
+
+    parser.add_argument("-f", "--file", type=str,
+            help="the xyz file name: with second line specifying the cell parameters")
 
     parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
-
+    # --------------------------------------------------------------------------
+    # FORCE_EVAL related parameters
+    # --------------------------------------------------------------------------
     parser.add_argument("--ls-scf", type=str, default="FALSE",
             #choices=["TRUE", "FALSE", "true", "false"],
             help="use linear scaling scf method")
@@ -58,41 +58,51 @@ if __name__ == "__main__":
             help="DFT-KPOINTS-SCHEME(str): can be NONE, GAMMA, MONKHORST-PACK, MACDONALD, GENERAL. when you set MONKHORST-PACK, you should also add the three integers like 'monkhorst-pack 3 3 3'")
 
     parser.add_argument("--diag", type=str, default="TRUE",
-            #choices=["TRUE", "FALSE", "true", "false"],
+            choices=["TRUE", "FALSE", "true", "false"],
             help="whether choosing tranditional diagonalization for SCF")
 
     parser.add_argument("--ot", type=str, default="FALSE",
-            #choices=["TRUE", "FALSE", "true", "false"],
+            choices=["TRUE", "FALSE", "true", "false"],
             help="whether choosing orbital transformation for SCF")
 
     parser.add_argument("--alpha", type=float, default=0.4,
             help="DFT-SCF-MIXING-ALPHA")
 
     parser.add_argument("--smear", type=str, default="FALSE",
-            #choices=["TRUE", "FALSE", "true", "false"],
+            choices=["TRUE", "FALSE", "true", "false"],
             help="switch on or off smearing for occupation")
 
-    parser.add_argument("--added-mos", help="ADDED_MOS for SCF", type=int, default=0)
+    parser.add_argument("--added-mos", type=int, default=0,
+            help="ADDED_MOS for SCF")
 
-    parser.add_argument("--smear-method", help="smearing type: FERMI_DIRAC, ENERGY_WINDOW", type=str, default="FERMI_DIRAC")
+    parser.add_argument("--smear-method", type=str, default="FERMI_DIRAC",
+            help="smearing type: FERMI_DIRAC, ENERGY_WINDOW")
 
-    parser.add_argument("--electronic-temp", help="ELECTRON_TEMPERATURE for FERMI_DIRAC SMEAR", type=float, default=300)
+    parser.add_argument("--electronic-temp", type=float, default=300,
+            help="ELECTRON_TEMPERATURE for FERMI_DIRAC SMEAR", type=float, default=300)
 
-    parser.add_argument("--window-size", help="Size of the energy window centred at the Fermi level for ENERGY_WINDOW type smearing", type=float, default=0)
+    parser.add_argument("--window-size", type=float, default=0,
+            help="Size of the energy window centred at the Fermi level for ENERGY_WINDOW type smearing")
 
-
+    # --------------------------------------------------------------------------
     # motion related parameters
+    # --------------------------------------------------------------------------
     parser.add_argument("--md-steps", type=int, default=1000,
             help="MOTION/MD/STEPS")
+
     parser.add_argument("--timestep", type=float, default=5.0e-1,
             help="MOTION/MD/TIMESTEP, default and also recommended is 0.5 fs.")
+
     parser.add_argument("--ensemble", type=str, default="NVE",
             choices=["NVE",  "NVT","HYDROSTATICSHOCK", "ISOKIN", "LANGEVIN", "MSST", "MSST_DAMPED"],
             help="MOTION/MD/ENSEMBLE")
+
     parser.add_argument("--temperature", type=str, default=300,
             help="The temperature in K used to initialize the velocities with init and pos restart, and in the NPT/NVT simulations")
+
     parser.add_argument("--temp-tol", type=float, default=0.0,
             help="MOTION/MD/TEMP_TOL")
+
     parser.add_argument("--traj-format", type=str, default="XMOL",
             help="type of output trajectory for MOTION, note: DCD format can be visualized by vmd")
 
@@ -102,21 +112,26 @@ if __name__ == "__main__":
     parser.add_argument("--auto", type=int, default=3,
             choices=[0, 1, 2, 3],
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
+
     parser.add_argument("--jobname", type=str, default="geo-opt",
             help="jobname on the pbs server")
+
     parser.add_argument("--nodes", type=int, default=1,
             help="Nodes used in server")
+
     parser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
 
 
-    # ==========================================================
+    # ==========================================================================
     # transfer parameters from the arg parser to opt_run setting
-    # ==========================================================
+    # ==========================================================================
     args = parser.parse_args()
+    params = {}
 
     params["FORCE_EVAL-DFT-LS_SCF"] = args.ls_scf
     params["FORCE_EVAL-DFT-QS-METHOD"] = args.qs_method

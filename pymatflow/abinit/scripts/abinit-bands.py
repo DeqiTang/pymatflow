@@ -11,16 +11,14 @@ from pymatflow.abinit.static import static_run
 usage:
 """
 
-electrons_params = {}
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-d", "--directory", type=str, default="tmp-abinit-static",
-            help="Directory for the static running.")
+            help="Directory to do the static calculation")
 
     parser.add_argument("-f", "--file", type=str,
-            help="The xyz file name, containing the structure to be simulated")
+            help="The xyz structure file name with second line specify cell parameters")
 
     parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
@@ -53,7 +51,8 @@ if __name__ == "__main__":
     parser.add_argument("--vdw-xc", type=int,
             default=None,
             choices=[0, 1, 2, 5, 6, 7, 10, 11, 14],
-            help="Van Der Waals exchange-correlation functional. 5: DFT-D2, 6: DFT-D3, 7: DFT-D3(BJ). for more information, refer to https://docs.abinit.org/variables/vdw/#vdw_xc")
+            help="Van Der Waals corrected exchange-correlation functional. 5: DFT-D2, 6: DFT-D3, 7: DFT-D3(BJ). for more information, refer to https://docs.abinit.org/variables/vdw/#vdw_xc")
+
     parser.add_argument("--vdw-tol", type=float,
             default=None,
             help="Van Der Waals tolerance, only work when vdw_xc == 5 or 6 or 7. to be included in the potential a pair of atom must have contribution to the energy larger than vdw_tol. default value is 1.0e-10. fore more information, refer to https://docs.abinit.org/variables/vdw/#vdw_tol")
@@ -64,30 +63,35 @@ if __name__ == "__main__":
     parser.add_argument("--auto", type=int, default=3,
             choices=[0, 1, 2, 3],
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
+
     parser.add_argument("--jobname", type=str, default="opt-cubic",
             help="jobname on the pbs server")
+
     parser.add_argument("--nodes", type=int, default=1,
             help="Nodes used in server")
+
     parser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
-
 
     # ==========================================================
     # transfer parameters from the arg parser to static_run setting
     # ==========================================================
     args = parser.parse_args()
 
+    electrons_params = {}
+
     electrons_params["ecut"] = args.ecut
     electrons_params["ixc"] = args.ixc
     electrons_params["vdw_xc"] = args.vdw_xc
     electrons_params["vdw_tol"] = args.vdw_tol
 
-    # --------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # process kptbounds
-
+    # --------------------------------------------------------------------------
     if args.kptbounds != None:
         # kptbounds from script argument args.kptbounds.
         kptbounds = []
@@ -151,4 +155,6 @@ if __name__ == "__main__":
     task.get_xyz(args.file)
     task.set_params(electrons=electrons_params)
     task.electrons.kpoints.set_band(kptbounds=kptbounds)
-    task.band(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
+    task.bands(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
+
+    server_handle(auto=args.auto, directory=args.directory, jobfilebase="static-bands", server=args.server)

@@ -86,7 +86,9 @@ if __name__ == "__main__":
             type=int, default=50,
             help="maximum ion steps for geometric optimization")
 
+    # --------------------------------------------------------------------------
     # na nc stepa stepc
+    # --------------------------------------------------------------------------
     parser.add_argument("--na", type=int, default=10,
             help="number of a used")
     parser.add_argument("--nc", type=int, default=10,
@@ -305,7 +307,9 @@ if __name__ == "__main__":
                 pass
 
     # generate result analysis script
-    with open("get_energy.sh", 'w') as fout:
+    os.system("mkdir -p post-processing")
+
+    with open("post-processing/get_energy.sh", 'w') as fout:
         fout.write("#!/bin/bash\n")
         # the comment
         if args.na >= 2 and args.nc >= 2:
@@ -329,32 +333,58 @@ if __name__ == "__main__":
                 # both a and c are optimized
                 fout.write("  for c in `seq -w %f %f %f`\n" % (c-args.nc/2*args.stepc, args.stepc, c+args.nc/2*args.stepc))
                 fout.write("  do\n")
-                fout.write("    energy=`cat relax-${a}-${c}.out | grep '!    total energy' | tail -1`\n")
+                fout.write("    energy=`cat ../relax-${a}-${c}.out | grep '!    total energy' | tail -1`\n")
                 fout.write("    cat >> energy-latconst.data <<EOF\n")
                 fout.write("${a} ${c} ${energy:32:-2}\n")
                 fout.write("EOF\n")
                 fout.write("  done\n")
+                fout.write("done\n")
+                fout.write("cat > energy-latconst.gp<<EOF\n")
+                fout.write("set term gif\n")
+                fout.write("set output 'energy-latconst.gif'\n")
+                fout.write("set title Energy Latconst\n")
+                fout.write("set xlabel 'latconst(a)'\n")
+                fout.write("set ylabel 'latconst(c)'\n")
+                fout.write("set zlabel 'Energy'\n")
+                fout.write("splot 'energy-latconst.data'\n")
+                fout.write("EOF\n")
             else:
-                fout.write("  energy=`cat relax-${a}.out | grep '!    total energy' | tail -1`\n")
+                fout.write("  energy=`cat ../relax-${a}.out | grep '!    total energy' | tail -1`\n")
                 fout.write("  cat >> energy-latconst.data <<EOF\n")
                 fout.write("${a} ${energy:32:-2}\n")
                 fout.write("EOF\n")
-            fout.write("done\n")
+                fout.write("done\n")
+                fout.write("cat > energy-latconst.gp<<EOF\n")
+                fout.write("set term gif\n")
+                fout.write("set output 'energy-latconst.gif'\n")
+                fout.write("set title Energy Latconst\n")
+                fout.write("set xlabel 'latconst(a)'\n")
+                fout.write("set ylabel 'Energy'\n")
+                fout.write("plot 'energy-latconst.data' w l\n")
+                fout.write("EOF\n")
         else:
             # a is not optimized
             if args.nc >= 2:
                 # only c is optimized
                 fout.write("for c in `seq -w %f %f %f`\n" % (c-args.nc/2*args.stepc, args.stepc, c+args.nc/2*args.stepc))
                 fout.write("do\n")
-                fout.write("  energy=`cat relax-${c}.out | grep '!    total energy' | tail -1`\n")
+                fout.write("  energy=`cat ../relax-${c}.out | grep '!    total energy' | tail -1`\n")
                 fout.write("  cat >> energy-latconst.data <<EOF\n")
                 fout.write("${c} ${energy:32:-2}\n")
                 fout.write("EOF\n")
                 fout.write("done\n")
+                fout.write("cat > energy-latconst.gp<<EOF\n")
+                fout.write("set term gif\n")
+                fout.write("set output 'energy-latconst.gif'\n")
+                fout.write("set title Energy Latconst\n")
+                fout.write("set xlabel 'latconst(c)'\n")
+                fout.write("set ylabel 'Energy'\n")
+                fout.write("plot 'energy-latconst.data' w l\n")
+                fout.write("EOF\n")
             else:
                 # neither a nor c is optimized
                 pass
-
+    #os.system("cd post-processing; bash get_energy.sh; cd ../")
     os.chdir("../")
 
     server_handle(auto=args.auto, directory=args.directory, jobfilebase="relax-tetragonal", server=args.server)

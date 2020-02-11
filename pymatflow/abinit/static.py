@@ -104,10 +104,17 @@ class static_run(abinit):
             os.chdir("../")
 
 
-    def band(self, directory="tmp-abinit-static", inpname="static-band.in", mpi="", runopt="gen"):
+    def bands(self, directory="tmp-abinit-static", inpname="static-band.in", mpi="", runopt="gen",
+        jobname="abinit-band", nodes=1, ppn=32):
         """
         we can use abiopen.py static-band-output_GSR.nc --expose -sns=talk to view the band structure.
         """
+        self.files.name = "static-bands.files"
+        self.files.main_in = "static-bands.in"
+        self.files.main_out = "static-bands.out"
+        self.files.wavefunc_in = "static-nscf-o"
+        self.files.wavefunc_out = "static-bands-o"
+        self.files.tmp = "tmp"
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
             print("===================================================\n")
@@ -118,38 +125,40 @@ class static_run(abinit):
             sys.exit(1)
         if runopt == "gen" or runopt == "genrun":
 
-            self.electrons.params["iscf"] = -2
-            self.electrons.params["nband"] = 8
-            self.electrons.params["tolwfr"] = 1.0e-12 # when kptopt < 0 namely band structure calculatin, we can only use tolwfr
-            self.electrons.params["tolvrs"] = None
-            self.electrons.params["toldfe"] = None
-            #self.electrons.params["irdden"] = 1 # actually irdden will be 1 by default if iscf < 0
+            self.input.electrons.params["iscf"] = -2
+            self.input.electrons.params["nband"] = 8
+            self.input.electrons.params["tolwfr"] = 1.0e-12 # when kptopt < 0 namely band structure calculatin, we can only use tolwfr
+            self.input.electrons.params["tolvrs"] = None
+            self.input.electrons.params["toldfe"] = None
+            #self.input.electrons.params["irdden"] = 1 # actually irdden will be 1 by default if iscf < 0
 
-            with open(os.path.join(directory, inpname), 'w') as fout:
-                self.electrons.to_in(fout)
-                self.system.to_in(fout)
+            #with open(os.path.join(directory, inpname), 'w') as fout:
+                #self.electrons.to_in(fout)
+                #self.system.to_in(fout)
 
-            with open(os.path.join(directory, inpname.split(".")[0]+".files"), 'w') as fout:
-                fout.write("%s\n" % inpname)
-                fout.write("%s.out\n" % inpname.split(".")[0])
-                fout.write("%s-output\n" % "static-scf")
-                fout.write("%s-output\n" % inpname.split(".")[0])
-                fout.write("temp\n")
-                for element in self.system.xyz.specie_labels:
-                    fout.write("%s\n" % (element + ".psp8"))
-                    #fout.write("%s\n" % (element + ".GGA_PBE-JTH.xml"))
+            self.input.guard.check_all()
+
+            # generate pbs job submit script
+            self.gen_pbs(directory=directory, script="static-bands.pbs", cmd="abinit", jobname=jobname, nodes=nodes, ppn=ppn)
+
+            # generate local bash job run script
+            self.gen_bash(directory=directory, script="static-bands.sh", cmd="abinit", mpi=mpi)
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("abinit < %s" % inpname.split(".")[0]+".files")
+            #os.system("abinit < %s" % inpname.split(".")[0]+".files")
+            os.system("bash %s" % "static-bands.sh")
             os.chdir("../")
 
-    def converge_ecut(self, emin, emax, step, directory="tmp-abinit-ecut", mpi="", runopt="gen"):
+    def converge_ecut(self, emin, emax, step, directory="tmp-abinit-ecut", mpi="", runopt="gen",
+        jobname="converge-ecut", nodes=1, ppn=32):
+
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.psp8 %s/" % directory)
-            os.system("cp %s %s/" % (self.system.xyz.file, directory))
+            os.system("cp %s %s/" % (self.input.system.xyz.file, directory))
 
             os.chdir(directory)
             n_test = int((emax - emin) / step)
@@ -164,15 +173,54 @@ class static_run(abinit):
                     fout.write("ecut-%d-input\n" % cutoff)
                     fout.write("ecut-%d-output\n" % cutoff)
                     fout.write("temp\n")
-                    for element in self.system.xyz.specie_labels:
+                    for element in self.input.system.xyz.specie_labels:
                         fout.write("%s\n" % (element + ".psp8"))
                 #
-                self.electrons.params["ecut"] = cutoff
+                self.input.electrons.params["ecut"] = cutoff
                 with open(inp_name, 'w') as fout:
-                    self.electrons.to_in(fout)
-                    self.system.to_in(fout)
+                    self.input.electrons.to_input(fout)
+                    self.input.system.to_input(fout)
             os.chdir("../")
 
+            # generate pbs script files
+            with open(os.path.join(directory, "converge-ecut.pbs"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#PBS -N %s\n" % jobname)
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("\n")
+                fout.write("cd $PBS_O_WORKDIR\n")
+                fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+                for i in range(n_test + 1):
+                    cutoff = int(emin + i * step)
+                    #inp_name = "ecut-%d.in" % cutoff
+                    files_name = "ecut-%d.files" % cutoff
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s\n" % ("abinit", files_name))
+            # generate the result analsysis scripts
+            os.system("mkdir -p %s/post-processing" % directory)
+            with open(os.path.join(directory, "post-processing/analysis-ecut.sh"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("\n")
+                for i in range(n_test + 1):
+                    cutoff = int(emin + i * step)
+                    out_f_name = "ecut-%d.out" % cutoff
+                    #fout.write("cat ../%s | grep 'Etotal=' >> energy-ecut.data" % out_f_name)
+                    fout.write("energy=`cat ../%s | grep \'Etotal=\' | cut -d \"=\" -f 2 `\n" % out_f_name)
+                    fout.write("cat >> energy-ecut.data<<EOF\n")
+                    fout.write("%d ${energy}\n" % cutoff)
+                    fout.write("EOF\n")
+                fout.write("\n")
+                fout.write("cat >> ecut-energy.gp<<EOF\n")
+                fout.write("set term gif\n")
+                fout.write("set output 'energy-ecut.gif'\n")
+                fout.write("set title 'Ecut Converge Test'\n")
+                fout.write("set xlabel 'Ecut()'\n")
+                fout.write("set ylabel 'Total Energy()'\n")
+                fout.write("plot 'energy-ecut.data' w l\n")
+                fout.write("EOF\n")
+                fout.write("\n")
+                fout.write("gnuplot ecut-energy.gp")
+
+            #
         if runopt == "run" or runopt == "genrun":
             # run the simulation
             os.chdir(directory)
@@ -181,27 +229,3 @@ class static_run(abinit):
                 files_name = "ecut-%d.files" % cutoff
                 os.system("abinit < %s" % (files_name))
             os.chdir("../")
-
-            # analyse the result
-            os.chdir(directory)
-            for i in range(n_test + 1):
-                cutoff = int(emin + i * step)
-                out_f_name = "ecut-%d.out" % cutoff
-                os.system("cat %s | grep 'Etotal=' >> energy-ecut.data" % out_f_name)
-            ecut = [ emin + i * step for i in range(n_test + 1) ]
-            energy = []
-            with open("energy-ecut.data", 'r') as fin:
-                for line in fin:
-                    energy.append(float(line.split()[2]))
-            #for i in range(len(energy)):
-            #    energy[i] = energy[i] - 31
-            plt.plot(ecut, energy)
-            plt.title("Ecut converge test")
-            plt.xlabel("Ecut (Hartree)")
-            plt.ylabel("Energy")
-            plt.savefig("energy-ecut.png")
-            plt.show()
-
-            os.chdir("../")
-        #
-    #

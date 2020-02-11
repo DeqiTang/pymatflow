@@ -9,11 +9,9 @@ from pymatflow.remote.server import server_handle
 from pymatflow.abinit.static import static_run
 
 """
-usage: abinit-converge-ecut.py xxx.xyz emin emax step
+usage: abinit-converge-ecut.py -f xxx.xyz --range emin emax step
 """
 
-electrons_params = {}
-kpoints_params = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -22,7 +20,7 @@ if __name__ == "__main__":
             help="Directory for the ecut converge running.")
 
     parser.add_argument("-f", "--file", type=str,
-            help="The xyz file name.")
+            help="The xyz structure file name with second line specifying cell parameters")
 
     parser.add_argument("--range", nargs="+", type=int,
             help="ecut test range")
@@ -51,13 +49,17 @@ if __name__ == "__main__":
     parser.add_argument("--auto", type=int, default=3,
             choices=[0, 1, 2, 3],
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
+
     parser.add_argument("--jobname", type=str, default="opt-cubic",
             help="jobname on the pbs server")
+
     parser.add_argument("--nodes", type=int, default=1,
             help="Nodes used in server")
+
     parser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
 
@@ -65,6 +67,9 @@ if __name__ == "__main__":
     # transfer parameters from the arg parser to static_run setting
     # ==========================================================
     args = parser.parse_args()
+
+    electrons_params = {}
+    kpoints_params = {}
 
     electrons_params["ixc"] = args.ixc
 
@@ -74,6 +79,8 @@ if __name__ == "__main__":
 
     task = static_run()
     task.get_xyz(args.file)
-    task.set_params(electrons=electrons_parmas)
-    task.set_kpoints(kpoints=kpoints_parmas)
+    task.set_params(electrons=electrons_params)
+    task.set_kpoints(kpoints=kpoints_params)
     task.converge_ecut(args.range[0], args.range[1], args.range[2], directory=args.directory, mpi=args.mpi, runopt=args.runopt)
+
+    server_handle(auto=args.auto, directory=args.directory, jobfilebase="converge-ecut", server=args.server)

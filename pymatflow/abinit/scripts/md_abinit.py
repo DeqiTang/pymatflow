@@ -19,7 +19,7 @@ Usage:
 
 
 
-# OK now we can use XYZ class to extract information 
+# OK now we can use XYZ class to extract information
 # from the xyz file: sys.argv[1]
 
 #ecut_min = int(sys.argv[2]) # in Ry: 1 Ry = 13.6 ev
@@ -27,7 +27,7 @@ Usage:
 #ecut_step = int(sys.argv[4])
 cutoff = 40
 
-xyz = abinit_xyz(sys.argv[1]) 
+xyz = abinit_xyz(sys.argv[1])
 
 base_project_name = "molecular-dynamics"
 if os.path.exists("./tmp-md"):
@@ -78,4 +78,3 @@ os.system("abinit < %s" % (files_name))
 # analyse the result
 
 import matplotlib.pyplot as plt
-

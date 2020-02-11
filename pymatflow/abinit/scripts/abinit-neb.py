@@ -11,14 +11,12 @@ from pymatflow.abinit.neb import neb_run
 usage:
 """
 
-electrons_params = {}
-kpoints_params = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-d", "--directory", type=str, default="tmp-abinit-neb",
-            help="Directory for the neb running.")
+            help="Directory to do the Nudged Elastic Band calculation")
 
     parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
@@ -63,22 +61,28 @@ if __name__ == "__main__":
     parser.add_argument("--auto", type=int, default=3,
             choices=[0, 1, 2, 3],
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
+
     parser.add_argument("--jobname", type=str, default="opt-cubic",
             help="jobname on the pbs server")
+
     parser.add_argument("--nodes", type=int, default=1,
             help="Nodes used in server")
+
     parser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
-
 
 
     # ==========================================================
     # transfer parameters from the arg parser to static_run setting
     # ==========================================================
     args = parser.parse_args()
+
+    electrons_params = {}
+    kpoints_params = {}
 
     electrons_params["ecut"] = args.ecut
     electrons_params["ixc"] = args.ixc

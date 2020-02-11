@@ -86,7 +86,9 @@ if __name__ == "__main__":
             type=int, default=50,
             help="maximum ion steps for geometric optimization")
 
-    # na nc stepa stepc
+    # --------------------------------------------------------------------------
+    # na stepa
+    # --------------------------------------------------------------------------
     parser.add_argument("--na", type=int, default=10,
             help="number of a used")
     parser.add_argument("--stepa", type=float, default=0.05,
@@ -252,19 +254,29 @@ if __name__ == "__main__":
         fout.write("done\n")
 
     # generate result analysis script
-    with open("get_energy.sh", 'w') as fout:
+    os.system("mkdir -p post-processing")
+
+    with open("post-processing/get_energy.sh", 'w') as fout:
         fout.write("#!/bin/bash\n")
         fout.write("cat > energy-latconst.data <<EOF\n")
         fout.write("# format: a energy(Ry)\n")
         fout.write("EOF\n")
         fout.write("for a in `seq -w %f %f %f`\n" % (a-args.na/2*args.stepa, args.stepa, a+args.na/2*args.stepa))
         fout.write("do\n")
-        fout.write("  energy=`cat relax-${a}.out | grep '!    total energy' | tail -1`\n")
+        fout.write("  energy=`cat ../relax-${a}.out | grep '!    total energy' | tail -1`\n")
         fout.write("  cat >> energy-latconst.data <<EOF\n")
         fout.write("${a} ${energy:32:-2}\n")
         fout.write("EOF\n")
         fout.write("done\n")
-
+        fout.write("cat > energy-latconst.gp<<EOF\n")
+        fout.write("set term gif\n")
+        fout.write("set output 'energy-latconst.gif'\n")
+        fout.write("set title Energy Latconst\n")
+        fout.write("set xlabel 'latconst(a)'\n")
+        fout.write("set ylabel 'Energy'\n")
+        fout.write("plot 'energy-latconst.data' w l\n")
+        fout.write("EOF\n")
+    #os.system("cd post-processing; bash get_energy.sh; cd ../")
     os.chdir("../")
 
     server_handle(auto=args.auto, directory=args.directory, jobfilebase="relax-cubic", server=args.server)
