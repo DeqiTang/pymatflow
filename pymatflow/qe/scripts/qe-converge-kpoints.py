@@ -24,6 +24,7 @@ if __name__ == "__main__":
             help="Generate or run or both at the same time.")
 
     parser.add_argument("--ecutwfc", help="better specify a converged ecutwfc", type=int, default=100)
+
     parser.add_argument("--ecutrho", type=int, default=None,
             help="Kinetic energy cutoff for charge density and potential in unit of Rydberg, default value: None")
     parser.add_argument("--range", help="nk_min nk_max step", nargs='+', type=int)

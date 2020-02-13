@@ -3,6 +3,13 @@
 
 import os
 
+
+def calc_carrier_effective_mass():
+    pass
+
+def calc_band_gap():
+    pass
+
 class bands_post:
     """
     """

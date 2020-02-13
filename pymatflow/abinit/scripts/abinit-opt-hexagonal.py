@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
+import os
 import sys
 import argparse
 
@@ -178,8 +179,8 @@ if __name__ == "__main__":
         fout.write("v32=%f\n" % task.input.system.xyz.cell[2][1])
         fout.write("v33=%f\n" % task.input.system.xyz.cell[2][2])
 
-        fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d ":" -f 1`")
-        fout.write("after_rprim_cell_line=`echo "${rprim_line} + 4" | bc`\n")
+        fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`")
+        fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`\n")
         if args.na >= 2:
             # a is optimized
             fout.write("for a in `seq -w %f %f %f`\n" % (a-args.na/2*args.stepa, args.stepa, a+args.na/2*args.stepa))
@@ -270,7 +271,7 @@ if __name__ == "__main__":
             if args.nc >= 2:
                 fout.write("for c in `seq -w %f %f %f`\n" % (c-args.nc/2*args.stepc, args.stepc, c+args.nc/2*args.stepc))
                 fout.write("do\n")
-                fout.write("  energy=`cat ../relax-${a}-%{c}/%s | grep 'Etotal=' | tail -1 | cut -d "=" -f 1`\n" % task.files.main_out)
+                fout.write("  energy=`cat ../relax-${a}-%{c}/%s | grep 'Etotal=' | tail -1 | cut -d \"=\" -f 1`\n" % task.files.main_out)
                 fout.write("  cat >> energy-latconst.data <<EOF\n")
                 fout.write("${a} ${c} ${energy}\n")
                 fout.write("EOF\n")
@@ -287,7 +288,7 @@ if __name__ == "__main__":
                 fout.write("splot 'energy-latconst.data'\n")
                 fout.write("EOF\n")
             else:
-                fout.write("  energy=`cat ../relax-${a}/%s | grep 'Etotal=' | tail -1 | cut -d "=" -f 1`\n" % task.files.main_out)
+                fout.write("  energy=`cat ../relax-${a}/%s | grep 'Etotal=' | tail -1 | cut -d \"=\" -f 1`\n" % task.files.main_out)
                 fout.write("  cat >> energy-latconst.data <<EOF\n")
                 fout.write("${a} ${energy}\n")
                 fout.write("EOF\n")
@@ -305,7 +306,7 @@ if __name__ == "__main__":
             if args.nc >= 2:
                 fout.write("for c in `seq -w %f %f %f`\n" % (c-args.nc/2*args.stepc, args.stepc, c+args.nc/2*args.stepc))
                 fout.write("do\n")
-                fout.write("  energy=`cat ../relax-${c}/%s | grep 'Etotal=' | tail -1 | cut -d "=" -f 1`\n" % task.files.main_out)
+                fout.write("  energy=`cat ../relax-${c}/%s | grep 'Etotal=' | tail -1 | cut -d \"=\" -f 1`\n" % task.files.main_out)
                 fout.write("  cat >> energy-latconst.data <<EOF\n")
                 fout.write("${c} ${energy}\n")
                 fout.write("EOF\n")

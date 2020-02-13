@@ -26,6 +26,9 @@ if __name__ == "__main__":
     parser.add_argument("--nstep", help="maximum ion steps", type=int, default=50)
     parser.add_argument("--ecutwfc", help="ecutwfc", type=int, default=100)
 
+    parser.add_argument("--ecutrho", type=int, default=None,
+            help="Kinetic energy cutoff for charge density and potential in unit of Rydberg, default value: None")
+
     parser.add_argument("--kpoints-option", type=str, default="automatic",
             choices=["automatic", "gamma", "crystal_b"],
             help="Kpoints generation scheme option for the SCF or non-SCF calculation")
@@ -73,6 +76,7 @@ if __name__ == "__main__":
     xyzfile = args.file
     control["nstep"] = args.nstep
     system["ecutwfc"] = args.ecutwfc
+    system["ecutrho"] = args.ecutrho
     system["occupations"] = args.occupations
     system["smearing"] = args.smearing
     system["degauss"] = args.degauss

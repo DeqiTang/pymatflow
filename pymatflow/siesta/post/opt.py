@@ -6,6 +6,65 @@ import subprocess
 import matplotlib.pyplot as plt
 
 
+
+class opt_out:
+    """
+    """
+    def __init__(self):
+        """
+        """
+        self.job_completed = None # judge whether the calculation is finished
+        self.opt_params = {}
+        self.run_info = {}
+
+
+
+    def get_info(self, file):
+        """
+        file: output file of the optimization running
+        """
+        self.file = file
+        with open(outputfile, 'r') as fin:
+            self.lines = fin.readlines()
+
+        # check whether calculation is finished
+        if len(self.lines[-1].split()) == 2 and self.lines[-1].split()[0] == "Job" and self.lines[-1].split()[1] == "completed":
+            self.job_completed = True
+        else:
+            self.job_completed = False
+        #
+        # check whether successfully relaxed
+        self.relaxed = False
+        for i in range(len(self.lines)):
+            if len(self.lines[i].split()) > 0 and self.lines[i].split()[0] == "outcoor:" and self.lines[i].split()[1] == "Relaxed":
+                self.relaxed = True
+                break
+        #
+        self.get_opt_params_and_run_info()
+
+    def get_opt_params_and_run_info(self):
+        """
+        """
+        self.run_info["total-energies"] = []
+        self.run_info["scf-iterations-converged"] = []
+        for line in self.lines:
+            if len(line.split()) == 0:
+                continue
+            if line.split()[0] == ">>" and line.split()[1] == "Start":
+                self.run_info["start-time"] = line.split("\n")[0]
+            if line.split()[0] == ">>" and line.split()[1] == "End":
+                self.run_info["stop-time"] = line.split("\n")[0]
+            if line.split()[0] == "siesta:":
+                if len(line.split()) ==  4 and line.split()[1] == "E_KS(eV)":
+                    self.run_info["total-energies"].append(float(line.split()[3]))
+            if line.split()[0] == "SCF" and line.split()[1] == "cycle" and line.split()[2] == "converged":
+                self.run_info["scf-iterations-converged"].append(int(line.split()[4]))
+            if line.split()[0] == "MD.VariableCell":
+                self.opt_params["VariableCell"] = line.split()[1]
+
+
+
+
 class opt_post:
     """
     """
@@ -20,7 +79,7 @@ class opt_post:
             self.lines = fin.readlines()
 
         self.get_info()
-    
+
     def get_info(self):
         """
         """
@@ -29,7 +88,7 @@ class opt_post:
             self.job_completed = True
         else:
             self.job_completed = False
-        # 
+        #
         # check whether successfully relaxed
         self.relaxed = False
         for i in range(len(self.lines)):
@@ -113,12 +172,10 @@ class opt_post:
             fout.write("## 运行信息图示\n")
             fout.write("Iterations per SCF\n")
             fout.write("![Iterations per SCF](iterations-per-scf-converged.png)\n")
-            
+
             fout.write("Total energies per SCF\n")
             fout.write("![Total energies per SCF](total-energies-per-scf.png)\n")
 
     def export(self):
         self.plot_run_info()
         self.markdown_report("OptimizationReport.md")
-
-

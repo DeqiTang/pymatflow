@@ -45,9 +45,9 @@ class phonopy_run(abinit):
             self.input.electrons.set_scf_nscf("scf")
             #
             with open(os.path.join(directory, head_inpname), 'w') as fout:
-                self.input.electrons.to_in(fout)
+                self.input.electrons.to_input(fout)
             with open(os.path.join(directory, pos_inpname), 'w') as fout:
-                self.input.system.to_in(fout)
+                self.input.system.to_input(fout)
 
             os.chdir(directory)
             os.system("phonopy --abinit -d --dim='%d %d %d' -c %s" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2], pos_inpname))

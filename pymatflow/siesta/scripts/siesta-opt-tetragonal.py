@@ -276,7 +276,7 @@ if __name__ == "__main__":
             if args.nc >= 2:
                 fout.write("for c in `seq -w %f %f %f`\n" % (c-args.nc/2*args.stepc, args.stepc, c+args.nc/2*args.stepc))
                 fout.write("do\n")
-                #fout.write("  energy=`cat ../relax-${a}/%s | grep 'Etotal=' | tail -1 | cut -d "=" -f 1`\n" % task.files.main_out)
+                fout.write("   energy=`cat ../relax-${a}-${c}/optimization.out | grep 'Total =' | tail -n -1 | cut -d \"=\" -f 2`\n")
                 fout.write("  cat >> energy-latconst.data <<EOF\n")
                 fout.write("${a} ${c} ${energy:32:-36}\n")
                 fout.write("EOF\n")
@@ -293,7 +293,7 @@ if __name__ == "__main__":
                 fout.write("splot 'energy-latconst.data'\n")
                 fout.write("EOF\n")
             else:
-                #fout.write("  energy=`cat ../relax-${a}/%s | grep 'Etotal=' | tail -1 | cut -d "=" -f 1`\n" % task.files.main_out)
+                fout.write("   energy=`cat ../relax-${a}/optimization.out | grep 'Total =' | tail -n -1 | cut -d \"=\" -f 2`\n")
                 fout.write("  cat >> energy-latconst.data <<EOF\n")
                 fout.write("${a} ${energy:32:-36}\n")
                 fout.write("EOF\n")
@@ -311,7 +311,7 @@ if __name__ == "__main__":
             if args.nc >= 2:
                 fout.write("for c in `seq -w %f %f %f`\n" % (c-args.nc/2*args.stepc, args.stepc, c+args.nc/2*args.stepc))
                 fout.write("do\n")
-                #fout.write("  energy=`cat ../relax-${a}/%s | grep 'Etotal=' | tail -1 | cut -d "=" -f 1`\n" % task.files.main_out)
+                fout.write("   energy=`cat ../relax-${c}/optimization.out | grep 'Total =' | tail -n -1 | cut -d \"=\" -f 2`\n")
                 fout.write("  cat >> energy-latconst.data <<EOF\n")
                 fout.write("${c} ${energy:32:-36}\n")
                 fout.write("EOF\n")

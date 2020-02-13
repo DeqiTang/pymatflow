@@ -166,6 +166,7 @@ setup(
         "pymatflow/tools/pdb-to-cif.py",
         "pymatflow/tools/xyz-modified-to-crystal.py",
         "pymatflow/tools/kpath-xyz-seekpath.py",
+        "pymatflow/tools/pot-from-xyz-modified.py",
         "pymatflow/remote/scripts/thq.py",
         "pymatflow/remote/scripts/thcancel.py",
         "pymatflow/remote/scripts/thpull.py",

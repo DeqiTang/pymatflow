@@ -6,6 +6,7 @@ import sys
 import os
 import shutil
 
+import pymatflow.base as base
 from pymatflow.base.atom import Atom
 from pymatflow.base.xyz import base_xyz
 
@@ -31,7 +32,7 @@ class siesta_system:
         fout.write("NumberOfAtoms %s\n" % self.xyz.natom)
 
         cell = self.xyz.cell
-        
+
         fout.write("%block ChemicalSpeciesLabel\n")
         for element in self.xyz.specie_labels:
             fout.write("\t%d\t%d\t%s\n" % (self.xyz.specie_labels[element], base.element[element].number, element))
@@ -50,7 +51,7 @@ class siesta_system:
         fout.write("AtomCoorFormatOut Ang\n")
         fout.write("LatticeConstant 1.00000 Ang\n")
         fout.write("\n")
-            
+
         fout.write("%block LatticeVectors\n")
         #fout.write("%.9f %.9f %.9f\n" % (cell[0], cell[1], cell[2]))
         #fout.write("%.9f %.9f %.9f\n" % (cell[3], cell[4], cell[5]))
@@ -76,4 +77,7 @@ class siesta_system:
         fout.write("%endblock AtomicCoordinatesAndAtomicSpecies\n")
         fout.write("\n")
 
-       
+    def set_name_label(self, name, label):
+        self.name = name
+        self.label = label
+    #

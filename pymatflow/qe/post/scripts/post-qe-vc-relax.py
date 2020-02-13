@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
 
     args = parser.parse_args()
-    
+
     os.chdir(args.directory)
     task = opt_post(output=args.file, run_type="vc-relax")
     task.export()

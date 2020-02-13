@@ -10,16 +10,227 @@ import matplotlib.pyplot as plt
 from pymatflow.base.atom import Atom
 
 
+class opt_out:
+    """
+    """
+    def __init__(self):
+        """
+        output is the output file of scf run
+        """
+        self.file = None
+        self.opt_params = {}
+        self.run_info = {}
+
+        self.run_type = None
+        self.job_done = None # whether calculation has finished
+        self.relaxed = None # whether structure is relaxed or vc-relaxed
+
+        self.cell = None # optimized cell now only used when run_type == vc-relax
+        self.trajectory = None
+
+    def get_info(self, file):
+        """
+        get the general information of scf run from scf run output file
+        which is now stored in self.lines
+        """
+        self.clean()
+
+        self.file = file
+        with open(self.file, 'r') as fout:
+            self.lines = fout.readlines()
+
+        # check whether calculation is finished
+        if len(self.lines[-2].split()) == 2 and self.lines[-2].split()[0] == "JOB" and self.lines[-2].split()[1] == "DONE.":
+            self.job_done = True
+        else:
+            self.job_done = False
+
+        # check the run_type: relax or vc-relax
+        self.run_type = 'relax'
+        for line in self.lines:
+            if len(line.split()) == 0:
+                continue
+            if line.split()[0] == "CELL_PARAMETERS" and line.split()[1].split("\n")[0] == "(angstrom)":
+                self.run_type = 'vc-relax'
+                break
+
+        # check whether successfully relaxed
+        self.relaxed = False
+        for line in self.lines:
+            if line == "Begin final coordinates\n":
+                self.relaxed = True
+                break
+
+        self.get_trajectory()
+        self.get_opt_params_and_run_info()
+
+    def clean(self):
+        self.file = None
+        self.opt_params = {}
+        self.run_info = {}
+
+    #
+    def get_opt_params_and_run_info(self):
+        """
+        self.run_info[]
+            start_time: the task start time
+            stop_time: the task stop time
+            #scf_energies: all the energies during the scf procedure
+            #fermi_energy: fermi energy of the system (if output)
+
+        """
+        #self.run_info["scf_energies"] = []
+
+        for i in range(len(self.lines)):
+            # if it is an empty line continue to next line
+            if len(self.lines[i].split()) == 0:
+                continue
+            if self.lines[i].split()[0] == "Program" and self.lines[i].split()[1] == "PWSCF" and self.lines[i].split()[3] == "starts":
+                self.run_info["start_time"] = self.lines[i].split("\n")[0]
+            elif self.lines[i].split()[0] == "This" and self.lines[i].split()[1] == "run" and self.lines[i].split()[3] == "terminated":
+                self.run_info["stop_time"] = self.lines[i].split("\n")[0]
+            elif self.lines[i].split()[0] == "Parallel" and self.lines[i].split()[-1] == "processors":
+                self.run_info["processors"] = int(self.lines[i].split()[-2])
+            elif self.lines[i].split()[0] == "MPI" and self.lines[i].split()[-1] == "nodes":
+                self.run_info["nodes"] = int(self.lines[i].split()[-2])
+            elif self.lines[i].split()[0] == "bravais-lattice" and self.lines[i].split()[1] == "index":
+                self.opt_params["alat_au"] = float(self.lines[i+1].split()[4])
+                self.opt_params["nat"] = int(self.lines[i+3].split()[4])
+                self.opt_params["nelectron"] = float(self.lines[i+5].split()[4])
+                self.opt_params["n_ks_state"] = int(self.lines[i+6].split("=")[1])
+                self.opt_params["ecutwfc"] = int(float(self.lines[i+7].split()[3]))
+                self.opt_params["ecutrho"] = int(float(self.lines[i+8].split()[4]))
+                self.opt_params["conv_thr"] = float(self.lines[i+9].split()[3])
+                self.opt_params["mixing_beta"] = float(self.lines[i+10].split()[3])
+                self.opt_params["nstep"] = int(self.lines[i+13].split()[2])
+            elif self.lines[i].split()[0] == "crystal" and self.lines[i].split()[1] == "axes:" and self.lines[i].split()[-1] =="alat)":
+                self.opt_params["cell_a_alat"] = []
+                self.opt_params["cell_a_alat"].append([float(self.lines[i+1].split()[3]), float(self.lines[i+1].split()[4]), float(self.lines[i+1].split()[5])])
+                self.opt_params["cell_a_alat"].append([float(self.lines[i+2].split()[3]), float(self.lines[i+2].split()[4]), float(self.lines[i+2].split()[5])])
+                self.opt_params["cell_a_alat"].append([float(self.lines[i+3].split()[3]), float(self.lines[i+3].split()[4]), float(self.lines[i+3].split()[5])])
+            elif self.lines[i].split()[0] == "reciprocal" and self.lines[i].split()[1] == "axes:" and self.lines[i].split()[-1] == "pi/alat)": # actually '2 pi/alat'
+                self.opt_params["cell_b_2pi_alat"] = []
+                self.opt_params["cell_b_2pi_alat"].append([float(self.lines[i+1].split()[3]), float(self.lines[i+1].split()[4]), float(self.lines[i+1].split()[5])])
+                self.opt_params["cell_b_2pi_alat"].append([float(self.lines[i+2].split()[3]), float(self.lines[i+2].split()[4]), float(self.lines[i+2].split()[5])])
+                self.opt_params["cell_b_2pi_alat"].append([float(self.lines[i+3].split()[3]), float(self.lines[i+3].split()[4]), float(self.lines[i+3].split()[5])])
+            elif self.lines[i].split()[0] == "site" and self.lines[i].split()[-1] == "units)" and self.lines[i].split()[-2] == "(alat":
+                self.run_info["site_line_number"] = i
+            elif self.lines[i].split()[0] == "number" and self.lines[i].split()[2] == 'k':
+                if self.lines[i].split()[5] == "(tetrahedron":
+                    self.opt_params["degauss"] = "tetrahedron method: degauss not needed"
+                else:
+                    self.opt_params["degauss"] = float(self.lines[i].split()[9])
+                self.run_info["number-of-k-points"] = int(self.lines[i].split()[4])
+            elif self.lines[i].split()[0] == "Estimated" and self.lines[i].split()[1] == "max":
+                self.run_info["ram_per_process"] = self.lines[i].split()[7] + " " + self.lines[i].split()[8]
+                self.run_info["total_ram"] = self.lines[i+2].split()[5] + " " + self.lines[i+2].split()[6]
+
+
+        # ----------------------------------------------------------------------
+        # get the input xyz structure from information extracted above:
+        self.xyz = base_xyz()
+        self.xyz.natom = self.opt_params["nat"]
+        begin = self.run_info["site_line_number"] + 1
+        # Warning:
+        # there are numeric erros when obtaining atom coordinated from qe output
+        # in unit of alat and multiplied by alat and bohr. namely the acquired
+        # atomic coordinates have numeric errors compared to the input xyz
+        # so be cautious when use it.
+        bohr = 0.529177208   # 1 Bohr = 0.529177208 Angstrom
+        for i in range(self.xyz.natom):
+            self.xyz.atoms.append(Atom(
+                self.lines[begin+i].split()[1],
+                self.opt_params["alat_au"] * bohr * float(self.lines[begin+i].split()[6]),
+                self.opt_params["alat_au"] * bohr * float(self.lines[begin+i].split()[7]),
+                self.opt_params["alat_au"] * bohr * float(self.lines[begin+i].split()[8])))
+        self.xyz.cell = self.opt_params["cell_a_alat"] # now in unit of alat
+
+        for i in range(3):
+            for j in range(3):
+                self.xyz.cell[i][j] = self.opt_params["cell_a_alat"][i][i] * self.opt_params["alat_au"] * bohr
+        # now self.xyz.cell are in unit of Angstrom
+        # ----------------------------------------------------------------------
+
+        # get information output each ion step
+        self._get_info_for_each_ions_step()
+
+    def _get_infro_for_each_ions_step(self):
+        for i in range(len(self.lines)):
+            # if it is an empty line continue to next line
+            if len(self.lines[i].split()) == 0:
+                continue
+            #if
+
+    def get_trajectory(self):
+        """
+        Note: initial input structure is not in self.trajectory, but is in self.xyz
+            self.trajectory contains all other structures and the last of it
+            is the optimized structure.
+        """
+        self.trajectory = []
+        for i in range(len(self.lines)):
+            if len(self.lines[i].split()) > 0 and self.lines[i].split()[0] == "ATOMIC_POSITIONS":
+                atm = []
+                j = i + 1
+                while len(self.lines[j].split()) == 4:
+                    atm.append(Atom(self.lines[j].split()[0], float(self.lines[j].split()[1]), float(self.lines[j].split()[2]), float(self.lines[j].split()[3])))
+                    j = j + 1
+                self.trajectory.append(atm)
+        #
+        if self.relaxed == True and self.run_type == "vc-relax":
+            # get the line number of the 'Begin final coordinates'
+            # and 'End final coordinates'
+            begin_final_coord_line = 0
+            end_final_coord_line = 0
+            while self.lines[begin_final_coord_line] != "Begin final coordinates\n":
+                begin_final_coord_line += 1
+            while self.lines[end_final_coord_line] != "End final coordinates\n":
+                end_final_coord_line += 1
+            # get the optimized cell
+            self.cell = []
+            for i in range(begin_final_coord_line+5, begin_final_coord_line+8):
+                for j in range(3):
+                    self.cell.append(float(self.lines[i].split()[j]))
+        #
+    def print_final_structure(self, xyz="optimized.xyz"):
+        if self.relaxed == False:
+            with open("final-structure(not-relaxed).xyz", 'w') as fout:
+                fout.write("%d\n" % len(self.trajectory[0]))
+                fout.write("Warning(%s): structure failed to be relaxed or vc-relaxed, this is the final structure(unrelaxed)\n" % self.run_type)
+                for atom in self.trajectory[-1]:
+                    fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
+            return
+        # printout relaxed structure
+        cell = self.cell
+        with open(xyz, 'w') as fout:
+            fout.write("%d\n" % len(self.trajectory[-1]))
+            if self.run_type == "vc-relax":
+                fout.write("cell: %.9f %.9f %.9f | %.9f %.9f %.9f | %.9f %.9f %.9f\n" % (cell[0], cell[1], cell[2], cell[3], cell[4], cell[5], cell[6], cell[7], cell[8]))
+            else:
+                fout.write("type of opt run: relax -> the cell is not changed, so go and find the original cell\n")
+            for atom in self.trajectory[-1]:
+                fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
+
+    def print_trajectory(self, xyz="trajectory.xyz"):
+        with open(xyz, 'w') as fout:
+            for i in range(len(self.trajectory)):
+                fout.write("%d\n" % len(self.trajectory[i]))
+                fout.write("i = %d\n" % i)
+                for atom in self.trajectory[i]:
+                    fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
+
+
+
 class opt_post:
     """
     Note:
         opt_post can extract information for the geometric optimization running,
-        including 'relax' and 'vc-relax'. 
+        including 'relax' and 'vc-relax'.
         it will printout the trajectory file(xyz format) and the final optimized
         structure(if not relaxed, the final structure of the running).
         so even when your ion step not converged within maximum steps, it can also
         extract the structure in the final ion step and print it out.
-        
+
         plus now opt_post can also process the output file of geometric optimziation
         even if the job is not finished yet and generate the Running information.
 
@@ -35,17 +246,17 @@ class opt_post:
         """
         output:
             the output file of opt run. it could be a geo opt or a cell opt
-        
+
         relaxed:
             whether the structure successfully relaxed.
         """
         self.file = output
-        self.run_type = run_type 
+        self.run_type = run_type
         self.opt_params = {}
         self.run_info = {}
         self.job_done = None # whether calculation has finished
         self.relaxed = None # whether structure is relaxed or vc-relaxed
-        
+
         self.cell = None # optimized cell now only used when run_type == vc-relax
         self.trajectory = None
 
@@ -69,7 +280,7 @@ class opt_post:
             if line == "Begin final coordinates\n":
                 self.relaxed = True
                 break
-        
+
         self.get_trajectory()
         self.get_opt_params_and_run_info()
 
@@ -98,7 +309,7 @@ class opt_post:
             self.cell = []
             for i in range(begin_final_coord_line+5, begin_final_coord_line+8):
                 for j in range(3):
-                    self.cell.append(float(self.lines[i].split()[j]))        
+                    self.cell.append(float(self.lines[i].split()[j]))
         #
 
     def get_opt_params_and_run_info(self):
@@ -232,7 +443,7 @@ class opt_post:
             # on the value of hours and minutes and seconds. if they are two digits
             # number, they will be divided like: '11: 6: 2', only when they all are
             # two digtis number, they will not be divided '11:16:12'
-            # so we have to preprocess it to build the right time string to pass into 
+            # so we have to preprocess it to build the right time string to pass into
             # datetime.datetime.strptime()
             if len(self.run_info["start-time"].split()) == 8:
                 start_str = self.run_info["start-time"].split()[5]+"-"+self.run_info["start-time"].split()[7]
@@ -278,7 +489,7 @@ class opt_post:
             fout.write("## 运行信息图示\n")
             fout.write("Iterations per SCF\n")
             fout.write("![Iterations per SCF](iterations-per-scf.png)\n")
-            
+
             fout.write("Total energies per SCF\n")
             fout.write("![Total energies per SCF](total-energies-per-scf.png)\n")
 

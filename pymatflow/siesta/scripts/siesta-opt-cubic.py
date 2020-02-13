@@ -213,7 +213,7 @@ if __name__ == "__main__":
         # end
         fout.write("for a in `seq -w %f %f %f`\n" % (a-args.na/2*args.stepa, args.stepa, a+args.na/2*args.stepa))
         fout.write("do\n")
-        #fout.write("  energy=`cat ../relax-${a}/optimization.out | grep 'siesta: E_KS(eV) =' | tail -1 | cut -d "=" -f 1`\n")
+        fout.write("   energy=`cat ../relax-${a}/optimization.out | grep 'Total =' | tail -n -1 | cut -d \"=\" -f 2`\n")
         fout.write("  cat >> energy-latconst.data <<EOF\n")
         fout.write("${a} ${energy}\n")
         fout.write("EOF\n")

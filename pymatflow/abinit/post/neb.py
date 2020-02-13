@@ -9,32 +9,33 @@ import matplotlib.pyplot as plt
 from pymatflow.base.atom import Atom
 
 
-class neb_post:
+class neb_out:
     """
     Note:
     """
-    def __init__(self, output):
+    def __init__(self):
         """
-        output:
+        self.file:
             the output file of neb run.
         """
-        self.file = output
-        self.cell = None # 
+        self.file = None
+        self.cell = None #
         self.neb_params = {}
         self.run_info = {}
         self.trajectory_initial = None
         self.trajectory_final = None
 
-        with open(self.file, 'r') as fout:
-            self.lines = fout.readlines()
-        self.get_info()
 
-    def get_info(self):
+
+    def get_info(self, file):
         """
         get the general information of neb run from neb run output file
         which is now stored in self.lines
         """
-        
+        self.file = file
+        with open(self.file, 'r') as fout:
+            self.lines = fout.readlines()
+
         self.get_neb_params_and_run_info()
         self.get_trajectory()
         return
@@ -103,7 +104,114 @@ class neb_post:
                 self.neb_params["imgmov"] = self.lines[i].split()[1]
             if self.lines[i].split()[0] == "istwfk":
                 self.neb_params["istwfk"] = self.lines[i].split()[1]
-        
+
+        # get time information
+        for i in range(len(self.lines)):
+            if len(self.lines[i].split()) == 0:
+                continue
+            if self.lines[i].split()[0] == ".Starting" and self.lines[i].split()[1] == "date":
+                self.run_info["start_time"] = datetime.datetime.strptime(self.lines[i].split()[4]+"-"+self.lines[i].split()[5]+"-"+self.lines[i].split()[6].split(".")[0]+"-"+self.lines[i+1].split()[3], "%d-%b-%Y-%Hh%M")
+            # stop time is not available in output
+            #if self.lines[i].split()[0] == ""
+                #self.run_info["stop-time"] = datetime.datetime.strptime(self.lines[i].split()[4]+"-"+self.lines[i].split()[5]+"-"+self.lines[i].split()[6].split(".")[0]+"-"+self.lines[i+1].split()[3], "%d-%b-%Y-%Hh%M")
+
+
+
+class neb_post:
+    """
+    Note:
+    """
+    def __init__(self, output):
+        """
+        output:
+            the output file of neb run.
+        """
+        self.file = output
+        self.cell = None #
+        self.neb_params = {}
+        self.run_info = {}
+        self.trajectory_initial = None
+        self.trajectory_final = None
+
+        with open(self.file, 'r') as fout:
+            self.lines = fout.readlines()
+        self.get_info()
+
+    def get_info(self):
+        """
+        get the general information of neb run from neb run output file
+        which is now stored in self.lines
+        """
+
+        self.get_neb_params_and_run_info()
+        self.get_trajectory()
+        return
+
+
+    def get_trajectory(self):
+        #
+        outvars_after_computation_line = 0
+        for i in range(len(self.lines)):
+            if len(self.lines[i].split()) > 0 and self.lines[i].split()[0] == "-outvars:" and self.lines[i].split()[5] == "after":
+                outvars_after_computation_line = i
+        #
+        self.trajectory_final = []
+        for i in range(outvars_after_computation_line, len(self.lines)):
+            if len(self.lines[i].split()) > 0 and self.lines[i].split()[0].split("_")[0] == "xangst":
+                atm = []
+                # doesn't know name now
+                atm.append(Atom("XXX", float(self.lines[i].split()[1]), float(self.lines[i].split()[2]), float(self.lines[i].split()[3])))
+                j = i + 1
+                while len(self.lines[j].split()) == 3:
+                    atm.append(Atom("XXX", float(self.lines[j].split()[0]), float(self.lines[j].split()[1]), float(self.lines[j].split()[2])))
+                    j = j + 1
+                self.trajectory_final.append(atm)
+
+        #
+        outvars_before_computation_line = 0
+        for i in range(len(self.lines)):
+            if len(self.lines[i].split()) > 0 and self.lines[i].split()[0] == "-outvars:" and self.lines[i].split()[5] == "input":
+                outvars_before_computation_line = i
+        #
+        self.trajectory_initial = []
+        for i in range(outvars_before_computation_line, len(self.lines)):
+            if len(self.lines[i].split()) > 0 and self.lines[i].split()[0].split("_")[0] == "xangst":
+                atm = []
+                # doesn't know name now
+                atm.append(Atom("XXX", float(self.lines[i].split()[1]), float(self.lines[i].split()[2]), float(self.lines[i].split()[3])))
+                j = i + 1
+                while len(self.lines[j].split()) == 3:
+                    atm.append(Atom("XXX", float(self.lines[j].split()[0]), float(self.lines[j].split()[1]), float(self.lines[j].split()[2])))
+                    j = j + 1
+                self.trajectory_initial.append(atm)
+        #
+
+    def get_neb_params_and_run_info(self):
+        """
+        run_info["etotal-per-image"]: etotal of every image
+        """
+        self.run_info["etotal-per-image"] = []
+
+
+        #
+        outvars_after_computation_line = 0
+        for i in range(len(self.lines)):
+            if len(self.lines[i].split()) > 0 and self.lines[i].split()[0] == "-outvars:" and self.lines[i].split()[5] == "after":
+                outvars_after_computation_line = i
+        #
+        for i in range(outvars_after_computation_line, len(self.lines)):
+            # if it is an empty line continue to next line
+            if len(self.lines[i].split()) == 0:
+                continue
+            if self.lines[i].split()[0] == "ecut":
+                self.neb_params["ecut"] = self.lines[i].split()[1]
+            if self.lines[i].split()[0].split("_")[0] == "etotal":
+                self.run_info["etotal-per-image"].append([self.lines[i].split()[0], float(self.lines[i].split()[1])])
+            if self.lines[i].split()[0] == "imgmov":
+                self.neb_params["imgmov"] = self.lines[i].split()[1]
+            if self.lines[i].split()[0] == "istwfk":
+                self.neb_params["istwfk"] = self.lines[i].split()[1]
+
         # get time information
         for i in range(len(self.lines)):
             if len(self.lines[i].split()) == 0:
@@ -165,7 +273,7 @@ class neb_post:
                 fout.write("- %s: %s\n" % (item, str(self.run_info[item])))
 
             fout.write("## 运行信息图示\n")
-            
+
             fout.write("Total energies per image\n")
             fout.write("![Total energies per image](etotal-per-image.png)\n")
 
