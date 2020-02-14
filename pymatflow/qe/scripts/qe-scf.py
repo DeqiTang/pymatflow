@@ -24,7 +24,7 @@ if __name__ == "__main__":
             help="Directory for the static running.")
     parser.add_argument("-f", "--file", type=str,
             help="The xyz file name.")
-            
+
     parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
@@ -74,6 +74,17 @@ if __name__ == "__main__":
             choices=[".true.", ".false."],
             help="calculate stress. default=.false.")
 
+    # magnetic related parameters
+    parser.add_argument("--nspin", type=int, default=None,
+            choices=[1, 2],
+            help="choose either 1 or 2, and 4 should not be used as suggested by pwscf official documentation.")
+
+    parser.add_argument("--starting-magnetization", type=float, nargs="+", default=None,
+            help="starting_magnetization(i), i=1,ntyp -> Starting spin polarization on atomic type i in a spin polarized calculation. Values range between -1 (all spins down for the valence electrons of atom type i) to 1 (all spins up).")
+
+    parser.add_argument("--noncolin", type=str, default=None,
+            choices=[".true.", ".false."],
+            help="if .true. the program will perform a noncollinear calculation.")
     # -----------------------------------------------------------
     #           ATOMIC_FORCES
     # -----------------------------------------------------------
@@ -113,6 +124,10 @@ if __name__ == "__main__":
     system["vdw_corr"] = args.vdw_corr
     system["nbnd"] = args.nbnd
     electrons["conv_thr"] = args.conv_thr
+
+    system["nspin"] = args.nspin
+    system["starting_magnetization"] = args.starting_magnetization
+    system["noncolin"] = args.noncolin
 
 
     task = static_run()

@@ -119,7 +119,7 @@ class qe_system:
         # fout: a file stream for writing
         # ==============================
         # checking legacy of parameters
-        # if there is problem with it 
+        # if there is problem with it
         # the it will kill the script
         # ==============================
         self.check_all()
@@ -127,6 +127,10 @@ class qe_system:
         fout.write("&system\n")
         for item in self.params:
             if self.params[item] is not None:
+                if item == "starting_magnetization":
+                    for i in range(len(self.params[item])):
+                        fout.write("starting_magnetization(%d) = %f\n" % (i+1, self.params[item][i]))
+                    continue
                 if type(self.params[item]) == str:
                     fout.write("%s = '%s'\n" % (item, str(self.params[item])))
                 else:
@@ -160,7 +164,7 @@ class qe_system:
         self.params["input_dft"] = 'PBE'
 
         self.set_occupations() # default use gaussian smearing with degauss = 0.001
-   
+
     def set_occupations(self, occupations="smearing", smearing="gaussian", degauss=0.001):
         self.params["occupations"] = occupations
         if occupations == "smearing":

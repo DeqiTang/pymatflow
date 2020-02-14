@@ -3,10 +3,11 @@
 
 import argparse
 
-from pymatflow.qe.post.pdos import pdos_post
+#from pymatflow.qe.post.pdos import pdos_post
+from pymatflow.qe.post.pdos import pdos_out
 
 """
-usage: post-qe-pdos.py 
+usage: post-qe-pdos.py
 """
 
 if __name__ == "__main__":
@@ -30,6 +31,7 @@ if __name__ == "__main__":
     directory = args.directory
     filpdos = args.filpdos
 
-    task = pdos_post()
+    #task = pdos_post()
+    task = pdos_out()
     task.get_data(directory=directory, filpdos=filpdos)
     task.export(directory=directory, plotrange=args.plotrange, atomtoproj=args.atomtoproj, fontsize=args.fontsize)
