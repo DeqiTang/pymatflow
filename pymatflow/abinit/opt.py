@@ -15,14 +15,13 @@ class opt_run(abinit):
         self.input.electrons.basic_setting()
         self.input.ions.basic_setting(mode="opt")
 
-        self.input.guard.set_queen(queen="opt", electrons=self.input.electrons, ions=self.input.ions, system=self.input.system)
+        self.input.guard.set_queen(queen="opt")
 
 
     def optimize(self, directory="tmp-abinit-opt", mpi="", runopt="gen",
         jobname="abinit-opt", nodes=1, ppn=32):
 
         self.input.electrons.set_scf_nscf("scf")
-        self.input.guard.check_all()
 
         self.files.name = "optimization.files"
         self.files.main_in = "optimization.in"

@@ -1,6 +1,7 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+# ==============================================================================
+# pymatflow.abinit.dfpt:
+# the general control for dfpt type running
+# ==============================================================================
 import os
 import sys
 import shutil
@@ -40,16 +41,13 @@ class dfpt_run(abinit):
     """
     def __init__(self):
         super().__init__()
-        #self.system = abinit_system()
-        #self.electrons = abinit_electrons()
-        #self.properties = abinit_properties()
-        #self.dfpt = abinit_dfpt()
+        self.input.guard.set_queen(queen="dfpt")
+        
+        self.input.electrons.basic_setting()
+        self.input.dfpt.basic_setting()
 
-        self.electrons.basic_setting()
-        self.dfpt.basic_setting()
 
-        self.guard.set_queen(queen="dfpt", electrons=self.electrons, system=self.system, dfpt=self.dfpt)
-    
+
 
     def run(self, directory="tmp-abinit-static", mpi="", runopt="gen"):
         self.nscf_rf_ddk(directory=directory, mpi=mpi, runopt=runopt)
@@ -68,27 +66,27 @@ class dfpt_run(abinit):
             sys.exit(1)
         if runopt == "gen" or runopt == "genrun":
 
-            #self.electrons.set_scf_nscf("scf")
-            self.electrons.params["tolvrs"] = None
-            self.electrons.params["toldfe"] = None
-            self.electrons.params["toldff"] = None
-            self.electrons.params["tolrff"] = None
-            self.electrons.params["tolwfr"] = 1.0e-22
-            #self.electrons.params["nstep"] = 0
-            self.electrons.params["irdwfk"] = 1
-            self.electrons.kpoints.params["kptopt"] = 2
-            self.electrons.params["iscf"] = -3
-            self.dfpt.params["rfelfd"] = 2
-            self.dfpt.params["rfdir"] = [1, 1, 1]
-            self.dfpt.params["nqpt"] = 1
-            self.dfpt.params["qpt"] = [0, 0, 0]
+            #self.input.electrons.set_scf_nscf("scf")
+            self.input.electrons.params["tolvrs"] = None
+            self.input.electrons.params["toldfe"] = None
+            self.input.electrons.params["toldff"] = None
+            self.input.electrons.params["tolrff"] = None
+            self.input.electrons.params["tolwfr"] = 1.0e-22
+            #self.input.electrons.params["nstep"] = 0
+            self.input.electrons.params["irdwfk"] = 1
+            self.input.electrons.kpoints.params["kptopt"] = 2
+            self.input.electrons.params["iscf"] = -3
+            self.input.dfpt.params["rfelfd"] = 2
+            self.input.dfpt.params["rfdir"] = [1, 1, 1]
+            self.input.dfpt.params["nqpt"] = 1
+            self.input.dfpt.params["qpt"] = [0, 0, 0]
 
             #
             with open(os.path.join(directory, inpname), 'w') as fout:
-                self.electrons.to_in(fout)
-                self.dfpt.to_in(fout)
+                self.input.electrons.to_in(fout)
+                self.input.dfpt.to_in(fout)
                 #self.properties.to_in(fout)
-                self.system.to_in(fout)
+                self.input.system.to_in(fout)
 
             with open(os.path.join(directory, inpname.split(".")[0]+".files"), 'w') as fout:
                 fout.write("%s\n" % inpname)
@@ -96,7 +94,7 @@ class dfpt_run(abinit):
                 fout.write("%s-output\n" % "static-scf")
                 fout.write("%s-output\n" % inpname.split(".")[0])
                 fout.write("temp\n")
-                for element in self.system.xyz.specie_labels:
+                for element in self.input.system.xyz.specie_labels:
                     fout.write("%s\n" % (element + ".psp8"))
                     #fout.write("%s\n" % (element + ".GGA_PBE-JTH.xml"))
         if runopt == "run" or runopt == "genrun":
@@ -115,32 +113,32 @@ class dfpt_run(abinit):
             sys.exit(1)
         if runopt == "gen" or runopt == "genrun":
 
-            #self.electrons.set_scf_nscf("scf")
+            #self.input.electrons.set_scf_nscf("scf")
 
             #
-            self.electrons.params["nstep"] = None # for scf
-            
-            self.electrons.params["tolwfr"] = None
-            self.electrons.params["tolvrs"] = 1.0e-8
-            self.electrons.params["toldfe"] = None
-            self.electrons.params["toldff"] = None
-            self.electrons.params["tolrff"] = None
+            self.input.electrons.params["nstep"] = None # for scf
 
-            self.electrons.params["irdwfk"] = 1
-            self.electrons.params["irdddk"] = 1
-            self.electrons.kpoints.params["kptopt"] = 2
-            self.electrons.params["iscf"] = None # 7
-            self.dfpt.params["rfphon"] = 1
-            self.dfpt.params["rfatpol"] = [1, self.system.xyz.natom]
-            self.dfpt.params["rfdir"] = [1, 1, 1]
-            self.dfpt.params["rfelfd"] = 3
-            self.dfpt.params["nqpt"] = 1
-            self.dfpt.params["qpt"] = [0, 0, 0]
+            self.input.electrons.params["tolwfr"] = None
+            self.input.electrons.params["tolvrs"] = 1.0e-8
+            self.input.electrons.params["toldfe"] = None
+            self.input.electrons.params["toldff"] = None
+            self.input.electrons.params["tolrff"] = None
+
+            self.input.electrons.params["irdwfk"] = 1
+            self.input.electrons.params["irdddk"] = 1
+            self.input.electrons.kpoints.params["kptopt"] = 2
+            self.input.electrons.params["iscf"] = None # 7
+            self.input.dfpt.params["rfphon"] = 1
+            self.input.dfpt.params["rfatpol"] = [1, self.input.system.xyz.natom]
+            self.input.dfpt.params["rfdir"] = [1, 1, 1]
+            self.input.dfpt.params["rfelfd"] = 3
+            self.input.dfpt.params["nqpt"] = 1
+            self.input.dfpt.params["qpt"] = [0, 0, 0]
             with open(os.path.join(directory, inpname), 'w') as fout:
-                self.electrons.to_in(fout)
-                self.dfpt.to_in(fout)
+                self.input.electrons.to_in(fout)
+                self.input.dfpt.to_in(fout)
                 #self.properties.to_in(fout)
-                self.system.to_in(fout)
+                self.input.system.to_in(fout)
 
             os.system("cp %s/static-scf-output_WFK %s/nscf-rf-ddk-output_WFK" % (directory, directory))
             with open(os.path.join(directory, inpname.split(".")[0]+".files"), 'w') as fout:
@@ -149,7 +147,7 @@ class dfpt_run(abinit):
                 fout.write("%s-output\n" % "nscf-rf-ddk")
                 fout.write("%s-output\n" % inpname.split(".")[0])
                 fout.write("temp\n")
-                for element in self.system.xyz.specie_labels:
+                for element in self.input.system.xyz.specie_labels:
                     fout.write("%s\n" % (element + ".psp8"))
                     #fout.write("%s\n" % (element + ".GGA_PBE-JTH.xml"))
         if runopt == "run" or runopt == "genrun":
@@ -169,33 +167,33 @@ class dfpt_run(abinit):
             sys.exit(1)
         if runopt == "gen" or runopt == "genrun":
 
-            #self.electrons.set_scf_nscf("scf")
+            #self.input.electrons.set_scf_nscf("scf")
             #
-            self.electrons.params["tolwfr"] = 1.0e-22
-            self.electrons.params["tolvrs"] = None
-            self.electrons.params["toldfe"] = None
-            self.electrons.params["toldff"] = None
-            self.electrons.params["tolrff"] = None
-            self.electrons.params["irdwfk"] = 1
-            self.electrons.params["irdddk"] = None #1
-            self.electrons.kpoints.params["kptopt"] = 1
-            self.electrons.params["iscf"] = -3
-            self.dfpt.params["rfphon"] = None #1
-            self.dfpt.params["rfatpol"] = None #[1, self.system.xyz.natom]
-            self.dfpt.params["rfdir"] = None #[1, 1, 1]
-            self.dfpt.params["rfelfd"] = None #3
-            self.dfpt.params["nqpt"] = None #1
-            self.dfpt.params["qpt"] = None #[0, 0, 0]
-            self.dfpt.params["nqpt"] = 1
-            self.dfpt.params["qpt"] = [0.5, 0, 0]
-            #self.dfpt.params["qptopt"] = 1
-            #self.dfpt.params["ngqpt"] = [1, 1, 1]
-            #self.guard.check_all()
+            self.input.electrons.params["tolwfr"] = 1.0e-22
+            self.input.electrons.params["tolvrs"] = None
+            self.input.electrons.params["toldfe"] = None
+            self.input.electrons.params["toldff"] = None
+            self.input.electrons.params["tolrff"] = None
+            self.input.electrons.params["irdwfk"] = 1
+            self.input.electrons.params["irdddk"] = None #1
+            self.input.electrons.kpoints.params["kptopt"] = 1
+            self.input.electrons.params["iscf"] = -3
+            self.input.dfpt.params["rfphon"] = None #1
+            self.input.dfpt.params["rfatpol"] = None #[1, self.input.system.xyz.natom]
+            self.input.dfpt.params["rfdir"] = None #[1, 1, 1]
+            self.input.dfpt.params["rfelfd"] = None #3
+            self.input.dfpt.params["nqpt"] = None #1
+            self.input.dfpt.params["qpt"] = None #[0, 0, 0]
+            self.input.dfpt.params["nqpt"] = 1
+            self.input.dfpt.params["qpt"] = [0.5, 0, 0]
+            #self.input.dfpt.params["qptopt"] = 1
+            #self.input.dfpt.params["ngqpt"] = [1, 1, 1]
+            #self.input.guard.check_all()
             with open(os.path.join(directory, inpname), 'w') as fout:
-                self.electrons.to_in(fout)
-                self.dfpt.to_in(fout)
-                self.properties.to_in(fout)
-                self.system.to_in(fout)
+                self.input.electrons.to_in(fout)
+                self.input.dfpt.to_in(fout)
+                self.input.properties.to_in(fout)
+                self.input.system.to_in(fout)
 
             with open(os.path.join(directory, inpname.split(".")[0]+".files"), 'w') as fout:
                 fout.write("%s\n" % inpname)
@@ -203,7 +201,7 @@ class dfpt_run(abinit):
                 fout.write("%s-output\n" % "static-scf")
                 fout.write("%s-output\n" % inpname.split(".")[0])
                 fout.write("temp\n")
-                for element in self.system.xyz.specie_labels:
+                for element in self.input.system.xyz.specie_labels:
                     fout.write("%s\n" % (element + ".psp8"))
                     #fout.write("%s\n" % (element + ".GGA_PBE-JTH.xml"))
         if runopt == "run" or runopt == "genrun":
@@ -211,7 +209,7 @@ class dfpt_run(abinit):
             os.system("abinit < %s" % inpname.split(".")[0]+".files")
             os.chdir("../")
 
-        
+
 
     def scf_rf_phon_q(self, directory="tmp-abinit-static", inpname="scf-rf-phon-q.in", mpi="", runopt="gen"):
         # first check whether there is a previous scf running
@@ -224,31 +222,31 @@ class dfpt_run(abinit):
             sys.exit(1)
         if runopt == "gen" or runopt == "genrun":
 
-            #self.electrons.set_scf_nscf("scf")
+            #self.input.electrons.set_scf_nscf("scf")
             #
-            self.electrons.params["tolwfr"] = None #1.0e-22
-            self.electrons.params["tolvrs"] = 1.0e-8 #None
-            self.electrons.params["toldfe"] = None
-            self.electrons.params["toldff"] = None
-            self.electrons.params["tolrff"] = None
-            self.electrons.params["irdwfk"] = 1
-            self.electrons.params["irdddk"] = None #1
-            self.electrons.params["iscf"] = None # for scf
-            self.electrons.kpoints.params["kptopt"] = 3 # for rf calculation at non gamma q point
-            self.dfpt.params["rfphon"] = 1
-            self.dfpt.params["rfatpol"] = [1, self.system.xyz.natom]
-            self.dfpt.params["rfdir"] = [1, 1, 1]
-            self.dfpt.params["rfelfd"] = None
-            self.dfpt.params["nqpt"] = 1
-            self.dfpt.params["qpt"] = [0.5, 0, 0]
-            self.dfpt.params["qptopt"] = None  #1
-            self.dfpt.params["ngqpt"] = None  #[1, 1, 1] 
+            self.input.electrons.params["tolwfr"] = None #1.0e-22
+            self.input.electrons.params["tolvrs"] = 1.0e-8 #None
+            self.input.electrons.params["toldfe"] = None
+            self.input.electrons.params["toldff"] = None
+            self.input.electrons.params["tolrff"] = None
+            self.input.electrons.params["irdwfk"] = 1
+            self.input.electrons.params["irdddk"] = None #1
+            self.input.electrons.params["iscf"] = None # for scf
+            self.input.electrons.kpoints.params["kptopt"] = 3 # for rf calculation at non gamma q point
+            self.input.dfpt.params["rfphon"] = 1
+            self.input.dfpt.params["rfatpol"] = [1, self.input.system.xyz.natom]
+            self.input.dfpt.params["rfdir"] = [1, 1, 1]
+            self.input.dfpt.params["rfelfd"] = None
+            self.input.dfpt.params["nqpt"] = 1
+            self.input.dfpt.params["qpt"] = [0.5, 0, 0]
+            self.input.dfpt.params["qptopt"] = None  #1
+            self.input.dfpt.params["ngqpt"] = None  #[1, 1, 1]
             #self.guard.check_all()
             with open(os.path.join(directory, inpname), 'w') as fout:
-                self.electrons.to_in(fout)
-                self.dfpt.to_in(fout)
+                self.input.electrons.to_in(fout)
+                self.input.dfpt.to_in(fout)
                 #self.properties.to_in(fout)
-                self.system.to_in(fout)
+                self.input.system.to_in(fout)
 
             with open(os.path.join(directory, inpname.split(".")[0]+".files"), 'w') as fout:
                 fout.write("%s\n" % inpname)
@@ -256,7 +254,7 @@ class dfpt_run(abinit):
                 fout.write("%s-output\n" % "static-scf")
                 fout.write("%s-output\n" % inpname.split(".")[0])
                 fout.write("temp\n")
-                for element in self.system.xyz.specie_labels:
+                for element in self.input.system.xyz.specie_labels:
                     fout.write("%s\n" % (element + ".psp8"))
                     #fout.write("%s\n" % (element + ".GGA_PBE-JTH.xml"))
         if runopt == "run" or runopt == "genrun":

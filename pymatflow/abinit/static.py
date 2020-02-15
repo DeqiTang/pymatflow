@@ -15,10 +15,8 @@ class static_run(abinit):
     """
     def __init__(self):
         super().__init__()
-        #self.system = abinit_system()
-        #self.electrons = abinit_electrons()
-        #self.properties = abinit_properties()
-        self.input.guard.set_queen(queen="static", electrons=self.input.electrons, system=self.input.system)
+
+        self.input.guard.set_queen(queen="static")
 
         self.input.electrons.basic_setting()
 
@@ -40,9 +38,6 @@ class static_run(abinit):
             os.system("cp %s %s/" % (self.input.system.xyz.file, directory))
 
             self.input.electrons.set_scf_nscf("scf")
-            #
-            self.input.guard.check_all()
-
 
 
             # generate pbs job submit script
@@ -87,9 +82,6 @@ class static_run(abinit):
             # end dos
 
             #
-            self.input.guard.check_all()
-
-
 
             # generate pbs job submit script
             self.gen_pbs(directory=directory, script="static-nscf.pbs", cmd="abinit", jobname=jobname, nodes=nodes, ppn=ppn)
@@ -132,11 +124,6 @@ class static_run(abinit):
             self.input.electrons.params["toldfe"] = None
             #self.input.electrons.params["irdden"] = 1 # actually irdden will be 1 by default if iscf < 0
 
-            #with open(os.path.join(directory, inpname), 'w') as fout:
-                #self.electrons.to_in(fout)
-                #self.system.to_in(fout)
-
-            self.input.guard.check_all()
 
             # generate pbs job submit script
             self.gen_pbs(directory=directory, script="static-bands.pbs", cmd="abinit", jobname=jobname, nodes=nodes, ppn=ppn)

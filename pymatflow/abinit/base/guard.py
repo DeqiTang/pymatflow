@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
 import sys
 
 class abinit_guard:
@@ -14,83 +11,12 @@ class abinit_guard:
     def __init__(self):
         """
         """
-        pass
+        self.queen = None
 
-    def set_queen(self, queen, electrons=None, ions=None, system=None, dfpt=None):
-        """
-        queen:
-            type of abinit run, can be the following values:
-            static, opt, md, neb, dfpt
-            we will check the input argument according to value of queen.
-            e.g. when queen == "opt", there are three arguments that can
-            not be None, namely elctrons, ions, and system
-        """
+    def set_queen(self, queen=None):
         self.queen = queen
 
-        if queen == "static":
-            if electrons == None or system == None:
-                print("==============================================\n")
-                print("                Warning !!!\n")
-                print("==============================================\n")
-                print("trouble while initialize abinit_guard:\n")
-                print("if queen == static, you have to pass inelectrons\n")
-                print("and system\n")
-                sys.exit(1)
-            self.electrons = electrons
-            self.system = system
-
-        if queen == "opt":
-            if electrons == None or system == None or ions == None:
-                print("==============================================\n")
-                print("                Warning !!!\n")
-                print("==============================================\n")
-                print("trouble while initialize abinit_guard:\n")
-                print("if queen == opt, you have to pass inelectrons\n")
-                print("and system and ions\n")
-                sys.exit(1)
-            self.electrons = electrons
-            self.system = system
-            self.ions = ions
-
-        if queen == "md":
-            if electrons == None or system == None or ions == None:
-                print("==============================================\n")
-                print("                warning !!!\n")
-                print("==============================================\n")
-                print("trouble while initialize abinit_guard:\n")
-                print("if queen == md, you have to pass inelectrons\n")
-                print("and system and ions\n")
-                sys.exit(1)
-            self.electrons = electrons
-            self.system = system
-            self.ions = ions
-
-        if queen == "neb":
-            if electrons == None or system == None:
-                print("==============================================\n")
-                print("                warning !!!\n")
-                print("==============================================\n")
-                print("trouble while initialize abinit_guard:\n")
-                print("if queen == neb, you have to pass inelectrons\n")
-                print("and system\n")
-                sys.exit(1)
-            self.electrons = electrons
-            self.system = system
-
-        if queen == "dfpt":
-            if electrons == None or system == None or dfpt == None:
-                print("==============================================\n")
-                print("                warning !!!\n")
-                print("==============================================\n")
-                print("trouble while initialize abinit_guard:\n")
-                print("if queen == dfpt, you have to pass inelectrons\n")
-                print("and system and dfpt\n")
-                sys.exit(1)
-            self.electrons = electrons
-            self.system = system
-            self.dfpt = dfpt
-
-    def check_all(self):
+    def check_all(self, electrons=None, ions=None, system=None, dfpt=None):
         """
         Note:
             we should not execute this function imediately after the construction
@@ -98,7 +24,27 @@ class abinit_guard:
             it is recommended that you initialize the abinit_guard in __init__ of
             classes like static_run, and execute check_all when you finish setting
             in static_run, and decided to generate the input files.
+        self.queen:
+            type of abinit run, can be the following values:
+            static, opt, md, neb, dfpt
+            we will check the input argument according to value of self.queen.
+            e.g. when queen == "opt", there are three arguments that can
+            not be None, namely elctrons, ions, and system
         """
+        if self.queen == None:
+            print("=============================================================\n")
+            print("                     WARNING!!!\n")
+            print("-------------------------------------------------------------\n")
+            print("abinit.base.guard.abinit_guard.check_all():\n")
+            print("before execute check_all(), you should set the queen to some\n")
+            print("value among -> opt, md, dfpt\n")
+            sys.exit(1)
+        #
+        self.electrons = electrons
+        self.ions = ions
+        self.system = system
+        self.dfpt = dfpt
+        #
         if self.queen == "opt":
             self.check_optcell()
             self.check_ionmov()

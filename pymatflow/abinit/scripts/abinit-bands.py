@@ -48,10 +48,10 @@ if __name__ == "__main__":
             choices=[1, 2, 3 ,4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 27, 28, 40, 41, 42],
             help="type of exchage-correlation functional. for more information, refer to https://docs.abinit.org/variables/basic/#ixc")
 
-    parser.add_argument("--vdw-xc", type=int,
-            default=None,
+    # vdw related parameters
+    parser.add_argument("--vdw-xc", type=int, default=None,
             choices=[0, 1, 2, 5, 6, 7, 10, 11, 14],
-            help="Van Der Waals corrected exchange-correlation functional. 5: DFT-D2, 6: DFT-D3, 7: DFT-D3(BJ). for more information, refer to https://docs.abinit.org/variables/vdw/#vdw_xc")
+            help="Van Der Waals exchange-correlation functional. 0: no correction, 1: vdW-DF1, 2: vdW-DF2, 5: DFT-D2, 6: DFT-D3, 7: DFT-D3(BJ). for more information, refer to https://docs.abinit.org/variables/vdw/#vdw_xc")
 
     parser.add_argument("--vdw-tol", type=float,
             default=None,
@@ -82,12 +82,12 @@ if __name__ == "__main__":
     # ==========================================================
     args = parser.parse_args()
 
-    electrons_params = {}
+    params = {}
 
-    electrons_params["ecut"] = args.ecut
-    electrons_params["ixc"] = args.ixc
-    electrons_params["vdw_xc"] = args.vdw_xc
-    electrons_params["vdw_tol"] = args.vdw_tol
+    params["ecut"] = args.ecut
+    params["ixc"] = args.ixc
+    params["vdw_xc"] = args.vdw_xc
+    params["vdw_tol"] = args.vdw_tol
 
     # --------------------------------------------------------------------------
     # process kptbounds
@@ -153,8 +153,8 @@ if __name__ == "__main__":
 
     task = static_run()
     task.get_xyz(args.file)
-    task.set_params(electrons=electrons_params)
-    task.electrons.kpoints.set_band(kptbounds=kptbounds)
+    task.set_params(params=params)
+    task.input.electrons.kpoints.set_band(kptbounds=kptbounds)
     task.bands(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
 
     server_handle(auto=args.auto, directory=args.directory, jobfilebase="static-bands", server=args.server)

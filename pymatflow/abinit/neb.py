@@ -19,7 +19,7 @@ class neb_run(abinit):
         self.images = []
         self.input.electrons.basic_setting()
 
-        self.input.guard.set_queen(queen="neb", electrons=self.input.electrons, system=self.input.system)
+        self.input.guard.set_queen(queen="neb")
 
         self.params = {
                 "imgmov": 5,
@@ -70,7 +70,6 @@ class neb_run(abinit):
 
             self.input.electrons.set_scf_nscf("scf")
             #
-            self.input.guard.check_all()
 
             script="neb.pbs"
             with open(os.path.join(directory, script),  'w') as fout:

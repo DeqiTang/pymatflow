@@ -3,6 +3,7 @@
 
 import os
 import sys
+import shutil
 import argparse
 
 from pymatflow.remote.server import server_handle
@@ -26,7 +27,7 @@ requirements:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-d", "--directory", type=str, default="tmp-abinit-opt",
+    parser.add_argument("-d", "--directory", type=str, default="tmp-abinit-opt-tetragonal",
             help="Directory to do the optimization calculation")
 
     parser.add_argument("-f", "--file", type=str,
@@ -53,15 +54,14 @@ if __name__ == "__main__":
             default=[1, 1, 1],
             help="number of grid points for kpoints generation. for more information, refer to https://docs.abinit.org/variables/basic/#ngkpt")
 
-    parser.add_argument("--vdw-xc", type=int,
-            default=None,
+    # vdw related parameters
+    parser.add_argument("--vdw-xc", type=int, default=None,
             choices=[0, 1, 2, 5, 6, 7, 10, 11, 14],
-            help="Van Der Waals exchange-correlation functional. 5: DFT-D2, 6: DFT-D3, 7: DFT-D3(BJ). fore more information, refer to https://docs.abinit.org/variables/vdw/#vdw_xc")
+            help="Van Der Waals exchange-correlation functional. 0: no correction, 1: vdW-DF1, 2: vdW-DF2, 5: DFT-D2, 6: DFT-D3, 7: DFT-D3(BJ). for more information, refer to https://docs.abinit.org/variables/vdw/#vdw_xc")
 
     parser.add_argument("--vdw-tol", type=float,
             default=None,
-            help="Van Der Waals tolerance, only work when vdw_xc == 5 or 6 or 7. to be included in the potential a pair of atom must have contribution to the energy larger than vdw_tol. default value is 1.0e-10. for more information, refer to https://docs.abinit.org/variables/vdw/#vdw_tol")
-
+            help="Van Der Waals tolerance, only work when vdw_xc == 5 or 6 or 7. to be included in the potential a pair of atom must have contribution to the energy larger than vdw_tol. default value is 1.0e-10. fore more information, refer to https://docs.abinit.org/variables/vdw/#vdw_tol")
     # -----------------------------------------------------------
     #                        ions moving related parameters
     # -----------------------------------------------------------
@@ -114,25 +114,24 @@ if __name__ == "__main__":
     # ==========================================================
     args = parser.parse_args()
 
-    electrons_params = {}
-    kpoints_params = {}
-    ions_params = {}
+    params = {}
+    kpoints = {}
 
-    electrons_params["ecut"] = args.ecut
-    electrons_params["ixc"] = args.ixc
-    electrons_params["vdw_xc"] = args.vdw_xc
-    electrons_params["vdw_tol"] = args.vdw_tol
+    params["ecut"] = args.ecut
+    params["ixc"] = args.ixc
+    params["vdw_xc"] = args.vdw_xc
+    params["vdw_tol"] = args.vdw_tol
 
-    kpoints_params["kptopt"] = args.kptopt
-    kpoints_params["ngkpt"] = args.ngkpt
+    params["kptopt"] = args.kptopt
+    params["ngkpt"] = args.ngkpt
 
-    ions_params["ionmov"] = args.ionmov
-    ions_params["optcell"] = args.optcell
+    params["ionmov"] = args.ionmov
+    params["optcell"] = args.optcell
 
     task = opt_run()
     task.get_xyz(args.file)
-    task.set_params(electrons=electrons_params, ions=ions_params)
-    task.set_kpoints(kpoints=kpoints_params)
+    task.set_params(params=params)
+    task.set_kpoints(kpoints=kpoints)
     #task.optimize(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
     #server_handle(auto=args.auto, directory=args.directory, jobfilebase="optimization", server=args.server)
 
@@ -157,14 +156,14 @@ if __name__ == "__main__":
         fout.write("cat > optimization.in<<EOF\n")
         task.input.to_input(fout)
         fout.write("EOF\n")
-        fout.write("cat > optimization.fiels<<EOF\n")
-        #self.files.name = "optimization.files"
-        self.files.main_in = "optimization.in"
-        self.files.main_out = "optimization.out"
-        self.files.wavefunc_in = "optimization-i"
-        self.files.wavefunc_out = "optimization-o"
-        self.files.tmp = "tmp"
-        task.files.to_files(fout)
+        fout.write("cat > optimization.files<<EOF\n")
+        #task.files.name = "optimization.files"
+        task.files.main_in = "optimization.in"
+        task.files.main_out = "optimization.out"
+        task.files.wavefunc_in = "optimization-i"
+        task.files.wavefunc_out = "optimization-o"
+        task.files.tmp = "tmp"
+        task.files.to_files(fout, task.input.system)
         fout.write("EOF\n")
         fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
 
@@ -180,7 +179,7 @@ if __name__ == "__main__":
         fout.write("v32=%f\n" % task.input.system.xyz.cell[2][1])
         fout.write("v33=%f\n" % task.input.system.xyz.cell[2][2])
 
-        fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`")
+        fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`\n")
         fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`\n")
 
         if args.na >= 2:
@@ -194,7 +193,7 @@ if __name__ == "__main__":
                 fout.write("  mkdir relax-${a}-${c}\n")
                 fout.write("  cp  optimization.files *.psp8 *.GGA_PBE-JTH.xml relax-${a}-${c}/\n")
                 fout.write("  cat optimization.in | head -n +${rprim_line} > relax-${a}-${c}/optimization.in\n")
-                fout.write("  cat > relax-${a}-${c}/optimization.in<<EOF\n")
+                fout.write("  cat >> relax-${a}-${c}/optimization.in<<EOF\n")
                 fout.write("${a} 0.000000 0.000000\n")
                 fout.write("0.000000 ${a} 0.000000\n")
                 fout.write("0.000000 0.000000 ${c}\n")
@@ -209,7 +208,7 @@ if __name__ == "__main__":
                 fout.write("  mkdir relax-${a}\n")
                 fout.write("  cp  optimization.files *.psp8 *.GGA_PBE-JTH.xml relax-${a}/\n")
                 fout.write("  cat optimization.in | head -n +${rprim_line} > relax-${a}/optimization.in\n")
-                fout.write("  cat > relax-${a}/optimization.in<<EOF\n")
+                fout.write("  cat >> relax-${a}/optimization.in<<EOF\n")
                 fout.write("${a} 0.000000 0.000000\n")
                 fout.write("0.000000 ${a} 0.000000\n")
                 fout.write("0.000000 0.000000 ${v33}\n")
@@ -228,7 +227,7 @@ if __name__ == "__main__":
                 fout.write("  mkdir relax-${c}\n")
                 fout.write("  cp  optimization.files *.psp8 *.GGA_PBE-JTH.xml relax-${c}/\n")
                 fout.write("  cat optimization.in | head -n +${rprim_line} > relax-${c}/optimization.in\n")
-                fout.write("  cat > relax-${c}/optimization.in<<EOF\n")
+                fout.write("  cat >> relax-${c}/optimization.in<<EOF\n")
                 fout.write("${v11} 0.000000 0.000000\n")
                 fout.write("0.000000 ${v22} 0.000000\n")
                 fout.write("0.000000 0.000000 ${c}\n")

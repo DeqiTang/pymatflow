@@ -6,8 +6,8 @@ class abinit_properties:
     """
     """
     def __init__(self):
-        self.params = {
-                }
+        self.params = {}
+        self.incharge = []
 
     def to_input(self, fout):
         # fout: a file stream for writing

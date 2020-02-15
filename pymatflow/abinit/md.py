@@ -17,7 +17,7 @@ class md_run(abinit):
 
         self.ions.basic_setting(mode="md")
 
-        self.guard.set_queen(queen="md", electrons=self.electrons, ions=self.ions, system=self.system)
+        self.guard.set_queen(queen="md")
 
 
     def md(self, directory="tmp-abinit-md", inpname="molecular-dynamics.in", mpi="", runopt="gen",
@@ -30,8 +30,6 @@ class md_run(abinit):
         self.input.electrons.params["toldff"] = None
         self.input.electrons.params["tolrff"] = None
         self.input.electrons.params["toldfe"] = None #1.0e-6
-
-        self.input.guard.check_all()
 
         self.files.name = "molecular-dynamics.files"
         self.files.main_in = "molecular-dynamics.in"

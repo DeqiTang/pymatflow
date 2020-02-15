@@ -12,12 +12,6 @@ class abinit:
     """
     """
     def __init__(self):
-        #self.system = abinit_system()
-        #self.electrons = abinit_electrons()
-        #self.ions = abinit_ions()
-        #self.dfpt = abinit_dfpt()
-        #self.properties = abinit_properties()
-        #self.guard = abinit_guard()
         self.input = abinit_input()
         self.files = abinit_files()
 
@@ -26,9 +20,8 @@ class abinit:
     def get_xyz(self, xyzfile):
         self.input.system.xyz.get_xyz(xyzfile)
 
-    def set_params(self, electrons={}, ions={}):
-        self.input.electrons.set_params(electrons)
-        self.input.ions.set_params(ions)
+    def set_params(self, params={}):
+        self.input.set_params(params)
 
     def set_kpoints(self, kpoints={}):
         self.input.electrons.kpoints.set_params(kpoints)

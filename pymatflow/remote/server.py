@@ -14,7 +14,7 @@ def server_handle(auto, server, directory, jobfilebase):
     server:
         can be 'pbs' or 'yh'
     jobfilebase:
-        base name of submitting job script, 
+        base name of submitting job script,
         like static-nscf and the coresponding job submit script
         would be static-nscf.pbs if server is pbs and sstatic-nscf.yh
         if server is yh
@@ -44,7 +44,7 @@ def server_handle(auto, server, directory, jobfilebase):
         elif server == "yh":
             ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_yh.conf"))
             ctl.login()
-            ctl.submit(workdir=directory, jobfile=jobfilebase+".yh", server="yh")
+            ctl.submit(workdir=directory, jobfile=jobfilebase+".sub", server="yh")
     elif auto == 3:
         os.chdir(directory)
         if server == "pbs":

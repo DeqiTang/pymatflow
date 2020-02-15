@@ -18,19 +18,11 @@ class abinit_dfpt:
         https://docs.abinit.org/variables/dfpt/
     """
     def __init__(self):
-        self.params = {
-                "rfatpol": None,
-                "rfddk": None,
-                "rfelfd": None,
-                "rfphon": None,
-                "rfstrs": None,
-                "rfdir": None,
-                "rfmagn": None,
-                "rfmeth": None,
-
-                "asr": None,
-                "dfpt_sciss": None,
-                }
+        self.params = {}
+        self.incharge = [
+            "rfatpol", "rfddk", "rfelfd", "rfphon", "rfstrs", "rfdir", "rfmagn",
+            "rfmeth", "asr", "dfpt_sciss",
+            ]
         #self.kpoints = kpoints()
 
     def to_input(self, fout):

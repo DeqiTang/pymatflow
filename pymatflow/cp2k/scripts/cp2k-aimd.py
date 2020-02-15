@@ -79,7 +79,7 @@ if __name__ == "__main__":
             help="smearing type: FERMI_DIRAC, ENERGY_WINDOW")
 
     parser.add_argument("--electronic-temp", type=float, default=300,
-            help="ELECTRON_TEMPERATURE for FERMI_DIRAC SMEAR", type=float, default=300)
+            help="ELECTRON_TEMPERATURE for FERMI_DIRAC SMEAR")
 
     parser.add_argument("--window-size", type=float, default=0,
             help="Size of the energy window centred at the Fermi level for ENERGY_WINDOW type smearing")

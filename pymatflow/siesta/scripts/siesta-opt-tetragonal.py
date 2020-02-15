@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # ===========================
     # general parameters
     # ===========================
-    parser.add_argument("-d", "--directory", type=str, default="tmp-siesta-opt",
+    parser.add_argument("-d", "--directory", type=str, default="tmp-siesta-opt-tetragonal",
             help="directory to do the optimization calculation")
 
     parser.add_argument("-f", "--file", type=str,
@@ -189,8 +189,8 @@ if __name__ == "__main__":
         fout.write("v32=%f\n" % task.system.xyz.cell[2][1])
         fout.write("v33=%f\n" % task.system.xyz.cell[2][2])
 
-        fout.write("lat_vec_begin=`cat optimization.fdf | grep -n \'%block LatticeVectors\' | cut -d ":" -f 1`")
-        fout.write("lat_vec_end=`cat optimization.fdf | grep -n \'%endblock LatticeVectors\' | cut -d ":" -f 1`")
+        fout.write("lat_vec_begin=`cat optimization.fdf | grep -n \'%block LatticeVectors\' | cut -d \":\" -f 1`\n")
+        fout.write("lat_vec_end=`cat optimization.fdf | grep -n \'%endblock LatticeVectors\' | cut -d \":\" -f 1`\n")
 
         if args.na >= 2:
             # a is optimized
@@ -203,7 +203,7 @@ if __name__ == "__main__":
                 fout.write("  mkdir relax-${a}-${c}\n")
                 fout.write("  cp  *.psf relax-${a}-${c}/\n")
                 fout.write("  cat optimization.fdf | head -n +${lat_vec_begin} > relax-${a}-${c}/optimization.fdf\n")
-                fout.write("  cat > relax-${a}-${c}/optimization.fdf<<EOF\n")
+                fout.write("  cat >> relax-${a}-${c}/optimization.fdf<<EOF\n")
                 fout.write("${a} 0.000000 0.000000\n")
                 fout.write("0.000000 ${a} 0.000000\n")
                 fout.write("0.000000 0.000000 ${c}\n")
@@ -218,7 +218,7 @@ if __name__ == "__main__":
                 fout.write("  mkdir relax-${a}\n")
                 fout.write("  cp  *.psf relax-${a}/\n")
                 fout.write("  cat optimization.fdf | head -n +${lat_vec_begin} > relax-${a}/optimization.fdf\n")
-                fout.write("  cat > relax-${a}/optimization.fdf<<EOF\n")
+                fout.write("  cat >> relax-${a}/optimization.fdf<<EOF\n")
                 fout.write("${a} 0.000000 0.000000\n")
                 fout.write("0.000000 ${a} 0.000000\n")
                 fout.write("0.000000 0.000000 ${v33}\n")
@@ -237,7 +237,7 @@ if __name__ == "__main__":
                 fout.write("  mkdir relax-${c}\n")
                 fout.write("  cp  *.psf relax-${c}/\n")
                 fout.write("  cat optimization.fdf | head -n +${lat_vec_begin} > relax-${c}/optimization.fdf\n")
-                fout.write("  cat > relax-${c}/optimization.fdf<<EOF\n")
+                fout.write("  cat >> relax-${c}/optimization.fdf<<EOF\n")
                 fout.write("${v11} 0.000000 0.000000\n")
                 fout.write("0.000000 ${v22} 0.000000\n")
                 fout.write("0.000000 0.000000 ${c}\n")

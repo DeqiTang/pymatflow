@@ -5,13 +5,10 @@ class abinit_ions:
     """
     """
     def __init__(self):
-        self.params = {
-                "ionmov": None,
-                "optcell": None,
-                "ntime": None,
-                "tolmxde": None,
-                "tolmxf": None,
-                }
+        self.params = {}
+        self.incharge = [
+            "ionmov", "optcell", "ntime", "tolmxde", "tolmxf",
+            ]
     def to_input(self, fout):
         # fout: a file stream for writing
         fout.write("# ============================\n")

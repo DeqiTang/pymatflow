@@ -15,7 +15,7 @@ usage:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-d", "--directory", type=str, default="tmp-siesta-converge-cutoff,
+    parser.add_argument("-d", "--directory", type=str, default="tmp-siesta-converge-cutoff",
             help="directory to do the MeshCutoff converge test calculation")
 
     parser.add_argument("-f", "--file", type=str,
@@ -53,7 +53,7 @@ if __name__ == "__main__":
             help="set kpoints like '3 3 3'")
 
     parser.add_argument("--occupation", type=str, default="FD",
-            chioces=["FD", "MP"]
+            chioces=["FD", "MP"],
             help="OccupationFunction(FD or MP)",)
 
     parser.add_argument("--electronic-temperature", type=int, default=300,

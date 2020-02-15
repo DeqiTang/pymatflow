@@ -18,12 +18,10 @@ class kpoints:
         https://docs.abinit.org/variables/gstate/#kptbounds
     """
     def __init__(self):
-        self.params = {
-                "kptopt": None,
-                "ngkpt": None,
-                "nshiftk": None,
-                "shiftk": None,
-                }
+        self.params = {}
+        self.incharge = [
+            "kptopt", "ngkpt", "nshiftk", "shiftk",
+            ]
         self.basic_setting()
 
     def basic_setting(self):
@@ -112,13 +110,10 @@ class abinit_electrons:
     """
     """
     def __init__(self):
-        self.params = {
-                "ecut": None,
-                "ixc": None,
-                "nstep": None,
-                "toldfe": None,
-                "diemac": None,
-                }
+        self.params = {}
+        self.incharge = [
+            "ecut", "ixc", "nstep", "toldfe", "diemac"
+            ]
         self.kpoints = kpoints()
 
     def to_input(self, fout):
