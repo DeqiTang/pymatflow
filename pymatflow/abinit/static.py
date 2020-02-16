@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+Static calculation
+"""
 import os
 import shutil
 import matplotlib.pyplot as plt
@@ -99,7 +99,7 @@ class static_run(abinit):
     def bands(self, directory="tmp-abinit-static", inpname="static-band.in", mpi="", runopt="gen",
         jobname="abinit-band", nodes=1, ppn=32):
         """
-        we can use abiopen.py static-band-output_GSR.nc --expose -sns=talk to view the band structure.
+            we can use abiopen.py static-band-output_GSR.nc --expose -sns=talk to view the band structure.
         """
         self.files.name = "static-bands.files"
         self.files.main_in = "static-bands.in"

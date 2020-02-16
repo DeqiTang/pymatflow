@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+responsible for structure information generation for pwscf
+"""
 import sys
 
 
@@ -116,7 +116,9 @@ class qe_system:
                 "block_height": None,
                 }
     def to_in(self, fout):
-        # fout: a file stream for writing
+        """
+        :param fout: a file stream for writing
+        """
         # ==============================
         # checking legacy of parameters
         # if there is problem with it
@@ -154,7 +156,7 @@ class qe_system:
 
     def basic_setting(self, arts):
         """
-        arts: an object of qe.base.arts.qe_arts
+        :param arts: an object of qe.base.arts.qe_arts
         """
         self.params["ibrav"] = 0
         self.params["nat"] = arts.xyz.natom
@@ -189,7 +191,7 @@ class qe_system:
 
     def set_params(self, params):
         """
-        params: a dict storing the parameters and values
+        :param params: a dict storing the parameters and values
 
         Note:
             set_params() will ignore the setting of occupations

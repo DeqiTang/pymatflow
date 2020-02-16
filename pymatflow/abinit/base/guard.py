@@ -1,3 +1,7 @@
+"""
+Guard: make sure that some rules is followed
+"""
+
 import sys
 
 class abinit_guard:
@@ -24,12 +28,13 @@ class abinit_guard:
             it is recommended that you initialize the abinit_guard in __init__ of
             classes like static_run, and execute check_all when you finish setting
             in static_run, and decided to generate the input files.
-        self.queen:
-            type of abinit run, can be the following values:
-            static, opt, md, neb, dfpt
-            we will check the input argument according to value of self.queen.
-            e.g. when queen == "opt", there are three arguments that can
-            not be None, namely elctrons, ions, and system
+            
+            self.queen:
+                type of abinit run, can be the following values:
+                static, opt, md, neb, dfpt
+                we will check the input argument according to value of self.queen.
+                e.g. when queen == "opt", there are three arguments that can
+                not be None, namely elctrons, ions, and system
         """
         if self.queen == None:
             print("=============================================================\n")

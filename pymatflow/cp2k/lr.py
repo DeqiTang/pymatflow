@@ -1,6 +1,6 @@
-#!/usr/bin/evn python
-# _*_ coding: utf-8 _*_
-
+"""
+Linear Response calculation
+"""
 import numpy as np
 import sys
 import os
@@ -33,11 +33,11 @@ class lr_run(cp2k):
     def lr(self, directory="tmp-cp2k-lr", inpname="lr.inp", output="lr.out", mpi="", runopt="gen",
             jobname="linear-response", nodes=1, ppn=32):
         """
-        directory:
+        :param directory:
             where the calculation will happen
-        inpname:
+        :param inpname:
             inputfile name for the cp2k
-        output:
+        :param output:
             output filename for the cp2k
         """
         if runopt == "gen" or runopt == "genrun":

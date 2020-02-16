@@ -1,6 +1,6 @@
-#!/usr/bin/evn python
-# _*_ coding: utf-8 _*_
-
+"""
+VIBRATIONAL_ANALYSIS calculation
+"""
 import numpy as np
 import sys
 import os
@@ -8,9 +8,6 @@ import shutil
 import matplotlib.pyplot as plt
 
 from pymatflow.cp2k.cp2k import cp2k
-#from pymatflow.cp2k.base.glob import cp2k_glob
-#from pymatflow.cp2k.base.force_eval import cp2k_force_eval
-#from pymatflow.cp2k.base.vibrational_analysis import cp2k_vibrational_analysis
 
 """
 Usage:
@@ -23,9 +20,6 @@ class vib_run(cp2k):
     """
     def __init__(self):
         super().__init__()
-        #self.glob = cp2k_glob()
-        #self.force_eval = cp2k_force_eval()
-        #self.vibrational_analysis = cp2k_vibrational_analysis()
 
         self.glob.basic_setting(run_type="VIBRATIONAL_ANALYSIS")
         self.force_eval.basic_setting()
@@ -39,11 +33,11 @@ class vib_run(cp2k):
             mpi="", runopt="gen",
             jobname="vibrational-analysis", nodes=1, ppn=2):
         """
-        directory:
+        :param directory:
             wheere the calculation will happen
-        inpname:
+        :param inpname:
             input filename for the cp2k
-        output:
+        :param output:
             output filename for the cp2k
         """
         if runopt == "gen" or runopt == "genrun":

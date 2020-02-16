@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+in control of properties calculation  related parameters
+"""
 
 class abinit_properties:
     """
@@ -10,7 +10,9 @@ class abinit_properties:
         self.incharge = []
 
     def to_input(self, fout):
-        # fout: a file stream for writing
+        """
+        :param fout: a file stream for writing
+        """
         fout.write("# ======================================\n")
         fout.write("# properties calculation related setting\n")
         fout.write("# ======================================\n")
@@ -25,9 +27,9 @@ class abinit_properties:
 
     def get_option(self, option=[]):
         """
-        1: dos
-        3: elf
-        4:
+        :param  1: dos
+                3: elf
+                4:
         """
         if len(option) == 0:
             return

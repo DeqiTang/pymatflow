@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+Molecular Dynamics calculation
+"""
 import os
 import shutil
 import matplotlib.pyplot as plt

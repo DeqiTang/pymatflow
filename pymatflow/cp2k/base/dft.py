@@ -1,6 +1,6 @@
-#!/usr/bin/evn python
-# _*_ coding: utf-8 _*_
-
+"""
+a representation of FORCE_EVAL/DFT
+"""
 import numpy as np
 import sys
 import os
@@ -49,9 +49,11 @@ class cp2k_dft:
     """
     def __init__(self):
         """
-        BASIS_MOLOPT含有所有元素的DZVP-MOLOPT-SR-GTH基组
-        GTH_POTENTIALS含有所有元素的GTH-PBE赝势以及几乎所有
-        元素的GTH-BLYP赝势(似乎Nb没有). 所以将其设为默认值
+            BASIS_MOLOPT contains the basis set for all elements
+            in form of DZVP-MOLOPT-SR-GTH, and GTH_POTENTIAL contains
+            GTH-PBE pseudopotential for all elements and GTH-BLYP
+            pseudopotentials for nearly all elements. so we set 
+            they as the default BASIS_SET_FILE_NAME and POTENTIAL_FILE_NAME
         """
         self.params = {
                 "AUTO_BASIS": None,
@@ -136,7 +138,7 @@ class cp2k_dft:
 
     def to_input(self, fout):
         """
-        fout: a file stream for writing
+        :param fout: a file stream for writing
         """
         fout.write("\t&DFT\n")
         for item in self.params:
@@ -166,7 +168,7 @@ class cp2k_dft:
 
     def check_spin(self, xyz):
         """
-        xyz: base_xyz or cp2k_xxyz or cp2k_subsys
+        :param xyz: base_xyz or cp2k_xyz or cp2k_subsys
         """
         n_electrons = 0
         for atom in xyz.atoms:

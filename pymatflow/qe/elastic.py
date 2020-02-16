@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+calculate elastic properties of the system
+"""
 import numpy as np
 
 """
@@ -27,7 +27,7 @@ def epsilon_stress_strain(xyz):
     """
     using stress-strain relationship to calculate elastica constant
     
-    xyz:
+    :param xyz:
         an instance of base_xyz()
     """
     delta = 0.05 # in unit of anstrom
@@ -61,7 +61,7 @@ class elastic_run:
             mpi="", runopt="gen", control={}, system={}, electrons={}, ions={}, 
             kpoints_option="automatic", kpoints_mp=[1, 1, 1, 0, 0, 0]):
         """
-        directory: a place for all the generated files
+        :param directory: a place for all the generated files
         """
         if os.path.exists(directory):
             shutil.rmtree(directory)

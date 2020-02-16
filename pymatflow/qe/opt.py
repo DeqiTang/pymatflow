@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+Geometric Optimization calc
+"""
 import os
 import shutil
 import matplotlib.pyplot as plt
@@ -25,7 +25,7 @@ class opt_run(pwscf):
     def relax(self, directory="tmp-qe-relax", inpname="relax.in", output="relax.out", mpi="", runopt="gen",
             jobname="relax", nodes=1, ppn=32):
         """
-        directory: a place for all the generated files
+        :param directory: a place for all the generated files
         """
         #self.set_relax()
         if runopt == "gen" or runopt == "genrun":
@@ -67,7 +67,7 @@ class opt_run(pwscf):
     def vc_relax(self, directory="tmp-qe-vc-relax", inpname="vc-relax.in", output="vc-relax.out", mpi="", runopt="gen",
             jobname="vc-relax", nodes=1, ppn=32):
         """
-        directory: a place for all the generated files
+        :param directory: a place for all the generated files
         """
         #self.set_vc_relax()
         if runopt == "gen" or runopt == "genrun":

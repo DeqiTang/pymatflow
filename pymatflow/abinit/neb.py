@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+Nudged Elastic Band calculation
+"""
 import os
 import shutil
 import matplotlib.pyplot as plt
@@ -40,7 +40,7 @@ class neb_run(abinit):
 
     def get_images(self, images):
         """
-        images:
+        :param images:
             ["first.xyz", "last.xyz"]
         """
         self.images = []

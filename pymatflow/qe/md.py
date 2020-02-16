@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+Molecular Dynamics calc
+"""
 import os
 import shutil
 import matplotlib.pyplot as plt
@@ -17,7 +17,7 @@ class md_run(pwscf):
     def md(self, directory="tmp-qe-md", inpname="md.in", output="md.out", mpi="", runopt="gen",
             jobname="pwscf-md", nodes=1, ppn=32):
         """
-        directory: a place for all the generated files
+        :param directory: a place for all the generated files
         """
         self.set_md()
         if runopt ==  "gen" or runopt == "genrun":
@@ -59,7 +59,7 @@ class md_run(pwscf):
     def vc_md(self, directory="tmp-qe-vc-md", inpname="vc-md.in", output="vc-md.out", mpi="", runopt="gen",
             jobname="pwscf-vc-md", nodes=1, ppn=32):
         """
-        directory: a place for all the generated files
+        :param directory: a place for all the generated files
         """
         self.set_vc_md()
         if runopt ==  "gen" or runopt == "genrun":

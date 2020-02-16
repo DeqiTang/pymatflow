@@ -1,6 +1,6 @@
-#!/usr/bin/evn python
-# _*_ coding: utf-8 _*_
-
+"""
+Phonopy calculation
+"""
 import sys
 import re
 import os
@@ -13,8 +13,9 @@ from pymatflow.qe.pwscf import pwscf
 
 """
 Note:
-    现在phonopy只支持设置ATOMIC_POSITIONS 为crystal类型
-    参考:
+    At present, only crystal type ATOMIC_POSITIONS is supported
+    by phonopy:
+    reference:
     https://atztogo.github.io/phonopy/qe.html
 """
 
@@ -48,7 +49,7 @@ class phonopy_run(pwscf):
     def phonopy(self, directory="tmp-qe-phonopy", pos_inpname="pos.in", head_inpname="head.in", mpi="", runopt="gen",
             jobname="pwscf-phonopy", nodes=1, ppn=32):
         """
-        directory: a place for all the generated files
+        :param directory: a place for all the generated files
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):

@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+in control of &ions /
+"""
 import sys
 
 
@@ -34,7 +34,9 @@ class qe_ions:
                 "w_2": None,
                 }
     def to_in(self, fout):
-        # fout: a file stream for writing
+        """
+        :param fout: a file stream for writing
+        """
         fout.write("&ions\n")
         for item in self.params:
             if self.params[item] is not None:
@@ -47,7 +49,7 @@ class qe_ions:
 
     def basic_setting(self, calc='relax'):
         """
-        for different kind of running set different parameters
+            for different kind of running set different parameters
         """
         if calc == 'relax':
             self.params["ion_dynamics"] = "bfgs"
@@ -64,7 +66,7 @@ class qe_ions:
 
     def set_params(self, params):
         """
-        params: a dict storing the parameters and values
+        :param params: a dict storing the parameters and values
         """
         for item in params:
             self.params[item] = params[item]

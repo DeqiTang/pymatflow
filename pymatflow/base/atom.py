@@ -1,3 +1,7 @@
+"""
+    a representation of atom with xyz coordinates
+"""
+
 import numpy as np
 import sys
 import os
@@ -11,7 +15,7 @@ Usage:
 
 class Atom:
     """
-    a representation of atom with xyz coordinates
+        a representation of atom with xyz coordinates
     """
     def __init__(self, name=None, x=0, y=0, z=0):
         self.name = name

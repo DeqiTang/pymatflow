@@ -1,6 +1,6 @@
-#!/usr/bin/evn python
-# _*_ coding: utf-8 _*_
-
+"""
+static calculation
+"""
 import os
 import sys
 import shutil
@@ -42,11 +42,11 @@ class static_run(cp2k):
             mpi="", runopt="gen",
             jobname="static-scf", nodes=1, ppn=32):
         """
-        directory:
+        :param directory:
             directory is and path where the calculation will happen.
-        inpname:
+        :param inpname:
             input filename for the cp2k
-        output:
+        :param output:
             output filename for the cp2k
         """
         if runopt == "gen" or runopt == "genrun":
@@ -79,15 +79,15 @@ class static_run(cp2k):
             value among all elements used. and we times it by 4. then
             we can set the converge range convering that value, to find
             the converged CUTOFF
-        emin:
+        :param emin:
             the minimum cutoff of the test range
-        emax:
+        :param emax:
             the maximum cutoff of the test range
-        step:
+        :param step:
             the step for the converge test
-        rel_cutoff:
+        :param rel_cutoff:
             for the test of cutoff, rel_cutoff is set to an fixed value
-        directory:
+        :param directory:
             where the converge test happens
         """
         if runopt == "gen" or runopt == "genrun":
@@ -145,15 +145,15 @@ class static_run(cp2k):
         """
         Note:
             this function is used to do the converge test of REL_CUTOFF.
-        emin:
+        :param emin:
             the minimum rel_cutoff of the test range
-        emax:
+        :param emax:
             the maximum rel_cutoff of the test range
-        step:
+        :param step:
             the step for the converge test
-        cutoff:
+        :param cutoff:
             for the test of rel_cutoff, cutoff is set to an fixed value
-        directory:
+        :param directory:
             where the converge test happens
         """
         if runopt == "gen" or runopt == "genrun":
@@ -215,13 +215,13 @@ class static_run(cp2k):
             in this test mode, we input kmin, kmax, and step. the code will
             generate continuously the kpoint to test, like when kmin=1, kmax=3
             step=1. the tested kpoints would be: 1x1x1, 2x2x2, 3x3x3.
-        kmin:
+        :param kmin:
             the minimum kpoint of the test range
-        kmax:
+        :param kmax:
             the maximum kpoint of the test range
-        step:
+        :param step:
             the step for the converge test
-        directory:
+        :param directory:
             where the converge test happens
         """
         if runopt == "gen" or runopt == "genrun":
@@ -283,11 +283,11 @@ class static_run(cp2k):
             this function is used to do the converge test for KPOINTS-MANUAL.
             in this mode, we have to specify clearly every k point to test, like
             kpoints_list=[[1, 1, 1], [1, 2, 1], [2, 2, 2]]
-        directory:
+        :param: directory:
             where the converge test happens
-        force_eval:
+        :param force_eval:
             allowing control of FORCE_EVAL/... parameters by user
-        kpoints_list:
+        :param kpoints_list:
             kpoints test range
         """
         if runopt == "gen" or runopt == "genrun":

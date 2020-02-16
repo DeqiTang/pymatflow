@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+Static calc
+"""
 import os
 import sys
 import shutil
@@ -16,15 +16,10 @@ class static_run(pwscf):
         calculations based on them, like dos, pdos, bands, epsilon
     Status:
         currently implemented calculation including:
-            scf, nscf, dos, bands, projwfc(pdos),
-            epsilon, turbo_davidson, turbo_lanczos,
-            phx_qmesh, q2r, matdyn, plotband, phx_gamma,
-            dynmat, ir_raman, elf, fermi_surface,
-            difference_charge_density, ellectron_density,
-
-            converge test:
-                ecutwfc, ecutrho, kpoints, degauss
-    #
+        scf, nscf, dos, bands, projwfc(pdos), ir_raman, elf, fermi_surface,
+        difference_charge_density, ellectron_density,
+        converge test:
+        ecutwfc, ecutrho, kpoints, degauss
     """
     def __init__(self):
         super().__init__()
@@ -36,10 +31,9 @@ class static_run(pwscf):
         """
         directory: a place for all the generated files
 
-        parameters:
-            directory: the overall static calculation directory
+        :param directory: the overall static calculation directory
 
-            runopt: determine whether the calculation is executed.
+        :param runopt: determine whether the calculation is executed.
                 there are three values: 'gen', 'genrun', 'run'
                 'gen': only generate the input files
                 'genrun': generate input files and run
@@ -92,10 +86,9 @@ class static_run(pwscf):
     def nscf(self, directory="tmp-qe-static", inpname="static-nscf.in", output="static-nscf.out", mpi="", runopt='gen',
             jobname="pscf-nscf", nodes=1, ppn=32):
         """
-        parameters:
-            directory: the overall static calculation directory
+        :param directory: the overall static calculation directory
 
-            runopt: determine whether the calculation is executed.
+        :param runopt: determine whether the calculation is executed.
                 there are three values: 'gen', 'genrun', 'run'
                 'gen': only generate the input files
                 'genrun': generate input files and run
@@ -307,12 +300,12 @@ class static_run(pwscf):
         """
         Convergence with respect to degauss/smearing
 
-        smearing:
-            (a) 'gauss'
-            (b) 'marzari-vanderbilt'
-            (c) 'methfessel-paxton'
-        degauss:
-            suggested values:
+            smearing:
+                (a) 'gauss'
+                (b) 'marzari-vanderbilt'
+                (c) 'methfessel-paxton'
+            degauss:
+                suggested values:
                 0.06, 0.07, 0.08, 0.09, 0.10 (in Ry)
         Note:
             here we do the testing of degauss on energy.
@@ -393,18 +386,18 @@ class static_run(pwscf):
         Reference:
             http://www.quantum-espresso.org/Doc/INPUT_DOS.html
         
-        bz_sum:
+        :param bz_sum:
             'smearing' :
             'tetrahedra' :
             'tetrahedra_lin' :
             'tetrahedra_opt' :
-        ngauss:
+        :param ngauss:
             'default': read from saved input for pw.x
                     0: Simple Gaussian (default)
                     1: Methfessel-Paxton of order 1
                    -1: Marzari-Vanderbilt "cold smearing"
                   -99: Fermi-Dirac function
-        degauss:
+        :param degauss:
             gaussian broadening, Ry (not eV!)
             'default': 
             a floating number
@@ -568,16 +561,16 @@ class static_run(pwscf):
         &projwfc can using projwfc.x to calculate Lowdin charges, spilling 
         parameter, projected DOS
 
-        ngauss:
-            'default': read from saved input for pw.x
+            ngauss:
+                'default': read from saved input for pw.x
                     0: Simple Gaussian (default)
                     1: Methfessel-Paxton of order 1
                    -1: Marzari-Vanderbilt "cold smearing"
                   -99: Fermi-Dirac function
-        degauss:
-            gaussian broadening, Ry (not eV!)
-            'default': 
-            a floating number
+            degauss:
+                gaussian broadening, Ry (not eV!)
+                'default': 
+                a floating number
 
         Note:
             the degauss in projwfc.x can significantly affect
@@ -648,14 +641,14 @@ class static_run(pwscf):
             http://www.quantum-espresso.org/Doc/INPUT_molecularpdos.html
 
 
-        ngauss:
+            ngauss:
                     0: Simple Gaussian (default)
                     1: Methfessel-Paxton of order 1
                    -1: Marzari-Vanderbilt "cold smearing"
                   -99: Fermi-Dirac function
-        degauss:
-            gaussian broadening, Ry (not eV!)
-            a floating number
+            degauss:
+                gaussian broadening, Ry (not eV!)
+                a floating number
 
         Note:
             I don't know why the run of molecularpdos.x in my computer is not stable
@@ -731,11 +724,11 @@ class static_run(pwscf):
         References:
             https://gitlab.com/QEF/material-for-ljubljana-qe-summer-school/blob/master/Day-3/handson-day3-TDDFPT.pdf
 
-        epsilon.x:
-            calculation of absorption spectra in IPA(Independent Particle 
-            Approximation).
+            epsilon.x:
+                calculation of absorption spectra in IPA(Independent Particle 
+                Approximation).
         Note:
-            USPP rea not implemented now
+            USPP rea not implemented now with QE
         """
         # first check whether there is a previous scf running
         if not os.path.exists(directory):
@@ -1060,9 +1053,8 @@ class static_run(pwscf):
 
     def _pp_inputpp(self, fout, plot_num, filplot):
         """ 
-        fout: a file stream for writing
-        Note:
-            plot_num -> selects what to save in filplot:
+        :param fout: a file stream for writing
+        :param plot_num -> selects what to save in filplot:
              0  = electron (pseudo-)charge density
              1  = total potential V_bare + V_H + V_xc
              2  = local ionic potential V_bare
@@ -1108,7 +1100,7 @@ class static_run(pwscf):
             e1=[2.0, 0.0, 0.0], e2=[0.0, 2.0, 0.0], e3=[0.0, 0.0, 2.0],
             x0=[0.0, 0.0, 0.0], nx=1000, ny=1000, nz=1000):
         """
-        fout: a file stream for writing
+        :param fout: a file stream for writing
         """
         #fout.write("&inputpp\n")
         #fout.write("/\n\n")

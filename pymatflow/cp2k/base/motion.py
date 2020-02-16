@@ -1,6 +1,6 @@
-#!/usr/bin/evn python
-# _*_ coding: utf-8 _*_
-
+"""
+a representation for MOTION
+"""
 import numpy as np
 import sys
 import os
@@ -88,7 +88,7 @@ class cp2k_motion:
     
     def set_type(self, run_type):
         """
-        runtype: CELL_OPT, GEO_OPT, MC, MD, SHELL_OPT
+        :param runtype: CELL_OPT, GEO_OPT, MC, MD, SHELL_OPT
         """
         if run_type == "GEO_OPT":
             self.geo_opt.status = True
@@ -108,8 +108,7 @@ class cp2k_motion:
 
     def set_params(self, params):
         """
-        parameters for sub section(like md), are handled over 
-        to sub section controllers.
+            Note: parameters for sub section(like md), are handled over to sub section controllers.
         """
         for item in params:
             if len(item.split("-")) == 1:
@@ -147,8 +146,8 @@ class cp2k_motion:
 
     def check_cell_opt(self):
         """
-        whenever we set cell opt params whether through self.set_type or self.set_params
-        we should check_cell_opt() to make sure some rules is followed. see below
+            Note: whenever we set cell opt params whether through self.set_type or self.set_params
+                we should check_cell_opt() to make sure some rules is followed. see below
         """
         # if the MOTION-CELL_OPT-TYPE == "GEO_OPT"
         # we also need to provide GEO_OPT section

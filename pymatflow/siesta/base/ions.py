@@ -1,6 +1,6 @@
-#!/usr/bin/evn python
-# _*_ coding: utf-8 _*_
-
+"""
+in control of the ions step related parameters
+"""
 import numpy as np
 import sys
 import os
@@ -55,7 +55,7 @@ class siesta_ions:
 
     def basic_setting(self, option="opt"):
         """
-        option:
+        :param option:
             opt or md or phonon
         """
         if option == "opt":

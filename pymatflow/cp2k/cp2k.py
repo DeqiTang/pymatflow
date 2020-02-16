@@ -1,6 +1,6 @@
-#!/usr/bin/evn python
-# _*_ coding: utf-8 _*_
-
+"""
+Overall abstraction of CP2K
+"""
 import numpy as np
 import sys
 import os
@@ -61,7 +61,7 @@ class cp2k:
 
     def get_xyz(self, xyzfile):
         """
-        xyz_f:
+        :param xyzfile:
             a modified xyz formatted file(the second line specifies the cell of the 
             system).
         """
@@ -119,7 +119,7 @@ class cp2k:
         """
         Note:
             responsible for the parseing of the printout_option
-        option:
+        :param option:
             1: printout pdos
             2: printout band
             3: printout electron densities

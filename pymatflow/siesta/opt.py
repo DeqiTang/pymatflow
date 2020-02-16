@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+Geometric Optimization calc
+"""
 import numpy as np
 import sys
 import os
@@ -30,7 +30,7 @@ class opt_run(siesta):
             mpi="", runopt="gen", mode=0,
             jobname="siesta-opt", nodes=1, ppn=32):
         """
-        mode:
+        :param mode:
             0: do not vary the cell
             1: vary the cell
         """
@@ -61,7 +61,7 @@ class opt_run(siesta):
 
     def set_opt_mode(self, mode=0):
         """
-        mode:
+        :param mode:
             0: do not variable cell
             1: variable cell
         """

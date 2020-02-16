@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+in control of the system structure related parameters
+"""
 
 import pymatflow.base as base
 from pymatflow.base.xyz import base_xyz
