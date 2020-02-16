@@ -2,3 +2,4 @@ build
 dist
 pymatflow.egg-info
 *.egg-info
+docs/_build/*
