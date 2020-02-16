@@ -12,6 +12,7 @@ Welcome to Pymatflow's documentation!
 
    modules/modules.rst
    tutorials/tutorials.rst
+   wiki/server.rst
 
 About Pymatflow
 ----------------
