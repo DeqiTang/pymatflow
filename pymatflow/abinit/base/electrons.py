@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+in control of electrons step related parameters
+"""
 import sys
 import numpy as np
 
@@ -86,16 +86,16 @@ class kpoints:
 
     def set_band(self, kptbounds=None):
         """
-        self.params["kptbounds"]:
-            the high symmetry k point path used in bands structure calculation
-            in format like this:
+            self.params["kptbounds"]:
+                the high symmetry k point path used in bands structure calculation
+                in format like this:
 
-            [[kx, ky, kz, label, connect_indicator], ...] like [[0.0, 0.0, 0.0, 'GAMMA', 15], ...]
+                [[kx, ky, kz, label, connect_indicator], ...] like [[0.0, 0.0, 0.0, 'GAMMA', 15], ...]
 
-            if connect_indicator in a kpoint is an integer, then it will connect to the following point
-            through the number of kpoints defined by connect_indicator.
+                if connect_indicator in a kpoint is an integer, then it will connect to the following point
+                through the number of kpoints defined by connect_indicator.
 
-            if connect_indicator in a kpoint is '|', then it will not connect to the following point,
+                if connect_indicator in a kpoint is '|', then it will not connect to the following point,
         """
         self.params["kptbounds"] = kptbounds
         self.params["kptopt"] = - (len(self.params["kptbounds"]) - 1)
@@ -147,8 +147,9 @@ class abinit_electrons:
 
     def check_scf_criteria(self):
         """
-        abinit中scf收敛盘踞有六种形式, 但是一次只能使用一种.
-        这里对其进行检查
+            there are six kinds of criteria to judge convergence of
+            scf in abinit, but one and only one of them can be used
+            in a run. here we make a check
         """
         tols = ['toldfe', 'tolwfr', 'toldff', 'tolrff', 'tolvrs']
         nonzeros = 0

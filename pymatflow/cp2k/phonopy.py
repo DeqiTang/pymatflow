@@ -1,6 +1,6 @@
-#!/usr/bin/evn python
-# _*_ coding: utf-8 _*_
-
+"""
+Phonopy calculation
+"""
 import sys
 import os
 import shutil

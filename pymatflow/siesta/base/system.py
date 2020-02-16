@@ -1,6 +1,6 @@
-#!/usr/bin/evn python
-# _*_ coding: utf-8 _*_
-
+"""
+in control of the system structure related parameters
+"""
 import numpy as np
 import sys
 import os

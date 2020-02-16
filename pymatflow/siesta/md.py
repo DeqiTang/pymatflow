@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+Molecular Dynamics Calculation
+"""
 import numpy as np
 import sys
 import os

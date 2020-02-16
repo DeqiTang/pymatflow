@@ -1,6 +1,6 @@
-#!/usr/bin/evn python
-# _*_ coding: utf-8 _*_
-
+"""
+in control of the properties calculation related parameters
+"""
 import numpy as np
 import sys
 import os
@@ -54,8 +54,8 @@ class siesta_properties:
 
     def set_xyz(self, xyz):
         """
-        xyz is the instance of base_xyz, passed from the calculation controller like static_run,
-        it is used by seekpath to generate BandLines
+        :param xyz is the instance of base_xyz, passed from the calculation controller like static_run,
+            it is used by seekpath to generate BandLines
         """
         self.xyz = xyz
 
@@ -112,11 +112,11 @@ class siesta_properties:
             0: using BandLines to specify kpoints for band calculation
             1: using BandPoints to specify kpoints for band calculation [not implemented now]
 
-        self.bandlines:             please use ReciprocalLatticeVectors (Crystal) coordinates
-            the high symmetry k point path used in bands structure calculation
-            in format like this:
+            self.bandlines:  please use ReciprocalLatticeVectors (Crystal) coordinates
+                the high symmetry k point path used in bands structure calculation
+                in format like this:
             
-            [[kx, ky, kz, label, connect_indicator], ...] like [[0.0, 0.0, 0.0, 'GAMMA', 15], ...]
+                [[kx, ky, kz, label, connect_indicator], ...] like [[0.0, 0.0, 0.0, 'GAMMA', 15], ...]
             
             if connect_indicator in a kpoint is an integer, then it will connect to the following point
             through the number of kpoints defined by connect_indicator.

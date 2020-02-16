@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+control Nudged Elastic Band(NEB)calculation
+"""
 import os
 import re
 import shutil
@@ -40,10 +40,10 @@ class neb_run(pwscf):
 
     def get_images(self, images):
         """
-        images:
+        :param images: 
             ["first.xyz", "intermediate-1.xyz", "intermediate-2.xyz", ...,"last.xyz"]
-        self.images containe all the images while self.arts only contains the first image.
-        self.arts is provided by base class pwscf, and is used to set kpoints.
+            self.images containe all the images while self.arts only contains the first image.
+            self.arts is provided by base class pwscf, and is used to set kpoints.
         """
         self.images = []
         for image in images:
@@ -75,7 +75,7 @@ class neb_run(pwscf):
     def neb(self, directory="tmp-qe-neb", inpname="neb.in", output="neb.out", mpi="", runopt="gen", restart_mode="from_scratch",
             jobname="neb-qe", nodes=1, ppn=32):
         """
-        directory: a place for all the generated files
+        :param directory: a place for all the generated files
         """
         if runopt == "gen" or runopt == "genrun":
             if restart_mode == "from_scratch":

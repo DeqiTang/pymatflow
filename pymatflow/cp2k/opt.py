@@ -1,6 +1,6 @@
-#!/usr/bin/evn python
-# _*_ coding: utf-8 _*_
-
+"""
+Optimization calculation, including GEO_OPT and CELL_OPT
+"""
 import numpy as np
 import sys
 import os
@@ -35,11 +35,11 @@ class opt_run(cp2k):
     def geo_opt(self, directory="tmp-cp2k-geo-opt", inpname="geo-opt.inp", output="geo-opt.out", mpi="", runopt="gen",
             jobname="geo-opt", nodes=1, ppn=32):
         """
-        directory:
+        :param directory:
             where the calculation will happen
-        inpname:
+        :param inpname:
             input filename for the cp2k
-        output:
+        :param output:
             output filename for the cp2k
         """
         self.set_geo_opt()
@@ -68,11 +68,11 @@ class opt_run(cp2k):
     def cell_opt(self, directory="tmp-cp2k-cell-opt", inpname="cell-opt.inp", output="cell-opt.out", mpi="", runopt="gen",
             jobname="cell-opt", nodes=1, ppn=32):
         """
-        directory:
+        :param directory:
             where the calculation will happen
-        inpname:
+        :param inpname:
             input filename for the cp2k
-        output:
+        :param output:
             output filename for the cp2k
         """
         self.set_cell_opt()

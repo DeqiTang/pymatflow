@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+in control of ions moving related parameters
+"""
 class abinit_ions:
     """
     """
@@ -10,7 +10,9 @@ class abinit_ions:
             "ionmov", "optcell", "ntime", "tolmxde", "tolmxf",
             ]
     def to_input(self, fout):
-        # fout: a file stream for writing
+        """
+        :param fout: a file stream for writing
+        """
         fout.write("# ============================\n")
         fout.write("# ions moving related settting\n")
         fout.write("# ============================\n")
@@ -24,7 +26,7 @@ class abinit_ions:
 
     def basic_setting(self, mode="opt"):
         """
-        mode: opt or md
+        :param mode: opt or md
         """
         if mode == "opt":
             self.params["ionmov"] = 3

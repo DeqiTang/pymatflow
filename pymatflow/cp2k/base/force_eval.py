@@ -1,6 +1,6 @@
-#!/usr/bin/evn python
-# _*_ coding: utf-8 _*_
-
+"""
+a representation for FORCE_EVAL
+"""
 import numpy as np
 import sys
 import os
@@ -74,7 +74,7 @@ class cp2k_force_eval:
     
     def check_spin(self):
         """
-        call self.dft.check_spin()
+            call self.dft.check_spin()
         """
         self.dft.check_spin(self.subsys.xyz)
 
@@ -86,8 +86,8 @@ class cp2k_force_eval:
 
     def set_params(self, params):
         """
-        parameters for sub section(like dft), are handled over 
-        to sub section controllers.
+            parameters for sub section(like dft), are handled over 
+            to sub section controllers.
         """
         for item in params:
             if len(item.split("-")) == 1:

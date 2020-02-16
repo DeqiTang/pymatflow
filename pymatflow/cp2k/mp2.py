@@ -1,6 +1,6 @@
-#!/usr/bin/evn python
-# _*_ coding: utf-8 _*_
-
+"""
+MP2 calculation
+"""
 import os
 import sys
 import shutil
@@ -22,10 +22,6 @@ class static_mp2_run(cp2k):
     """
     def __init__(self):
         """
-        xyz_f:
-            a modified xyz formatted file(the second line specifies the cell of the 
-            system).
-        TODO: 
         """
         super().__init__()
         #self.glob = cp2k_glob()
@@ -40,15 +36,15 @@ class static_mp2_run(cp2k):
     def scf_mp2(self, directory="tmp-cp2k-static-mp2", inpname="static-scf-mp2.inp", output="static-scf-mp2.out", mpi="", runopt="gen",
             jobname="mp2", nodes=1, ppn=32):
         """
-        directory:
+        :param directory:
             directory is and path where the calculation will happen.
-        inpname:
+        :param inpname:
             input filename for the cp2k
-        output:
+        :param output:
             output filename for the cp2k
-        force_eval:
+        :param force_eval:
             allowing control of FORCE_EVAL/... parameters by user
-        printout_option:
+        :param printout_option:
             a list of integers, controlling the printout of properties, etc.
         """
         if runopt == "gen" or runopt == "genrun":

@@ -179,9 +179,9 @@ if __name__ == "__main__":
 
     task = opt_run()
     task.get_xyz(args.file)
-    task.set_geo_opt()
+    # must be set_geo_opt() here
+    task.set_geo_opt() 
     task.set_params(params=params)
-    #task.geo_opt(directory=args.directory, mpi=args.mpi, runopt=args.runopt, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
 
     if os.path.exists(args.directory):
         shutil.rmtree(args.directory)

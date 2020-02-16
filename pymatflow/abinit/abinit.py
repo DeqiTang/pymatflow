@@ -1,4 +1,6 @@
-
+"""
+Overall representation of Abinit
+"""
 
 import os
 import shutil

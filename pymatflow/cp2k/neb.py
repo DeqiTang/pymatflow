@@ -1,6 +1,6 @@
-#!/usr/bin/evn python
-# _*_ coding: utf-8 _*_
-
+"""
+Nudged elastic band calculation
+"""
 import numpy as np
 import sys
 import os
@@ -8,9 +8,6 @@ import shutil
 import matplotlib.pyplot as plt
 
 from pymatflow.cp2k.cp2k import cp2k
-#from pymatflow.cp2k.base.glob import cp2k_glob
-#from pymatflow.cp2k.base.force_eval import cp2k_force_eval
-#from pymatflow.cp2k.base.motion import cp2k_motion
 
 
 """
@@ -45,7 +42,7 @@ class neb_run(cp2k):
 
     def get_images(self, images):
         """
-        images:
+        :param images:
             ["first.xyz", "intermediate-1.xyz", "intermediate-2.xyz", ..., "last.xyz"]
         """
         self.motion.band.get_images(images)
@@ -56,15 +53,15 @@ class neb_run(cp2k):
             mpi="", runopt="gen",
             jobname="neb", nodes=1, ppn=32):
         """
-        directory:
+        :param directory:
             where the calculation will happen
-        inpname:
+        :param inpname:
             input filename for the cp2k
-        output:
+        :param output:
             output filename for the cp2k
-        force_eval:
+        :param force_eval:
             allowing control of FORCE_EVAL/... parameters by user
-        motion:
+        :param motion:
             allowing control of MOTION/... parameters by user
         """
         if runopt == "gen" or runopt == "genrun":

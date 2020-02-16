@@ -1,6 +1,6 @@
-#!/usr/bin/evn python
-# _*_ coding: utf-8 _*_
-
+"""
+Molecular Dynamics calculation
+"""
 import numpy as np
 import sys
 import os
@@ -52,11 +52,11 @@ class md_run(cp2k):
     def aimd(self, directory="tmp-cp2k-aimd", inpname="aimd.inp", output="aimd.out", mpi="", runopt="gen",
             jobname="aimd", nodes=1, ppn=32):
         """
-        directory:
+        :param directory:
             directory is and path where the calculation will happen.
-        inpname:
+        :param inpname:
             input filename for the cp2k
-        output:
+        :param output:
             output filename for the cp2k
         """
         if runopt == "gen" or runopt == "genrun":
@@ -95,16 +95,12 @@ class md_run(cp2k):
 
     def vib(self, directory="tmp-cp2k-md-vib", inpname="md.inp", output="md.out", mpi="", runopt="gen"):
         """
-        directory:
+        :param directory:
             directory is and path where the calculation will happen.
-        inpname:
+        :param inpname:
             input filename for the cp2k
-        output:
+        :param output:
             output filename for the cp2k
-        force_eval:
-            allowing control of FORCE_EVAL/... parameters by user
-        motion:
-            allowing control of MOTION/... parameters by user
 
         Note:
             standard: IR  | Raman

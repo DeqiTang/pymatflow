@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+in control of &control /
+"""
 import sys
 
 """
@@ -45,7 +45,9 @@ class qe_control:
                 }
 
     def to_in(self, fout):
-        # fout: a file stream for writing
+        """
+        :param fout: a file stream for writing
+        """
         fout.write("&control\n")
         for item in self.params:
             if self.params[item] is not None:
@@ -64,7 +66,7 @@ class qe_control:
 
     def basic_setting(self, calc="scf"):
         """
-        do a basic setting for all kinds of calculation
+            do a basic setting for all kinds of calculation
         """
         self.params["prefix"] = 'pwscf'
         self.calculation(calc)
@@ -99,7 +101,7 @@ class qe_control:
 
     def set_params(self, params):
         """
-        params: a dict storing the parameters and values
+        :param params: a dict storing the parameters and values
         """
         for item in params:
             self.params[item] = params[item]

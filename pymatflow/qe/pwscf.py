@@ -1,4 +1,6 @@
-
+"""
+Overall representation of PWSCF calc
+"""
 import os
 import sys
 import shutil
@@ -31,7 +33,7 @@ class pwscf:
 
     def get_xyz(self, xyzfile):
         """
-        xyz_f:
+        :param xyzfile:
             a modified xyz formatted file(the second line specifies the cell of the
             system).
         """
@@ -62,10 +64,9 @@ class pwscf:
         """
         directory: the place where all the magic happening
 
-        parameters:
-            directory: the overall static calculation directory
+        :param directory: the overall static calculation directory
 
-        runopt: determine whether the calculation is executed.
+        :param runopt: determine whether the calculation is executed.
                 there are three values: 'gen', 'genrun', 'run'
                 'gen': only generate the input files
                 'genrun': generate input files and run

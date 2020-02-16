@@ -1,4 +1,6 @@
-
+"""
+base xyz structure class, a representation of xyz structure
+"""
 import numpy as np
 import sys
 import os
@@ -29,7 +31,7 @@ class base_xyz:
 
     def get_xyz(self, xyzfile):
         """
-        get information to construct the structure from an xyz file
+            get information to construct the structure from an xyz file
         """
         self.file = xyzfile
         with open(self.file, 'r') as fin:
@@ -80,8 +82,8 @@ class base_xyz:
 
     def get_cell(self, xyzfile):
         """
-        cell defined in xxx.xyz must be in format like this:
-        cell: 4.08376 0.00000 0.00000 | 0.00000 4.00251 0.00000 | -0.05485 0.00000 8.16247
+            cell defined in xxx.xyz must be in format like this:
+            cell: 4.08376 0.00000 0.00000 | 0.00000 4.00251 0.00000 | -0.05485 0.00000 8.16247
         """
         with open(xyzfile, 'r') as fin:
             fin.readline()
@@ -104,7 +106,7 @@ class base_xyz:
     
     def build_supercell(self, n):
         """
-        n: [n1, n2, n3]
+        :param n: [n1, n2, n3]
         """
         self.origin_atoms = copy.deepcopy(self.atoms)
         self.origin_cell = copy.deepcopy(self.cell)

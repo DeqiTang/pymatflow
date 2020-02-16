@@ -1,6 +1,7 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+Providing an abstraction of input block for pwscf in control of ATOMIC_SPECIES, ATOMIC_POSITIONS, KPOINTS,
+CELL_PARAMETERS, CONSTRAINTS, OCCUPATIONS, ATOMIC_FORCES
+"""
 import numpy as np
 import os
 import sys
@@ -16,9 +17,7 @@ usage:
 
 class qe_arts:
     """
-    Control: ATOMIC_SPECIES, ATOMIC_POSITIONS, 
-             K_POINTS, CELL_PARAMETERS, CONSTRAINTS, 
-             OCCUPATIONS, ATOMIC_FORCES
+        an abstraction of part of input block for pwscf 
     """
     def __init__(self):
         self.xyz = base_xyz()
@@ -39,8 +38,10 @@ class qe_arts:
         self.atomic_forces_status = False # default is no force acting on system
 
     def to_in(self, fout, coordtype="angstrom"):
-        # fout: a file stream for writing
-        
+        """
+        :param fout: a file stream for writing
+        :param coordtype: specify coordinate format, can eigher be 'angstrom' or 'crystal'
+        """
         fout.write("ATOMIC_SPECIES\n")
         upf_all = [s for s in os.listdir("./") if s.split(".")[-1] == "UPF"]
         for element in self.xyz.specie_labels:
@@ -123,7 +124,9 @@ class qe_arts:
         # =========================
 
     def write_kpoints(self, fout):
-        # fout: a file stream for writing
+        """
+        :param fout: a file stream for writing
+        """
         if self.kpoints_option == "automatic":
             fout.write("K_POINTS %s\n" % self.kpoints_option)
             fout.write("%d %d %d %d %d %d\n" % (
@@ -162,8 +165,7 @@ class qe_arts:
 
     def set_kpoints(self, kpoints_mp=[1, 1, 1, 0, 0, 0], option="automatic", crystal_b=None):
         """
-        crystal_b:
-            the high symmetry k point path used in bands structure calculation
+        :param crystal_b: the high symmetry k point path used in bands structure calculation 
             in format like this:
             
             [[kx, ky, kz, label, connect_indicator], ...] like [[0.0, 0.0, 0.0, 'GAMMA', 15], ...]
@@ -177,7 +179,6 @@ class qe_arts:
             "automatic" was controlled by kpoints_mp
             "gamma" was also handled internally
             "crystal_b" as controlled by crystal_b
-        Plan:
         """
         if option == "automatic":
             self.kpoints_option = option
@@ -199,11 +200,10 @@ class qe_arts:
         fout.write('\n')
 
     def set_atomic_forces(self, pressure=None, direction=None):
-        """
-        set ATOMIC_FORCES
-        pressure:
+        """set ATOMIC_FORCES
+        :param pressure:
             in unit of Pa
-        direction:
+        :param direction:
             x | y | z
         Note:
             currently only support unidirectional forces acting on all atoms of the cubic system.

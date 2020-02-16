@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+in control of &cell /
+"""
 import sys
 
 
@@ -30,7 +30,7 @@ class qe_cell:
 
     def set_params(self, params):
         """
-        params: a dict storing the parameters and values
+        :param params: a dict storing the parameters and values
         """
         for item in params:
             self.params[item] = params[item]

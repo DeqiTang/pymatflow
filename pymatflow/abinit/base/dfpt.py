@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
-
+"""
+in control of DFPT related parameters
+"""
 import sys
 import numpy as np
 
