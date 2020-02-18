@@ -22,7 +22,7 @@ class base_xyz:
         a.get_xyz(xyzfile)
     """
     def __init__(self):
-        self.file = None 
+        self.file = None
         self.natom = 0
         self.nspecies = 0
         self.atoms = []
@@ -33,7 +33,9 @@ class base_xyz:
         """
             get information to construct the structure from an xyz file
         """
-        self.file = xyzfile
+        #self.file = xyzfile
+        self.file = os.path.abspath(xyzfile)
+        # now self.file is an absolute path, this is much easier for later usage
         with open(self.file, 'r') as fin:
             self.natom = int(fin.readline())
             fin.readline()
@@ -93,7 +95,7 @@ class base_xyz:
         cell.append([float(line.split()[1]), float(line.split()[2]), float(line.split()[3])])
         cell.append([float(line.split()[5]), float(line.split()[6]), float(line.split()[7])])
         cell.append([float(line.split()[9]), float(line.split()[10]), float(line.split()[11])])
-        
+
         return cell
 
     def update(self, xyzfile):
@@ -103,7 +105,7 @@ class base_xyz:
         self.atoms = []
         self.specie_labels = dict()
         self.get_xyz(xyzfile=xyzfile)
-    
+
     def build_supercell(self, n):
         """
         :param n: [n1, n2, n3]
@@ -120,7 +122,7 @@ class base_xyz:
             for j in range(3):
                 self.cell[i][j] = n[i] * self.cell[i][j]
         #
-        # clone the atoms to build supercell    
+        # clone the atoms to build supercell
         for i in range(3):
             natom_now = len(self.atoms)
             for j in range(n[i] - 1):
@@ -133,7 +135,7 @@ class base_xyz:
                     z = atom.z + float(j + 1) * self.origin_cell[i][2]
                     self.atoms.append(Atom(atom.name, x, y, z))
         self.natom = len(self.atoms)
-    
+
     def to_xyz(self, fname):
         with open(fname, 'w') as fout:
             fout.write("%d\n" % self.natom)
@@ -141,6 +143,3 @@ class base_xyz:
             fout.write("cell: %f %f %f | %f %f %f | %f %f %f\n" % (self.cell[0][0], self.cell[0][1], self.cell[0][2], self.cell[1][0], self.cell[1][1], self.cell[1][2], self.cell[2][0], self.cell[2][1], self.cell[2][2]))
             for atom in self.atoms:
                 fout.write("%s %f %f %f\n" % (atom.name, atom.x, atom.y, atom.z))
-
-
-

@@ -1,11 +1,10 @@
-#!/usr/bin/evn python
-# _*_ coding: utf-8 _*_
+
 
 import numpy as np
 import sys
 import os
 import shutil
-import pymatflow.base as base 
+import pymatflow.base as base
 
 from pymatflow.base.xyz import base_xyz
 
@@ -106,7 +105,8 @@ class cp2k_subsys_topology:
         """
         fout.write("\t\t&TOPOLOGY\n")
         fout.write("\t\t\tCOORD_FILE_FORMAT xyz\n")
-        fout.write("\t\t\tCOORD_FILE_NAME %s\n" % xyz.file)
+        #fout.write("\t\t\tCOORD_FILE_NAME %s\n" % xyz.file)
+        fout.write("\t\t\tCOORD_FILE_NAME %s\n" % os.path.basename(xyz.file))
         fout.write("\t\t&END TOPOLOGY\n")
 
 class cp2k_subsys_velocity:
@@ -161,7 +161,7 @@ class cp2k_subsys:
         self.kind.status = True
         self.cell.status = True
         self.topology.status = True
-    
+
     def to_input(self, fout):
         """
         fout: a file stream for writing
@@ -174,5 +174,3 @@ class cp2k_subsys:
         if self.topology.status == True:
             self.topology.to_input(fout, self.xyz)
         fout.write("\t&END SUBSYS\n")
-
-        

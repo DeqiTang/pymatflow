@@ -4,7 +4,7 @@
 import argparse
 
 from pymatflow.siesta.ts import ts_run
-from pymatflow.remote.server server_handle
+from pymatflow.remote.server import server_handle
 
 """
 usage:
