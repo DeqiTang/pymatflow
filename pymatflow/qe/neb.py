@@ -7,6 +7,7 @@ import shutil
 import pymatflow.base as base
 import matplotlib.pyplot as plt
 
+from pymatflow.remote.server import server_handle
 from pymatflow.qe.pwscf import pwscf
 from pymatflow.qe.base.arts import qe_arts
 
@@ -40,7 +41,7 @@ class neb_run(pwscf):
 
     def get_images(self, images):
         """
-        :param images: 
+        :param images:
             ["first.xyz", "intermediate-1.xyz", "intermediate-2.xyz", ...,"last.xyz"]
             self.images containe all the images while self.arts only contains the first image.
             self.arts is provided by base class pwscf, and is used to set kpoints.
@@ -72,8 +73,7 @@ class neb_run(pwscf):
         for item in path:
             self.path[item] = path[item]
 
-    def neb(self, directory="tmp-qe-neb", inpname="neb.in", output="neb.out", mpi="", runopt="gen", restart_mode="from_scratch",
-            jobname="neb-qe", nodes=1, ppn=32):
+    def neb(self, directory="tmp-qe-neb", inpname="neb.in", output="neb.out", runopt="gen", restart_mode="from_scratch", auto=0):
         """
         :param directory: a place for all the generated files
         """
@@ -137,12 +137,13 @@ class neb_run(pwscf):
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="neb.x")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="neb.x", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="neb.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s neb.x -inp %s | tee %s" % (mpi, inpname, output))
+            os.system("%s neb.x -inp %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="neb", server=self.params["server"])
 
     def images_to_neb(self, fout):
         # fout: a file stream for writing

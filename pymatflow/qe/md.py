@@ -5,6 +5,7 @@ import os
 import shutil
 import matplotlib.pyplot as plt
 
+from pymatflow.remote.server import server_handle
 from pymatflow.qe.pwscf import pwscf
 
 class md_run(pwscf):
@@ -14,8 +15,7 @@ class md_run(pwscf):
         super().__init__()
 
 
-    def md(self, directory="tmp-qe-md", inpname="md.in", output="md.out", mpi="", runopt="gen",
-            jobname="pwscf-md", nodes=1, ppn=32):
+    def md(self, directory="tmp-qe-md", inpname="md.in", output="md.out", runopt="gen", auto=0):
         """
         :param directory: a place for all the generated files
         """
@@ -38,8 +38,8 @@ class md_run(pwscf):
                     if upf.split(".")[0] == element:
                         shutil.copyfile(upf, os.path.join(directory, upf))
                         break
-            # 
-            
+            #
+
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)
@@ -49,15 +49,15 @@ class md_run(pwscf):
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output)
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="md", server=self.params["server"])
 
-    def vc_md(self, directory="tmp-qe-vc-md", inpname="vc-md.in", output="vc-md.out", mpi="", runopt="gen",
-            jobname="pwscf-vc-md", nodes=1, ppn=32):
+    def vc_md(self, directory="tmp-qe-vc-md", inpname="vc-md.in", output="vc-md.out", runopt="gen", auto=0):
         """
         :param directory: a place for all the generated files
         """
@@ -80,8 +80,8 @@ class md_run(pwscf):
                     if upf.split(".")[0] == element:
                         shutil.copyfile(upf, os.path.join(directory, upf))
                         break
-            # 
-            
+            #
+
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)
@@ -89,30 +89,31 @@ class md_run(pwscf):
                 self.ions.to_in(fout)
                 self.cell.to_in(fout)
                 self.arts.to_in(fout)
-            
+
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output)
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="vc-md", server=self.params["server"])
 
     def set_md(self):
         self.control.calculation('md')
         self.control.basic_setting("md")
-        
+
         self.system.basic_setting(self.arts)
         self.electrons.basic_setting()
-        self.ions.basic_setting('md') 
+        self.ions.basic_setting('md')
 
     def set_vc_md(self):
         self.control.calculation('vc-md')
         self.control.basic_setting("vc-md")
-        
+
         self.system.basic_setting(self.arts)
         self.electrons.basic_setting()
-        self.ions.basic_setting('vc-md') 
+        self.ions.basic_setting('vc-md')
     #

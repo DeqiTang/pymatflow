@@ -6,6 +6,7 @@ import sys
 import shutil
 import matplotlib.pyplot as plt
 
+from pymatflow.remote.server import server_handle
 from pymatflow.qe.pwscf import pwscf
 
 
@@ -23,11 +24,10 @@ class static_run(pwscf):
     """
     def __init__(self):
         super().__init__()
-        
-        self.control.basic_setting("scf") 
 
-    def scf(self, directory="tmp-qe-static", inpname="static-scf.in", output="static-scf.out", mpi="", runopt="gen",
-            jobname="pwscf-scf", nodes=1, ppn=32):
+        self.control.basic_setting("scf")
+
+    def scf(self, directory="tmp-qe-static", inpname="static-scf.in", output="static-scf.out", runopt="gen", auto=0):
         """
         directory: a place for all the generated files
 
@@ -39,11 +39,11 @@ class static_run(pwscf):
                 'genrun': generate input files and run
                 'run': run from the previously generated input files
         Note:
-            only scf can generate the overall directory for static 
+            only scf can generate the overall directory for static
             calculation(except the converge test for parameters like
-            ecutwfc, kpoints, degauss)! other calculations is based 
-            on scf or nscf(which is based scf), so logically when 
-            doing these calculations there should already be the 
+            ecutwfc, kpoints, degauss)! other calculations is based
+            on scf or nscf(which is based scf), so logically when
+            doing these calculations there should already be the
             directory where scf calculation has been conducted.
         """
         self.control.calculation("scf")
@@ -51,7 +51,7 @@ class static_run(pwscf):
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
-            
+
             #os.system("cp *.UPF %s/" % directory)
             #os.system("cp %s %s/" % (self.arts.xyz.file, directory))
 
@@ -65,7 +65,7 @@ class static_run(pwscf):
                     if upf.split(".")[0] == element:
                         shutil.copyfile(upf, os.path.join(directory, upf))
                         break
-            # 
+            #
 
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
@@ -76,15 +76,15 @@ class static_run(pwscf):
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pw.x")
             # gen pbs scripts
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="pw.x", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="pw.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == 'genrun' or runopt == 'run':
             os.chdir(directory)
-            os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="static-scf", server=self.params["server"])
 
-    def nscf(self, directory="tmp-qe-static", inpname="static-nscf.in", output="static-nscf.out", mpi="", runopt='gen',
-            jobname="pscf-nscf", nodes=1, ppn=32):
+    def nscf(self, directory="tmp-qe-static", inpname="static-nscf.in", output="static-nscf.out", runopt='gen', auto=0):
         """
         :param directory: the overall static calculation directory
 
@@ -109,28 +109,27 @@ class static_run(pwscf):
                 self.control.to_in(fout)
                 self.system.to_in(fout)
                 self.electrons.to_in(fout)
-                self.arts.to_in(fout)            
-            
+                self.arts.to_in(fout)
+
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pw.x")
             # gen pbs scripts
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="pw.x", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="pw.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == 'genrun' or runopt == 'run':
             os.chdir(directory)
-            os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-    
+        server_handle(auto=auto, directory=directory, jobfilebase="static-nscf", server=self.params["server"])
 
-    def converge_ecutwfc(self, emin, emax, step, directory="tmp-qe-ecutwfc", mpi="", runopt="gen",
-            jobname="converge-ecutwfc", nodes=1, ppn=32):
+    def converge_ecutwfc(self, emin, emax, step, directory="tmp-qe-ecutwfc", runopt="gen", auto=0):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
             os.system("cp %s %s/" % (self.arts.xyz.file, directory))
-    
+
             os.chdir(directory)
             n_test = int((emax - emin) / step)
             for i in range(n_test + 1):
@@ -155,8 +154,8 @@ class static_run(pwscf):
             # gen pbs running script
             with open("converge-ecutwfc.pbs", 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("#PBS -N %s\n" % jobname)
-                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
                 for i in range(n_test + 1):
@@ -173,12 +172,12 @@ class static_run(pwscf):
                 ecut_wfc = int(emin + i * step)
                 inp_name = "ecutwfc-%d.in" % ecut_wfc
                 out_f_name = "ecutwfc-%d.out" % ecut_wfc
-                os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
+                os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inp_name, out_f_name))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="converge-ecutwfc", server=self.params["server"])
 
-        
-    def converge_ecutrho(self, emin, emax, step, ecutwfc, directory="tmp-qe-ecutrho", mpi="", runopt="gen",
-            jobname="converge-ecutrho", nodes=1, ppn=32):
+
+    def converge_ecutrho(self, emin, emax, step, ecutwfc, directory="tmp-qe-ecutrho", runopt="gen", auto=0):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -207,11 +206,12 @@ class static_run(pwscf):
                     inp_name = "ecutrho-%d.in" % ecut_rho
                     out_f_name = "ecutrho-%d.out" % ecut_rho
                     fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inp_name, out_f_name))
+
             # gen pbs running script
             with open("converge-ecutrho.pbs", 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("#PBS -N %s\n" % jobname)
-                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
                 for i in range(n_test + 1):
@@ -228,11 +228,11 @@ class static_run(pwscf):
                 ecut_rho = int(emin + i * step)
                 inp_name = "ecutrho-%d.in" % ecut_rho
                 out_f_name = "ecutrho-%d.out" % ecut_rho
-                os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
+                os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inp_name, out_f_name))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="converge-ecutrho", server=self.params["server"])
     #
-    def converge_kpoints(self, nk_min, nk_max, step=1, directory="tmp-qe-kpoints", mpi="", runopt="gen",
-            jobname="converge-kpoints", nodes=1, ppn=32):
+    def converge_kpoints(self, nk_min, nk_max, step=1, directory="tmp-qe-kpoints", runopt="gen", auto=0):
         """
         test the energy convergenc against k-points
 
@@ -249,8 +249,8 @@ class static_run(pwscf):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
-	    
-            os.chdir(directory)	
+
+            os.chdir(directory)
             n_test = int((nk_max - nk_min) / step)
             for i in range(n_test + 1):
                 nk = nk_min + i * step # nk1 = nk2 = nk3 = nk
@@ -262,7 +262,7 @@ class static_run(pwscf):
                     self.system.to_in(fout)
                     self.electrons.to_in(fout)
                     self.arts.to_in(fout)
- 
+
             # gen yhbatch running script
             with open("converge-kpoints.sub", 'w') as fout:
                 fout.write("#!/bin/bash\n")
@@ -270,12 +270,12 @@ class static_run(pwscf):
                     nk = nk_min + i * step # nk1 = nk2 = nk3 = nk
                     inp_name = "kpoints-%d.in" % nk
                     out_f_name = "kpoints-%d.out" % nk
-                    fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inp_name, out_f_name))                   
+                    fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inp_name, out_f_name))
             # gen pbs running script
             with open("converge-kpoints.pbs", 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("#PBS -N %s\n" % jobname)
-                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
                 for i in range(n_test + 1):
@@ -292,11 +292,11 @@ class static_run(pwscf):
                 nk = nk_min + i * step
                 inp_name = "kpoints-%d.in" % nk
                 out_f_name = "kpoints-%d.out" % nk
-                os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
-            os.chdir("../")  
+                os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inp_name, out_f_name))
+            os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="converge-kpoints", server=self.params["server"])
 
-    def converge_degauss(self,degauss_min, degauss_max, step=0.01, directory="tmp-qe-degauss", mpi="",
-            jobname="converge-degauss", nodes=1, ppn=32):
+    def converge_degauss(self,degauss_min, degauss_max, step=0.01, directory="tmp-qe-degauss", runopt="gen", auto=0):
         """
         Convergence with respect to degauss/smearing
 
@@ -313,7 +313,7 @@ class static_run(pwscf):
             may be more suited for this kind of testing.
 
             smearing is in fact part of the system setting
-            how ever I set it a independent parameter in 
+            how ever I set it a independent parameter in
             this function, to provide user the direct way
             to set the type of gauss smearing for testing.
             And of course we should not set smearing and
@@ -330,13 +330,13 @@ class static_run(pwscf):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
-	   
-            os.chdir(directory)	
+
+            os.chdir(directory)
             n_test = int((degauss_max - degauss_min) / step)
             for i in range(n_test + 1):
                 degauss = degauss_min + i * step
                 inp_name = "degauss-%f.in" % degauss
-                self.control.params['outdir'] = './tmp-' + str(degauss) 
+                self.control.params['outdir'] = './tmp-' + str(degauss)
                 #self.arts.set_kpoints([nk, nk, nk, 0, 0, 0]) # use the previously convered kpoints(automatic)
                 self.system.params['degauss'] = degauss
                 with open(inp_name, 'w') as fout:
@@ -352,12 +352,12 @@ class static_run(pwscf):
                     degauss = degauss_min + i * step
                     inp_name = "degauss-%f.in" % degauss
                     out_f_name = "degauss-%f.out" % degauss
-                    fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inp_name, out_f_name))                   
+                    fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inp_name, out_f_name))
             # gen pbs running script
             with open("converge-degauss.pbs", 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("#PBS -N %s\n" % jobname)
-                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
                 for i in range(n_test + 1):
@@ -374,18 +374,18 @@ class static_run(pwscf):
                 degauss = degauss_min + i * step
                 inp_name = "degauss-%f.in" % degauss
                 out_f_name = "degauss-%f.out" % degauss
-                os.system("%s pw.x < %s | tee %s" % (mpi, inp_name, out_f_name))
-            os.chdir("../")  
+                os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inp_name, out_f_name))
+            os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="converge-degauss", server=self.params["server"])
 
-    
-    def dos(self, directory="tmp-qe-static", inpname="static-dos.in", output="static-dos.out", mpi="",
+
+    def dos(self, directory="tmp-qe-static", inpname="static-dos.in", output="static-dos.out",
             fildos="dosx.dos", bz_sum='smearing', ngauss='default', degauss='default', emin='default', emax='default',
-            deltae='default', runopt="gen",
-            jobname="dos", nodes=1, ppn=32):
+            deltae='default', runopt="gen", auto=0):
         """
         Reference:
             http://www.quantum-espresso.org/Doc/INPUT_DOS.html
-        
+
         :param bz_sum:
             'smearing' :
             'tetrahedra' :
@@ -399,7 +399,7 @@ class static_run(pwscf):
                   -99: Fermi-Dirac function
         :param degauss:
             gaussian broadening, Ry (not eV!)
-            'default': 
+            'default':
             a floating number
 
         Note:
@@ -454,12 +454,13 @@ class static_run(pwscf):
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="dos.x")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="dos.x", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="dos.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s dos.x < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s dos.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="static-dos", server=self.params["server"])
 
     def set_bands(self, bands_input={}):
         self.bands_input = {
@@ -472,8 +473,7 @@ class static_run(pwscf):
             self.bands_input[item] = bands_input[item]
 
     def bands(self, directory="tmp-qe-static", inpname1="static-bands.in", output1="static-bands.out",
-            inpname2="bands.in", output2="bands.out", mpi="", runopt="gen", 
-            jobname="band-structure", nodes=1, ppn=32):
+            inpname2="bands.in", output2="bands.out", runopt="gen", auto=0):
         """
         first check whether there is a previous scf running
         Note:
@@ -493,7 +493,7 @@ class static_run(pwscf):
             print("bands calculation:\n")
             print("  directory of previous scf or nscf calculattion not found!\n")
             sys.exit(1)
-        
+
         if runopt == "gen" or runopt == "genrun":
 
             with open(os.path.join(directory, inpname1), 'w') as fout:
@@ -512,7 +512,7 @@ class static_run(pwscf):
                             fout.write("%s = %s\n" % (item, self.bands_input[item]))
                 fout.write("/\n")
                 fout.write("\n")
-            
+
             # gen yhbatch script
             with open(os.path.join(directory, "band-structure.sub"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
@@ -521,8 +521,8 @@ class static_run(pwscf):
             # gen pbs script
             with open(os.path.join(directory, "band-structure.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("#PBS -N %s\n" % jobname)
-                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
                 fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("pw.x", inpname1, output1))
@@ -530,9 +530,10 @@ class static_run(pwscf):
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s pw.x < %s | tee %s" % (mpi, inpname1, output1))
-            os.system("%s bands.x < %s | tee %s" % (mpi, inpname2, output2))
+            os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inpname1, output1))
+            os.system("%s bands.x < %s | tee %s" % (self.run_params["mpi"], inpname2, output2))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="band-structure.pbs", server=self.params["server"])
 
     def set_projwfc(self, projwfc_input={}):
         """
@@ -547,18 +548,17 @@ class static_run(pwscf):
                 "emax": "default",
                 "deltae": "default",
                 }
-        
+
         for item in projwfc_input:
             self.projwfc_input[item] = projwfc_input[item]
 
 
-    def projwfc(self, directory="tmp-qe-static", inpname="static-projwfc.in", output="static-projwfc.out", mpi="", runopt="gen",
-            jobname="projwfc-pdos", nodes=1, ppn=32):
+    def projwfc(self, directory="tmp-qe-static", inpname="static-projwfc.in", output="static-projwfc.out", runopt="gen", auto=0):
         """
         Reference:
             http://www.quantum-espresso.org/Doc/INPUT_PROJWFC.html
 
-        &projwfc can using projwfc.x to calculate Lowdin charges, spilling 
+        &projwfc can using projwfc.x to calculate Lowdin charges, spilling
         parameter, projected DOS
 
             ngauss:
@@ -569,7 +569,7 @@ class static_run(pwscf):
                   -99: Fermi-Dirac function
             degauss:
                 gaussian broadening, Ry (not eV!)
-                'default': 
+                'default':
                 a floating number
 
         Note:
@@ -628,13 +628,14 @@ class static_run(pwscf):
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="projwfc.x")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="projwfc.x", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="projwfc.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s projwfc.x < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s projwfc.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-    
+        server_handle(auto=auto, directory=directory, jobfilebase="static-projwfc.pbs", server=self.params["server"])
+
     def set_molecularpdos(self, inputmopdos={}):
         """
         Reference:
@@ -658,7 +659,7 @@ class static_run(pwscf):
         """
         self.inputmopdos = {
                 "fileout": "molecularpdos",
-                "ngauss": 0, 
+                "ngauss": 0,
                 "degauss": 0.001,
                 "emin": "default",
                 "emax": "default",
@@ -670,7 +671,7 @@ class static_run(pwscf):
 
 
     def molecularpdos(self, directory="tmp-qe-static", inpname="static-molecularpdos.in", output="static-molecularpdos.out",
-            mpi="", runopt="gen", jobname="moledularpdos", nodes=1, ppn=32):
+            runopt="gen", auto=0):
         """
         """
         # first check whether there is a previous scf running
@@ -711,239 +712,16 @@ class static_run(pwscf):
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="molecularpdos.x")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="molecularpdos.x", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="molecularpdos.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s molecularpdos.x < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s molecularpdos.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-
-    def epsilon(self, directory="tmp-qe-static", inpname="epsilon.in", output="epsilon.out", mpi="", runopt="gen",
-            jobname="epsilon", nodes=1, ppn=32):
-        """
-        References:
-            https://gitlab.com/QEF/material-for-ljubljana-qe-summer-school/blob/master/Day-3/handson-day3-TDDFPT.pdf
-
-            epsilon.x:
-                calculation of absorption spectra in IPA(Independent Particle 
-                Approximation).
-        Note:
-            USPP rea not implemented now with QE
-        """
-        # first check whether there is a previous scf running
-        if not os.path.exists(directory):
-            print("===================================================\n")
-            print("                 Warning !!!\n")
-            print("===================================================\n")
-            print("epsilon.x calculation:\n")
-            print("  directory of previous scf or nscf calculattion not found!\n")
-            sys.exit(1)
-        if runopt == "gen" or runopt == "genrun":
-            with open(os.path.join(directory, inpname), 'w') as fout:
-                fout.write("&INPUTPP\n")
-                fout.write("calculation = 'eps'\n")
-                fout.write("prefix = '%s'\n" % self.control.params["prefix"])
-                fout.write("outdir = '%s'\n" % self.control.params["outdir"])
-                fout.write("/\n")
-                fout.write("\n")
-                fout.write("&ENERGY_GRID\n")
-                fout.write("smeartype = 'gaussian'\n") # type of smearing of the spectrum
-                fout.write("intersmear = 0.1\n")       # the valus of smearing in eV
-                fout.write("wmin = 0.0\n")             # minimum value of frequencies for a plot in eV
-                fout.write("wmax = 15.0\n")            # maximum value of frequencies for a plot in eV
-                fout.write("nw = 1000\n")              # number of points between wmin and wmax
-                fout.write("/\n")
-                fout.write("\n")
-
-            # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="epsilon.x")
-            # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="epsilon.x", jobname=jobname, nodes=nodes, ppn=ppn)
-
-        if runopt == "run" or runopt == "genrun":
-            os.chdir(directory)
-            os.system("%s epsilon.x < %s | tee %s" % (mpi, inpname, output))
-            os.chdir("../")
-
-    def turbo_davidson(self, directory="tmp-qe-static", inpname1="turbo-davidson.in", output1="turbo-davidson.out",
-            inpname2="turbo-spectrum-davidson.in", output2="turbo-spectrum-davidson.out", mpi="", runopt="gen",
-            jobname="turbo-davidson", nodes=1, ppn=32):
-        """
-        References:
-            https://gitlab.com/QEF/material-for-ljubljana-qe-summer-school/blob/master/Day-3/handson-day3-TDDFPT.pdf
-
-        turbo_davidson.x:
-            calculate adsorption spectra of molecules using time-dependent
-            density functinal perturbation theory(TDDFPT).
-
-            if if_dft_spectrum is set to .true. the result will be the same
-            as calculated using epsilon.x, where there is no interaction.
-
-            so set if_dft_spectrum to .false. to turn on the interaction.
-            and you will get a shift of the peak compared to results calculated
-            using epsilon.x or turbo_davidson.x(with if_dft_spectrum = .true.).
-
-            when if_dft_spectrum is set to .true. turbo_davidson.x will produce
-            a prefix-dft.eigen file, while a prefix.eigen file is produced if
-            if_dft_spectrum is set to .false.
-
-            we can also calculate absorption spectra using psudo-potential
-            designed for B3LYP functional with turbo_davidson.x
-            this way, we should set input_DFT = 'B3LYP' in scf calcualtion
-            and set d0psi_rs = .true. in input file for turbo_davidson.x
-
-        turbo_spectrum.x:
-            post-processing calculation of the spectrum
-        Note:
-            turboTDDFT is not extended to metals, so we can only
-            deal with insulators or semiconductors with turbo now.
-            
-            ltetra are not implemented now
-        """
-        # first check whether there is a previous scf running
-        if not os.path.exists(directory):
-            print("===================================================\n")
-            print("                 Warning !!!\n")
-            print("===================================================\n")
-            print("turbo_davidson calculation:\n")
-            print("  directory of previous scf or nscf calculattion not found!\n")
-            sys.exit(1)
-        if runopt == "gen" or runopt == "genrun":
-            with open(os.path.join(directory, inpname1), 'w') as fout:
-                fout.write("&lr_input\n")
-                fout.write("prefix = '%s'\n" % self.control.params["prefix"])
-                fout.write("outdir = '%s'\n" % self.control.params["outdir"])
-                #fout.write("wfcdir = ''")
-                fout.write("/\n")
-                fout.write("\n")
-                fout.write("&lr_dav\n")
-                fout.write("if_dft_spectrum = .false.\n")
-                fout.write("num_eign = 15\n")
-                fout.write("num_init = 30\n")
-                fout.write("num_basis_max = 90\n")
-                fout.write("residue_conv_thr = 1.0E-6\n")
-                fout.write("start = 0.0\n")
-                fout.write("finish = 1.0\n")
-                fout.write("step = 0.001\n")
-                fout.write("broadening = 0.004\n")
-                fout.write("reference = 0.3\n")
-                fout.write("/\n")
-                fout.write("\n")
-            # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname1, output=output1, cmd="turbo_davidson.x")
-            # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname1, output=output1, cmd="turbo_davidson.x", jobname=jobname, nodes=nodes, ppn=ppn)
-
-        if runopt == "run" or runopt == "genrun":
-            os.chdir(directory)
-            os.system("%s turbo_davidson.x < %s | tee %s" % (mpi, inpname1, output1))
-            os.chdir("../")
-    
-        if runopt == "gen" or runopt == "genrun":
-            with open(os.path.join(directory, inpname2), 'w') as fout:
-                fout.write("&lr_input\n")
-                fout.write("prefix = '%s'\n" % self.control.params["prefix"])
-                fout.write("outdir = %s\n" % self.control.params["outdir"])
-                fout.write("td = 'davidson'\n")
-                fout.write("epsil = 0.004\n")
-                fout.write("start = 0.0d0\n")
-                fout.write("end = 1.0d0\n")
-                fout.write("increment = 0.0001d0\n")
-                fout.write("eign_file = 'pwscf.eigen'\n")
-                fout.write("/\n")
-                fout.write("\n")
-            # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname2, output=output2, cmd="turbo_spectrum.x")
-            # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname2, output=output2, cmd="turbo_spectrum.x", jobname=jobname, nodes=nodes, ppn=ppn)
-
-        if runopt == "run" or runopt == "genrun":
-            os.chdir(directory)
-            os.system("%s turbo_spectrum.x < %s | tee %s" % (mpi, inpname2, output2))
-            os.chdir("../")
-    
-    def turbo_lanczos(self, directory="tmp-qe-static", inpname1="turbo-lanczos.in", output1="turbo-lanczos.out",
-            inpname2="turbo-spectrum-lanczos.in", output2="turbo-spectrum-lanczos.out", mpi="", runopt="gen",
-            jobname="turbo_lanczos", nodes=1, ppn=32):
-        """
-        References:
-            https://gitlab.com/QEF/material-for-ljubljana-qe-summer-school/blob/master/Day-3/handson-day3-TDDFPT.pdf
-
-        turbo_lanczos.x:
-            allows us to calculate absorption spectra of molecules using 
-            time-dependent density functional perturbation theory (TDDFPT) 
-            without computing empty states!
-            
-            turbo_lanczos.x allows us to obtain the absorption spectrum in a wide frequency
-            range just by repeating a post-processing calculation using turbo_spectrum.x in a
-            larger frequency range. This cannot be done with turbo_davidson.x
-
-        turnbo_spectrum.x:
-            post-processing calculation of the spectrum
-            
-        Note:
-            turboTDDFT is not extended to metals
-            ltetra are not implemented now
-        """
-        # first check whether there is a previous scf running
-        if not os.path.exists(directory):
-            print("===================================================\n")
-            print("                 Warning !!!\n")
-            print("===================================================\n")
-            print("turbo_lanczos calculation:\n")
-            print("  directory of previous scf or nscf calculattion not found!\n")
-            sys.exit(1)
-        if runopt == "gen" or runopt == "genrun":
-            with open(os.path.join(directory, inpname1), 'w') as fout:
-                fout.write("&lr_input\n")
-                fout.write("prefix = '%s'\n" % self.control.params["prefix"])
-                fout.write("outdir = '%s'\n" % self.control.params["outdir"])
-                fout.write("restart_step = 100\n")
-                fout.write("restart = .false.\n")
-                fout.write("/\n")
-                fout.write("\n")
-                fout.write("&lr_control\n")
-                fout.write("itermax = 1500\n")
-                fout.write("ipol = 1\n")
-                fout.write("/\n")
-                fout.write("\n")
-            # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname1, output=output1, cmd="turbo_lanczos.x")
-            # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname1, output=output1, cmd="turbo_lanczos.x", jobname=jobname, nodes=nodes, ppn=ppn)
-
-        if runopt == "run" or runopt == "genrun":
-            os.chdir(directory)
-            os.system("%s turbo_lanczos.x < %s | tee %s" % (mpi, inpname1, output1))
-            os.chdir("../")
-    
-        if runopt == "gen" or runopt == "genrun":
-            with open(os.path.join(directory, inpname2), 'w') as fout:
-                fout.write("&lr_input\n")
-                fout.write("prefix = '%s'\n" % self.control.params["prefix"])
-                fout.write("outdir = %s\n" % self.control.params["outdir"])
-                fout.write("intermax0 = 1500\n") # Number of calculated Lanczos coefficient
-                fout.write("intermax = 20000\n") # umber of extrapolated Lanczos coefficient
-                fout.write("extrapolation = 'osc'\n") # Type of extrapolation (bi-constant)
-                fout.write("epsil = 0.004\n") # The value of Lorenzian smearing in Ry
-                fout.write("start = 0.0d0\n") # Minimum value of frequencies for a plot in Ry
-                fout.write("end = 1.0d0\n") # Maximum value of frequencies for a plot in Ry
-                fout.write("increment = 0.0001d0\n") # Frequency step in Ry
-                fout.write("ipol = 1\n") # Polarization direction (same as in turbo_lanczos.x)
-                fout.write("/\n")
-                fout.write("\n")
-            # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname2, output=output2, cmd="turbo_spectrum.x")
-            # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname2, output=output2, cmd="turbo_spectrum.x", jobname=jobname, nodes=nodes, ppn=ppn)
-        
-        if runopt == "run" or runopt == "genrun":
-            os.chdir(directory)
-            os.system("%s turbo_spectrum.x < %s | tee %s" % (mpi, inpname2, output2))
-            os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="static-molecular-pdos", server=self.params["server"])
 
 
-    def fermi_surface(self, directory="tmp-qe-static", inpname="fermi-surface.in", output="fermi-surface.out", mpi="", runopt="gen", jobname="fermi-surface", nodes=1, ppn=32):
+    def fermi_surface(self, directory="tmp-qe-static", inpname="fermi-surface.in", output="fermi-surface.out", runopt="gen", auto=0):
         """
         scf->nscf(with denser k points)->fs.x
         """
@@ -965,11 +743,12 @@ class static_run(pwscf):
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="fs.x")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="fs.x", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="fs.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s fs.x < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s fs.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="fermi-surface", server=self.params["server"])
 
     def set_pp(self, inputpp={}, plotpp={}):
         self.inputpp = {
@@ -988,8 +767,7 @@ class static_run(pwscf):
                 self.plotpp[item] = plotpp[item]
 
 
-    def pp(self, directory="tmp-qe-static", prefix="pp", mpi="", runopt="gen",
-            jobname="pp.x-option", nodes=1, ppn=32):
+    def pp(self, directory="tmp-qe-static", prefix="pp", runopt="gen", auto=0):
         """
         Note:
             the 3D charge plot like electron localization function and charge density
@@ -1006,16 +784,16 @@ class static_run(pwscf):
             sys.exit(1)
         if runopt == "gen" or runopt == "genrun":
             table = {
-                    0: "electron-pseudo-charge-density", 
-                    1: "total-potential", 
-                    2: "local-ionic-potential", 
-                    3: "ldos", 
-                    4: "local-density-of-electronic-entropy", 
-                    5: "stm", 
+                    0: "electron-pseudo-charge-density",
+                    1: "total-potential",
+                    2: "local-ionic-potential",
+                    3: "ldos",
+                    4: "local-density-of-electronic-entropy",
+                    5: "stm",
                     6: "spin-polar",
-                    7: "molecular-orbitals", 
-                    8: "electron-local-function", 
-                    9: "charge-density-minus-superposition-of-atomic-densities", 
+                    7: "molecular-orbitals",
+                    8: "electron-local-function",
+                    9: "charge-density-minus-superposition-of-atomic-densities",
                     10: "ILDOS",
                     11: "v_bare+v_H-potential",
                     12: "sawtooth-electric-field-potential",
@@ -1035,24 +813,29 @@ class static_run(pwscf):
             with open(os.path.join(directory, "pp.x.sub"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 for plot_num_i in self.inputpp["plot_num"]:
-                    fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % ("pp.x", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))   
+                    fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % ("pp.x", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
             # gen pbs script
             with open(os.path.join(directory, "pp.x.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("#PBS -N %s\n" % jobname)
-                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+                fout.write("\n")
+                fout.write("cd $PBS_O_WORKDIR\n")
+                fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
                 for plot_num_i in self.inputpp["plot_num"]:
-                    fout.write("mpirun -np %d -machinefile $PBS_NODEFILE %s < %s > %s\n" % (nodes*ppn, "pp.x", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))   
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("pp.x", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             for plot_num_i in self.inputpp["plot_num"]:
-                os.system("%s pp.x < %s | tee %s" % (mpi, prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
+                os.system("%s pp.x < %s | tee %s" % (self.run_params["mpi"], prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="pp.x", server=self.params["server"])
 
 
     def _pp_inputpp(self, fout, plot_num, filplot):
-        """ 
+        """
         :param fout: a file stream for writing
         :param plot_num -> selects what to save in filplot:
              0  = electron (pseudo-)charge density
@@ -1068,7 +851,7 @@ class static_run(pwscf):
              13 = the noncollinear magnetization.
 
             About other value of plot_num, refere to the the input manual
-            of pp.x: 
+            of pp.x:
                 http://www.quantum-espresso.org/Doc/INPUT_PP.html
 
         """
@@ -1096,7 +879,7 @@ class static_run(pwscf):
             pass
         fout.write("/\n")
 
-    def _pp_plot(self, fout, filepp, iflag=3, output_format=5, 
+    def _pp_plot(self, fout, filepp, iflag=3, output_format=5,
             e1=[2.0, 0.0, 0.0], e2=[0.0, 2.0, 0.0], e3=[0.0, 0.0, 2.0],
             x0=[0.0, 0.0, 0.0], nx=1000, ny=1000, nz=1000):
         """
@@ -1143,8 +926,7 @@ class static_run(pwscf):
         fout.write("/\n")
         fout.write("\n")
 
-    def xspectra(self, directory="tmp-qe-static", inpname="xspectra.in", output="xspectra.out", mpi="", runopt="gen",
-            jobname="xspectra", nodes=1, ppn=32):
+    def xspectra(self, directory="tmp-qe-static", inpname="xspectra.in", output="xspectra.out", runopt="gen", auto=0):
         """
         Reference:
             http://www.quantum-espresso.org/Doc/INPUT_XSpectra.txt
@@ -1166,11 +948,11 @@ class static_run(pwscf):
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="xspectra.x")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="xspectra.x", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="xspectra.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s xspectra.x < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s xspectra.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="xspectra", server=self.params["server"])
     #
-

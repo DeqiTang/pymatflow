@@ -226,7 +226,11 @@ class pdos_out:
             plt.plot(self.energies[begin:end], data[key][begin:end], label=key)
 
         # plot the total dos in the specified percentage range
-        #plt.plot(self.energies[begin:end], self.tdos[begin:end, 2], label="Total-DOS")
+        if self.magnetic_status == "collinear-spin-unpolarized":
+            plt.plot(self.energies[begin:end], self.data_0_tdos["dos"][begin:end], label="Total-DOS")
+        elif self.magnetic_status == "collinear-spin-polarized":
+            plt.plot(self.energies[begin:end], self.data_1_tdos["dos_up"], label="Total-DOS-Up")
+            plt.plot(self.energies[begin:end], -self.data_1_tdos["dos_dw"], label="Total-DOS-Down")
 
         # set formats
         font = {'size': fontsize}

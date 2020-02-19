@@ -25,6 +25,10 @@ if __name__ == "__main__":
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
+    parser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+
     parser.add_argument("--ls-scf", type=str, default="FALSE",
             choices=["TRUE", "FALSE", "true", "false"],
             help="use linear scaling scf method")
@@ -79,17 +83,16 @@ if __name__ == "__main__":
 
 
     # -----------------------------------------------------------------
-    #                      for server handling
+    #                      run params
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=3,
-            choices=[0, 1, 2, 3],
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+    parser.add_argument("--mpi", type=str, default="",
+            help="mpi command: like --mpi='mpirun -np 4'")
 
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
 
-    parser.add_argument("--jobname", type=str, default="geo-opt",
+    parser.add_argument("--jobname", type=str, default="rel-cutoff",
             help="jobname on the pbs server")
 
     parser.add_argument("--nodes", type=int, default=1,
@@ -97,7 +100,6 @@ if __name__ == "__main__":
 
     parser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
-
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
@@ -125,6 +127,5 @@ if __name__ == "__main__":
     task = static_run()
     task.get_xyz(args.file)
     task.set_params(params=params)
-    task.converge_rel_cutoff(emin=args.range[0], emax=args.range[1], step=args.range[2], directory=args.directory, cutoff=args.cutoff, runopt=args.runopt, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
-
-    server_handle(auto=args.auto, directory=args.directory, jobfilebase="converge-rel-cutoff", server=args.server)
+    task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+    task.converge_rel_cutoff(emin=args.range[0], emax=args.range[1], step=args.range[2], directory=args.directory, cutoff=args.cutoff, runopt=args.runopt, auto=args.auto)

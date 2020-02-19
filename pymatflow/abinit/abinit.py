@@ -44,41 +44,12 @@ class abinit:
     def dft_plus_u(self):
         self.input.electrons.dft_plus_u()
 
-    def set_run(self, mpi="", jobname="abinit", nodes=1, ppn=32):
+    def set_run(self, mpi="", server="pbs", jobname="abinit", nodes=1, ppn=32):
         self.run_params["mpi"] = mpi
+        self.run_params["server"] = server
         self.run_params["jobname"] = jobname
         self.run_params["nodes"] = nodes
         self.run_params["ppn"] = ppn
-
-    def run(self, directory="tmp-abinit-static", runopt="gen"):
-        self.files.name = "abinit.files"
-        self.files.main_in = "abinit.in"
-        self.files.main_out = "abinit.out"
-        self.files.wavefunc_in = "abinit-i"
-        self.files.wavefunc_out = "abinit-o"
-        self.files.tmp = "tmp"
-        if runopt == "gen" or runopt == "genrun":
-            if os.path.exists(directory):
-                shutil.rmtree(directory)
-            os.mkdir(directory)
-            os.system("cp *.psp8 %s/" % directory)
-            os.system("cp *.GGA_PBE-JTH.xml %s/" % directory)
-            os.system("cp %s %s/" % (self.input.system.xyz.file, directory))
-
-            self.input.electrons.set_scf_nscf("scf")
-
-
-            # generate pbs job submit script
-            self.gen_pbs(directory=directory, script="static-scf.pbs", cmd="abinit", jobname=jobname, nodes=nodes, ppn=ppn)
-
-            # generate local bash job run script
-            self.gen_bash(directory=directory, script="static-scf.sh", cmd="abinit", mpi=mpi)
-
-        if runopt == "run" or runopt == "genrun":
-            os.chdir(directory)
-            #os.system("abinit < %s" % inpname.split(".")[0]+".files")
-            os.system("bash %s" % "static-scf.sh")
-            os.chdir("../")
 
     def gen_yh(self, inpname, output, directory, cmd="abinit"):
         """

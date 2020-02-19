@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 #from pymatflow.qe.base.arts import qe_arts
 from pymatflow.qe.static import static_run
 
-        
 
-def dielectric_pw(xyz_f, directory="tmp-qe-static", mpi="", runopt="gen", 
+
+def dielectric_pw(xyz_f, directory="tmp-qe-static", mpi="", runopt="gen", auto=0
         control={}, system={}, electrons={}, kpoints_option="automatic", kpoints_mp=[2, 2, 2, 0, 0, 0]):
     """
     directory: a place for all the generated files
@@ -26,11 +26,11 @@ def dielectric_pw(xyz_f, directory="tmp-qe-static", mpi="", runopt="gen",
             'genrun': generate input files and run
             'run': run from the previously generated input files
     Note:
-        reference: 
+        reference:
             https://github.com/QEF/q-e/tree/master/PW/examples/example10
         here we always use automatic type kpoints
 
-        Berry Phase/electric fields only for insulators! 
+        Berry Phase/electric fields only for insulators!
         so we should try occupations =  'tetrahedra'
     """
 
@@ -45,7 +45,7 @@ def dielectric_pw(xyz_f, directory="tmp-qe-static", mpi="", runopt="gen",
 
         #os.system("cp *.UPF %s/" % directory)
         #os.system("cp %s %s/" % (qe.arts.xyz.file, directory))
-        
+
         # do not copy too many files at the same time or it will be slow
         # so we do not copy all UPF files in the directory but just copy
         # those used in the calculation.
@@ -56,8 +56,8 @@ def dielectric_pw(xyz_f, directory="tmp-qe-static", mpi="", runopt="gen",
                 if upf.split(".")[0] == element:
                     shutil.copyfile(upf, os.path.join(directory, upf))
                     break
-        # 
-        
+        #
+
     qe.control.params["lelfield"] = True
     qe.electrons.params["startingwfc"] = 'random'
 
@@ -68,7 +68,7 @@ def dielectric_pw(xyz_f, directory="tmp-qe-static", mpi="", runopt="gen",
     qe.electrons.params["efield_cart(2)"] = 0
     qe.electrons.params["efield_cart(3)"] = 0
     qe.scf(directory=os.path.join(directory, "0-efield"), runopt=runopt, mpi=mpi, control=control, system=system, electrons=electrons, kpoints_option=kpoints_option, kpoints_mp=kpoints_mp)
-        
+
     # finite electric field calculation
     qe.control.params["nberrycyc"] = 3
     qe.electrons.params["efield_cart(1)"] = 0
@@ -79,4 +79,3 @@ def dielectric_pw(xyz_f, directory="tmp-qe-static", mpi="", runopt="gen",
 
 
     # analysis
-

@@ -31,6 +31,14 @@ class pwscf:
         self.electrons.basic_setting()
         self.set_kpoints() # default kpoint setting
 
+        self._initialize()
+
+    def _initialize(self):
+        """ initialize the current object, do some default setting
+        """
+        self.run_params = {}
+        self.set_run()
+
     def get_xyz(self, xyzfile):
         """
         :param xyzfile:
@@ -59,62 +67,16 @@ class pwscf:
         # see corresponding comment for function self.arts.set_kpoints()
         self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp, crystal_b=crystal_b)
 
-    def run(self, directory="tmp-pwscf", inpname="pwscf.in", output="pwscf.out", mpi="", runopt="gen",
-            jobname="pwscf", nodes=1, ppn=32):
+    def set_run(self, mpi="", server="pbs", jobname="cp2k", nodes=1, ppn=32):
+        """ used to set  the parameters controlling the running of the task
+        :param mpi: you can specify the mpi command here, it only has effect on native running
+
         """
-        directory: the place where all the magic happening
-
-        :param directory: the overall static calculation directory
-
-        :param runopt: determine whether the calculation is executed.
-                there are three values: 'gen', 'genrun', 'run'
-                'gen': only generate the input files
-                'genrun': generate input files and run
-                'run': run from the previously generated input files
-                P.S.  run is run by local command directly rather than
-                      commit the job through job manager
-        Note:
-            two mode of generating the input files: (1) a brand new calculation
-            remove the directory if it already exists and create a brand new
-            directory for calculation. (2) a new calculation but if there exists
-            the directory already, will not remove it but just generate the input
-            files inside.
-        """
-        if runopt == 'gen' or runopt == 'genrun':
-            if os.path.exists(directory):
-                shutil.rmtree(directory)
-            os.mkdir(directory)
-
-            #os.system("cp *.UPF %s/" % directory)
-            #os.system("cp %s %s/" % (self.arts.xyz.file, directory))
-
-            # do not copy too many files at the same time or it will be slow
-            # so we do not copy all UPF files in the directory but just copy
-            # those used in the calculation.
-            shutil.copyfile(self.arts.xyz.file, os.path.join(directory, self.arts.xyz.file))
-            all_upfs = [s for s in os.listdir() if s.split(".")[-1] == "UPF"]
-            for element in self.arts.xyz.specie_labels:
-                for upf in all_upfs:
-                    if upf.split(".")[0] == element:
-                        shutil.copyfile(upf, os.path.join(directory, upf))
-                        break
-            #
-
-            with open(os.path.join(directory, inpname), 'w') as fout:
-                self.control.to_in(fout)
-                self.system.to_in(fout)
-                self.electrons.to_in(fout)
-                self.arts.to_in(fout)
-
-            # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pw.x")
-            # gen pbs scripts
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="pw.x", jobname=jobname, nodes=nodes, ppn=ppn)
-
-        if runopt == 'genrun' or runopt == 'run':
-            os.chdir(directory)
-            os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
-            os.chdir("../")
+        self.run_params["server"] = server
+        self.run_params["mpi"] = ""
+        self.run_params["jobname"] = jobname
+        self.run_params["nodes"] = nodes
+        self.run_params["ppn"] = ppn
 
     def set_atomic_forces(self, pressure=None, pressuredir=None):
         self.arts.set_atomic_forces(pressure=pressure, direction=pressuredir)

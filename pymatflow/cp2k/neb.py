@@ -7,6 +7,7 @@ import os
 import shutil
 import matplotlib.pyplot as plt
 
+from pymatflow.remote.server import server_handle
 from pymatflow.cp2k.cp2k import cp2k
 
 
@@ -49,9 +50,7 @@ class neb_run(cp2k):
         self.force_eval.subsys.xyz.get_xyz(images[0])
 
 
-    def neb(self, directory="tmp-cp2k-neb", inpname="neb.inp", output="neb.out", 
-            mpi="", runopt="gen",
-            jobname="neb", nodes=1, ppn=32):
+    def neb(self, directory="tmp-cp2k-neb", inpname="neb.inp", output="neb.out", runopt="gen", auto=0):
         """
         :param directory:
             where the calculation will happen
@@ -75,15 +74,15 @@ class neb_run(cp2k):
                 self.glob.to_input(fout)
                 self.force_eval.to_input(fout)
                 self.motion.to_input(fout)
- 
+
             # gen server job comit file
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt")
             # gen pbs server job comit file
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s cp2k.psmp -in %s | tee %s" % (mpi, inpname, output))
+            os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-    
+        server_handle(auto=auto, directory=directory, jobfilebase="neb", server=self.params["server"])
     #

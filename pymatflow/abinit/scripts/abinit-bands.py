@@ -24,8 +24,11 @@ if __name__ == "__main__":
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
-    parser.add_argument("--mpi", type=str, default="",
-            help="MPI command: like 'mpirun -np 4'")
+    parser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+
+    # --------------------------------------------------------------------------
 
     parser.add_argument("--kptbounds", type=str, nargs="+", default=None,
             help="manual input kpath for band structure calculation")
@@ -58,11 +61,11 @@ if __name__ == "__main__":
             help="Van Der Waals tolerance, only work when vdw_xc == 5 or 6 or 7. to be included in the potential a pair of atom must have contribution to the energy larger than vdw_tol. default value is 1.0e-10. fore more information, refer to https://docs.abinit.org/variables/vdw/#vdw_tol")
 
     # -----------------------------------------------------------------
-    #                      for server handling
+    #                      run params
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=3,
-            choices=[0, 1, 2, 3],
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+
+    parser.add_argument("--mpi", type=str, default="",
+            help="MPI command: like 'mpirun -np 4'")
 
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
@@ -155,6 +158,5 @@ if __name__ == "__main__":
     task.get_xyz(args.file)
     task.set_params(params=params)
     task.input.electrons.kpoints.set_band(kptbounds=kptbounds)
-    task.bands(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
-
-    server_handle(auto=args.auto, directory=args.directory, jobfilebase="static-bands", server=args.server)
+    task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+    task.bands(directory=args.directory, runopt=args.runopt, auto=args.auto)

@@ -6,7 +6,7 @@ import argparse
 
 #from pymatflow.qe.static import static_run
 from pymatflow.qe.dfpt import dfpt_run
-from pymatflow.remote.server import server_handle
+
 
 """
 usage:
@@ -23,6 +23,9 @@ if __name__ == "__main__":
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
+    parser.add_argument("--auto", type=int, default=3,
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+
     # --------------------------------------------------------------
     # for dynmat
     # --------------------------------------------------------------
@@ -38,17 +41,22 @@ if __name__ == "__main__":
             help="the type of Acoustic Sum Rule imposed")
 
     # -----------------------------------------------------------------
-    #                      for server handling
+    #                       run params
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=3,
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+
+    parser.add_argument("--mpi", type=str, default="",
+            help="MPI command: like 'mpirun -np 4'")
+
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
-    parser.add("--jobname", type=str, default="qe-dynmat",
+
+    parser.add_argument("--jobname", type=str, default="qe-dynmat",
             help="jobname on the pbs server")
+
     parser.add_argument("--nodes", type=int, default=1,
             help="Nodes used in server")
+
     parser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
 
@@ -67,6 +75,5 @@ if __name__ == "__main__":
     task = dfpt_run()
     task.get_xyz(args.file)
     task.set_dynmat(dynmat_input=dynmat_input)
-    task.dynmat(directory=args.directory, mpi=args.mpi, runopt=args.runopt, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
-
-    server_handle(auto=args.auto, directory=args.directory, jobfilebase="dynmat", server=args.server)
+    task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+    task.dynmat(directory=args.directory, mpi=args.mpi, runopt=args.runopt, auto=args.auto)

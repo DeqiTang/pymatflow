@@ -6,6 +6,7 @@ import sys
 import os
 import shutil
 
+from pymatflow.remote.server import server_handle
 
 from pymatflow.siesta.siesta import siesta
 #from pymatflow.siesta.base.system import siesta_system
@@ -26,9 +27,7 @@ class opt_run(siesta):
         self.ions.basic_setting(option="opt")
 
 
-    def opt(self, directory="tmp-siesta-opt", inpname="geometric-optimization.fdf", output="geometric-optimization.out",
-            mpi="", runopt="gen", mode=0,
-            jobname="siesta-opt", nodes=1, ppn=32):
+    def opt(self, directory="tmp-siesta-opt", inpname="geometric-optimization.fdf", output="geometric-optimization.out", runopt="gen", auto=0, mode=0):
         """
         :param mode:
             0: do not vary the cell
@@ -38,7 +37,7 @@ class opt_run(siesta):
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
-        
+
             for element in self.system.xyz.specie_labels:
                 shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
 
@@ -51,13 +50,14 @@ class opt_run(siesta):
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="siesta")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="siesta", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="siesta", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             # run the simulation
             os.chdir(directory)
-            os.system("%s siesta < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s siesta < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="geometric-optimization", server=self.params["server"])
 
     def set_opt_mode(self, mode=0):
         """
@@ -76,4 +76,3 @@ class opt_run(siesta):
             print("where 0 is: MD.VariableCell = flase\n")
             print("and 1 is : MD.VariableCell = true\n")
             sys.exit(1)
-

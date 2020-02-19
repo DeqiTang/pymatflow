@@ -6,13 +6,31 @@ import sys
 import shutil
 import matplotlib.pyplot as plt
 
+from pymatflow.remote.server import server_handle
 
 class tddfpt_run():
     """
     """
     def __init__(self):
-        pass
 
+        self._initialize()
+
+    def _initialize(self):
+        """ initialize the current object, do some default setting
+        """
+        self.run_params = {}
+        self.set_run()
+
+    def set_run(self, mpi="", server="pbs", jobname="cp2k", nodes=1, ppn=32):
+        """ used to set  the parameters controlling the running of the task
+        :param mpi: you can specify the mpi command here, it only has effect on native running
+
+        """
+        self.run_params["server"] = server
+        self.run_params["mpi"] = ""
+        self.run_params["jobname"] = jobname
+        self.run_params["nodes"] = nodes
+        self.run_params["ppn"] = ppn
 
     def set_epsilon(self, inputpp={}, energy_grid={}):
         self.inputpp_epsilon = {
@@ -32,14 +50,13 @@ class tddfpt_run():
         for item in energy_grid:
             self.energy_grid_epsilon[item] = energy_grid[item]
 
-    def epsilon(self, directory="tmp-qe-static", inpname="epsilon.in", output="epsilon.out", mpi="", runopt="gen",
-            jobname="epsilon", nodes=1, ppn=32):
+    def epsilon(self, directory="tmp-qe-static", inpname="epsilon.in", output="epsilon.out", runopt="gen", auto=0):
         """
         References:
             https://gitlab.com/QEF/material-for-ljubljana-qe-summer-school/blob/master/Day-3/handson-day3-TDDFPT.pdf
 
         epsilon.x:
-            calculation of absorption spectra in IPA(Independent Particle 
+            calculation of absorption spectra in IPA(Independent Particle
             Approximation).
         Note:
             USPP rea not implemented now
@@ -76,8 +93,8 @@ class tddfpt_run():
             # gen pbs job submit script
             with open(os.path.join(directory, "epsilon.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("#PBS -N %s\n" % jobname)
-                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (sel.frun_params["nodes"], self.run_params["ppn"]))
                 fout.write("\n")
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
@@ -85,8 +102,10 @@ class tddfpt_run():
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s epsilon.x < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s epsilon.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
+
+        server_handle(auto=auto, directory=directory, jobfilebase="epsilon", server=self.params["server"])
 
 
     def set_turbo_davidson(self, lr_input={}, lr_dav={}):
@@ -116,8 +135,7 @@ class tddfpt_run():
             self.lr_dav_td[item] = lr_dav[item]
 
     def turbo_davidson(self, directory="tmp-qe-static", inpname1="turbo-davidson.in", output1="turbo-davidson.out",
-            inpname2="turbo-spectrum-davidson.in", output2="turbo-spectrum-davidson.out", mpi="", runopt="gen",
-            jobname="turbo-davidson", nodes=1, ppn=32):
+            inpname2="turbo-spectrum-davidson.in", output2="turbo-spectrum-davidson.out", runopt="gen", auto=0):
         """
         references:
             https://gitlab.com/qef/material-for-ljubljana-qe-summer-school/blob/master/day-3/handson-day3-tddfpt.pdf
@@ -147,7 +165,7 @@ class tddfpt_run():
         note:
             turbotddft is not extended to metals, so we can only
             deal with insulators or semiconductors with turbo now.
-            
+
             ltetra are not implemented now
         """
         # first check whether there is a previous scf running
@@ -192,7 +210,7 @@ class tddfpt_run():
                 fout.write("eign_file = '%s'\n" % "pwscf.eigen")
                 fout.write("/\n")
                 fout.write("\n")
-        
+
             # gen yh job submit script
             with open(os.path.join(directory, "turbo-davidson.sub"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
@@ -201,8 +219,8 @@ class tddfpt_run():
             # gen pbs job submit script
             with open(os.path.join(directory, "turbo-davidson.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("#PBS -N %s\n" % jobname)
-                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
                 fout.write("\n")
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
@@ -212,12 +230,12 @@ class tddfpt_run():
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s turbo_davidson.x < %s | tee %s" % (mpi, inpname1, output1))
-            os.system("%s turbo_spectrum.x < %s | tee %s" % (mpi, inpname2, output2))
+            os.system("%s turbo_davidson.x < %s | tee %s" % (self.run_params["mpi"], inpname1, output1))
+            os.system("%s turbo_spectrum.x < %s | tee %s" % (self.run_params["mpi"], inpname2, output2))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="turbo-davidson", server=self.params["server"])
 
 
-    
     def set_turbo_spectrum(self, lr_input={}):
         self.lr_input_ts = {
                 "outdir": "./tmp", #self.control.params["outdir"],
@@ -257,24 +275,23 @@ class tddfpt_run():
             self.lr_control_tl[item] = lr_control[item]
 
     def turbo_lanczos(self, directory="tmp-qe-static", inpname1="turbo-lanczos.in", output1="turbo-lanczos.out",
-            inpname2="turbo-spectrum-lanczos.in", output2="turbo-spectrum-lanczos.out", mpi="", runopt="gen",
-            jobname="turbo_lanczos", nodes=1, ppn=32):
+            inpname2="turbo-spectrum-lanczos.in", output2="turbo-spectrum-lanczos.out", runopt="gen", auto=0):
         """
         references:
             https://gitlab.com/qef/material-for-ljubljana-qe-summer-school/blob/master/day-3/handson-day3-tddfpt.pdf
 
         turbo_lanczos.x:
-            allows us to calculate absorption spectra of molecules using 
-            time-dependent density functional perturbation theory (TDDFPT) 
+            allows us to calculate absorption spectra of molecules using
+            time-dependent density functional perturbation theory (TDDFPT)
             without computing empty states!
-            
+
             turbo_lanczos.x allows us to obtain the absorption spectrum in a wide frequency
             range just by repeating a post-processing calculation using turbo_spectrum.x in a
             larger frequency range. This cannot be done with turbo_davidson.x
 
         turnbo_spectrum.x:
             post-processing calculation of the spectrum
-            
+
         Note:
             turboTDDFT is not extended to metals
             ltetra are not implemented now
@@ -301,7 +318,7 @@ class tddfpt_run():
                 fout.write("ipol = %d\n" % self.lr_control_tl["ipol"])
                 fout.write("/\n")
                 fout.write("\n")
-        
+
             with open(os.path.join(directory, inpname2), 'w') as fout:
                 fout.write("&lr_input\n")
                 fout.write("prefix = '%s'\n" % self.lr_input_ts["prefix"])
@@ -325,18 +342,18 @@ class tddfpt_run():
             # gen pbs job submit script
             with open(os.path.join(directory, "turbo-lanczos.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("#PBS -N %s\n" % jobname)
-                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
                 fout.write("\n")
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
                 fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE turbo_lanczos.x < %s > %s\n" % (inpname1, output1))
                 fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE turbo_spectrum.x < %s > %s\n" % (inpname2, output2))
 
-        
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s turbo_lanczos.x < %s | tee %s" % (mpi, inpname1, output1))
-            os.system("%s turbo_spectrum.x < %s | tee %s" % (mpi, inpname2, output2))
+            os.system("%s turbo_lanczos.x < %s | tee %s" % (self.run_params["mpi"], inpname1, output1))
+            os.system("%s turbo_spectrum.x < %s | tee %s" % (self.run_params["mpi"], inpname2, output2))
             os.chdir("../")
-
+        server_handle(auto=auto, directory=directory, jobfilebase="turbo-lanczos", server=self.params["server"])

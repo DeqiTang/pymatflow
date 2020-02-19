@@ -5,6 +5,7 @@ import os
 import shutil
 import matplotlib.pyplot as plt
 
+from pymatflow.remote.server import server_handle
 from pymatflow.abinit.abinit import abinit
 
 
@@ -21,8 +22,7 @@ class static_run(abinit):
         self.input.electrons.basic_setting()
 
 
-    def scf(self, directory="tmp-abinit-static", inpname="static-scf.in", mpi="", runopt="gen",
-        jobname="abinit-scf", nodes=1, ppn=32):
+    def scf(self, directory="tmp-abinit-static", runopt="gen", auto=0):
         self.files.name = "static-scf.files"
         self.files.main_in = "static-scf.in"
         self.files.main_out = "static-scf.out"
@@ -39,22 +39,20 @@ class static_run(abinit):
 
             self.input.electrons.set_scf_nscf("scf")
 
-
             # generate pbs job submit script
-            self.gen_pbs(directory=directory, script="static-scf.pbs", cmd="abinit", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, script="static-scf.pbs", cmd="abinit", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
             # generate local bash job run script
-            self.gen_bash(directory=directory, script="static-scf.sh", cmd="abinit", mpi=mpi)
+            self.gen_bash(directory=directory, script="static-scf.sh", cmd="abinit", mpi=self.run_params["mpi"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            #os.system("abinit < %s" % inpname.split(".")[0]+".files")
             os.system("bash %s" % "static-scf.sh")
             os.chdir("../")
 
-    def nscf(self, directory="tmp-abinit-static", mpi="", runopt="gen",
-        jobname="staic-nscf", nodes=1, ppn=32):
-        # first check whether there is a previous scf running
+        server_handle(auto=auto, directory=directory, jobfilebase="static-scf", server=self.params["server"])
+
+    def nscf(self, directory="tmp-abinit-static", runopt="gen", auto=0):
 
         self.files.name = "static-nscf.files"
         self.files.main_in = "static-nscf.in"
@@ -62,6 +60,7 @@ class static_run(abinit):
         self.files.wavefunc_in = "static-scf-o"
         self.files.wavefunc_out = "static-nscf-o"
         self.files.tmp = "tmp"
+        # first check whether there is a previous scf running
         if not os.path.exists(directory):
             print("===================================================\n")
             print("                 Warning !!!\n")
@@ -84,20 +83,19 @@ class static_run(abinit):
             #
 
             # generate pbs job submit script
-            self.gen_pbs(directory=directory, script="static-nscf.pbs", cmd="abinit", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, script="static-nscf.pbs", cmd="abinit", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
             # generate local bash job run script
-            self.gen_bash(directory=directory, script="static-nscf.sh", cmd="abinit", mpi=mpi)
+            self.gen_bash(directory=directory, script="static-nscf.sh", cmd="abinit", mpi=self.run_parmas["mpi"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            #os.system("abinit < %s" % inpname.split(".")[0]+".files")
             os.system("bash %s" % "static-nscf.sh")
             os.chdir("../")
 
+        server_handle(auto=auto, directory=directory, jobfilebase="static-nscf", server=self.params["server"])
 
-    def bands(self, directory="tmp-abinit-static", inpname="static-band.in", mpi="", runopt="gen",
-        jobname="abinit-band", nodes=1, ppn=32):
+    def bands(self, directory="tmp-abinit-static", runopt="gen", auto=0):
         """
             we can use abiopen.py static-band-output_GSR.nc --expose -sns=talk to view the band structure.
         """
@@ -126,19 +124,19 @@ class static_run(abinit):
 
 
             # generate pbs job submit script
-            self.gen_pbs(directory=directory, script="static-bands.pbs", cmd="abinit", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, script="static-bands.pbs", cmd="abinit", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
             # generate local bash job run script
-            self.gen_bash(directory=directory, script="static-bands.sh", cmd="abinit", mpi=mpi)
+            self.gen_bash(directory=directory, script="static-bands.sh", cmd="abinit", mpi=self.run_params["mpi"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            #os.system("abinit < %s" % inpname.split(".")[0]+".files")
             os.system("bash %s" % "static-bands.sh")
             os.chdir("../")
 
-    def converge_ecut(self, emin, emax, step, directory="tmp-abinit-ecut", mpi="", runopt="gen",
-        jobname="converge-ecut", nodes=1, ppn=32):
+        server_handle(auto=auto, directory=directory, jobfilebase="static-bands", server=self.params["server"])
+
+    def converge_ecut(self, emin, emax, step, directory="tmp-abinit-ecut", runopt="gen", auto=0):
 
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
@@ -172,8 +170,8 @@ class static_run(abinit):
             # generate pbs script files
             with open(os.path.join(directory, "converge-ecut.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("#PBS -N %s\n" % jobname)
-                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
                 fout.write("\n")
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
@@ -216,3 +214,5 @@ class static_run(abinit):
                 files_name = "ecut-%d.files" % cutoff
                 os.system("abinit < %s" % (files_name))
             os.chdir("../")
+
+        server_handle(auto=auto, directory=directory, jobfilebase="converge-ecut", server=self.params["server"])

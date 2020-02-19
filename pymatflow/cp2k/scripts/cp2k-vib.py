@@ -25,6 +25,10 @@ if __name__ == "__main__":
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
+    parser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+
 
     # ---------------------------------------------------------------------------
     #                       FORCE_EVAL realated parameters
@@ -110,17 +114,16 @@ if __name__ == "__main__":
             help="Calculation of the thermochemical data. Valid for molecules in the gas phase.")
 
     # -----------------------------------------------------------------
-    #                      for server handling
+    #                      run params
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=3,
-            choices=[0, 1, 2, 3],
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+    parser.add_argument("--mpi", type=str, default="",
+            help="mpi command: like --mpi='mpirun -np 4'")
 
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
 
-    parser.add_argument("--jobname", type=str, default="geo-opt",
+    parser.add_argument("--jobname", type=str, default="cp2k-vib",
             help="jobname on the pbs server")
 
     parser.add_argument("--nodes", type=int, default=1,
@@ -163,6 +166,5 @@ if __name__ == "__main__":
     task = vib_run()
     task.get_xyz(args.file)
     task.set_params(params=params)
-    task.vib(directory=args.directory, runopt=args.runopt, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
-
-    server_handle(auto=args.auto, directory=args.directory, jobfilebase="vib", server=args.server)
+    task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+    task.vib(directory=args.directory, runopt=args.runopt, auto=args.auto)

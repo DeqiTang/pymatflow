@@ -174,55 +174,19 @@ class cp2k:
         if 13 in option:
             self.force_eval.properties.resp.status = True
 
-    def set_run(self, server="pbs", jobname="cp2k", nodes=1, ppn=32, mpi="", inpname="cp2k.in", output="cp2k.out"):
+    def set_run(self, mpi="", server="pbs", jobname="cp2k", nodes=1, ppn=32):
         """ used to set  the parameters controlling the running of the task
         :param mpi: you can specify the mpi command here, it only has effect on native running
 
         """
         self.run_params["server"] = server
+        self.run_params["mpi"] = ""
         self.run_params["jobname"] = jobname
         self.run_params["nodes"] = nodes
         self.run_params["ppn"] = ppn
-        self.run_params["mpi"] = mpi
-        self.run_params["inpname"] = inpname
-        self.run_params["output"] = output
+        #self.run_params["inpname"] = inpname
+        #self.run_params["output"] = output
 
-    def run(self, directory="cp2k-running", runopt="gen", auto=0):
-        """
-        :param directory: directory is and path where the calculation will happen.
-
-        :param runopt: run option, canbe -> 'run', 'gen', 'genrun'
-
-        :param auto:can be 0, 1, 2, 3
-
-        :param nodes: number of nodes needed
-
-        :param ppn: number of cores each node needed
-
-        Note: we the parameters like inpname, output name can be put into an dict variable and set eleswhere!
-        """
-        if runopt == "gen" or runopt == "genrun":
-            if os.path.exists(directory):
-                shutil.rmtree(directory)
-            os.mkdir(directory)
-            shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, os.path.basename(self.force_eval.subsys.xyz.file)))
-
-            with open(os.path.join(directory, self.run_params["inpname"]), 'w') as fout:
-                self.glob.to_input(fout)
-                self.force_eval.to_input(fout)
-                #
-
-            # gen server job comit file
-            self.gen_yh(directory=directory, inpname=self.run_params["inpname"], output=self.run_params["output"], cmd="cp2k.popt")
-            # gen pbs server job comit file
-            self.gen_pbs(directory=directory, inpname=self.run_params["inpname"], output=self.run_params["output"], cmd="cp2k.popt", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
-
-        if runopt == "run" or runopt == "genrun":
-           os.chdir(directory)
-           os.system("cp2k.popt -in %s | tee %s" % (self.run_params["inpname"], self.run_params["output"]))
-           os.chdir("../")
-
-        server_handle(auto=auto, directory=directory, jobfilebase="", server=self.run_params["server"])
 
     def gen_yh(self, inpname, output, directory, cmd="cp2k.psmp"):
         """

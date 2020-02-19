@@ -7,6 +7,8 @@ import shutil
 import seekpath
 import numpy as np
 
+from pymatflow.remote.server import server_handle
+
 from pymatflow.cp2k.base.xyz import cp2k_xyz
 
 from pymatflow.cp2k.cp2k import cp2k
@@ -52,8 +54,7 @@ class phonopy_run(cp2k):
         self.supercell_n = [1, 1, 1]
 
 
-    def phonopy(self, directory="tmp-cp2k-phonopy", mpi="", runopt="gen",
-            jobname="cp2k-phonopy", nodes=1, ppn=32):
+    def phonopy(self, directory="tmp-cp2k-phonopy", runopt="gen", auto=0):
         self.force_eval.check_spin()
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
@@ -132,8 +133,8 @@ class phonopy_run(cp2k):
             # generate pbs file
             with open(os.path.join(directory, "phonopy-job.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n\n")
-                fout.write("#PBS -N %s\n" % jobname)
-                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
                 fout.write("\n")
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
@@ -149,8 +150,9 @@ class phonopy_run(cp2k):
                     disps.append(line.split(".")[0].split("-")[2])
             for disp in disps:
                 in_name = "supercell-%s.inp" % disp
-                os.system("cp2k.psmp -in phonon-supercell-%s.inp | tee phonon-supercell-%s.inp.out" % (disp, disp))
+                os.system("%s cp2k.psmp -in phonon-supercell-%s.inp | tee phonon-supercell-%s.inp.out" % (self.run_params["mpi"], disp, disp))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="phonopy-job", server=self.params["server"])
 
 
     def to_subsys_phonopy(self, fname):

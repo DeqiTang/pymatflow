@@ -5,6 +5,7 @@ import os
 import shutil
 import matplotlib.pyplot as plt
 
+from pymatflow.remote.server import server_handle
 from pymatflow.qe.pwscf import pwscf
 
 class opt_run(pwscf):
@@ -22,8 +23,7 @@ class opt_run(pwscf):
         super().__init__()
 
 
-    def relax(self, directory="tmp-qe-relax", inpname="relax.in", output="relax.out", mpi="", runopt="gen",
-            jobname="relax", nodes=1, ppn=32):
+    def relax(self, directory="tmp-qe-relax", inpname="relax.in", output="relax.out", runopt="gen", auto=0):
         """
         :param directory: a place for all the generated files
         """
@@ -46,8 +46,8 @@ class opt_run(pwscf):
                     if upf.split(".")[0] == element:
                         shutil.copyfile(upf, os.path.join(directory, upf))
                         break
-            # 
-            
+            #
+
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)
@@ -57,15 +57,15 @@ class opt_run(pwscf):
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output)
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-    
-    def vc_relax(self, directory="tmp-qe-vc-relax", inpname="vc-relax.in", output="vc-relax.out", mpi="", runopt="gen",
-            jobname="vc-relax", nodes=1, ppn=32):
+        server_handle(auto=auto, directory=directory, jobfilebase="relax", server=self.params["server"])
+
+    def vc_relax(self, directory="tmp-qe-vc-relax", inpname="vc-relax.in", output="vc-relax.out", runopt="gen", auto=0):
         """
         :param directory: a place for all the generated files
         """
@@ -88,7 +88,7 @@ class opt_run(pwscf):
                     if upf.split(".")[0] == element:
                         shutil.copyfile(upf, os.path.join(directory, upf))
                         break
-            # 
+            #
 
 
             with open(os.path.join(directory, inpname), 'w') as fout:
@@ -101,17 +101,18 @@ class opt_run(pwscf):
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output)
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s pw.x < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        
+        server_handle(auto=auto, directory=directory, jobfilebase="vc-relax", server=self.params["server"])
+
     def set_relax(self):
         self.control.calculation("relax")
         self.control.basic_setting("relax")
-       
+
         self.system.basic_setting(self.arts)
         self.electrons.basic_setting()
         self.ions.basic_setting()
@@ -119,8 +120,7 @@ class opt_run(pwscf):
     def set_vc_relax(self):
         self.control.calculation("vc-relax")
         self.control.basic_setting("vc-relax")
-       
+
         self.system.basic_setting(self.arts)
         self.electrons.basic_setting()
         self.ions.basic_setting()
-

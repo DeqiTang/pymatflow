@@ -26,12 +26,11 @@ class lr_run(cp2k):
         #self.glob = cp2k_glob()
         #self.force_eval = cp2k_force_eval()
         #self.atom = cp2k_atom()
-        
+
         self.glob.basic_setting(run_type="LINEAR_RESPONSE")
         self.force_eval.basic_setting()
 
-    def lr(self, directory="tmp-cp2k-lr", inpname="lr.inp", output="lr.out", mpi="", runopt="gen",
-            jobname="linear-response", nodes=1, ppn=32):
+    def lr(self, directory="tmp-cp2k-lr", inpname="lr.inp", output="lr.out", runopt="gen", auto=0):
         """
         :param directory:
             where the calculation will happen
@@ -45,20 +44,20 @@ class lr_run(cp2k):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, self.force_eval.subsys.xyz.file))
-            
+
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.glob.to_input(fout)
                 self.force_eval.to_input(fout)
                 #self.atom.to_input(fout)
- 
+
             # gen server job comit file
-            self.gen_yh(cmd="cp2k.popt", directory=directory, inpname=inpname, output=output)   
+            self.gen_yh(cmd="cp2k.popt", directory=directory, inpname=inpname, output=output)
             # gen pbs server job comit file
-            self.gen_pbs(cmd="cp2k.popt", directory=directory, inpname=inpname, output=output, jobname=jobname, nodes=nodes, ppn=ppn)   
+            self.gen_pbs(cmd="cp2k.popt", directory=directory, inpname=inpname, output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
            os.chdir(directory)
-           os.system("cp2k.psmp -in %s | tee %s" % (inpname, output))
-           os.chdir("../")    
+           os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
+           os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="lr", server=self.params["server"])
     #
-

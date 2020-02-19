@@ -5,7 +5,7 @@ import os
 import argparse
 
 from pymatflow.siesta.phonopy import phonopy_run
-from pymatflow.remote.server import server_handle
+
 
 """
 usage:
@@ -25,9 +25,11 @@ if __name__ == "__main__":
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
-    parser.add_argument("--mpi", type=str, default="",
-            help="MPI command")
+    parser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
 
+    # --------------------------------------------------------------------------
     parser.add_argument("--meshcutoff", type=int, default=300,
             help="MeshCutoff (Ry)")
 
@@ -70,11 +72,10 @@ if __name__ == "__main__":
             help="supercell option for phonopy, like '2 2 2'")
 
     # -----------------------------------------------------------------
-    #                      for server handling
+    #                      run param
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=3,
-            choices=[0, 1, 2, 3],
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+    parser.add_argument("--mpi", type=str, default="",
+            help="MPI command")
 
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
@@ -88,7 +89,6 @@ if __name__ == "__main__":
 
     parser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
-
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
@@ -114,7 +114,5 @@ if __name__ == "__main__":
     task.set_params(params=params)
     task.set_kpoints(kpoints_mp=args.kpoints_mp)
     task.supercell_n = args.supercell_n
-    task.phonopy(directory=args.directory, runopt=args.runopt, mpi=args.mpi)
-
-    # server handle
-    server_handle(auto=args.auto, directory=args.directory, jobfilebase="phonopy-job", server=args.server)
+    task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+    task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)

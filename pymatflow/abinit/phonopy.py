@@ -8,6 +8,7 @@ import shutil
 import seekpath
 import matplotlib.pyplot as plt
 
+from pymatflow.remote.server import server_handle
 from pymatflow.abinit.abinit import abinit
 
 """
@@ -29,8 +30,7 @@ class phonopy_run(abinit):
 
         self.supercell_n = [1, 1, 1]
 
-    def phonopy(self, directory="tmp-abinit-phonopy", head_inpname="head-phonon.in", pos_inpname="pos.in", mpi="", runopt="gen",
-        jobname="phonopy", nodes=1, ppn=32):
+    def phonopy(self, directory="tmp-abinit-phonopy", head_inpname="head-phonon.in", pos_inpname="pos.in", runopt="gen", auto=0):
         """
         """
         if runopt == "gen" or runopt == "genrun":
@@ -87,8 +87,8 @@ class phonopy_run(abinit):
             # generate pbs scripts
             with open(os.path.join(directory, "phonopy-job.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("#PBS -N %s\n" % jobname)
-                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
                 fout.write("\n")
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
@@ -107,6 +107,8 @@ class phonopy_run(abinit):
                 os.system("abinit < supercell-%s.files" % disp)
                 os.chdir("../")
             os.chdir("../")
+
+        server_handle(auto=auto, directory=directory, jobfilebase="phonopy-job", server=self.params["server"])
 
 
     def get_disps(self, directory="./"):

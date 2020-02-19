@@ -7,6 +7,7 @@ import os
 import shutil
 import matplotlib.pyplot as plt
 
+from pymatflow.remote.server import server_handle
 from pymatflow.cp2k.cp2k import cp2k
 
 """
@@ -27,11 +28,9 @@ class vib_run(cp2k):
         # throught DFT/PRINT/MOMENTS
         #self.force_eval.dft.printout.print_moments()
         self.force_eval.dft.printout.moments.status == True
-    
 
-    def vib(self, directory="tmp-cp2k-vib", inpname="vib.inp", output="vib.out", 
-            mpi="", runopt="gen",
-            jobname="vibrational-analysis", nodes=1, ppn=2):
+
+    def vib(self, directory="tmp-cp2k-vib", inpname="vib.inp", output="vib.out", runopt="gen", auto=0):
         """
         :param directory:
             wheere the calculation will happen
@@ -50,15 +49,15 @@ class vib_run(cp2k):
                 self.glob.to_input(fout)
                 self.force_eval.to_input(fout)
                 self.vibrational_analysis.to_input(fout)
-        
+
             # gen server job comit file
             self.gen_yh(directory=directory, cmd="cp2k.popt", inpname=inpname, output=output)
             # gen pbs server job comit file
-            self.gen_pbs(directory=directory, cmd="cp2k.popt", inpname=inpname, output=output, jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, cmd="cp2k.popt", inpname=inpname, output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s cp2k.psmp -in %s | tee %s" % (mpi, inpname, output))
+            os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-   # 
-
+        server_handle(auto=auto, directory=directory, jobfilebase="vib", server=self.params["server"])
+    #

@@ -9,6 +9,7 @@ import seekpath
 import numpy as np
 import matplotlib.pyplot as plt
 
+from pymatflow.remote.server import server_handle
 from pymatflow.qe.pwscf import pwscf
 
 """
@@ -35,7 +36,7 @@ class phonopy_run(pwscf):
     """
     def __init__(self):
         super().__init__()
-        
+
         self.control.basic_setting("scf")
 
         self.supercell_n = [1, 1, 1]
@@ -46,8 +47,7 @@ class phonopy_run(pwscf):
         self.control.params["tprnfor"] = True
         self.control.params["tstress"] = True
 
-    def phonopy(self, directory="tmp-qe-phonopy", pos_inpname="pos.in", head_inpname="head.in", mpi="", runopt="gen",
-            jobname="pwscf-phonopy", nodes=1, ppn=32):
+    def phonopy(self, directory="tmp-qe-phonopy", pos_inpname="pos.in", head_inpname="head.in", mpi="", runopt="gen", auto=0):
         """
         :param directory: a place for all the generated files
         """
@@ -69,9 +69,9 @@ class phonopy_run(pwscf):
                     if upf.split(".")[0] == element:
                         shutil.copyfile(upf, os.path.join(directory, upf))
                         break
-            # 
+            #
 
-                                
+
             with open(os.path.join(directory, head_inpname), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)
@@ -118,126 +118,13 @@ class phonopy_run(pwscf):
             # gen pbs script
             with open(os.path.join(directory, "phonopy-job.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("#PBS -N %s\n" % jobname)
-                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
                 fout.write("\n")
                 for disp in disp_dirs:
                     fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < supercell-%s-full.in > supercell-%s.out\n" % (disp, disp))
-
-            # generate the result analyse bash scripts and necessary config files
-            os.chdir(directory)
-            with open("mesh.conf", 'w') as fout:
-                fout.write("ATOM_NAME =")
-                for element in self.arts.xyz.specie_labels:
-                    fout.write(" %s" % element)
-                fout.write("\n")
-                fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
-                fout.write("MP = 8 8 8\n")
-            with open("pdos.conf", 'w') as fout:
-                fout.write("ATOM_NAME =")
-                for element in self.arts.xyz.specie_labels:
-                    fout.write(" %s" % element)
-                fout.write("\n")
-                fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
-                fout.write("MP = 8 8 8\n")
-                fout.write("PDOS = 1 2, 3 4 5 5\n")
-            with open("band.conf", 'w') as fout:
-                fout.write("ATOM_NAME =")
-                for element in self.arts.xyz.specie_labels:
-                    fout.write(" %s" % element)
-                fout.write("\n")
-                # the use of PRIMITIVE_AXES will find the primitive cell of the structure
-                # and use it to analyse the phonon band structure
-                # however, the use of primitive cell will not affect the q path setting
-                # so whether we use PRIMITIVE cell or not, we can set the same q path
-                fout.write("PRIMITIVE_AXES = AUTO\n") # we can also specify a matrix, but AUTO is recommended now in phonopy
-                fout.write("GAMMA_CENTER = .TRUE.\n")
-                fout.write("BAND_POINTS = 101\n")
-                fout.write("BAND_CONNECTION = .TRUE.\n")
-                fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
-                #fout.write("BAND = 0.5 0.5 0.5 0.0 0.0 0.0 0.5 0.5 0.0 0.0 0.5 0.0\n")
-                fout.write("BAND =")
-                # --------------
-                # using seekpath to set q path
-                # --------------
-                lattice = self.arts.xyz.cell   # = [self.arts.xyz.cell[0:3], self.arts.xyz.cell[3:6], self.arts.xyz.cell[6:9]]
-                positions = []
-                numbers = []
-                #a = np.sqrt(self.xyz.arts.cell[0]**2 + self.arts.xyz.cell[1]**2 + self.arts.xyz.cell[2]**2)
-                #b = np.sqrt(self.xyz.arts.cell[3]**2 + self.arts.xyz.cell[4]**2 + self.arts.xyz.cell[5]**2)
-                #c = np.sqrt(self.xyz.arts.cell[6]**2 + self.arts.xyz.cell[7]**2 + self.arts.xyz.cell[8]**2)
-                a = np.sqrt(self.arts.xyz.cell[0][0]**2 + self.arts.xyz.cell[0][1]**2 + self.arts.xyz.cell[0][2]**2)
-                b = np.sqrt(self.arts.xyz.cell[1][0]**2 + self.arts.xyz.cell[1][1]**2 + self.arts.xyz.cell[1][2]**2)
-                c = np.sqrt(self.arts.xyz.cell[2][0]**2 + self.arts.xyz.cell[2][1]**2 + self.arts.xyz.cell[2][2]**2)
-                for atom in self.arts.xyz.atoms:
-                    positions.append([atom.x / a, atom.y / b, atom.z / c])
-                    numbers.append(self.arts.xyz.specie_labels[atom.name])
-                structure = (lattice, positions, numbers)
-                kpoints_seekpath = seekpath.get_path(structure)
-                point = kpoints_seekpath["point_coords"][kpoints_seekpath["path"][0][0]]
-                fout.write(" %f %f %f" % (point[0], point[1], point[2])) #self.arts..kpoints_seekpath["path"][0][0]
-                point = kpoints_seekpath["point_coords"][kpoints_seekpath["path"][0][1]]
-                fout.write(" %f %f %f" % (point[0], point[1], point[2])) #self.arts.kpoints_seekpath["path"][0][1]
-                for i in range(1, len(kpoints_seekpath["path"])):
-                    if kpoints_seekpath["path"][i][0] == kpoints_seekpath["path"][i-1][1]:
-                        point = kpoints_seekpath["point_coords"][kpoints_seekpath["path"][i][1]]
-                        fout.write(" %f %f %f" % (point[0], point[1], point[2])) #self.arts.kpoints_seekpath["path"][i][1]))
-                    else:
-                        point = kpoints_seekpath["point_coords"][kpoints_seekpath["path"][i][0]]
-                        fout.write(" %f %f %f" % (point[0], point[1], point[2])) #self.arts.kpoints_seekpath["path"][i][0]))
-                        point = kpoints_seekpath["point_coords"][kpoints_seekpath["path"][i][1]]
-                        fout.write(" %f %f %f" % (point[0], point[1], point[2]))  #self.kpoints_seekpath["path"][i][1]))
-                fout.write("\n")
-                fout.write("BAND_LABELS =")
-                point = kpoints_seekpath["path"][0][0]
-                if point == "GAMMA":
-                    fout.write(" $\Gamma$")
-                else:
-                    fout.write(" $%s$" % point)
-                point = kpoints_seekpath["path"][0][1]
-                if point == "GAMMA":
-                    fout.write(" $\Gamma$")
-                else:
-                    fout.write(" $%s$" % point)
-                for i in range(1, len(kpoints_seekpath["path"])):
-                    if kpoints_seekpath["path"][i][0] == kpoints_seekpath["path"][i-1][1]:
-                        point = kpoints_seekpath["path"][i][1]
-                        if point == "GAMMA":
-                            fout.write(" $\Gamma$")
-                        else:
-                            fout.write(" $%s$" % point)
-                    else:
-                        point = kpoints_seekpath["path"][i][0]
-                        if point == "GAMMA":
-                            fout.write(" $\Gamma$")
-                        else:
-                            fout.write(" $%s$" % point)
-                        point = kpoints_seekpath["path"][i][1]
-                        if point == "GAMMA":
-                            fout.write(" $\Gamma$")
-                        else:
-                            fout.write(" $%s$" % point)
-                fout.write("\n")
-                #
-            #
-            with open("phonopy-analysis.sh", 'w') as fout:
-                fout.write("#!/bin/bash\n")
-                fout.write("\n")
-                fout.write("# generate FORCE_SETS\n")
-                fout.write("phonopy --qe -f supercell-{001..%s}.out\n" % (disp_dirs[-1]))
-                fout.write("# plot the density of states (DOS)\n")
-                fout.write("phonopy --qe -p mesh.conf -c %s\n" % pos_inpname)
-                fout.write("# Thermal properties are calculated with the sampling mesh by:\n")
-                fout.write("phonopy --qe -t mesh.conf -c %s" % pos_inpname)
-                fout.write("# Thermal properties can be plotted by:\n")
-                fout.write("phonopy --qe -t -p mesh.conf -c %s\n" % pos_inpname)
-                fout.write("# calculate Projected DOS and plot it\n")
-                fout.write("phonopy --qe -p pdos.conf -c %s\n" % pos_inpname)
-                fout.write("phonopy --qe -c %s -p band.conf\n" % pos_inpname)
-            os.chdir("../")
-            # end generate the result analysis scripts and the necessary config files
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -247,7 +134,8 @@ class phonopy_run(pwscf):
                 for line in fin:
                     disp_dirs.append(line.split(".")[0].split("-")[1])
             for disp in disp_dirs:
-                os.system("pw.x < supercell-%s-full.in | tee supercell-%s.out" % (disp, disp))
+                os.system("%s pw.x < supercell-%s-full.in | tee supercell-%s.out" % (self.run_params["mpi"], disp, disp))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="phonopy-job", server=self.params["server"])
     #
     #

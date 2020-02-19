@@ -27,12 +27,12 @@ class dfpt_run:
         ph.x calculation cannot start from pw.x data using Gamma-point
         tricks. so the static scf must be done not using Gamma kpoint
         scheme.
-    
-    occupations setting:
-        
-        ph.x calculation can not be going when the system is metallic, 
 
-        but I found even when my fermi energy is in the gap, ph.x can sometimes fail to run. 
+    occupations setting:
+
+        ph.x calculation can not be going when the system is metallic,
+
+        but I found even when my fermi energy is in the gap, ph.x can sometimes fail to run.
         this might result from use of smearing in the scf calculation. we should tray other type of occupation.
 
         sometimes ph.x can run when I use smearing type occupation,
@@ -46,7 +46,7 @@ class dfpt_run:
         the scf ground state calculation qe will stop, signaling:
         'charge is wrong: smearing is needed'
         but actually in reality we know the system is an insulator.
-        
+
         2D materials:
         to properly deal with 2D materials, we have to set assume_isolated='2D' in
         pw.x scf calculation and set loto_2d=.true. in q2r.x and matdyn.x calculation
@@ -57,7 +57,7 @@ class dfpt_run:
         self.electrons = qe_electrons()
         self.arts = qe_arts()
 
-        self.control.basic_setting("scf") 
+        self.control.basic_setting("scf")
         self.electrons.basic_setting()
 
         self.set_inputph() # default setting
@@ -65,7 +65,7 @@ class dfpt_run:
     def get_xyz(self, xyzfile):
         """
         :param xyzfile:
-            a modified xyz formatted file(the second line specifies the cell of the 
+            a modified xyz formatted file(the second line specifies the cell of the
             system).
         """
         self.arts.xyz.get_xyz(xyzfile)
@@ -80,17 +80,17 @@ class dfpt_run:
             http://www.fisica.uniud.it/~giannozz/QE-Tutorial/handson_phon.html
 
         ph.x:
-            performing phonon calculation based on scf using 
+            performing phonon calculation based on scf using
             DFPT theory. it is the executable of PHonon package
             if qe.
-            
+
             parameter epsil = .true. will calculate and store the
             dielectric tensor and effective charges which is for
             the polar materials
 
             we can do phonon calculation only at \Gamma point and also
             at a q-grid to get a phonon dispersion graph
-         
+
         Note:
             PHonon: linear-response calculations(phonons, dielectric properties)
                 (1) phonon frequencies and eigenvectors at a generic wave vector
@@ -105,7 +105,7 @@ class dfpt_run:
 
         :param inputph:
             if the value of any of nq1 nq2 nq3 is 0 in self.inputph[""],
-            the self.phx function will think we are chooseing gamma point to do 
+            the self.phx function will think we are chooseing gamma point to do
             the calculation. so this allows us to control type of calculation
             on qpoints setting.
             gamma point only: makre sure at least one value of nq1 nq2 nq3 in self.inputph is 0
@@ -136,10 +136,9 @@ class dfpt_run:
         # set the self.inputph through inputpp
         for item in inputph:
             self.inputph[item] = inputph[item]
-        
 
-    def phx(self, directory="tmp-qe-static", inpname="phx.in", output="phx.out", mpi="", runopt="gen",
-            jobname="phx", nodes=1, ppn=32):
+
+    def phx(self, directory="tmp-qe-static", inpname="phx.in", output="phx.out", runopt="gen", auto=0):
         """
         """
         # ---------------------------------------------------------------
@@ -174,13 +173,13 @@ class dfpt_run:
                 for atom in self.arts.xyz.atoms:
                     if False in atom.fix:
                         nat_todo += 1
-                        
+
                 if nat_todo == self.arts.xyz.natom:
                     fout.write("nat_todo = 0\n") # displace all atoms
                     fout.write("nogg = .false.\n")
                 else:
                     fout.write("nat_todo = %d\n" % nat_todo)
-                    fout.write("nogg = .true.\n") 
+                    fout.write("nogg = .true.\n")
                     # gamma_gamma tricks with nat_todo != 0 not available,
                     # so we must use nogg = .true.
                 fout.write("/\n")
@@ -201,18 +200,19 @@ class dfpt_run:
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="ph.x")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="ph.x", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="ph.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s ph.x < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s ph.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="phx", server=self.params["server"])
 
 
     def set_q2r(self, q2r_input={}, dynamat_file="phx.dyn", ifc_file="q2r.fc", mpi="", runopt="gen", zasr='simple'):
         """
         q2r.x:
-            calculation of Interatomic Force Constants(IFC) from 
+            calculation of Interatomic Force Constants(IFC) from
             Dynamical matrices from the phonon calculation
         """
         self.q2r_input = {
@@ -223,11 +223,10 @@ class dfpt_run:
         for item in q2r_input:
             self.q2r_input[item] = q2r_input[item]
 
-    def q2r(self, directory="tmp-qe-static", inpname="q2r.in", output="q2r.out", mpi="", runopt="gen", 
-            jobname="q2r", nodes=1, ppn=32):
+    def q2r(self, directory="tmp-qe-static", inpname="q2r.in", output="q2r.out", runopt="gen", auto=0):
         """
         q2r.x:
-            calculation of Interatomic Force Constants(IFC) from 
+            calculation of Interatomic Force Constants(IFC) from
             Dynamical matrices from the phonon calculation
         """
         # first check whether there is a previous scf running
@@ -252,12 +251,13 @@ class dfpt_run:
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="q2r.x")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="q2r.x", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="q2r.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s q2r.x < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s q2r.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="q2r", server=self.params["server"])
 
     def set_matdyn(self, matdyn_input={}, qpoints=None):
         """
@@ -274,13 +274,13 @@ class dfpt_run:
 
         Note:
             a good way is to obtain the qpoints through k points in qe band calculation
-            when you define the k points line defined by high symmetry k point in 
+            when you define the k points line defined by high symmetry k point in
             band structure calculation, the bands.x output file will contains all
             the kpoints used in addition to the high symmetry k point, and the corresponding
             x coordinates of the high symmetry k point for plot. for x coordinates for
             k points other than high symmetry k point, refer to the output band structure data
             of bands.x in gnuplot format, the first column is the corresonding x coordinates
-            for all the kpoints calculated. 
+            for all the kpoints calculated.
             and this process is achived already by script: pymatflow.qe.scripts.qe-get-matdyn-qpoints-from-bands-calc.py
         """
         self.matdyn_input = {
@@ -302,8 +302,7 @@ class dfpt_run:
         # if the label is a str like 'GAMMA', 'K', etc, the q point is a specialk,
         # if the label is None, then the q points is not a specialk
 
-    def matdyn(self, directory="tmp-qe-static", inpname="matdyn.in", output="matdyn.out", mpi="", runopt="gen",
-            jobname="matdyn", nodes=1, ppn=32):
+    def matdyn(self, directory="tmp-qe-static", inpname="matdyn.in", output="matdyn.out", runopt="gen", auto=0):
         """
         """
         # first check whether there is a previous scf running
@@ -336,14 +335,14 @@ class dfpt_run:
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="matdyn.x")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="matdyn.x", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="matdyn.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s matdyn.x < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s matdyn.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="matdyn", server=self.params["server"])
 
-    def plotband_for_matdyn(self, directory="tmp-qe-static", inpname="plotband.in", output="plotband.out", frequencies_file="matdyn.freq", mpi="", runopt="gen", freq_min=0, freq_max=600, efermi=0, freq_step=100.0, freq_reference=0.0,
-            jobname="plotband", nodes=1, ppn=32):
+    def plotband_for_matdyn(self, directory="tmp-qe-static", inpname="plotband.in", output="plotband.out", frequencies_file="matdyn.freq", runopt="gen", freq_min=0, freq_max=600, efermi=0, freq_step=100.0, freq_reference=0.0, auto=0):
         """
         plotband.x
             Plot the phonon dispersion
@@ -373,11 +372,12 @@ class dfpt_run:
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="plotband.x")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="plotband.x", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="plotband.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s plotband.x < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s plotband.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="plotband", server=self.params["server"])
 
     def set_dynmat(self, dynmat_input={}):
         """
@@ -410,8 +410,7 @@ class dfpt_run:
         for item in dynmat_input:
             self.dynmat_input[item] = dynmat_input[item]
 
-    def dynmat(self, directory="tmp-qe-static", inpname="dynmat-gamma.in", output="dynmat-gamma.out", mpi="", runopt="gen",
-            jobname="dynmat", nodes=1, ppn=32):
+    def dynmat(self, directory="tmp-qe-static", inpname="dynmat-gamma.in", output="dynmat-gamma.out", runopt="gen", auto=0):
         """
         the default output file name of dynamt.x is dynmat.out
         so we should not redirect the output of running of dynmat.x(not output file of dynamt.x)
@@ -436,16 +435,17 @@ class dfpt_run:
                             fout.write("%s = %s\n" % (item, self.dynmat_input[item]))
                 fout.write("/\n")
                 fout.write("\n")
-            
+
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="dynmat.x")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="dynmat.x", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="dynmat.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s dynmat.x < %s | tee %s" % (mpi, inpname, output))
+            os.system("%s dynmat.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="dynmat-gamma", server=self.params["server"])
 
     def ir_raman(self, directory="tmp-qe-static", mpi="", runopt="gen"):
         """
@@ -482,4 +482,3 @@ class dfpt_run:
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
             fout.write("\n")
             fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
-

@@ -7,6 +7,7 @@ import os
 import shutil
 import matplotlib.pyplot as plt
 
+from pymatflow.remote.server import server_handle
 from pymatflow.cp2k.cp2k import cp2k
 #from pymatflow.cp2k.base.glob import cp2k_glob
 #from pymatflow.cp2k.base.force_eval import cp2k_force_eval
@@ -26,7 +27,7 @@ TODO: implementing VIBRATIONAL SPECTRA calculating following this tutorial:
 class md_run(cp2k):
     """
     Note:
-        md_run is the class as an agent for Molecular Dynamics running. currently 
+        md_run is the class as an agent for Molecular Dynamics running. currently
         implemented md type includes AIMD.
     TODO:
         implement QMMM and classic MD.
@@ -34,7 +35,7 @@ class md_run(cp2k):
     def __init__(self):
         """
         xyz_f:
-            a modified xyz formatted file(the second line specifies the cell of the 
+            a modified xyz formatted file(the second line specifies the cell of the
             system).
         """
         super().__init__()
@@ -49,8 +50,7 @@ class md_run(cp2k):
         self.motion.set_type("MD")
 
 
-    def aimd(self, directory="tmp-cp2k-aimd", inpname="aimd.inp", output="aimd.out", mpi="", runopt="gen",
-            jobname="aimd", nodes=1, ppn=32):
+    def aimd(self, directory="tmp-cp2k-aimd", inpname="aimd.inp", output="aimd.out", runopt="gen", auto=0):
         """
         :param directory:
             directory is and path where the calculation will happen.
@@ -73,18 +73,18 @@ class md_run(cp2k):
             # gen server job comit file
             self.gen_yh(cmd="cp2k.popt", directory=directory, inpname=inpname, output=output)
             # gen pbs server job comit file
-            self.gen_pbs(cmd="cp2k.popt", directory=directory, inpname=inpname, output=output, jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(cmd="cp2k.popt", directory=directory, inpname=inpname, output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s cp2k.psmp -in %s | tee %s" % (mpi, inpname, output))
-            os.chdir("../")   
-
+            os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="aimd", server=self.params["server"])
 
     def ir_spectra(self):
         """
         if you are calculating ir spectra, you have to
-        have the dipole information for the molecule 
+        have the dipole information for the molecule
         available in the simulated trajectory.
         that is realized by FORCE_EVAL%DFT%LOCALIZE
 
@@ -107,9 +107,9 @@ class md_run(cp2k):
               chiral: VCD | ROA
 
             based on AIMD
-            most IR/Raman spectra from AIMD use wannier centers. but it has 
+            most IR/Raman spectra from AIMD use wannier centers. but it has
             disadvantages: huge computational overhead, not guranteed to
-            converge, only works for electrid dipole, cannot reproduce 
+            converge, only works for electrid dipole, cannot reproduce
             quadrupole(required for ROA)
             the idea behind Travis is to completely drop wannier localization
             and integrate molecular dipole via Voronoi instead.
@@ -162,7 +162,7 @@ class md_run(cp2k):
                 "MD-THERMOSTAT-NOSE-TIMECON": 10.0,
                 "MD-TEMPERATURE": 300,
                 })
-            
+
             # Stop spamming all kinds of restart backup / history files
             # Only one single restart file, which is written in every MD step
             self.motion.set_params({
@@ -177,14 +177,14 @@ class md_run(cp2k):
             # --------------------------------------------------------
             # 1. trajectory -> b): non-massive equilibration     20000 step
             # --------------------------------------------------------
-            
+
             # restart from last WFN instead of initial guess
             self.force_eval.set_params({
                 "DFT-SCF-SCF_GUESS": "RESTART",
                 })
             # Remove the MASSIVE after the first equilibration phase
-            # Weaker thermostat coupling (time constant 100 fs) for second 
-            # equilibration and production run Strong thermostat coupling 
+            # Weaker thermostat coupling (time constant 100 fs) for second
+            # equilibration and production run Strong thermostat coupling
             # might distort the dynamics and spectra...
             self.motion.set_params({
                 "MD-ENSEMBLE": "NVT",
@@ -194,7 +194,7 @@ class md_run(cp2k):
                 "MD-THERMOSTAT-REGION": None,
                 "MD-THERMOSTAT-NOSE-TIMECON": 100.0,
                 })
-            
+
             # need the EXT_RESTART block
             self.ext_restart.set_params({
                 "EXTERNAL_FILE": "ab-initio-1.restart",
@@ -209,7 +209,7 @@ class md_run(cp2k):
             # ------------------------------------------------
             # 1. trajectory -> c): production run    60000 step
             # ------------------------------------------------
-            
+
             self.motion.set_params({
                 "MD-ENSEMBLE": "NVT",
                 "MD-TIMESTEP": 0.5,
@@ -218,7 +218,7 @@ class md_run(cp2k):
                 "MD-THERMOSTAT-REGION": None,
                 "MD-THERMOSTAT-NOSE-TIMECON": 100.0,
                 })
-            
+
             # need the EXT_RESTART block
             self.ext_restart.set_params({
                 "EXTERNAL_FILE": "ab-initio-1.restart",
@@ -243,7 +243,7 @@ class md_run(cp2k):
             # For VCD and ROA: Need every frame (every 0.5 fs)
 
             # need an external electric field which works with periodic systems
-            # An external field strength of 5.0E‐3 a.u. is a good compromise 
+            # An external field strength of 5.0E‐3 a.u. is a good compromise
             # between noise and linearity (corresponds to 2.5 * 10 9 V/m !)
             # POLARIZATION gives the field vector (here: positive X direction)
             self.force_eval.dft.periodic_efield.status = True
@@ -251,7 +251,7 @@ class md_run(cp2k):
             self.force_eval.set_params({
                 "DFT-PERIODIC_EFIELD-INTENSITY": 5.0E-3,
                 "DFT-PERIODIC_EFIELD-POLARIZATION": [1.0, 0.0, 0.0],
-                }) 
+                })
 
             # Write the electron density in each MD step to a CUBE trajectory
             self.force_eval.dft.printout.status = True
@@ -282,7 +282,7 @@ class md_run(cp2k):
                 "PRINT-RESTART-BACKUP_COPIES": None,
                 "PRINT-RESTART-EACH-MD": 0,
                 "PRINT-RESTART_HISTORY-EACH-MD": 0,
-                })           
+                })
 
             with open(os.path.join(directory, "md-electron-density.inp"), 'w') as fout:
                 self.glob.to_input(fout)
@@ -305,5 +305,5 @@ class md_run(cp2k):
             os.system("%s cp2k.psmp -in %s | tee %s" % (mpi, "md-production-run.inp", "md-production-run.out"))
             os.system("%s cp2k.psmp -in %s | tee %s" % (mpi, "md-electron-density.inp", "md-electron-density.out"))
             os.chdir("../")
-    
+
     #

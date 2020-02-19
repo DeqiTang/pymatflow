@@ -5,6 +5,7 @@ import os
 import shutil
 import matplotlib.pyplot as plt
 
+from pymatflow.remote.server import server_handle
 from pymatflow.abinit.abinit import abinit
 
 class opt_run(abinit):
@@ -18,8 +19,7 @@ class opt_run(abinit):
         self.input.guard.set_queen(queen="opt")
 
 
-    def optimize(self, directory="tmp-abinit-opt", mpi="", runopt="gen",
-        jobname="abinit-opt", nodes=1, ppn=32):
+    def optimize(self, directory="tmp-abinit-opt", mpi="", runopt="gen", auto=0):
 
         self.input.electrons.set_scf_nscf("scf")
 
@@ -40,9 +40,9 @@ class opt_run(abinit):
 
             #
             # generate pbs job submit script
-            self.gen_pbs(directory=directory, script="optimization.pbs", cmd="abinit", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, script="optimization.pbs", cmd="abinit", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # generate local bash job run script
-            self.gen_bash(directory=directory, script="optimization.sh", cmd="abinit", mpi=mpi)
+            self.gen_bash(directory=directory, script="optimization.sh", cmd="abinit", mpi=self.run_params["mpi"])
 
 
         if runopt == "run" or runopt == "genrun":
@@ -50,6 +50,8 @@ class opt_run(abinit):
             #os.system("abinit < %s" % inpname.split(".")[0]+".files")
             os.system("bash %s" % "optimization.sh")
             os.chdir("../")
+            
+        server_handle(auto=auto, directory=directory, jobfilebase="optimization", server=self.params["server"])
 
     def analysis(self, directory="tmp-abinit-opt", inpname="geometric-optimization.in"):
         pass

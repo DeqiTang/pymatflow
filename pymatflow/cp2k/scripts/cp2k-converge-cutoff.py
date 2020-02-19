@@ -5,7 +5,6 @@ import os
 import argparse
 
 from pymatflow.cp2k.static import static_run
-from pymatflow.remote.server import server_handle
 
 """
 usage: cp2k-converge-cutoff.py xxx.xyz emin emax step rel_cutoff
@@ -25,6 +24,9 @@ if __name__ == "__main__":
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
+    parser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     # --------------------------------------------------------------------------
     # FORCE_EVAL related parameters
     # --------------------------------------------------------------------------
@@ -82,11 +84,10 @@ if __name__ == "__main__":
 
 
     # -----------------------------------------------------------------
-    #                      for server handling
+    #                      run params
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=3,
-            choices=[0, 1, 2, 3],
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+    parser.add_argument("--mpi", type=str, default="",
+            help="mpi command: like --mpi='mpirun -np 4'")
 
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
@@ -126,6 +127,5 @@ if __name__ == "__main__":
     task = static_run()
     task.get_xyz(args.file)
     task.set_params(params=params)
-    task.converge_cutoff(emin=args.range[0], emax=args.range[1], step=args.range[2], directory=args.directory, rel_cutoff=args.rel_cutoff, runopt=args.runopt, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
-
-    server_handle(auto=args.auto, directory=args.directory, jobfilebase="converge-cutoff", server=args.server)
+    task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+    task.converge_cutoff(emin=args.range[0], emax=args.range[1], step=args.range[2], directory=args.directory, rel_cutoff=args.rel_cutoff, runopt=args.runopt, auto=args.auto)

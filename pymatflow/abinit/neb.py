@@ -5,7 +5,7 @@ import os
 import shutil
 import matplotlib.pyplot as plt
 
-
+from pymatflow.remote.server import server_handle
 from pymatflow.abinit.abinit import abinit
 from pymatflow.abinit.base.system import abinit_system
 
@@ -49,8 +49,7 @@ class neb_run(abinit):
             system.xyz.get_xyz(image)
             self.images.append(system)
 
-    def neb(self, directory="tmp-abinit-neb", mpi="", runopt="gen",
-        jobname="abinit-neb", nodes=1, ppn=32):
+    def neb(self, directory="tmp-abinit-neb", runopt="gen", auto=0):
 
         self.files.name = "neb.files"
         self.files.main_in = "neb.in"
@@ -74,8 +73,8 @@ class neb_run(abinit):
             script="neb.pbs"
             with open(os.path.join(directory, script),  'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("#PBS -N %s\n" % jobname)
-                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
                 fout.write("\n")
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
@@ -100,6 +99,7 @@ class neb_run(abinit):
             os.chdir(directory)
             os.system("abinit < %s" % inpname.split(".")[0]+".files")
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="neb", server=self.params["server"])
 
     def images_to_input(self, fout):
         self.images[0].to_input(fout)

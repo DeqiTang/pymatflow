@@ -4,7 +4,6 @@
 import os
 import argparse
 from pymatflow.qe.static import static_run
-from pymatflow.remote.server import server_handle
 
 
 """
@@ -22,6 +21,9 @@ if __name__ == "__main__":
     parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
+
+    parser.add_argument("--auto", type=int, default=3,
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
 
     parser.add_argument("--plot-num", type=int, nargs="+", default=[0],
             choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 17, 18, 19, 20, 21],
@@ -55,17 +57,22 @@ if __name__ == "__main__":
             help="output file format for visualization. 0: gnuplot(1D), 1: no longer supported, 2: plotrho(2D), 3: XCRYSDEN(2d), 4: no longer supported, 5: XCRYSDEN(3D), 6: gaussian cube(3D), 7: gnuplot(2D)")
 
     # -----------------------------------------------------------------
-    #                      for server handling
+    #                       run params
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=3,
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+
+    parser.add_argument("--mpi", type=str, default="",
+            help="MPI command: like 'mpirun -np 4'")
+
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
+
     parser.add_argument("--jobname", type=str, default="pp.x",
             help="jobname on the pbs server")
+
     parser.add_argument("--nodes", type=int, default=1,
             help="Nodes used in server")
+
     parser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
 
@@ -83,6 +90,5 @@ if __name__ == "__main__":
     task = static_run()
     task.get_xyz(xyzfile)
     task.set_pp(inputpp=inputpp, plotpp=plotpp)
-    task.pp(directory=args.directory, runopt=args.runopt, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
-
-    server_handle(auto=args.auto, directory=args.directory, jobfilebase="pp.x", server=args.server)
+    task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+    task.pp(directory=args.directory, runopt=args.runopt, auto=args.auto)

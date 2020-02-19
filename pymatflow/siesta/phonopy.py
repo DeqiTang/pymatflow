@@ -6,6 +6,8 @@ import sys
 import os
 import shutil
 
+from pymatflow.remote.server import server_handle
+
 import pymatflow.base as base
 from pymatflow.siesta.siesta import siesta
 #from pymatflow.siesta.base.system import siesta_system
@@ -28,25 +30,24 @@ class phonopy_run(siesta):
         #self.electrons = siesta_electrons()
 
         self.electrons.basic_setting()
-            
-        self.supercell_n = [1, 1, 1] 
+
+        self.supercell_n = [1, 1, 1]
 
 
     def phonopy(self, directory="tmp-siesta-phonopy", inpname="phono-with-phonopy.fdf", output="phono-with-phonopy.out",
-            mpi="", runopt="gen",
-            jobname="siesta-phonopy", nodes=1, ppn=32):
+            runopt="gen", auto=0):
         """
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
-        
+
             for element in self.system.xyz.specie_labels:
                 shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
 
-            
-            # ok now we can use xyz class to extract information 
+
+            # ok now we can use xyz class to extract information
             # from the xyz file: sys.argv[1]
 
             #xyz = siesta_xyz_phonopy()
@@ -60,7 +61,7 @@ class phonopy_run(siesta):
                 fout.write("SystemLabel %s\n" % self.system.label)
                 fout.write("NumberOfSpecies %s\n" % self.system.xyz.nspecies)
 
-        
+
                 fout.write("%block ChemicalSpeciesLabel\n")
                 for element in self.system.xyz.specie_labels:
                     fout.write("\t%d\t%d\t%s\n" % (self.system.xyz.specie_labels[element], base.element[element].number, element))
@@ -77,7 +78,7 @@ class phonopy_run(siesta):
             pos_fdf_name = "pos.fdf"
             with open(os.path.join(directory, pos_fdf_name), 'w') as fout:
                 self.system.to_fdf(fout)
-            
+
             # set up the Phonopy calculation
             os.chdir(directory)
             os.system("phonopy --siesta -d --dim='%d %d %d' -c %s" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2], pos_fdf_name))
@@ -111,8 +112,8 @@ class phonopy_run(siesta):
             # gen pbs script
             with open(os.path.join(directory, "phonopy-job.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("#PBS -N %s\n" % jobname)
-                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
                 fout.write("\n")
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
@@ -131,8 +132,9 @@ class phonopy_run(siesta):
             # run every disp
             for disp in disp_dirs:
                 os.chdir("disp-%s" % disp)
-                os.system("siesta < supercell-%s.fdf | tee supercell-%s.out" % (disp, disp))
+                os.system("%s siesta < supercell-%s.fdf | tee supercell-%s.out" % (self.run_params["mpi"], disp, disp))
                 os.chdir("../")
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="phonopy-job", server=self.params["server"])
     #
     #

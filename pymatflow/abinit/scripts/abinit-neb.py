@@ -4,7 +4,6 @@
 import sys
 import argparse
 
-from pymatflow.remote.server import server_handle
 from pymatflow.abinit.neb import neb_run
 
 """
@@ -22,8 +21,11 @@ if __name__ == "__main__":
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
-    parser.add_argument("--mpi", type=str, default="",
-            help="MPI command: like 'mpirun -np 4'")
+    parser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+
+    # --------------------------------------------------------------------------
 
     parser.add_argument("--images", help="the image xyz file(--images first.xyz imtermediate-1.xyz intermediate-2.xyz ... last.xyz)", nargs='+', type=str)
 
@@ -56,11 +58,11 @@ if __name__ == "__main__":
 
 
     # -----------------------------------------------------------------
-    #                      for server handling
+    #                      run param
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=3,
-            choices=[0, 1, 2, 3],
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+
+    parser.add_argument("--mpi", type=str, default="",
+            help="MPI command: like 'mpirun -np 4'")
 
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
@@ -96,6 +98,5 @@ if __name__ == "__main__":
     task.get_images(images=args.images)
     task.set_params(params=params)
     task.set_kpoints(kpoints=kpoints)
-    task.neb(directory=args.directory, mpi=args.mpi, runopt=args.runopt)
-
-    server_handle(auto=args.auto, directory=args.directory, jobfilebase="neb", server=args.server)
+    task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+    task.neb(directory=args.directory, runopt=args.runopt, auto=args.auto)

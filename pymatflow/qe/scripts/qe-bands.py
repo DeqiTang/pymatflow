@@ -5,7 +5,7 @@ import os
 import argparse
 
 from pymatflow.qe.static import static_run
-from pymatflow.remote.server import server_handle
+
 
 """
 usage:
@@ -29,9 +29,9 @@ if __name__ == "__main__":
     parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
-            
-    parser.add_argument("--mpi", type=str, default="",
-            help="MPI command: like 'mpirun -np 4'")
+
+    parser.add_argument("--auto", type=int, default=3,
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
 
     # -------------------------------------------------------------------
     #                       scf related parameters
@@ -85,17 +85,22 @@ if __name__ == "__main__":
             help="set lsym variable in bands.x input.")
 
     # -----------------------------------------------------------------
-    #                      for server handling
+    #                       run params
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=3,
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+
+    parser.add_argument("--mpi", type=str, default="",
+            help="MPI command: like 'mpirun -np 4'")
+
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
-    parser.add_argument("--jobname", type=str, default="qe-bands-structure",
+
+    parser.add_argument("--jobname", type=str, default="qe-band-structure",
             help="jobname on the pbs server")
+
     parser.add_argument("--nodes", type=int, default=1,
             help="Nodes used in server")
+
     parser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
 
@@ -178,6 +183,5 @@ if __name__ == "__main__":
     task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp, crystal_b=crystal_b)
     task.set_params(control=control, system=system, electrons=electrons)
     task.set_bands(bands_input=bands)
-    task.bands(directory=args.directory, mpi=args.mpi, runopt=args.runopt, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
-
-    server_handle(auto=args.auto, directory=args.directory, jobfilebase="band-structure", server=args.server)
+    task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+    task.bands(directory=args.directory, runopt=args.runopt, auto=args.auto)

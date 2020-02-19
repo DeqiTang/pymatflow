@@ -6,7 +6,7 @@ import sys
 import os
 import shutil
 
-
+from pymatflow.remote.server import server_handle
 from pymatflow.siesta.siesta import siesta
 #from pymatflow.siesta.base.system import siesta_system
 #from pymatflow.siesta.base.electrons import siesta_electrons
@@ -26,15 +26,14 @@ class md_run(siesta):
         self.ions.basic_setting(option="md")
 
     def md(self, directory="tmp-siesta-md", inpname="molecular-dynamics.fdf", output="molecular-dynamics.out",
-            mpi="", runopt="gen",
-            jobname="siesta-md", nodes=1, ppn=32):
+            runopt="gen", auto=0):
         """
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
-        
+
             for element in self.system.xyz.specie_labels:
                 shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
 
@@ -46,12 +45,13 @@ class md_run(siesta):
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="siesta")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="siesta", jobname=jobname, nodes=nodes, ppn=ppn)
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="siesta", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             # run the simulation
             os.chdir(directory)
-            os.system("siesta < %s | tee %s" % (inpname, output))
+            os.system("%s siesta < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="molecular-dynamics", server=self.params["server"])
 
     #

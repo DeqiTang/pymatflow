@@ -20,12 +20,20 @@ class siesta:
         self.electrons = siesta_electrons()
         self.ions = siesta_ions()
         self.properties = siesta_properties()
-        
+
         self.electrons.basic_setting()
+
+        self._initialize()
+
+    def _initialize(self):
+        """ initialize the current object, do some default setting
+        """
+        self.run_params = {}
+        self.set_run()
 
     def get_xyz(self, xyzfile):
         self.system.xyz.get_xyz(xyzfile)
-        self.properties.set_xyz(self.system.xyz) 
+        self.properties.set_xyz(self.system.xyz)
 
     def set_params(self, params={}):
         for item in params:
@@ -38,9 +46,20 @@ class siesta:
 
     def set_kpoints(self, kpoints_mp=[1, 1, 1]):
         self.electrons.kpoints_mp = kpoints_mp
-    
+
     def set_spin(self, spin="non-polarized"):
         self.electrons.set_spin(spin)
+
+    def set_run(self, mpi="", server="pbs", jobname="cp2k", nodes=1, ppn=32):
+        """ used to set  the parameters controlling the running of the task
+        :param mpi: you can specify the mpi command here, it only has effect on native running
+
+        """
+        self.run_params["server"] = server
+        self.run_params["mpi"] = ""
+        self.run_params["jobname"] = jobname
+        self.run_params["nodes"] = nodes
+        self.run_params["ppn"] = ppn
 
     def gen_yh(self, inpname, output, directory="tmp-siesta-static", cmd="siesta"):
         """
@@ -62,4 +81,3 @@ class siesta:
             fout.write("cd $PBS_O_WORKDIR\n")
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
             fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
-
