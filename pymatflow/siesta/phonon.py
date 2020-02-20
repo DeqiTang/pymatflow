@@ -34,6 +34,7 @@ class phonon_run(siesta):
                 shutil.rmtree(directory)
             os.mkdir(directory)
 
+            shutil.copyfile(self.system.xyz.file, os.path.join(directory, os.path.basename(self.system.xyz.file)))
             for element in self.system.xyz.specie_labels:
                 shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
 
@@ -62,4 +63,4 @@ class phonon_run(siesta):
             # analyse the result
             import matplotlib.pyplot as plt
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="phonon", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="phonon", server=self.run_params["server"])

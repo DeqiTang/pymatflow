@@ -12,7 +12,7 @@ from pymatflow.qe.static import static_run
 
 
 
-def dielectric_pw(xyz_f, directory="tmp-qe-static", mpi="", runopt="gen", auto=0
+def dielectric_pw(xyz_f, directory="tmp-qe-static", mpi="", runopt="gen", auto=0,
         control={}, system={}, electrons={}, kpoints_option="automatic", kpoints_mp=[2, 2, 2, 0, 0, 0]):
     """
     directory: a place for all the generated files
@@ -49,7 +49,7 @@ def dielectric_pw(xyz_f, directory="tmp-qe-static", mpi="", runopt="gen", auto=0
         # do not copy too many files at the same time or it will be slow
         # so we do not copy all UPF files in the directory but just copy
         # those used in the calculation.
-        shutil.copyfile(qe.arts.xyz.file, os.path.join(directory, qe.arts.xyz.file))
+        shutil.copyfile(qe.arts.xyz.file, os.path.join(directory, os.path.basename(qe.arts.xyz.file)))
         all_upfs = [s for s in os.listdir() if s.split(".")[-1] == "UPF"]
         for element in qe.arts.xyz.specie_labels:
             for upf in all_upfs:

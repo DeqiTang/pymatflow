@@ -34,6 +34,7 @@ class md_run(siesta):
                 shutil.rmtree(directory)
             os.mkdir(directory)
 
+            shutil.copyfile(self.system.xyz.file, os.path.join(directory, os.path.basename(self.system.xyz.file)))
             for element in self.system.xyz.specie_labels:
                 shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
 
@@ -52,6 +53,6 @@ class md_run(siesta):
             os.chdir(directory)
             os.system("%s siesta < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="molecular-dynamics", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="molecular-dynamics", server=self.run_params["server"])
 
     #

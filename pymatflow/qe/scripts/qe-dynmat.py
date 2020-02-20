@@ -16,9 +16,16 @@ dynmat_input = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory for the static running", type=str, default="tmp-qe-static")
-    parser.add_argument("--mpi", help="MPI commadn", type=str, default="")
-    parser.add_argument("-f", "--file", help="the xyz file", type=str)
+
+    parser.add_argument("-d", "--directory", type=str, default="tmp-qe-static",
+            help="directory for the static running")
+
+    parser.add_argument("--mpi", type=str, default="",
+            help="MPI commadn")
+
+    parser.add_argument("-f", "--file", type=str,
+            help="the xyz file")
+
     parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")

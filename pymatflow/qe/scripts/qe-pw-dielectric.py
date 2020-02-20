@@ -22,6 +22,7 @@ if __name__ == "__main__":
 
     parser.add_argument("-d", "--directory", type=str, default="tmp-qe-pw-dielectric",
             help="Directory for the static running.")
+
     parser.add_argument("-f", "--file", type=str,
             help="The xyz file name.")
 
@@ -112,4 +113,4 @@ if __name__ == "__main__":
     electrons_params["conv_thr"] = args.conv_thr
 
 
-    dielectric_pw(xyz_f=args.file, directory=args.directory, runopt=args.runopt, mpi=args.mpi, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp, auto=args.auto)
+    dielectric_pw(xyz_f=args.file, directory=args.directory, runopt=args.runopt, auto=args.auto mpi=args.mpi, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)

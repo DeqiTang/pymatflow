@@ -157,4 +157,5 @@ if __name__ == "__main__":
     task.get_images(images=args.images)
     task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
     task.set_path(path=path)
-    task.neb(directory=directory, mpi=args.mpi, runopt=args.runopt, restart_mode=args.restart_mode, auto=args.auto)
+    task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+    task.neb(directory=directory, runopt=args.runopt, restart_mode=args.restart_mode, auto=args.auto)

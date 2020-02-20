@@ -9,7 +9,6 @@ from pymatflow.qe.static import static_run
 
 """
 usage:
-    qe-bands.py -f xxx.xyz
 """
 
 control = {}

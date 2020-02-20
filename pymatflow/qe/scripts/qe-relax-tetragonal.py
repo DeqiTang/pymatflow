@@ -143,7 +143,7 @@ if __name__ == "__main__":
         shutil.rmtree(args.directory)
     os.mkdir(args.directory)
 
-    shutil.copyfile(task.arts.xyz.file, os.path.join(args.directory, task.arts.xyz.file))
+    shutil.copyfile(task.arts.xyz.file, os.path.join(args.directory, os.path.basename(task.arts.xyz.file)))
     all_upfs = [s for s in os.listdir() if s.split(".")[-1] == "UPF"]
     for element in task.arts.xyz.specie_labels:
         for upf in all_upfs:

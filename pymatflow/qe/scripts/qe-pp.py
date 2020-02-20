@@ -15,8 +15,12 @@ plotpp = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of the static running", type=str, default="tmp-qe-static")
-    parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+
+    parser.add_argument("-d", "--directory", type=str, default="tmp-qe-static",
+            help="directory of the static running")
+
+    parser.add_argument("-f", "--file", type=str,
+            help="the xyz file name")
 
     parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
@@ -52,6 +56,7 @@ if __name__ == "__main__":
             default=3,
             choices=[0, 1, 2, 3, 4],
             help="dimension of the plot. 0: 1D plot of the spherical average, 1: 1D plot, 2: 2D plot, 3: 3D plot, 4: 2D polar plot on a sphere")
+
     parser.add_argument("--output-format", type=int, default=5,
             choices=[0, 1, 2, 3, 4, 5, 6, 7],
             help="output file format for visualization. 0: gnuplot(1D), 1: no longer supported, 2: plotrho(2D), 3: XCRYSDEN(2d), 4: no longer supported, 5: XCRYSDEN(3D), 6: gaussian cube(3D), 7: gnuplot(2D)")

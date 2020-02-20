@@ -180,7 +180,7 @@ class cp2k:
 
         """
         self.run_params["server"] = server
-        self.run_params["mpi"] = ""
+        self.run_params["mpi"] = mpi
         self.run_params["jobname"] = jobname
         self.run_params["nodes"] = nodes
         self.run_params["ppn"] = ppn

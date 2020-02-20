@@ -16,9 +16,15 @@ projwfc_input = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory for the static running", type=str, default="tmp-qe-static")
-    parser.add_argument("--mpi", help="MPI commadn", type=str, default="")
-    parser.add_argument("-f", "--file", help="the xyz file", type=str)
+
+    parser.add_argument("-d", "--directory", type=str, default="tmp-qe-static",
+            help="directory for the static running")
+
+    parser.add_argument("--mpi", type=str, default="",
+            help="MPI command")
+
+    parser.add_argument("-f", "--file", type=str,
+            help="the xyz file")
 
     parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
@@ -27,12 +33,23 @@ if __name__ == "__main__":
     parser.add_argument("--auto", type=int, default=3,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
 
-    parser.add_argument("--filpdos", help="output projected dos file name", type=str, default="projwfc")
-    parser.add_argument("--ngauss", help="gaussian broadening type", type=str, default='default')
-    parser.add_argument("--degauss", help="gaussian broadening", type=str, default='default')
-    parser.add_argument("--emin", help="min energy for DOS", type=str, default='default')
-    parser.add_argument("--emax", help="max energy for DOS", type=str, default='default')
-    parser.add_argument("--deltae", help="DeltaE: energy grid step (eV)", type=str, default='default')
+    parser.add_argument("--filpdos", type=str, default="projwfc",
+            help="output projected dos file name")
+
+    parser.add_argument("--ngauss", type=str, default="default",
+            help="gaussian broadening type")
+
+    parser.add_argument("--degauss", type=str, default='default',
+            help="gaussian broadening", type=str, default='default')
+
+    parser.add_argument("--emin", type=str, default='default',
+            help="min energy for DOS", type=str, default='default')
+
+    parser.add_argument("--emax", type=str, default='default',
+            help="max energy for DOS", type=str, default='default')
+
+    parser.add_argument("--deltae", type=str, default='default',
+            help="DeltaE: energy grid step (eV)")
 
     # -----------------------------------------------------------------
     #                       run params

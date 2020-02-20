@@ -58,7 +58,7 @@ class static_run(pwscf):
             # do not copy too many files at the same time or it will be slow
             # so we do not copy all UPF files in the directory but just copy
             # those used in the calculation.
-            shutil.copyfile(self.arts.xyz.file, os.path.join(directory, self.arts.xyz.file))
+            shutil.copyfile(self.arts.xyz.file, os.path.join(directory, os.path.basename(self.arts.xyz.file)))
             all_upfs = [s for s in os.listdir() if s.split(".")[-1] == "UPF"]
             for element in self.arts.xyz.specie_labels:
                 for upf in all_upfs:
@@ -82,7 +82,7 @@ class static_run(pwscf):
             os.chdir(directory)
             os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="static-scf", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="static-scf", server=self.run_params["server"])
 
     def nscf(self, directory="tmp-qe-static", inpname="static-nscf.in", output="static-nscf.out", runopt='gen', auto=0):
         """
@@ -120,7 +120,7 @@ class static_run(pwscf):
             os.chdir(directory)
             os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="static-nscf", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="static-nscf", server=self.run_params["server"])
 
     def converge_ecutwfc(self, emin, emax, step, directory="tmp-qe-ecutwfc", runopt="gen", auto=0):
         if runopt == "gen" or runopt == "genrun":
@@ -174,7 +174,7 @@ class static_run(pwscf):
                 out_f_name = "ecutwfc-%d.out" % ecut_wfc
                 os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inp_name, out_f_name))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="converge-ecutwfc", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="converge-ecutwfc", server=self.run_params["server"])
 
 
     def converge_ecutrho(self, emin, emax, step, ecutwfc, directory="tmp-qe-ecutrho", runopt="gen", auto=0):
@@ -230,7 +230,7 @@ class static_run(pwscf):
                 out_f_name = "ecutrho-%d.out" % ecut_rho
                 os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inp_name, out_f_name))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="converge-ecutrho", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="converge-ecutrho", server=self.run_params["server"])
     #
     def converge_kpoints(self, nk_min, nk_max, step=1, directory="tmp-qe-kpoints", runopt="gen", auto=0):
         """
@@ -294,7 +294,7 @@ class static_run(pwscf):
                 out_f_name = "kpoints-%d.out" % nk
                 os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inp_name, out_f_name))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="converge-kpoints", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="converge-kpoints", server=self.run_params["server"])
 
     def converge_degauss(self,degauss_min, degauss_max, step=0.01, directory="tmp-qe-degauss", runopt="gen", auto=0):
         """
@@ -376,7 +376,7 @@ class static_run(pwscf):
                 out_f_name = "degauss-%f.out" % degauss
                 os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inp_name, out_f_name))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="converge-degauss", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="converge-degauss", server=self.run_params["server"])
 
 
     def dos(self, directory="tmp-qe-static", inpname="static-dos.in", output="static-dos.out",
@@ -460,7 +460,7 @@ class static_run(pwscf):
             os.chdir(directory)
             os.system("%s dos.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="static-dos", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="static-dos", server=self.run_params["server"])
 
     def set_bands(self, bands_input={}):
         self.bands_input = {
@@ -533,7 +533,7 @@ class static_run(pwscf):
             os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inpname1, output1))
             os.system("%s bands.x < %s | tee %s" % (self.run_params["mpi"], inpname2, output2))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="band-structure.pbs", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="band-structure.pbs", server=self.run_params["server"])
 
     def set_projwfc(self, projwfc_input={}):
         """
@@ -634,7 +634,7 @@ class static_run(pwscf):
             os.chdir(directory)
             os.system("%s projwfc.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="static-projwfc.pbs", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="static-projwfc.pbs", server=self.run_params["server"])
 
     def set_molecularpdos(self, inputmopdos={}):
         """
@@ -718,7 +718,7 @@ class static_run(pwscf):
             os.chdir(directory)
             os.system("%s molecularpdos.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="static-molecular-pdos", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="static-molecular-pdos", server=self.run_params["server"])
 
 
     def fermi_surface(self, directory="tmp-qe-static", inpname="fermi-surface.in", output="fermi-surface.out", runopt="gen", auto=0):
@@ -748,7 +748,7 @@ class static_run(pwscf):
             os.chdir(directory)
             os.system("%s fs.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="fermi-surface", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="fermi-surface", server=self.run_params["server"])
 
     def set_pp(self, inputpp={}, plotpp={}):
         self.inputpp = {
@@ -831,7 +831,7 @@ class static_run(pwscf):
             for plot_num_i in self.inputpp["plot_num"]:
                 os.system("%s pp.x < %s | tee %s" % (self.run_params["mpi"], prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="pp.x", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="pp.x", server=self.run_params["server"])
 
 
     def _pp_inputpp(self, fout, plot_num, filplot):
@@ -954,5 +954,5 @@ class static_run(pwscf):
             os.chdir(directory)
             os.system("%s xspectra.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="xspectra", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="xspectra", server=self.run_params["server"])
     #

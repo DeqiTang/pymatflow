@@ -180,14 +180,14 @@ if __name__ == "__main__":
     task = opt_run()
     task.get_xyz(args.file)
     # must be set_geo_opt() here
-    task.set_geo_opt() 
+    task.set_geo_opt()
     task.set_params(params=params)
 
     if os.path.exists(args.directory):
         shutil.rmtree(args.directory)
     os.mkdir(args.directory)
 
-    shutil.copyfile(task.force_eval.subsys.xyz.file, os.path.join(args.directory, task.force_eval.subsys.xyz.file))
+    shutil.copyfile(task.force_eval.subsys.xyz.file, os.path.join(args.directory, os.path.basename(task.force_eval.subsys.xyz.file)))
 
     #
     os.chdir(args.directory)

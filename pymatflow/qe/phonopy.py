@@ -62,7 +62,7 @@ class phonopy_run(pwscf):
             # do not copy too many files at the same time or it will be slow
             # so we do not copy all UPF files in the directory but just copy
             # those used in the calculation.
-            shutil.copyfile(self.arts.xyz.file, os.path.join(directory, self.arts.xyz.file))
+            shutil.copyfile(self.arts.xyz.file, os.path.join(directory, os.path.basename(self.arts.xyz.file)))
             all_upfs = [s for s in os.listdir() if s.split(".")[-1] == "UPF"]
             for element in self.arts.xyz.specie_labels:
                 for upf in all_upfs:
@@ -136,6 +136,6 @@ class phonopy_run(pwscf):
             for disp in disp_dirs:
                 os.system("%s pw.x < supercell-%s-full.in | tee supercell-%s.out" % (self.run_params["mpi"], disp, disp))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="phonopy-job", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="phonopy-job", server=self.run_params["server"])
     #
     #

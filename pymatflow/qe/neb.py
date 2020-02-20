@@ -91,7 +91,7 @@ class neb_run(pwscf):
                 # so we do not copy all UPF files in the directory but just copy
                 # those used in the calculation.
                 for art in self.images:
-                    shutil.copyfile(art.xyz.file, os.path.join(directory, art.xyz.file))
+                    shutil.copyfile(art.xyz.file, os.path.join(directory, os.path.basename(art.xyz.file)))
                 all_upfs = [s for s in os.listdir() if s.split(".")[-1] == "UPF"]
                 for element in self.arts.xyz.specie_labels:
                     for upf in all_upfs:
@@ -143,7 +143,7 @@ class neb_run(pwscf):
             os.chdir(directory)
             os.system("%s neb.x -inp %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="neb", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="neb", server=self.run_params["server"])
 
     def images_to_neb(self, fout):
         # fout: a file stream for writing

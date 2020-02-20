@@ -31,7 +31,7 @@ class md_run(pwscf):
             # do not copy too many files at the same time or it will be slow
             # so we do not copy all UPF files in the directory but just copy
             # those used in the calculation.
-            shutil.copyfile(self.arts.xyz.file, os.path.join(directory, self.arts.xyz.file))
+            shutil.copyfile(self.arts.xyz.file, os.path.join(directory, os.path.basename(self.arts.xyz.file)))
             all_upfs = [s for s in os.listdir() if s.split(".")[-1] == "UPF"]
             for element in self.arts.xyz.specie_labels:
                 for upf in all_upfs:
@@ -55,7 +55,7 @@ class md_run(pwscf):
             os.chdir(directory)
             os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="md", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="md", server=self.run_params["server"])
 
     def vc_md(self, directory="tmp-qe-vc-md", inpname="vc-md.in", output="vc-md.out", runopt="gen", auto=0):
         """
@@ -99,7 +99,7 @@ class md_run(pwscf):
             os.chdir(directory)
             os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="vc-md", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="vc-md", server=self.run_params["server"])
 
     def set_md(self):
         self.control.calculation('md')

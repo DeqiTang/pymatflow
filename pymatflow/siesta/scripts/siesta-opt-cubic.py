@@ -153,7 +153,7 @@ if __name__ == "__main__":
     for element in task.system.xyz.specie_labels:
         shutil.copyfile("%s.psf" % element, os.path.join(args.directory, "%s.psf" % element))
 
-    shutil.copyfile(task.system.xyz.file, os.path.join(args.directory, task.system.xyz.file))
+    shutil.copyfile(task.system.xyz.file, os.path.join(args.directory, os.path.basename(task.system.xyz.file)))
 
     #
     os.chdir(args.directory)

@@ -21,6 +21,7 @@ if __name__ == "__main__":
 
     parser.add_argument("-d", "--directory", type=str, default="tmp-qe-static",
             help="Directory for the static running.")
+
     parser.add_argument("-f", "--file", type=str,
             help="The xyz file name.")
 

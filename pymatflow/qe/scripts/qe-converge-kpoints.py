@@ -16,8 +16,12 @@ electrons_params = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-qe-kpoints")
-    parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+
+    parser.add_argument("-d", "--directory", type=str, default="tmp-qe-kpoints",
+            help="directory of the calculation")
+
+    parser.add_argument("-f", "--file", type=str,
+            help="the xyz file name")
 
     parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
@@ -28,12 +32,17 @@ if __name__ == "__main__":
 
     # --------------------------------------------------------------------------
 
-    parser.add_argument("--ecutwfc", help="better specify a converged ecutwfc", type=int, default=100)
+    parser.add_argument("--ecutwfc", type=int, default=100,
+            help="better specify a converged ecutwfc")
 
     parser.add_argument("--ecutrho", type=int, default=None,
             help="Kinetic energy cutoff for charge density and potential in unit of Rydberg, default value: None")
-    parser.add_argument("--range", help="nk_min nk_max step", nargs='+', type=int)
-    parser.add_argument("--conv-thr", help="conv_thr", type=float, default=1.0e-6)
+
+    parser.add_argument("--range", nargs="+", type=int,
+            help="nk_min nk_max step")
+
+    parser.add_argument("--conv-thr", type=float, default=1.0e-6,
+            help="conv_thr")
 
     parser.add_argument("--occupations", type=str, default="smearing",
             choices=["smearing", "tetrahedra", "tetrahedra_lin", "tetrahedra_opt", "fixed", "from_input"],

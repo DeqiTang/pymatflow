@@ -86,4 +86,5 @@ if __name__ == "__main__":
     task = dfpt_run()
     task.get_xyz(xyzfile)
     task.set_inputph(inputph=inputph)
-    task.phx(directory=args.directory, mpi=args.mpi, runopt=args.runopt, auto=args.auto)
+    task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+    task.phx(directory=args.directory, runopt=args.runopt, auto=args.auto)

@@ -50,7 +50,7 @@ class static_run(abinit):
             os.system("bash %s" % "static-scf.sh")
             os.chdir("../")
 
-        server_handle(auto=auto, directory=directory, jobfilebase="static-scf", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="static-scf", server=self.run_params["server"])
 
     def nscf(self, directory="tmp-abinit-static", runopt="gen", auto=0):
 
@@ -134,7 +134,7 @@ class static_run(abinit):
             os.system("bash %s" % "static-bands.sh")
             os.chdir("../")
 
-        server_handle(auto=auto, directory=directory, jobfilebase="static-bands", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="static-bands", server=self.run_params["server"])
 
     def converge_ecut(self, emin, emax, step, directory="tmp-abinit-ecut", runopt="gen", auto=0):
 
@@ -215,4 +215,4 @@ class static_run(abinit):
                 os.system("abinit < %s" % (files_name))
             os.chdir("../")
 
-        server_handle(auto=auto, directory=directory, jobfilebase="converge-ecut", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="converge-ecut", server=self.run_params["server"])

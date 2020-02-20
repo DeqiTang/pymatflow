@@ -62,7 +62,7 @@ class phonopy_run(cp2k):
             os.mkdir(directory)
 
             os.chdir(directory)
-            shutil.copyfile("../%s" % self.force_eval.subsys.xyz.file, "%s" % self.force_eval.subsys.xyz.file)
+            shutil.copyfile(self.force_eval.subsys.xyz.file, "%s" % os.path.basename(self.force_eval.subsys.xyz.file))
 
             inp_name = "phonon.inp"
             with open(inp_name, 'w') as fout:
@@ -152,7 +152,7 @@ class phonopy_run(cp2k):
                 in_name = "supercell-%s.inp" % disp
                 os.system("%s cp2k.psmp -in phonon-supercell-%s.inp | tee phonon-supercell-%s.inp.out" % (self.run_params["mpi"], disp, disp))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="phonopy-job", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="phonopy-job", server=self.run_params["server"])
 
 
     def to_subsys_phonopy(self, fname):

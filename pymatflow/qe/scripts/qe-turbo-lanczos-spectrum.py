@@ -15,6 +15,7 @@ lr_input_ts = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+
     parser.add_argument("-d", "--directory", type=str, default="tmp-qe-static",
             help="directory of the calculation")
 
@@ -84,4 +85,5 @@ if __name__ == "__main__":
     #task.get_xyz(args.file)
     task.set_turbo_lanczos(lr_input=lr_input_tl, lr_control=lr_control_tl)
     task.set_turbo_spectrum(lr_input=lr_input_ts)
+    task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
     task.turbo_lanczos(directory=args.directory, runopt=args.runopt, auto=args.auto)

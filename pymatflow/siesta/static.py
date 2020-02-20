@@ -31,6 +31,7 @@ class static_run(siesta):
                 shutil.rmtree(directory)
             os.mkdir(directory)
 
+            shutil.copyfile(self.system.xyz.file, os.path.join(directory, os.path.basename(self.system.xyz.file)))
             for element in self.system.xyz.specie_labels:
                 shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
 
@@ -50,7 +51,7 @@ class static_run(siesta):
             os.chdir(directory)
             os.system("%s siesta < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="static-scf", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="static-scf", server=self.run_params["server"])
 
     def scf_restart(self, directory="tmp-siesta-static", inpname="static-scf-restart.fdf", output="static-scf-restart.out",
         runopt="gen", auto=0, properties=[]):
@@ -82,7 +83,7 @@ class static_run(siesta):
             os.chdir(directory)
             os.system("%s siesta < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="static-scf-restart", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="static-scf-restart", server=self.run_params["server"])
 
 
     def converge_cutoff(self, emin, emax, step, directory="tmp-siesta-cutoff", runopt="gen", auto=0):
@@ -91,6 +92,7 @@ class static_run(siesta):
                 shutil.rmtree(directory)
             os.mkdir(directory)
 
+            shutil.copyfile(self.system.xyz.file, os.path.join(directory, os.path.basename(self.system.xyz.file)))
             for element in self.system.xyz.specie_labels:
                 shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
 
@@ -136,6 +138,6 @@ class static_run(siesta):
                 meshcutoff = int(emin + i * step)
                 os.system("%s siesta < cutoff-%d.fdf | tee cutoff-%d.out" % (self.run_params["mpi"], meshcutoff, meshcutoff))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="converge-cutoff", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="converge-cutoff", server=self.run_params["server"])
 
     #

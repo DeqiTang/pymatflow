@@ -23,6 +23,7 @@ if __name__ == "__main__":
 
     parser.add_argument("-d", "--directory", type=str, default="tmp-qe-phonopy",
             help="Directory for the phonopy running.")
+
     parser.add_argument("-f", "--file", type=str,
             help="The xyz file name.")
 

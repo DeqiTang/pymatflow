@@ -14,9 +14,13 @@ inputmopdos = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory for the static running", type=str, default="tmp-qe-static")
-    parser.add_argument("--mpi", help="MPI commadn", type=str, default="")
-    parser.add_argument("-f", "--file", help="the xyz file", type=str)
+
+    parser.add_argument("-d", "--directory", type=str, default="tmp-qe-static",
+            help="directory for the static running")
+
+    parser.add_argument("-f", "--file", type=str,
+            help="the xyz file")
+
     parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
@@ -24,12 +28,23 @@ if __name__ == "__main__":
     parser.add_argument("--auto", type=int, default=3,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
 
-    parser.add_argument("--fileout", help="prefix of output files containging molecular PDOS", type=str, default="molecularpdos")
-    parser.add_argument("--ngauss", help="gaussian broadening type", type=int, default=0)
-    parser.add_argument("--degauss", help="gaussian broadening in Ry", type=float, default=0.001)
-    parser.add_argument("--emin", help="min energy for PDOS", type=str, default='default')
-    parser.add_argument("--emax", help="max energy for PDOS", type=str, default='default')
-    parser.add_argument("--deltae", help="DeltaE: energy grid step (eV)", type=str, default='default')
+    parser.add_argument("--fileout", type=str, default="molecularpdos",
+            help="prefix of output files containging molecular PDOS")
+
+    parser.add_argument("--ngauss", type=int, default=0，
+            help="gaussian broadening type")
+
+    parser.add_argument("--degauss", type=float, default=0.001,
+            help="gaussian broadening in Ry")
+
+    parser.add_argument("--emin", type=str, default='default',
+            help="min energy for PDOS")
+
+    parser.add_argument("--emax", type=str, default='default',
+            help="max energy for PDOS")
+
+    parser.add_argument("--deltae", type=str, default='default',
+            help="DeltaE: energy grid step (eV)")
 
     # -----------------------------------------------------------------
     #                       run params

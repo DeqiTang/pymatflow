@@ -7,6 +7,8 @@ import shutil
 import numpy as np
 import matplotlib.pyplot as plt
 
+from pymatflow.remote.server import server_handle
+
 from pymatflow.qe.base.control import qe_control
 from pymatflow.qe.base.system import qe_system
 from pymatflow.qe.base.electrons import qe_electrons
@@ -61,6 +63,25 @@ class dfpt_run:
         self.electrons.basic_setting()
 
         self.set_inputph() # default setting
+
+        self._initialize()
+
+    def _initialize(self):
+        """ initialize the current object, do some default setting
+        """
+        self.run_params = {}
+        self.set_run()
+
+    def set_run(self, mpi="", server="pbs", jobname="qe", nodes=1, ppn=32):
+        """ used to set  the parameters controlling the running of the task
+        :param mpi: you can specify the mpi command here, it only has effect on native running
+
+        """
+        self.run_params["server"] = server
+        self.run_params["mpi"] = mpi
+        self.run_params["jobname"] = jobname
+        self.run_params["nodes"] = nodes
+        self.run_params["ppn"] = ppn
 
     def get_xyz(self, xyzfile):
         """
@@ -206,7 +227,7 @@ class dfpt_run:
             os.chdir(directory)
             os.system("%s ph.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="phx", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="phx", server=self.run_params["server"])
 
 
     def set_q2r(self, q2r_input={}, dynamat_file="phx.dyn", ifc_file="q2r.fc", mpi="", runopt="gen", zasr='simple'):
@@ -257,7 +278,7 @@ class dfpt_run:
             os.chdir(directory)
             os.system("%s q2r.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="q2r", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="q2r", server=self.run_params["server"])
 
     def set_matdyn(self, matdyn_input={}, qpoints=None):
         """
@@ -340,7 +361,7 @@ class dfpt_run:
             os.chdir(directory)
             os.system("%s matdyn.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="matdyn", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="matdyn", server=self.run_params["server"])
 
     def plotband_for_matdyn(self, directory="tmp-qe-static", inpname="plotband.in", output="plotband.out", frequencies_file="matdyn.freq", runopt="gen", freq_min=0, freq_max=600, efermi=0, freq_step=100.0, freq_reference=0.0, auto=0):
         """
@@ -377,7 +398,7 @@ class dfpt_run:
             os.chdir(directory)
             os.system("%s plotband.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="plotband", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="plotband", server=self.run_params["server"])
 
     def set_dynmat(self, dynmat_input={}):
         """
@@ -445,7 +466,7 @@ class dfpt_run:
             os.chdir(directory)
             os.system("%s dynmat.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="dynmat-gamma", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="dynmat-gamma", server=self.run_params["server"])
 
     def ir_raman(self, directory="tmp-qe-static", mpi="", runopt="gen"):
         """

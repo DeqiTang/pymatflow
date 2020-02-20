@@ -26,7 +26,7 @@ Note:
 def epsilon_stress_strain(xyz):
     """
     using stress-strain relationship to calculate elastica constant
-    
+
     :param xyz:
         an instance of base_xyz()
     """
@@ -46,7 +46,7 @@ def epsilon_stress_strain(xyz):
     #cell = np.array([xyz.cell[0:3], xyz.cell[3:6], xyz.cell[6:9]])
     cell = np.array(xyz.cell)
     new_cell = np.dot(cell, (np.eye(3) + strain_tensor))
-    
+
     return new_cell
 
 
@@ -55,10 +55,10 @@ class elastic_run:
     """
     def __init__(self, xyz_f):
         self.file = xyz_f
-   
-        
+
+
     def elastic(self, directory="tmp-qe-elastic",
-            mpi="", runopt="gen", control={}, system={}, electrons={}, ions={}, 
+            mpi="", runopt="gen", control={}, system={}, electrons={}, ions={},
             kpoints_option="automatic", kpoints_mp=[1, 1, 1, 0, 0, 0]):
         """
         :param directory: a place for all the generated files
@@ -73,16 +73,16 @@ class elastic_run:
         # do not copy too many files at the same time or it will be slow
         # so we do not copy all UPF files in the directory but just copy
         # those used in the calculation.
-        shutil.copyfile(self.arts.xyz.file, os.path.join(directory, self.arts.xyz.file))
+        shutil.copyfile(self.arts.xyz.file, os.path.join(directory, os.path.basename(self.arts.xyz.file)))
         all_upfs = [s for s in os.listdir() if s.split(".")[-1] == "UPF"]
         for element in self.arts.xyz.specie_labels:
             for upf in all_upfs:
                 if upf.split(".")[0] == element:
                     shutil.copyfile(upf, os.path.join(directory, upf))
                     break
-        # 
+        #
 
-            
+
         os.chdir(directory)
 
         relax = opt_run(self.file)
@@ -90,6 +90,5 @@ class elastic_run:
         relax.control.params["tprnfor"] = True
         relax.control.params["tstress"] = True
 
-        
-        relax.relax(directory="tmp-qe-relax", control=control, system=system, electrons=electrons, ions=ions, kpoints_option=kpoints_option, kpoints_mp=kpoints_mp)
 
+        relax.relax(directory="tmp-qe-relax", control=control, system=system, electrons=electrons, ions=ions, kpoints_option=kpoints_option, kpoints_mp=kpoints_mp)

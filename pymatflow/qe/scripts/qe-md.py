@@ -17,8 +17,13 @@ ions = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory for the md running", type=str, default="tmp-qe-md")
-    parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+
+    parser.add_argument("-d", "--directory", type=str, default="tmp-qe-md",
+            help="directory for the md running")
+
+    parser.add_argument("-f", "--file", type=str,
+            help="the xyz file name")
+
     parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
@@ -26,9 +31,13 @@ if __name__ == "__main__":
     parser.add_argument("--auto", type=int, default=3,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
 
-    parser.add_argument("--mpi", help="MPI command", type=str, default="")
-    parser.add_argument("--nstep", help="maximum ion steps", type=int, default=50)
-    parser.add_argument("--ecutwfc", help="ecutwfc", type=int, default=100)
+    # --------------------------------------------------------------------------
+
+    parser.add_argument("--nstep", type=int, default=50,
+            help="maximum ion steps")
+
+    parser.add_argument("--ecutwfc", type=int, default=100,
+            help="ecutwfc")
 
     parser.add_argument("--ecutrho", type=int, default=None,
             help="Kinetic energy cutoff for charge density and potential in unit of Rydberg, default value: None")
@@ -41,7 +50,8 @@ if __name__ == "__main__":
             default=[1, 1, 1, 0, 0, 0],
             help="Monkhorst-Pack kpoint grid, in format like --kpoints-mp 1 1 1 0 0 0")
 
-    parser.add_argument("--conv-thr", help="conv_thr of scf", type=float, default=1.e-6)
+    parser.add_argument("--conv-thr", type=float, default=1.0e-6,
+            help="conv_thr of scf")
 
     parser.add_argument("--occupations", type=str, default="smearing",
             choices=["smearing", "tetrahedra", "tetrahedra_lin", "tetrahedra_opt", "fixed", "from_input"],

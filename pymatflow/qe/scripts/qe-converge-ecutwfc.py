@@ -16,8 +16,12 @@ electrons_params = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of the calculation", type=str, default="tmp-qe-ecutwfc")
-    parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+
+    parser.add_argument("-d", "--directory", type=str, default="tmp-qe-ecutwfc",
+            help="directory of the calculation")
+
+    parser.add_argument("-f", "--file", type=str,
+            help="the xyz file name")
 
     parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
@@ -38,7 +42,8 @@ if __name__ == "__main__":
             default=[1, 1, 1, 0, 0, 0],
             help="Monkhorst-Pack kpoint grid, in format like --kpoints-mp 1 1 1 0 0 0")
 
-    parser.add_argument("--conv-thr", help="conv_thr", type=float, default=1.0e-6)
+    parser.add_argument("--conv-thr", type=float, default=1.0e-6,
+            help="conv_thr")
 
     parser.add_argument("--ecutrho", type=int, default=None,
             help="Kinetic energy cutoff for charge density and potential in unit of Rydberg, default value: None")

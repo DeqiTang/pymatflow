@@ -21,7 +21,7 @@ class tddfpt_run():
         self.run_params = {}
         self.set_run()
 
-    def set_run(self, mpi="", server="pbs", jobname="cp2k", nodes=1, ppn=32):
+    def set_run(self, mpi="", server="pbs", jobname="qe", nodes=1, ppn=32):
         """ used to set  the parameters controlling the running of the task
         :param mpi: you can specify the mpi command here, it only has effect on native running
 

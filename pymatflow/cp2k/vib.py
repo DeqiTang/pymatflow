@@ -43,7 +43,7 @@ class vib_run(cp2k):
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
-            shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, self.force_eval.subsys.xyz.file))
+            shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, os.path.basename(self.force_eval.subsys.xyz.file)))
 
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.glob.to_input(fout)
@@ -59,5 +59,5 @@ class vib_run(cp2k):
             os.chdir(directory)
             os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="vib", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="vib", server=self.run_params["server"])
     #

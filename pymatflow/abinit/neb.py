@@ -99,7 +99,7 @@ class neb_run(abinit):
             os.chdir(directory)
             os.system("abinit < %s" % inpname.split(".")[0]+".files")
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="neb", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="neb", server=self.run_params["server"])
 
     def images_to_input(self, fout):
         self.images[0].to_input(fout)

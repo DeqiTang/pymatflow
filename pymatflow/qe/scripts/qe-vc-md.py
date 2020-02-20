@@ -18,8 +18,12 @@ cell = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory for the vc-md running", type=str, default="tmp-qe-vc-md")
-    parser.add_argument("-f", "--file", help="the xyz file name", type=str)
+
+    parser.add_argument("-d", "--directory", type=str, default="tmp-qe-vc-md",
+            help="directory for the vc-md running")
+
+    parser.add_argument("-f", "--file", type=str,
+            help="the xyz file name")
 
     parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
@@ -28,8 +32,12 @@ if __name__ == "__main__":
     parser.add_argument("--auto", type=int, default=3,
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing in remote server, 3: pymatflow used in server with direct submit, in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
 
-    parser.add_argument("--nstep", help="maximum ion steps", type=int, default=50)
-    parser.add_argument("--ecutwfc", help="ecutwfc", type=int, default=100)
+    parser.add_argument("--nstep", type=int, default=50,
+            help="maximum ion steps")
+
+    parser.add_argument("--ecutwfc", type=int, default=100,
+            help="ecutwfc")
+
     parser.add_argument("--ecutrho", type=int, default=None,
             help="Kinetic energy cutoff for charge density and potential in unit of Rydberg, default value: None")
 

@@ -68,7 +68,7 @@ class neb_run(cp2k):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             for image in self.motion.band.images:
-                shutil.copyfile(image.file, os.path.join(directory, image.file))
+                shutil.copyfile(image.file, os.path.join(directory, os.path.basename(image.file)))
 
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.glob.to_input(fout)
@@ -84,5 +84,5 @@ class neb_run(cp2k):
             os.chdir(directory)
             os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="neb", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="neb", server=self.run_params["server"])
     #

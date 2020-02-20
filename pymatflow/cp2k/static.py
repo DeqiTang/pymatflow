@@ -52,7 +52,7 @@ class static_run(cp2k):
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
-            shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, self.force_eval.subsys.xyz.file))
+            shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, os.path.basename(self.force_eval.subsys.xyz.file)))
 
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.glob.to_input(fout)
@@ -68,7 +68,7 @@ class static_run(cp2k):
            os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
            os.chdir("../")
 
-         server_handle(auto=auto, directory=directory, jobfilebase="static-scf", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="static-scf", server=self.run_params["server"])
 
     def converge_cutoff(self, emin, emax, step, rel_cutoff, directory="tmp-cp2k-cutoff", runopt="gen", auto=0):
         """
@@ -94,7 +94,7 @@ class static_run(cp2k):
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
-            shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, self.force_eval.subsys.xyz.file))
+            shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, os.path.basename(self.force_eval.subsys.xyz.file)))
 
             n_test = int((emax - emin) / step)
             for i in range(n_test + 1):
@@ -139,7 +139,7 @@ class static_run(cp2k):
                 output = "cutoff-%d.out" % cutoff
                 os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="converge-cutoff", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="converge-cutoff", server=self.run_params["server"])
 
     def converge_rel_cutoff(self, emin, emax, step, cutoff, directory="tmp-cp2k-rel-cutoff", runopt="gen", auto=0):
         """
@@ -160,7 +160,7 @@ class static_run(cp2k):
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
-            shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, self.force_eval.subsys.xyz.file))
+            shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, os.path.basename(self.force_eval.subsys.xyz.file)))
 
             n_test = int((emax - emin) / step)
             for i in range(n_test + 1):
@@ -205,7 +205,7 @@ class static_run(cp2k):
                 output = "rel-cutoff-%d.out" % rel_cutoff
                 os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="converge-rel-cutoff", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="converge-rel-cutoff", server=self.run_params["server"])
 
     def converge_kpoints_auto(self, kmin, kmax, step, directory="tmp-cp2k-kpoints-auto", runopt="gen", auto=0):
         """
@@ -227,7 +227,7 @@ class static_run(cp2k):
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
-            shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, self.force_eval.subsys.xyz.file))
+            shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, os.path.basename(self.force_eval.subsys.xyz.file)))
 
             n_test = int((kmax - kmin) / step)
             for i in range(n_test + 1):
@@ -273,9 +273,9 @@ class static_run(cp2k):
                 output = "kpoints-%d.out" % kpoint
                 os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="converge-kpoints", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="converge-kpoints", server=self.run_params["server"])
 
-    def converge_kpoints_manual(self, directory="tmp-cp2k-kpoints-manual", runopt="gen", auto=0
+    def converge_kpoints_manual(self, directory="tmp-cp2k-kpoints-manual", runopt="gen", auto=0,
             kpoints_list=[[1, 1, 1], [2, 2, 2], [3, 3, 3]]):
         """
         Note:
@@ -293,7 +293,7 @@ class static_run(cp2k):
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
-            shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, self.force_eval.subsys.xyz.file))
+            shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, os.path.basename(self.force_eval.subsys.xyz.file)))
 
             for i in range(len(kpoints_list)):
                 inpname = "kpoints-%dx%dx%d.inp" % (kpoints_list[i][0], kpoints_list[i][1], kpoints_list[i][2])
@@ -333,4 +333,4 @@ class static_run(cp2k):
                 output = "kpoints-%dx%dx%d.out" % (kpoints_list[i][0], kpoints_list[i][1], kpoints_list[i][2])
                 os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="converge-kpoints", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="converge-kpoints", server=self.run_params["server"])

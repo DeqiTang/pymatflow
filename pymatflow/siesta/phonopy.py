@@ -43,6 +43,7 @@ class phonopy_run(siesta):
                 shutil.rmtree(directory)
             os.mkdir(directory)
 
+            shutil.copyfile(self.system.xyz.file, os.path.join(directory, os.path.basename(self.system.xyz.file)))
             for element in self.system.xyz.specie_labels:
                 shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
 
@@ -135,6 +136,6 @@ class phonopy_run(siesta):
                 os.system("%s siesta < supercell-%s.fdf | tee supercell-%s.out" % (self.run_params["mpi"], disp, disp))
                 os.chdir("../")
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="phonopy-job", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="phonopy-job", server=self.run_params["server"])
     #
     #

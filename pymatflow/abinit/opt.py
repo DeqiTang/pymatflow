@@ -50,8 +50,8 @@ class opt_run(abinit):
             #os.system("abinit < %s" % inpname.split(".")[0]+".files")
             os.system("bash %s" % "optimization.sh")
             os.chdir("../")
-            
-        server_handle(auto=auto, directory=directory, jobfilebase="optimization", server=self.params["server"])
+
+        server_handle(auto=auto, directory=directory, jobfilebase="optimization", server=self.run_params["server"])
 
     def analysis(self, directory="tmp-abinit-opt", inpname="geometric-optimization.in"):
         pass

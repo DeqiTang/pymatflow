@@ -108,7 +108,7 @@ class phonopy_run(abinit):
                 os.chdir("../")
             os.chdir("../")
 
-        server_handle(auto=auto, directory=directory, jobfilebase="phonopy-job", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="phonopy-job", server=self.run_params["server"])
 
 
     def get_disps(self, directory="./"):
