@@ -29,9 +29,6 @@ if __name__ == "__main__":
             choices=[0, 1, 2, 3],
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
 
-    parser.add_argument("--mpi", type=str, default="",
-            help="mpi command: like --mpi='mpirun -np 4'")
-
     # ------------------------------------------------------------------
     #                    force_eval/dft related parameters
     # ------------------------------------------------------------------
@@ -220,4 +217,4 @@ if __name__ == "__main__":
     task.set_params(params=params)
     task.set_printout(args.printout_option)
     task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
-    task.scf_mp2(directory=args.directory, mpi=args.mpi, runopt=args.runopt, auto=args.auto)
+    task.scf_mp2(directory=args.directory, runopt=args.runopt, auto=args.auto)

@@ -16,9 +16,35 @@ Welcome to Pymatflow's documentation!
 
 About Pymatflow
 ----------------
+see :ref:`about`
 
-Pymatflow aims to become a powerful and stable workflow manager for popular open source Ab initio programs 
-like Quantum ESPRESSO, CP2K, SIESTA, Abinit, etc.
+Basic usage of Pymatflow
+------------------------
+use of pymatflow follows code like this::
+
+  from pymatflow.qe.import static_run
+  task = static_run()
+  task.get_xyz("xxx.xyz")
+  params = {}
+  params["encutwfc"] = 60
+  params["degauss"] = 0.001
+  task.set_params(params)
+  task.scf(runopt="genrun", auto=0)
+
+The above code will read the xyz structure file ``xxx.xyz`` and do a basic scf
+calculation on it. Note, to make pymatflow run normally we must specify cell
+parameters in the second line of ``xxx.xyz`` manually, in format like this::
+
+  ```
+  3
+  cell: 10 0 0 | 0 10 0 | 0 0 10
+  C 0.0000000 0.000000 0.000000
+  O -1.160000 0.000000 0.000000
+  O 1.1500000 0.000000 0.000000
+  ```
+Tutorials
+-----------------------
+see :ref:`tutorials/tutorials`
 
 More Articles
 --------------

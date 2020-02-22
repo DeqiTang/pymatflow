@@ -24,9 +24,6 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--file", type=str,
             help="the xyz structure file with second line specifying cell parameters")
 
-    parser.add_argument("--mpi", type=str, default="",
-            help="MPI command: like 'mpirun -np 4'")
-
     parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
@@ -170,4 +167,4 @@ if __name__ == "__main__":
     task.set_geo_opt()
     task.set_params(params=params)
     task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
-    task.geo_opt(directory=args.directory, mpi=args.mpi, runopt=args.runopt, auto=args.auto)
+    task.geo_opt(directory=args.directory, runopt=args.runopt, auto=args.auto)

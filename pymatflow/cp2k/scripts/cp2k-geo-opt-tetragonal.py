@@ -23,9 +23,6 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--file", type=str,
             help="the xyz structure file with second line specifying cell parameters")
 
-    parser.add_argument("--mpi", type=str, default="",
-            help="MPI command: like 'mpirun -np 4'")
-
     parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")

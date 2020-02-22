@@ -150,7 +150,7 @@ class phonopy_run(cp2k):
                     disps.append(line.split(".")[0].split("-")[2])
             for disp in disps:
                 in_name = "supercell-%s.inp" % disp
-                os.system("%s cp2k.psmp -in phonon-supercell-%s.inp | tee phonon-supercell-%s.inp.out" % (self.run_params["mpi"], disp, disp))
+                os.system("%s cp2k.popt -in phonon-supercell-%s.inp | tee phonon-supercell-%s.inp.out" % (self.run_params["mpi"], disp, disp))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="phonopy-job", server=self.run_params["server"])
 
