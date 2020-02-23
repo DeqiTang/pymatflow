@@ -8,13 +8,16 @@ from pymatflow.base.xyz import base_xyz
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="directory of phonopy running", type=str, default="tmp-cp2k-phonopy")
+
+    parser.add_argument("-d", "--directory", type=str, default="tmp-cp2k-phonopy",
+            help="directory of phonopy running")
+
     parser.add_argument("-f", "--file", help="input structure file", type=str, default=None)
-   
+
 
     parser.add_argument("--qpath", type=str, nargs="+", default=None,
             help="manual input qpath with labels to set the BAND for phonopy analysis")
-    
+
     parser.add_argument("--qpath-file", type=str, default="kpath-from-seekpath.txt",
             help="file to read the qpath to set the BAND for phonopy analysis")
 
@@ -27,15 +30,15 @@ if __name__ == "__main__":
             help="supercell_n used in phonopy calculation")
 
     args = parser.parse_args()
-    
+
     xyz = base_xyz()
     xyz.get_xyz(args.file)
-  
-    # obtain the qpath 
+
+    # obtain the qpath
     qpath = [] # [[kx, ky, kz, label, end_indicator], ...] like [[0.0, 0.0, 0.0, 'GAMMA', None], ...]
     # [[kx, ky, kz, label, connect_indicator], ...] like [[0.0, 0.0, 0.0, 'GAMMA', 15], ...]
     # if connect_indicator in a kpoint is an integer, then it will connect to the following point
-    # through the number of kpoints defined by connect_indicator.       
+    # through the number of kpoints defined by connect_indicator.
     # if connect_indicator in a kpoint is '|', then it will not connect to the following point,
     if args.qpath != None:
         # qpath from script argument args.qpath
@@ -91,28 +94,28 @@ if __name__ == "__main__":
     #
     # get the disps information
     os.chdir(args.directory)
-    os.system("ls | grep 'phonon-supercell-' > geo.data")
+    os.system("mkdir -p post-processing")
+
+    os.system("ls | grep 'phonon-supercell-' > ./post-processing/geo.data")
     disps = []
-    with open("geo.data", 'r') as fin:
+    with open("post-processing/geo.data", 'r') as fin:
         for line in fin:
             disps.append(line.split(".")[0].split("-")[2])
-    os.chdir("../") 
 
-    os.chdir(args.directory)
 
     # generate the result analysis bash script and necessary config files
 
-    with open("mesh.conf", 'w') as fout:
+    with open("post-processing/mesh.conf", 'w') as fout:
         fout.write("ATOM_NAME =")
         for element in xyz.specie_labels:
             fout.write(" %s" % element)
         fout.write("\n")
         fout.write("DIM = %d %d %d\n" % (args.supercell_n[0], args.supercell_n[1], args.supercell_n[2]))
         fout.write("MP = %d %d %d\n" % (args.mp[0], args.mp[1], args.mp[2]))
- 
-            
-                        
-    with open("pdos.conf", 'w') as fout:
+
+
+
+    with open("post-processing/pdos.conf", 'w') as fout:
         fout.write("ATOM_NAME =")
         for element in xyz.specie_labels:
             fout.write(" %s" % element)
@@ -121,7 +124,7 @@ if __name__ == "__main__":
         fout.write("MP = %d %d %d\n" % (args.mp[0], args.mp[1], args.mp[2]))
         fout.write("PDOS = 1 2, 3 4 5 5\n")
 
-    with open("band.conf", 'w') as fout:
+    with open("post-processing/band.conf", 'w') as fout:
         fout.write("ATOM_NAME =")
         for element in xyz.specie_labels:
             fout.write(" %s" % element)
@@ -160,24 +163,23 @@ if __name__ == "__main__":
                 pass
         fout.write("\n")
 
-    with open("phonopy-analysis.sh", 'w') as fout:
+    with open("post-processing/phonopy-analysis.sh", 'w') as fout:
         inp_name = "phonon.inp"
         fout.write("#!/bin/bash\n\n")
         fout.write("# get the FORCE_SETS\n")
         base_project_name = "ab-initio"
-        fout.write("phonopy --cp2k -f %s-supercell-{001..%s}-forces-1_0.xyz\n" % (base_project_name, disps[-1]))
+        fout.write("phonopy --cp2k -f ../%s-supercell-{001..%s}-forces-1_0.xyz\n" % (base_project_name, disps[-1]))
         fout.write("# plot The density of states (DOS)\n")
-        fout.write("phonopy --cp2k -p mesh.conf -c %s\n" % inp_name)
+        fout.write("phonopy --cp2k -p mesh.conf -c ../%s\n" % inp_name)
         fout.write("# Thermal properties are calculated with the sampling mesh by:\n")
-        fout.write("phonopy --cp2k -t mesh.conf -c %s\n" % inp_name)
+        fout.write("phonopy --cp2k -t mesh.conf -c ../%s\n" % inp_name)
         fout.write("# Thermal properties can be plotted by:\n")
-        fout.write("phonopy --cp2k -t -p mesh.conf -c %s\n" % inp_name)
+        fout.write("phonopy --cp2k -t -p mesh.conf -c ../%s\n" % inp_name)
         fout.write("# calculate Projected DOS and plot it\n")
-        fout.write("phonopy --cp2k -p pdos.conf -c %s\n" % inp_name)
+        fout.write("phonopy --cp2k -p pdos.conf -c ../%s\n" % inp_name)
         fout.write("# get the band structure\n")
-        fout.write("phonopy --cp2k -c %s -p band.conf\n" % inp_name)
-    
-    os.system("bash phonopy-analysis.sh")
+        fout.write("phonopy --cp2k -c ../%s -p band.conf\n" % inp_name)
+
+    os.system("cd post-processing; bash phonopy-analysis.sh; cd ../")
 
     os.chdir("../")
-

@@ -40,13 +40,13 @@ if __name__ == "__main__":
             help="gaussian broadening type")
 
     parser.add_argument("--degauss", type=str, default='default',
-            help="gaussian broadening", type=str, default='default')
+            help="gaussian broadening")
 
     parser.add_argument("--emin", type=str, default='default',
-            help="min energy for DOS", type=str, default='default')
+            help="min energy for DOS")
 
     parser.add_argument("--emax", type=str, default='default',
-            help="max energy for DOS", type=str, default='default')
+            help="max energy for DOS")
 
     parser.add_argument("--deltae", type=str, default='default',
             help="DeltaE: energy grid step (eV)")

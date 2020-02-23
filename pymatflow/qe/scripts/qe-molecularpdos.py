@@ -31,7 +31,7 @@ if __name__ == "__main__":
     parser.add_argument("--fileout", type=str, default="molecularpdos",
             help="prefix of output files containging molecular PDOS")
 
-    parser.add_argument("--ngauss", type=int, default=0，
+    parser.add_argument("--ngauss", type=int, default=0,
             help="gaussian broadening type")
 
     parser.add_argument("--degauss", type=float, default=0.001,

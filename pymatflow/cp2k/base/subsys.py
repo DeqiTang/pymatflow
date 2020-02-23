@@ -45,7 +45,18 @@ class cp2k_subsys_colvar:
 
 class cp2k_subsys_coord:
     def __init__(self):
+        self.params = {
+            "DEFAULT_KEYWORD": None,
+            "SCALED": None,
+            "UNIT": None,
+        }
         self.status = False
+
+    def to_input(self, fout, xyz):
+        fout.write("\t\t&COORD\n")
+        for atom in xyz.atoms:
+            fout.write("\t\t\t%s %.9f %.9f %.9f\n" % (atom.name, atom.x, atom.y, atom.z))
+        fout.write("\t\t&END COORD\n")
 
 class cp2k_subsys_core_coord:
     def __init__(self):
@@ -171,6 +182,8 @@ class cp2k_subsys:
             self.kind.to_input(fout, self.xyz)
         if self.cell.status == True:
             self.cell.to_input(fout, self.xyz)
+        if self.coord.status == True:
+            self.coord.to_input(fout, self.xyz)
         if self.topology.status == True:
             self.topology.to_input(fout, self.xyz)
         fout.write("\t&END SUBSYS\n")

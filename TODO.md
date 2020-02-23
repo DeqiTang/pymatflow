@@ -60,6 +60,7 @@ Note: OT calculation doesn't support KPOINTS setting
 * implementing kpoints setting for band structure calculation [OK]
 * develop post processing module
 * 3D band structure??
+* Calculation of Polarization via Berry phase
 ### SIESTA
 * improving code base structure
 * develop post processing module

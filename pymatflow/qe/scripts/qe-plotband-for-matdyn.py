@@ -76,4 +76,4 @@ if __name__ == "__main__":
     task = dfpt_run()
     task.get_xyz(args.file)
     task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
-    task.plotband_for_matdyn(directory=args.directory, runopt=args.runopt, auto=args.auto freq_min=args.freq_min, freq_max=args.freq_max, efermi=args.efermi, freq_step=args.freq_step, freq_reference=args.freq_reference)
+    task.plotband_for_matdyn(directory=args.directory, runopt=args.runopt, auto=args.auto, freq_min=args.freq_min, freq_max=args.freq_max, efermi=args.efermi, freq_step=args.freq_step, freq_reference=args.freq_reference)

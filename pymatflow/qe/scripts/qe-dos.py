@@ -22,7 +22,7 @@ if __name__ == "__main__":
             help="the xyz file name")
 
     parser.add_argument("-d", "--directory", type=str, default="tmp-qe-static",
-            help="directory for the calculation", type=str, default="tmp-qe-static")
+            help="directory for the calculation")
 
     parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],

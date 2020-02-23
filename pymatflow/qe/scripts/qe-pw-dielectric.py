@@ -113,4 +113,4 @@ if __name__ == "__main__":
     electrons_params["conv_thr"] = args.conv_thr
 
 
-    dielectric_pw(xyz_f=args.file, directory=args.directory, runopt=args.runopt, auto=args.auto mpi=args.mpi, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+    dielectric_pw(xyz_f=args.file, directory=args.directory, runopt=args.runopt, auto=args.auto, control=control_params, system=system_params, electrons=electrons_params, kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
