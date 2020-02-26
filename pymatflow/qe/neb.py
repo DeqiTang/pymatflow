@@ -98,6 +98,8 @@ class neb_run(pwscf):
                         if upf.split(".")[0] == element:
                             shutil.copyfile(upf, os.path.join(directory, upf))
                             break
+                self.arts.pseudo.dir = os.path.abspath(directory)
+                self.control.pseudo_dir = os.path.abspath(directory)
                 #
             elif restart_mode == "restart":
                 self.path["restart_mode"] = restart_mode

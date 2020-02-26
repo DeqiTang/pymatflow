@@ -7,7 +7,7 @@ class abinit_ions:
     def __init__(self):
         self.params = {}
         self.incharge = [
-            "ionmov", "optcell", "ntime", "tolmxde", "tolmxf",
+            "ionmov", "optcell", "ecutsm", "ntime", "tolmxde", "tolmxf",
             ]
     def to_input(self, fout):
         """
@@ -22,6 +22,23 @@ class abinit_ions:
                 fout.write("%s %s\n" % (item ,str(self.params[item])))
                 fout.write("\n")
         fout.write("\n\n")
+        #
+
+    def to_string(self):
+        """
+        :return input_str is the string of all the set params
+        """
+        input_str = ""
+        input_str += "# ============================\n"
+        input_str += "# ions moving related settting\n"
+        input_str += "# ============================\n"
+        input_str += "\n"
+        for item in self.params:
+            if self.params[item] is not None:
+                input_str += "%s %s\n" % (item ,str(self.params[item]))
+                input_str += "\n"
+        input_str += "\n\n"
+        return input_str
         #
 
     def basic_setting(self, mode="opt"):

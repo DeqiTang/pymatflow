@@ -69,6 +69,8 @@ class phonopy_run(pwscf):
                     if upf.split(".")[0] == element:
                         shutil.copyfile(upf, os.path.join(directory, upf))
                         break
+            self.arts.pseudo.dir = os.path.abspath(directory)
+            self.control.pseudo_dir = os.path.abspath(directory)
             #
 
 
@@ -139,3 +141,10 @@ class phonopy_run(pwscf):
         server_handle(auto=auto, directory=directory, jobfilebase="phonopy-job", server=self.run_params["server"])
     #
     #
+
+    def phonopy_qha(self, directory="tmp-qe-phonopy-qha", pos_inpname="pos.in", head_inpname="head.in", mpi="", runopt="gen", auto=0):
+        """
+        :param directory: a place for all the generated files
+        Refer to https://phonopy.github.io/phonopy/qha.html
+        """
+        pass

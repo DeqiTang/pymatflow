@@ -38,6 +38,8 @@ class md_run(pwscf):
                     if upf.split(".")[0] == element:
                         shutil.copyfile(upf, os.path.join(directory, upf))
                         break
+            self.arts.pseudo.dir = os.path.abspath(directory)
+            self.control.pseudo_dir = os.path.abspath(directory)
             #
 
             with open(os.path.join(directory, inpname), 'w') as fout:
@@ -81,7 +83,9 @@ class md_run(pwscf):
                         shutil.copyfile(upf, os.path.join(directory, upf))
                         break
             #
-
+            self.arts.pseudo.dir = os.path.abspath(directory)
+            self.control.pseudo_dir = os.path.abspath(directory)
+            
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)

@@ -145,6 +145,8 @@ if __name__ == "__main__":
             if upf.split(".")[0] == element:
                 shutil.copyfile(upf, os.path.join(args.directory, upf))
                 break
+    task.arts.pseudo.dir = os.path.abspath(directory)
+    task.control.pseudo_dir = os.path.abspath(directory)
     #
     os.chdir(args.directory)
 
@@ -156,7 +158,7 @@ if __name__ == "__main__":
 
         coordtype = "angstrom"
         fout.write("ATOMIC_SPECIES\n")
-        upf_all = [s for s in os.listdir("./") if s.split(".")[-1] == "UPF"]
+        upf_all = [s for s in os.listdir(task.arts.pseudo.dir) if s.split(".")[-1] == "UPF"]
         for element in task.arts.xyz.specie_labels:
             for upf in upf_all:
                 if upf.split(".")[0] == element:

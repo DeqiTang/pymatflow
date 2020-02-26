@@ -163,8 +163,10 @@ class static_run(abinit):
                 #
                 self.input.electrons.params["ecut"] = cutoff
                 with open(inp_name, 'w') as fout:
-                    self.input.electrons.to_input(fout)
-                    self.input.system.to_input(fout)
+                    #self.input.electrons.to_input(fout)
+                    #self.input.system.to_input(fout)
+                    fout.write(self.input.electrons.to_string())
+                    fout.write(self.input.system.to_string())
             os.chdir("../")
 
             # generate pbs script files

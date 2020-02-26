@@ -36,6 +36,18 @@ class abinit_input:
         self.properties.to_input(fout)
         self.misc.to_input(fout)
 
+    def to_string(self):
+        """
+        :return input_str is the string of all the set params
+        """
+        input_str = ""
+        input_str += self.system.to_string()
+        input_str += self.electrons.to_string()
+        input_str += self.ions.to_string()
+        input_str += self.dfpt.to_string()
+        input_str += self.properties.to_string()
+        input_str += self.misc.to_string()
+        return input_str
 
     def get_xyz(self, xyzfile):
         self.system.xyz.get_xyz(xyzfile)

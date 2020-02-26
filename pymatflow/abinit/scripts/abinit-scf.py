@@ -52,6 +52,22 @@ if __name__ == "__main__":
             default=[1, 1, 1],
             help="number of grid points for kpoints generation. for more information, refer to https://docs.abinit.org/variables/basic/#ngkpt")
 
+    # electron occupation
+    parser.add_argument("--occopt", type=int, default=3,
+            choices=[0, 1, 2, 3, 4, 5, 6, 7],
+            help="Controls how input parameters nband, occ, and wtk are handled. for more information, refer to https://docs.abinit.org/variables/basic/#occopt")
+
+    parser.add_argument("--nband", type=int, nargs="+", default=None,
+            help="Gives number of bands, occupied plus possibly unoccupied, for which wavefunctions are being computed along with eigenvalues. for more information, refer to https://docs.abinit.org/variables/basic/#nband")
+
+    parser.add_argument("--occ", nargs="+", type=float, default=None,
+            help="Gives occupation numbers for all bands in the problem. Needed if occopt == 0 or occopt == 2. Ignored otherwise. Also ignored when iscf = -2. refer to https://docs.abinit.org/variables/gstate/#occ")
+
+    # magnetic related parameters
+    parser.add_argument("--nsppol", type=int, default=None,
+            choices=[1, 2],
+            help="Give the number of INDEPENDENT spin polarisations, for which there are non- related wavefunctions. Can take the values 1 or 2. for more information, refer to https://docs.abinit.org/variables/basic/#nsppol")
+
     # vdw related parameters
     parser.add_argument("--vdw-xc", type=int, default=None,
             choices=[0, 1, 2, 5, 6, 7, 10, 11, 14],
@@ -97,6 +113,13 @@ if __name__ == "__main__":
 
     kpoints["kptopt"] = args.kptopt
     kpoints["ngkpt"] = args.ngkpt
+
+    params["occopt"] = args.occopt
+    params["nband"] = args.nband
+    params["occ"] = args.occ
+
+    params["nsppol"] = args.nsppol
+
 
     task = static_run()
     task.get_xyz(args.file)

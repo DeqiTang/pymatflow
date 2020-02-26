@@ -7,11 +7,9 @@ import argparse
 
 import pymatflow.base as base
 
-from pymatflow.qe.opt import opt_run
-from pymatflow.remote.server import server_handle
+from pymatflow.flow.surface_pes import qe_run
+#from pymatflow.remote.server import server_handle
 
-
-import matplotlib.pyplot as plt
 
 """
 usage:
@@ -26,15 +24,20 @@ ions = {}
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-d", "--directory", type=str, default="tmp-pes-relax",
+    parser.add_argument("-d", "--directory", type=str, default="tmp-qe-pes-relax",
             help="Directory for the pes relax running.")
+
     parser.add_argument("-f", "--file", type=str,
             help="The xyz file name.")
+
     parser.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
-    parser.add_argument("--mpi", type=str, default="",
-            help="MPI command: like 'mpirun -np 4'")
+
+    parser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+
 
     # -------------------------------------------------------------------
     #                       scf related parameters
@@ -96,36 +99,42 @@ if __name__ == "__main__":
             help="specify direction of pressure acting on system.")
 
 
-
     # ---------------------------------------------------------------
     # for PES
     # ---------------------------------------------------------------
-    parser.add_argument("--last-n-move", type=int,
-            default=1,
-            help="the last n atom in the structure file will move.")
+    parser.add_argument("--move-atom", type=int, nargs="+",
+            default=[-1],
+            help="specify the atoms to move.")
+
     parser.add_argument("--xrange", type=float, nargs="+",
             default=[1, 3, 0.5],
             help="x range for moving the specified moving atoms.")
+
     parser.add_argument("--yrange", type=float, nargs="+",
             default=[3, 5, 0.5],
             help="y range for moving the specified moving atoms.")
+
     parser.add_argument("--zshift", type=float,
             default=0.0,
             help="z shift for the moving atoms, will shift the z of specified moving atoms by value of zshift")
 
+
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=3,
-            choices=[0, 1, 2, 3],
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+    parser.add_argument("--mpi", type=str, default="",
+            help="MPI command: like 'mpirun -np 4'")
+
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
+
     parser.add_argument("--jobname", type=str, default="pes-relax",
             help="jobname on the pbs server")
+
     parser.add_argument("--nodes", type=int, default=1,
             help="Nodes used in server")
+
     parser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
 
@@ -145,13 +154,17 @@ if __name__ == "__main__":
     system["vdw_corr"] = args.vdw_corr
     electrons["conv_thr"] = args.conv_thr
 
-    task = opt_run()
+    task = qe_run()
     task.get_xyz(args.file)
     task.set_relax()
     task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
     task.set_params(control=control, system=system, electrons=electrons, ions=ions)
+    task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+    task.set_pes( move_atom=args.move_atom, xrange=args.xrange, yrange=args.yrange, zshift=args.zshift)
+    task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
 
 
+"""
     if os.path.exists(args.directory):
         shutil.rmtree(args.directory)
     os.mkdir(args.directory)
@@ -163,6 +176,9 @@ if __name__ == "__main__":
             if upf.split(".")[0] == element:
                 shutil.copyfile(upf, os.path.join(args.directory, upf))
                 break
+
+    self.arts.pseudo.dir = os.path.abspath(directory)
+    self.control.pseudo_dir = os.path.abspath(directory)
     #
 
     os.chdir(args.directory)
@@ -368,3 +384,4 @@ if __name__ == "__main__":
 
     # server handle
     server_handle(auto=args.auto, directory=args.directory, jobfilebase="pes-relax", server=args.server)
+"""

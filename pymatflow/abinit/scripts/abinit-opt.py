@@ -66,6 +66,10 @@ if __name__ == "__main__":
             default=0,
             help="whether to optimize the cell shape and dimension. fore more information, refer to https://docs.abinit.org/variables/rlx/#optcell")
 
+    parser.add_argument("--ecutsm", type=int, default=None,
+            help="when optcell != 0, must specify encutsm larser than zero. for more information refer to https://docs.abinit.org/variables/rlx/#ecutsm")
+
+
     # -----------------------------------------------------------------
     #                      run params
     # -----------------------------------------------------------------
@@ -105,6 +109,7 @@ if __name__ == "__main__":
 
     params["ionmov"] = args.ionmov
     params["optcell"] = args.optcell
+    params["ecutsm"] = args.ecutsm
 
     task = opt_run()
     task.get_xyz(args.file)

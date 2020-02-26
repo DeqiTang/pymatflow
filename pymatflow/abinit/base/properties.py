@@ -25,6 +25,25 @@ class abinit_properties:
         fout.write("\n")
         #
 
+    def to_string(self):
+        """
+        :return input_str is the string of all the set params
+        """
+        input_str = ""
+        input_str += "# ======================================\n"
+        input_str += "# properties calculation related setting\n"
+        input_str += "# ======================================\n"
+        input_str += "\n"
+        for item in self.params:
+            if self.params[item] is not None:
+                input_str += "%s %s\n" % (item, str(self.params[item]))
+                input_str += "\n"
+        input_str += "\n"
+        input_str += "\n"
+        return input_str
+        #
+
+
     def get_option(self, option=[]):
         """
         :param  1: dos

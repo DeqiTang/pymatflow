@@ -52,6 +52,38 @@ class abinit_dfpt:
                 fout.write("\n")
         fout.write("\n")
 
+    def to_string(self):
+        """
+        :return input_str is the string of all the set params
+        """
+        # ------------
+        # 检查输入参数
+        #self.check_all_params()
+        # ---------------
+        # 检查输入参数结束
+        input_str = ""
+        input_str += "# =====================================\n"
+        input_str += "# DFPT related setting\n"
+        input_str += "# =====================================\n"
+        input_str += "\n"
+        for item in self.params:
+            if self.params[item] is not None:
+                if item == "rfdir":
+                    input_str += "rfdir %d %d %d\n" % (self.params[item][0], self.params[item][1], self.params[item][2])
+                elif item == "rfatpol":
+                    input_str += "rfatpol %d %d\n" % (self.params["rfatpol"][0], self.params["rfatpol"][1])
+                    pass
+                elif item == "qpt":
+                    input_str += "qpt %f %f %f\n" % (self.params[item][0], self.params[item][1], self.params[item][2])
+                elif item == "ngqpt":
+                    input_str += "ngqpt %d %d %d\n" % (self.params[item][0], self.params[item][1], self.params[item][2])
+                else:
+                    input_str += "%s %s\n" % (item, str(self.params[item]))
+                input_str += "\n"
+        input_str += "\n"
+
+        return input_str
+
 
     def basic_setting(self):
         self.params["rfdir"] = [1, 1, 1]

@@ -76,6 +76,10 @@ if __name__ == "__main__":
             default=0,
             help="whether to optimize the cell shape and dimension. fore more information, refer to https://docs.abinit.org/variables/rlx/#optcell")
 
+    parser.add_argument("--ecutsm", type=int, default=None,
+            help="when optcell != 0, must specify encutsm larser than zero. for more information refer to https://docs.abinit.org/variables/rlx/#ecutsm")
+
+
     # ------------------------------------------------
     # na stepa nc stepc
     # ------------------------------------------------
@@ -127,6 +131,7 @@ if __name__ == "__main__":
 
     params["ionmov"] = args.ionmov
     params["optcell"] = args.optcell
+    params["ecutsm"] = args.ecutsm
 
     task = opt_run()
     task.get_xyz(args.file)
@@ -154,7 +159,8 @@ if __name__ == "__main__":
         fout.write("\n")
         fout.write("cd $PBS_O_WORKDIR\n")
         fout.write("cat > optimization.in<<EOF\n")
-        task.input.to_input(fout)
+        #task.input.to_input(fout)
+        fout.write(task.input.to_string())
         fout.write("EOF\n")
         fout.write("cat > optimization.files<<EOF\n")
         #task.files.name = "optimization.files"
@@ -163,7 +169,8 @@ if __name__ == "__main__":
         task.files.wavefunc_in = "optimization-i"
         task.files.wavefunc_out = "optimization-o"
         task.files.tmp = "tmp"
-        task.files.to_files(fout, task.input.system)
+        #task.files.to_files(fout, task.input.system)
+        fout.write(task.files.to_string(system=task.input.system))
         fout.write("EOF\n")
         fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
 

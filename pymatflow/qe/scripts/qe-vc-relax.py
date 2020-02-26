@@ -40,7 +40,7 @@ if __name__ == "__main__":
     parser.add_argument("--ecutwfc",
             type=int, default=100)
 
-     parser.add_argument("--ecutrho", type=int, default=None,
+    parser.add_argument("--ecutrho", type=int, default=None,
             help="Kinetic energy cutoff for charge density and potential in unit of Rydberg, default value: None")
 
     parser.add_argument("--kpoints-option", type=str, default="automatic",

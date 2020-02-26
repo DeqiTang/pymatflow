@@ -7,7 +7,7 @@ import numpy as np
 class kpoints:
     """
     default behavior:
-        use koptopt == 1 and ngkpt = [1, 1, 1]
+        use koptopt = 1 and ngkpt = [1, 1, 1]
     Note:
         I found the setting of kpoints in abinit is versatile
         and I haven't grasped the command of most of them.
@@ -84,6 +84,64 @@ class kpoints:
         #
         fout.write("\n")
 
+    def to_string(self):
+        """
+        :return input_str is the string of all the set params
+        """
+        input_str = ""
+        input_str += "# kpoints setting\n"
+        #
+        if self.params["kptopt"] == 1:
+            input_str += "kptopt 1\n\n"
+            input_str += "ngkpt %d %d %d\n\n" %(self.params["ngkpt"][0], self.params["ngkpt"][1], self.params["ngkpt"][2])
+            input_str += "nshiftk %d\n\n" % self.params["nshiftk"]
+            input_str += "shiftk\n"
+            for i in range(self.params["nshiftk"]):
+                input_str += "%f %f %f\n" % (self.params["shiftk"][i][0], self.params["shiftk"][i][1], self.params["shiftk"][i][2])
+
+            #input_str += "istwfk 1\n") # for rf
+        #
+        if self.params["kptopt"] == 0:
+            input_str += "kptopt 0\n\n"
+            input_str += "nkpt \n\n"
+            input_str += "kpt \n\n"
+            input_str += "kptnrm \n\n"
+            input_str += "wtk \n\n"
+            input_str += "istwfk 1\n" # for rf
+        #
+        if self.params["kptopt"] == 2:
+            input_str += "kptopt 2\n"
+            input_str += "ngkpt %d %d %d\n\n" %(self.params["ngkpt"][0], self.params["ngkpt"][1], self.params["ngkpt"][2])
+            #input_str += "istwfk 1\n") # for rf
+        if self.params["kptopt"] == 3:
+            # typically for rf calculation
+            input_str += "kptopt %d\n" % self.params["kptopt"]
+            input_str += "ngkpt %d %d %d\n\n" %(self.params["ngkpt"][0], self.params["ngkpt"][1], self.params["ngkpt"][2])
+            input_str += "nshiftk %d\n\n" % self.params["nshiftk"]
+            input_str += "shiftk\n"
+            for i in range(self.params["nshiftk"]):
+                input_str += "%f %f %f\n" % (self.params["shiftk"][i][0], self.params["shiftk"][i][1], self.params["shiftk"][i][2])
+        #
+        if self.params["kptopt"] < 0:
+            # for band structure calculation using kptbounds and ndivk(ndivsm), iscf must equal to -2
+            # for format of self.params["kptbounds"] see self.set_band()
+            input_str += "kptopt %d\n" % self.params["kptopt"]
+            input_str += "ndivsm %d\n" % 10
+            input_str += "kptbounds\n"
+            for i in range(len(self.params["kptbounds"])):
+                input_str += "%f %f %f #%s\n" % (
+                    self.params["kptbounds"][i][0],
+                    self.params["kptbounds"][i][1],
+                    self.params["kptbounds"][i][2],
+                    self.params["kptbounds"][i][3],
+                    )
+        # end
+        #
+        input_str += "\n"
+
+        return input_str
+
+
     def set_band(self, kptbounds=None):
         """
             self.params["kptbounds"]:
@@ -112,7 +170,8 @@ class abinit_electrons:
     def __init__(self):
         self.params = {}
         self.incharge = [
-            "ecut", "ixc", "nstep", "toldfe", "diemac"
+            "ecut", "ixc", "nstep", "diemac",
+            'toldfe', 'tolwfr', 'toldff', 'tolrff', 'tolvrs',
             ]
         self.kpoints = kpoints()
 
@@ -137,6 +196,31 @@ class abinit_electrons:
         #
         fout.write("\n")
 
+    def to_string(self):
+        """
+        :return input_str is the string of all the set params
+        """
+        input_str = ""
+        # ------------
+        # 检查输入参数
+        self.check_all_params()
+        # ---------------
+        # 检查输入参数结束
+        input_str += "# =====================================\n"
+        input_str += "# electronic structure related setting\n"
+        input_str += "# =====================================\n"
+        input_str += "\n"
+        for item in self.params:
+            if self.params[item] is not None:
+                input_str +="%s %s\n" % (item, str(self.params[item]))
+                input_str += "\n"
+        #fout.write("\n")
+        # 输入k点
+        input_str += self.kpoints.to_string()
+        #
+        input_str += "\n"
+
+        return input_str
 
     def check_all_params(self):
         # this function is responsible for calling other
@@ -144,6 +228,20 @@ class abinit_electrons:
         # checking.
         self.check_scf_criteria()
         self.check_kpoints()
+
+
+    def use_tol(self, tol, value):
+        """
+        :param tol: one of ['toldfe', 'tolwfr', 'toldff', 'tolrff', 'tolvrs'].
+        :param value: set value for the choosen tol criteria
+        """
+        tols = ['toldfe', 'tolwfr', 'toldff', 'tolrff', 'tolvrs']
+        for item in tols:
+            if item != tol:
+                self.params[item] = None
+        self.params[tol] = value
+
+
 
     def check_scf_criteria(self):
         """

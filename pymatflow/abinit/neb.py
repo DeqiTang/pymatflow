@@ -70,6 +70,7 @@ class neb_run(abinit):
             self.input.electrons.set_scf_nscf("scf")
             #
 
+            # generate pbs submit script
             script="neb.pbs"
             with open(os.path.join(directory, script),  'w') as fout:
                 fout.write("#!/bin/bash\n")
@@ -79,7 +80,8 @@ class neb_run(abinit):
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
                 fout.write("cat > %s<<EOF\n" % self.files.main_in)
-                self.input.electrons.to_input(fout)
+                #self.input.electrons.to_input(fout)
+                fout.write(self.input.electrons.to_string())
                 self.images_to_input(fout)
                 fout.write("\n")
                 fout.write("# ===============================\n")
@@ -91,7 +93,8 @@ class neb_run(abinit):
                 fout.write("EOF\n")
                 fout.write("cat > %s<<EOF\n" % self.files.name)
                 #self.files.to_files(fout, system=self.input.system)
-                self.files.to_files(fout, system=self.images[0])
+                #self.files.to_files(fout, system=self.images[0])
+                fout.write(self.files.to_string(system=self.images[0]))
                 fout.write("EOF\n")
                 fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s\n" % ("abinit", self.files.name))
 
@@ -102,7 +105,8 @@ class neb_run(abinit):
         server_handle(auto=auto, directory=directory, jobfilebase="neb", server=self.run_params["server"])
 
     def images_to_input(self, fout):
-        self.images[0].to_input(fout)
+        #self.images[0].to_input(fout)
+        fout.write(self.images[0].to_string())
         fout.write("\n")
         fout.write("xangst_lastimg\n")
         for atom in self.images[-1].xyz.atoms:

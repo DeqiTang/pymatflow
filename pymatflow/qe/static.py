@@ -65,6 +65,8 @@ class static_run(pwscf):
                     if upf.split(".")[0] == element:
                         shutil.copyfile(upf, os.path.join(directory, upf))
                         break
+            self.arts.pseudo.dir = os.path.abspath(directory)
+            self.control.pseudo_dir = os.path.abspath(directory)
             #
 
             with open(os.path.join(directory, inpname), 'w') as fout:
@@ -105,6 +107,9 @@ class static_run(pwscf):
             sys.exit(1)
         if runopt == 'gen' or runopt == 'genrun':
 
+            self.arts.pseudo.dir = os.path.abspath(directory)
+            self.control.pseudo_dir = os.path.abspath(directory)
+
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)
@@ -129,6 +134,9 @@ class static_run(pwscf):
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
             os.system("cp %s %s/" % (self.arts.xyz.file, directory))
+
+            self.arts.pseudo.dir = os.path.abspath(directory)
+            self.control.pseudo_dir = os.path.abspath(directory)
 
             os.chdir(directory)
             n_test = int((emax - emin) / step)
@@ -183,6 +191,9 @@ class static_run(pwscf):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
+
+            self.arts.pseudo.dir = os.path.abspath(directory)
+            self.control.pseudo_dir = os.path.abspath(directory)
 
 
             os.chdir(directory)
@@ -249,6 +260,9 @@ class static_run(pwscf):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
+
+            self.arts.pseudo.dir = os.path.abspath(directory)
+            self.control.pseudo_dir = os.path.abspath(directory)
 
             os.chdir(directory)
             n_test = int((nk_max - nk_min) / step)
@@ -330,6 +344,9 @@ class static_run(pwscf):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.UPF %s/" % directory)
+
+            self.arts.pseudo.dir = os.path.abspath(directory)
+            self.control.pseudo_dir = os.path.abspath(directory)
 
             os.chdir(directory)
             n_test = int((degauss_max - degauss_min) / step)
@@ -496,6 +513,9 @@ class static_run(pwscf):
 
         if runopt == "gen" or runopt == "genrun":
 
+            self.arts.pseudo.dir = os.path.abspath(directory)
+            self.control.pseudo_dir = os.path.abspath(directory)
+            
             with open(os.path.join(directory, inpname1), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)

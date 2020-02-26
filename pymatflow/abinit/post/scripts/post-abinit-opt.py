@@ -11,7 +11,7 @@ from pymatflow.abinit.post.opt import opt_out
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", help="previously optimization running directory", type=str, default="tmp-abinit-opt")
-    parser.add_argument("--optout", help="output file of optimization calculation", type=str, default="geometric-optimization.out")
+    parser.add_argument("--optout", help="output file of optimization calculation", type=str, default="optimization.out")
 
     args = parser.parse_args()
 
@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     os.chdir(args.directory)
     opt = opt_out()
-    opt.get_info(file=args.output)
+    opt.get_info(file=args.optout)
 
     os.system("mkdir -p post-processing")
     #

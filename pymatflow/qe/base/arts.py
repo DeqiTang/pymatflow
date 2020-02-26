@@ -15,12 +15,29 @@ from pymatflow.base.xyz import base_xyz
 usage:
 """
 
+class qe_pseudo:
+    def __init__(self):
+        self.dir = os.path.abspath("./") # default dir to put pseudo files
+
+    def to_in(self, fout, xyz):
+        fout.write("ATOMIC_SPECIES\n")
+        upf_all = [s for s in os.listdir(self.dir) if s.split(".")[-1] == "UPF"]
+        for element in xyz.specie_labels:
+            for upf in upf_all:
+                if upf.split(".")[0] == element:
+                    pseudo_file =upf
+                    break
+            fout.write("%s %f %s\n" % (element, base.element[element].mass, pseudo_file))
+            pseudo_file = None
+            # after pseudo_file used, set it to None to avoid it will be used in the next element
+
 class qe_arts:
     """
-        an abstraction of part of input block for pwscf 
+        an abstraction of part of input block for pwscf
     """
     def __init__(self):
         self.xyz = base_xyz()
+        self.pseudo = qe_pseudo()
 
         self.cell_params = {
                 "cell_dynamics": None,
@@ -42,16 +59,7 @@ class qe_arts:
         :param fout: a file stream for writing
         :param coordtype: specify coordinate format, can eigher be 'angstrom' or 'crystal'
         """
-        fout.write("ATOMIC_SPECIES\n")
-        upf_all = [s for s in os.listdir("./") if s.split(".")[-1] == "UPF"]
-        for element in self.xyz.specie_labels:
-            for upf in upf_all:
-                if upf.split(".")[0] == element:
-                    pseudo_file =upf
-                    break
-            fout.write("%s %f %s\n" % (element, base.element[element].mass, pseudo_file))
-            pseudo_file = None
-            # after pseudo_file used, set it to None to avoid it will be used in the next element
+        self.pseudo.to_in(fout=fout, xyz=self.xyz)
         fout.write("\n")
         cell = self.xyz.cell
         fout.write("CELL_PARAMETERS angstrom\n")
@@ -145,7 +153,7 @@ class qe_arts:
             # we set the number of k point to connect to the next high symmetry kpoint to 0
             # then after the pw.x calculation and bands.x calculation, we can see from the
             # output of bands.x, the two nieghbor high symmetry kpoints
-            # have the same x coordinates, and that can be processed by qe.post.bands and 
+            # have the same x coordinates, and that can be processed by qe.post.bands and
             # the corresponding post-qe-bands.py, and the label in the processed band strucutre
             # image would be in format of 'label|label', for example 'K|U'
             # this is very fantastic !!!
@@ -161,20 +169,20 @@ class qe_arts:
                     ))
         elif self.kpoints_option == "tpiba_b":
             pass
-        
+
 
     def set_kpoints(self, kpoints_mp=[1, 1, 1, 0, 0, 0], option="automatic", crystal_b=None):
         """
-        :param crystal_b: the high symmetry k point path used in bands structure calculation 
+        :param crystal_b: the high symmetry k point path used in bands structure calculation
             in format like this:
-            
+
             [[kx, ky, kz, label, connect_indicator], ...] like [[0.0, 0.0, 0.0, 'GAMMA', 15], ...]
-            
+
             if connect_indicator in a kpoint is an integer, then it will connect to the following point
             through the number of kpoints defined by connect_indicator.
-            
+
             if connect_indicator in a kpoint is '|', then it will not connect to the following point,
-        TODO: 
+        TODO:
         Note:
             "automatic" was controlled by kpoints_mp
             "gamma" was also handled internally
@@ -225,9 +233,8 @@ class qe_arts:
             force = area * 1.0e-20 * pressure / (4.119358925e8)
             self.atomic_forces = np.zeros((len(self.xyz.atoms), 3))
             self.atomic_forces[:, 0] = force
-    
+
     def basic_setting(self, ifstatic=True):
         self.ifstatic = ifstatic
 
     #
-
