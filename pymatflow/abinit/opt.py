@@ -13,15 +13,15 @@ class opt_run(abinit):
     """
     def __init__(self):
         super().__init__()
-        self.input.electrons.basic_setting()
-        self.input.ions.basic_setting(mode="opt")
+        self.dataset[0].electrons.basic_setting()
+        self.dataset[0].ions.basic_setting(mode="opt")
 
-        self.input.guard.set_queen(queen="opt")
+        self.dataset[0].guard.set_queen(queen="opt")
 
 
     def optimize(self, directory="tmp-abinit-opt", mpi="", runopt="gen", auto=0):
 
-        self.input.electrons.set_scf_nscf("scf")
+        self.dataset[0].electrons.set_scf_nscf("scf")
 
         self.files.name = "optimization.files"
         self.files.main_in = "optimization.in"
@@ -36,7 +36,7 @@ class opt_run(abinit):
             os.mkdir(directory)
             os.system("cp *.psp8 %s/" % directory)
             os.system("cp *.GGA_PBE-JTH.xml %s/" % directory)
-            os.system("cp %s %s/" % (self.input.system.xyz.file, directory))
+            os.system("cp %s %s/" % (self.dataset[0].system.xyz.file, directory))
 
             #
             # generate pbs job submit script

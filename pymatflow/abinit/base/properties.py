@@ -8,24 +8,9 @@ class abinit_properties:
     def __init__(self):
         self.params = {}
         self.incharge = []
+        self.status = True
 
-    def to_input(self, fout):
-        """
-        :param fout: a file stream for writing
-        """
-        fout.write("# ======================================\n")
-        fout.write("# properties calculation related setting\n")
-        fout.write("# ======================================\n")
-        fout.write("\n")
-        for item in self.params:
-            if self.params[item] is not None:
-                fout.write("%s %s\n" % (item, str(self.params[item])))
-                fout.write("\n")
-        fout.write("\n")
-        fout.write("\n")
-        #
-
-    def to_string(self):
+    def to_string(self, n=0):
         """
         :return input_str is the string of all the set params
         """
@@ -36,7 +21,7 @@ class abinit_properties:
         input_str += "\n"
         for item in self.params:
             if self.params[item] is not None:
-                input_str += "%s %s\n" % (item, str(self.params[item]))
+                input_str += "%s%s %s\n" % (item, n if n > 0 else "", str(self.params[item]))
                 input_str += "\n"
         input_str += "\n"
         input_str += "\n"

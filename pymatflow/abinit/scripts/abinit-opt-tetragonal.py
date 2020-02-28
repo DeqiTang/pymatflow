@@ -37,8 +37,15 @@ if __name__ == "__main__":
             choices=["gen", "run", "genrun"],
             help="Generate or run or both at the same time.")
 
-    parser.add_argument("--mpi", type=str, default="",
-            help="MPI command: like 'mpirun -np 4'")
+    parser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+
+
+    parser.add_argument("--chkprim", type=int, default=1,
+            choices=[0, 1],
+            help="check whether the input cell is primitive. if your cell is not primitive, set chkprim to 0. for more information, refer to https://docs.abinit.org/variables/gstate/#chkprim")
+
 
     parser.add_argument("--ecut", type=int, default=15,
             help="Kinetic energy cutoff for wave functions in unit of Hartree, default value: 15 Hartree. for more information refer to https://docs.abinit.org/variables/basic/#ecut")
@@ -95,9 +102,8 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
     #                      for server handling
     # -----------------------------------------------------------------
-    parser.add_argument("--auto", type=int, default=3,
-            choices=[0, 1, 2, 3],
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+    parser.add_argument("--mpi", type=str, default="",
+            help="MPI command: like 'mpirun -np 4'")
 
     parser.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "yh"],
@@ -121,6 +127,7 @@ if __name__ == "__main__":
     params = {}
     kpoints = {}
 
+    params["chkprim"] = args.chkprim
     params["ecut"] = args.ecut
     params["ixc"] = args.ixc
     params["vdw_xc"] = args.vdw_xc
@@ -132,7 +139,7 @@ if __name__ == "__main__":
     params["ionmov"] = args.ionmov
     params["optcell"] = args.optcell
     params["ecutsm"] = args.ecutsm
-    
+
     task = opt_run()
     task.get_xyz(args.file)
     task.set_params(params=params)

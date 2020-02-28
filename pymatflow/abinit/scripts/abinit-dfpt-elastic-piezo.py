@@ -5,7 +5,7 @@ import sys
 import argparse
 
 from pymatflow.remote.server import server_handle
-from pymatflow.abinit.dfpt import dfpt_elastic
+from pymatflow.abinit.dfpt import dfpt_elastic_piezo
 
 """
 usage:
@@ -15,7 +15,7 @@ usage:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-d", "--directory", type=str, default="tmp-abinit-dfpt-elastic",
+    parser.add_argument("-d", "--directory", type=str, default="tmp-abinit-dfpt-elastic-piezo",
             help="Directory for the dfpt elastic running.")
 
     parser.add_argument("-f", "--file", type=str,
@@ -27,6 +27,11 @@ if __name__ == "__main__":
 
     parser.add_argument("--mpi", type=str, default="",
             help="MPI command: like 'mpirun -np 4'")
+
+    parser.add_argument("--chkprim", type=int, default=1,
+            choices=[0, 1],
+            help="check whether the input cell is primitive. if your cell is not primitive, set chkprim to 0. for more information, refer to https://docs.abinit.org/variables/gstate/#chkprim")
+
 
     parser.add_argument("--properties", nargs="+", type=int,
             default=[],
@@ -82,6 +87,7 @@ if __name__ == "__main__":
     params = {}
     kpoints = {}
 
+    params["chkprim"] = args.chkprim
     params["ecut"] = args.ecut
     params["ixc"] = args.ixc
     params["vdw_xc"] = args.vdw_xc
@@ -89,7 +95,7 @@ if __name__ == "__main__":
 
     kpoints["ngkpt"] = args.ngkpt
 
-    task = dfpt_elastic()
+    task = dfpt_elastic_piezo()
     task.get_xyz(args.file)
     task.set_params(params=params)
     task.set_kpoints(kpoints=kpoints)

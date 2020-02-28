@@ -29,6 +29,10 @@ if __name__ == "__main__":
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
 
     # --------------------------------------------------------------------------
+    parser.add_argument("--chkprim", type=int, default=1,
+            choices=[0, 1],
+            help="check whether the input cell is primitive. if your cell is not primitive, set chkprim to 0. for more information, refer to https://docs.abinit.org/variables/gstate/#chkprim")
+
 
     parser.add_argument("--kptbounds", type=str, nargs="+", default=None,
             help="manual input kpath for band structure calculation")
@@ -40,9 +44,9 @@ if __name__ == "__main__":
             default=[],
             help="options for properties calculation")
 
-    parser.add_argument("--iscf", type=int, default=7,
-            choices=[0, 1, 2, 3, 4, 5, 7, 12, 13, 14, 15, 17],
-            help="set scf or nscf type. for more information, refer to https://docs.abinit.org/variables/basic/#iscf")
+    parser.add_argument("--iscf", type=int, default=-3,
+            choices=[-1, -2, -3],
+            help="-3 is good for band structure calculation. for more information, refer to https://docs.abinit.org/variables/basic/#iscf")
 
     parser.add_argument("--ecut", type=int, default=15,
             help="Kinetic energy cutoff for wave functions in unit of Hartree, default value: 15 Hartree. for more information, refer to https://docs.abinit.org/variables/basic/#ecut")
@@ -87,8 +91,11 @@ if __name__ == "__main__":
 
     params = {}
 
+    params["chkprim"] = args.chkprim
     params["ecut"] = args.ecut
     params["ixc"] = args.ixc
+    params["iscf"] = args.iscf
+
     params["vdw_xc"] = args.vdw_xc
     params["vdw_tol"] = args.vdw_tol
 

@@ -25,28 +25,28 @@ class abinit_input:
         self.guard = abinit_guard()
         self.misc = abinit_misc()
 
-    def to_input(self, fout):
-        # use guard the keep safe
-        self.guard.check_all(system=self.system, electrons=self.electrons, ions=self.ions, dfpt=self.dfpt)
-        #
-        self.system.to_input(fout)
-        self.electrons.to_input(fout)
-        self.ions.to_input(fout)
-        self.dfpt.to_input(fout)
-        self.properties.to_input(fout)
-        self.misc.to_input(fout)
+        self.n = 0 # this is used to control the construction of input string
 
     def to_string(self):
         """
         :return input_str is the string of all the set params
         """
+        # use guard the keep safe
+        #self.guard.check_all(system=self.system, electrons=self.electrons, ions=self.ions, dfpt=self.dfpt)
         input_str = ""
-        input_str += self.system.to_string()
-        input_str += self.electrons.to_string()
-        input_str += self.ions.to_string()
-        input_str += self.dfpt.to_string()
-        input_str += self.properties.to_string()
-        input_str += self.misc.to_string()
+        if self.system.status == True:
+            input_str += self.system.to_string(n=self.n)
+        if self.electrons.status == True:
+            input_str += self.electrons.to_string(n=self.n)
+        if self.ions.status == True:
+            input_str += self.ions.to_string(n=self.n)
+        if self.dfpt.status == True:
+            input_str += self.dfpt.to_string(n=self.n)
+        if self.properties.status == True:
+            input_str += self.properties.to_string(n=self.n)
+
+        if self.misc.status == True:
+            input_str += self.misc.to_string(n=self.n)
         return input_str
 
     def get_xyz(self, xyzfile):

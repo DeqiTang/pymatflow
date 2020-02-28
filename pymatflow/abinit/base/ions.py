@@ -9,6 +9,7 @@ class abinit_ions:
         self.incharge = [
             "ionmov", "optcell", "ecutsm", "ntime", "tolmxde", "tolmxf",
             ]
+        self.status = True
     def to_input(self, fout):
         """
         :param fout: a file stream for writing
@@ -24,7 +25,7 @@ class abinit_ions:
         fout.write("\n\n")
         #
 
-    def to_string(self):
+    def to_string(self, n=0):
         """
         :return input_str is the string of all the set params
         """
@@ -35,7 +36,7 @@ class abinit_ions:
         input_str += "\n"
         for item in self.params:
             if self.params[item] is not None:
-                input_str += "%s %s\n" % (item ,str(self.params[item]))
+                input_str += "%s%s %s\n" % (item, n if n > 0 else "", str(self.params[item]))
                 input_str += "\n"
         input_str += "\n\n"
         return input_str

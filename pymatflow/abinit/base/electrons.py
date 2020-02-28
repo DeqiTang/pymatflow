@@ -27,64 +27,11 @@ class kpoints:
     def basic_setting(self):
         self.params["kptopt"] = 1
         self.params["ngkpt"] = [1, 1, 1]
-        self.params["nshiftk"] = 1
-        self.params["shiftk"] = np.full([self.params["nshiftk"], 3], 0.5)
+        #self.params["nshiftk"] = 1
+        #self.params["shiftk"] = np.full([self.params["nshiftk"], 3], 0.0)
         #self.params["shiftk"] = np.zeros([self.params["nshiftk"], 3])
 
-
-    def to_input(self, fout):
-        # fout: a file stream for writing
-        fout.write("# kpoints setting\n")
-        #
-        if self.params["kptopt"] == 1:
-            fout.write("kptopt 1\n\n")
-            fout.write("ngkpt %d %d %d\n\n" %(self.params["ngkpt"][0], self.params["ngkpt"][1], self.params["ngkpt"][2]))
-            fout.write("nshiftk %d\n\n" % self.params["nshiftk"])
-            fout.write("shiftk\n")
-            for i in range(self.params["nshiftk"]):
-                fout.write("%f %f %f\n" % (self.params["shiftk"][i][0], self.params["shiftk"][i][1], self.params["shiftk"][i][2]))
-
-            #fout.write("istwfk 1\n") # for rf
-        #
-        if self.params["kptopt"] == 0:
-            fout.write("kptopt 0\n\n")
-            fout.write("nkpt \n\n")
-            fout.write("kpt \n\n")
-            fout.write("kptnrm \n\n")
-            fout.write("wtk \n\n")
-            fout.write("istwfk 1\n") # for rf
-        #
-        if self.params["kptopt"] == 2:
-            fout.write("kptopt 2\n")
-            fout.write("ngkpt %d %d %d\n\n" %(self.params["ngkpt"][0], self.params["ngkpt"][1], self.params["ngkpt"][2]))
-            #fout.write("istwfk 1\n") # for rf
-        if self.params["kptopt"] == 3:
-            # typically for rf calculation
-            fout.write("kptopt %d\n" % self.params["kptopt"])
-            fout.write("ngkpt %d %d %d\n\n" %(self.params["ngkpt"][0], self.params["ngkpt"][1], self.params["ngkpt"][2]))
-            fout.write("nshiftk %d\n\n" % self.params["nshiftk"])
-            fout.write("shiftk\n")
-            for i in range(self.params["nshiftk"]):
-                fout.write("%f %f %f\n" % (self.params["shiftk"][i][0], self.params["shiftk"][i][1], self.params["shiftk"][i][2]))
-        #
-        if self.params["kptopt"] < 0:
-            # for band structure calculation using kptbounds and ndivk(ndivsm), iscf must equal to -2
-            # for format of self.params["kptbounds"] see self.set_band()
-            fout.write("kptopt %d\n" % self.params["kptopt"])
-            fout.write("ndivsm %d\n" % 10)
-            fout.write("kptbounds\n")
-            for i in range(len(self.params["kptbounds"])):
-                fout.write("%f %f %f #%s\n" % (
-                    self.params["kptbounds"][i][0],
-                    self.params["kptbounds"][i][1],
-                    self.params["kptbounds"][i][2],
-                    self.params["kptbounds"][i][3],
-                    ))
-        # end
-        #
-        fout.write("\n")
-
-    def to_string(self):
+    def to_string(self, n=0):
         """
         :return input_str is the string of all the set params
         """
@@ -92,42 +39,42 @@ class kpoints:
         input_str += "# kpoints setting\n"
         #
         if self.params["kptopt"] == 1:
-            input_str += "kptopt 1\n\n"
-            input_str += "ngkpt %d %d %d\n\n" %(self.params["ngkpt"][0], self.params["ngkpt"][1], self.params["ngkpt"][2])
-            input_str += "nshiftk %d\n\n" % self.params["nshiftk"]
-            input_str += "shiftk\n"
-            for i in range(self.params["nshiftk"]):
-                input_str += "%f %f %f\n" % (self.params["shiftk"][i][0], self.params["shiftk"][i][1], self.params["shiftk"][i][2])
+            input_str += "kptopt%s 1\n\n" % (n if n > 0 else "")
+            input_str += "ngkpt%s %d %d %d\n\n" %(n if n > 0 else "", self.params["ngkpt"][0], self.params["ngkpt"][1], self.params["ngkpt"][2])
+            #input_str += "nshiftk %d\n\n" % self.params["nshiftk"]
+            #input_str += "shiftk\n"
+            #for i in range(self.params["nshiftk"]):
+            #    input_str += "%f %f %f\n" % (self.params["shiftk"][i][0], self.params["shiftk"][i][1], self.params["shiftk"][i][2])
 
             #input_str += "istwfk 1\n") # for rf
         #
         if self.params["kptopt"] == 0:
-            input_str += "kptopt 0\n\n"
-            input_str += "nkpt \n\n"
-            input_str += "kpt \n\n"
-            input_str += "kptnrm \n\n"
-            input_str += "wtk \n\n"
-            input_str += "istwfk 1\n" # for rf
+            input_str += "kptopt%s 0\n\n" % (n if n > 0 else "")
+            input_str += "nkpt%s \n\n" % (n if n > 0 else "")
+            input_str += "kpt%s \n\n" % (n if n > 0 else "")
+            input_str += "kptnrm%s \n\n" % (n if n > 0 else "")
+            input_str += "wtk%s \n\n" % (n if n > 0 else "")
+            input_str += "istwfk%s 1\n" % (n if n > 0 else "")
         #
         if self.params["kptopt"] == 2:
-            input_str += "kptopt 2\n"
-            input_str += "ngkpt %d %d %d\n\n" %(self.params["ngkpt"][0], self.params["ngkpt"][1], self.params["ngkpt"][2])
+            input_str += "kptopt%s 2\n" % (n if n > 0 else "")
+            input_str += "ngkpt%s %d %d %d\n\n" %(n if n > 0 else "", self.params["ngkpt"][0], self.params["ngkpt"][1], self.params["ngkpt"][2])
             #input_str += "istwfk 1\n") # for rf
         if self.params["kptopt"] == 3:
             # typically for rf calculation
-            input_str += "kptopt %d\n" % self.params["kptopt"]
-            input_str += "ngkpt %d %d %d\n\n" %(self.params["ngkpt"][0], self.params["ngkpt"][1], self.params["ngkpt"][2])
-            input_str += "nshiftk %d\n\n" % self.params["nshiftk"]
-            input_str += "shiftk\n"
-            for i in range(self.params["nshiftk"]):
-                input_str += "%f %f %f\n" % (self.params["shiftk"][i][0], self.params["shiftk"][i][1], self.params["shiftk"][i][2])
+            input_str += "kptopt%s %d\n" % (n if n > 0 else "", self.params["kptopt"])
+            input_str += "ngkpt%s %d %d %d\n\n" %(n if n > 0 else "", self.params["ngkpt"][0], self.params["ngkpt"][1], self.params["ngkpt"][2])
+            #input_str += "nshiftk %d\n\n" % self.params["nshiftk"]
+            #input_str += "shiftk\n"
+            #for i in range(self.params["nshiftk"]):
+            #    input_str += "%f %f %f\n" % (self.params["shiftk"][i][0], self.params["shiftk"][i][1], self.params["shiftk"][i][2])
         #
         if self.params["kptopt"] < 0:
             # for band structure calculation using kptbounds and ndivk(ndivsm), iscf must equal to -2
             # for format of self.params["kptbounds"] see self.set_band()
-            input_str += "kptopt %d\n" % self.params["kptopt"]
-            input_str += "ndivsm %d\n" % 10
-            input_str += "kptbounds\n"
+            input_str += "kptopt%s %d\n" % (n if n > 0 else "", self.params["kptopt"])
+            input_str += "ndivsm%s %d\n" % (n if n > 0 else "", 10)
+            input_str += "kptbounds%s\n" % (n if n > 0 else "")
             for i in range(len(self.params["kptbounds"])):
                 input_str += "%f %f %f #%s\n" % (
                     self.params["kptbounds"][i][0],
@@ -170,33 +117,14 @@ class abinit_electrons:
     def __init__(self):
         self.params = {}
         self.incharge = [
-            "ecut", "ixc", "nstep", "diemac",
+            "ecut", "ixc", "nstep", "diemac", "iscf",
             'toldfe', 'tolwfr', 'toldff', 'tolrff', 'tolvrs',
+            "occopt", "nband", "occ", "wtk",
             ]
+        self.status = True
         self.kpoints = kpoints()
 
-    def to_input(self, fout):
-        # fout: a file stream for writing
-        # ------------
-        # 检查输入参数
-        self.check_all_params()
-        # ---------------
-        # 检查输入参数结束
-        fout.write("# =====================================\n")
-        fout.write("# electronic structure related setting\n")
-        fout.write("# =====================================\n")
-        fout.write("\n")
-        for item in self.params:
-            if self.params[item] is not None:
-                fout.write("%s %s\n" % (item, str(self.params[item])))
-                fout.write("\n")
-        #fout.write("\n")
-        # 输入k点
-        self.kpoints.to_input(fout)
-        #
-        fout.write("\n")
-
-    def to_string(self):
+    def to_string(self, n=0):
         """
         :return input_str is the string of all the set params
         """
@@ -212,11 +140,11 @@ class abinit_electrons:
         input_str += "\n"
         for item in self.params:
             if self.params[item] is not None:
-                input_str +="%s %s\n" % (item, str(self.params[item]))
+                input_str +="%s%s %s\n" % (item, n if n > 0 else "", str(self.params[item]))
                 input_str += "\n"
         #fout.write("\n")
         # 输入k点
-        input_str += self.kpoints.to_string()
+        input_str += self.kpoints.to_string(n=n)
         #
         input_str += "\n"
 
@@ -234,6 +162,8 @@ class abinit_electrons:
         """
         :param tol: one of ['toldfe', 'tolwfr', 'toldff', 'tolrff', 'tolvrs'].
         :param value: set value for the choosen tol criteria
+
+        Reference: see https://docs.abinit.org/topics/SCFControl/
         """
         tols = ['toldfe', 'tolwfr', 'toldff', 'tolrff', 'tolvrs']
         for item in tols:
@@ -288,9 +218,9 @@ class abinit_electrons:
         # 需要使用paw赝势, 在files文件中进行设置
         self.params["usepawu"] = 1
         self.params["pawecutdg"] = 30
-        self.params["lpawu"] = '-1 -1 -1 2'
-        self.params["upawu"] = "4.0 4.0 4.0 4.0"
-        self.params["jpawu"] = "0.8 0.8 0.8 0.8"
+        self.params["lpawu"] = [-1, -1, -1, 2]
+        self.params["upawu"] = [4.0, 4.0, 4.0, 4.0]
+        self.params["jpawu"] = [0.8, 0.8, 0.8, 0.8]
 
     def basic_setting(self):
         self.params["ecut"] = 15 #15
@@ -298,8 +228,7 @@ class abinit_electrons:
         self.params["occopt"] = 3  # fermi dirac smearing of occupation
         self.params["nstep"] = 100
         self.params["diemac"] = 2.0
-        #self.params["toldfe"] = 1.0e-6
-        self.params["tolvrs"] = 1.0e-18
+        self.use_tol(tol="tolvrs", value = 1.0e-18)
         self.params["ixc"] = 11
 
     def set_params(self, params):

@@ -28,6 +28,10 @@ if __name__ == "__main__":
             choices=[0, 1, 2, 3],
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
     # --------------------------------------------------------------------------
+    parser.add_argument("--chkprim", type=int, default=1,
+            choices=[0, 1],
+            help="check whether the input cell is primitive. if your cell is not primitive, set chkprim to 0. for more information, refer to https://docs.abinit.org/variables/gstate/#chkprim")
+
 
     parser.add_argument("--properties", nargs="+", type=int,
             default=[],
@@ -77,6 +81,13 @@ if __name__ == "__main__":
             default=None,
             help="Van Der Waals tolerance, only work when vdw_xc == 5 or 6 or 7. to be included in the potential a pair of atom must have contribution to the energy larger than vdw_tol. default value is 1.0e-10. fore more information, refer to https://docs.abinit.org/variables/vdw/#vdw_tol")
 
+    parser.add_argument("--prtden", type=int ,default=1,
+            choices=[0, 1],
+            help="print the density. for more information, refer to https://docs.abinit.org/variables/files/#prtden")
+
+    parser.add_argument("--prtdos", type=int, default=None,
+            choices=[0, 1, 2, 3],
+            help="can be 0, 1, 2, 3. for more information, refer to https://docs.abinit.org/variables/files/#prtdos")
 
     # -----------------------------------------------------------------
     #                      run params
@@ -106,6 +117,7 @@ if __name__ == "__main__":
     params = {}
     kpoints = {}
 
+    param["chkprim"] = args.chkprim
     params["ecut"] = args.ecut
     params["ixc"] = args.ixc
     params["vdw_xc"] = args.vdw_xc
@@ -120,6 +132,8 @@ if __name__ == "__main__":
 
     params["nsppol"] = args.nsppol
 
+    params["prtden"] = args.prtden
+    params["prtdos"] = args.prtdos
 
     task = static_run()
     task.get_xyz(args.file)

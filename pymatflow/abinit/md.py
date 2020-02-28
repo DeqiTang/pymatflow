@@ -23,13 +23,13 @@ class md_run(abinit):
 
     def md(self, directory="tmp-abinit-md", inpname="molecular-dynamics.in", runopt="gen", auto=0):
         #
-        self.input.electrons.set_scf_nscf("scf")
+        self.dataset[0].electrons.set_scf_nscf("scf")
 
-        self.input.electrons.params["tolvrs"] = 1.0e-10
-        self.input.electrons.params["tolwrf"] = None
-        self.input.electrons.params["toldff"] = None
-        self.input.electrons.params["tolrff"] = None
-        self.input.electrons.params["toldfe"] = None #1.0e-6
+        self.dataset[0].electrons.params["tolvrs"] = 1.0e-10
+        self.dataset[0].electrons.params["tolwrf"] = None
+        self.dataset[0].electrons.params["toldff"] = None
+        self.dataset[0].electrons.params["tolrff"] = None
+        self.dataset[0].electrons.params["toldfe"] = None #1.0e-6
 
         self.files.name = "molecular-dynamics.files"
         self.files.main_in = "molecular-dynamics.in"
@@ -44,7 +44,7 @@ class md_run(abinit):
             os.mkdir(directory)
             os.system("cp *.psp8 %s/" % directory)
             os.system("cp *.GGA_PBE-JTH.xml %s/" % directory)
-            os.system("cp %s %s/" % (self.input.system.xyz.file, directory))
+            os.system("cp %s %s/" % (self.dataset[0].system.xyz.file, directory))
             #
 
             # generate pbs job submit script

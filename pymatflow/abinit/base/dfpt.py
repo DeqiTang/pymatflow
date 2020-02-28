@@ -23,36 +23,10 @@ class abinit_dfpt:
             "rfatpol", "rfddk", "rfelfd", "rfphon", "rfstrs", "rfdir", "rfmagn",
             "rfmeth", "asr", "dfpt_sciss",
             ]
+        self.status = False
         #self.kpoints = kpoints()
 
-    def to_input(self, fout):
-        # fout: a file stream for writing
-        # ------------
-        # 检查输入参数
-        #self.check_all_params()
-        # ---------------
-        # 检查输入参数结束
-        fout.write("# =====================================\n")
-        fout.write("# DFPT related setting\n")
-        fout.write("# =====================================\n")
-        fout.write("\n")
-        for item in self.params:
-            if self.params[item] is not None:
-                if item == "rfdir":
-                    fout.write("rfdir %d %d %d\n" % (self.params[item][0], self.params[item][1], self.params[item][2]))
-                elif item == "rfatpol":
-                    fout.write("rfatpol %d %d\n" % (self.params["rfatpol"][0], self.params["rfatpol"][1]))
-                    pass
-                elif item == "qpt":
-                    fout.write("qpt %f %f %f\n" % (self.params[item][0], self.params[item][1], self.params[item][2]))
-                elif item == "ngqpt":
-                    fout.write("ngqpt %d %d %d\n" % (self.params[item][0], self.params[item][1], self.params[item][2]))
-                else:
-                    fout.write("%s %s\n" % (item, str(self.params[item])))
-                fout.write("\n")
-        fout.write("\n")
-
-    def to_string(self):
+    def to_string(self, n=0):
         """
         :return input_str is the string of all the set params
         """
@@ -69,16 +43,16 @@ class abinit_dfpt:
         for item in self.params:
             if self.params[item] is not None:
                 if item == "rfdir":
-                    input_str += "rfdir %d %d %d\n" % (self.params[item][0], self.params[item][1], self.params[item][2])
+                    input_str += "rfdir%s %d %d %d\n" % (n if n > 0 else "", self.params[item][0], self.params[item][1], self.params[item][2])
                 elif item == "rfatpol":
-                    input_str += "rfatpol %d %d\n" % (self.params["rfatpol"][0], self.params["rfatpol"][1])
+                    input_str += "rfatpol%s %d %d\n" % (n if n > 0 else "", self.params["rfatpol"][0], self.params["rfatpol"][1])
                     pass
                 elif item == "qpt":
-                    input_str += "qpt %f %f %f\n" % (self.params[item][0], self.params[item][1], self.params[item][2])
+                    input_str += "qpt%s %f %f %f\n" % (n if n > 0 else "", self.params[item][0], self.params[item][1], self.params[item][2])
                 elif item == "ngqpt":
-                    input_str += "ngqpt %d %d %d\n" % (self.params[item][0], self.params[item][1], self.params[item][2])
+                    input_str += "ngqpt%s %d %d %d\n" % (n if n > 0 else "", self.params[item][0], self.params[item][1], self.params[item][2])
                 else:
-                    input_str += "%s %s\n" % (item, str(self.params[item]))
+                    input_str += "%s%s %s\n" % (item, n if n > 0 else "", str(self.params[item]))
                 input_str += "\n"
         input_str += "\n"
 

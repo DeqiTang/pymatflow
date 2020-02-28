@@ -17,9 +17,9 @@ class static_run(abinit):
     def __init__(self):
         super().__init__()
 
-        self.input.guard.set_queen(queen="static")
+        self.dataset[0].guard.set_queen(queen="static")
 
-        self.input.electrons.basic_setting()
+        #self.dataset[0].electrons.basic_setting()
 
 
     def scf(self, directory="tmp-abinit-static", runopt="gen", auto=0):
@@ -35,9 +35,9 @@ class static_run(abinit):
             os.mkdir(directory)
             os.system("cp *.psp8 %s/" % directory)
             os.system("cp *.GGA_PBE-JTH.xml %s/" % directory)
-            os.system("cp %s %s/" % (self.input.system.xyz.file, directory))
+            os.system("cp %s %s/" % (self.dataset[0].system.xyz.file, directory))
 
-            self.input.electrons.set_scf_nscf("scf")
+            #self.dataset[0].electrons.set_scf_nscf("scf")
 
             # generate pbs job submit script
             self.gen_pbs(directory=directory, script="static-scf.pbs", cmd="abinit", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
@@ -70,15 +70,9 @@ class static_run(abinit):
             sys.exit(1)
         if runopt == "gen" or runopt == "genrun":
 
-            self.input.electrons.set_scf_nscf("nscf")
-            self.input.electrons.params["irdwfk"] = 1
-            self.input.electrons.params["irdden"] = 1
-            # dos
-            self.input.electrons.params["nband"] = 10
-            self.input.electrons.params["dosdeltae"] = 0.00005
-            self.input.electrons.params["occopt"] = 7
-            self.input.electrons.params["tsmear"] = 0.0001
-            # end dos
+            #self.dataset[0].electrons.set_scf_nscf("scf")
+            self.dataset[0].electrons.params["irdwfk"] = 1
+            self.dataset[0].electrons.params["irdden"] = 1
 
             #
 
@@ -86,14 +80,14 @@ class static_run(abinit):
             self.gen_pbs(directory=directory, script="static-nscf.pbs", cmd="abinit", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
             # generate local bash job run script
-            self.gen_bash(directory=directory, script="static-nscf.sh", cmd="abinit", mpi=self.run_parmas["mpi"])
+            self.gen_bash(directory=directory, script="static-nscf.sh", cmd="abinit", mpi=self.run_params["mpi"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("bash %s" % "static-nscf.sh")
             os.chdir("../")
 
-        server_handle(auto=auto, directory=directory, jobfilebase="static-nscf", server=self.params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="static-nscf", server=self.run_params["server"])
 
     def bands(self, directory="tmp-abinit-static", runopt="gen", auto=0):
         """
@@ -115,12 +109,12 @@ class static_run(abinit):
             sys.exit(1)
         if runopt == "gen" or runopt == "genrun":
 
-            self.input.electrons.params["iscf"] = -2
-            self.input.electrons.params["nband"] = 8
-            self.input.electrons.params["tolwfr"] = 1.0e-12 # when kptopt < 0 namely band structure calculatin, we can only use tolwfr
-            self.input.electrons.params["tolvrs"] = None
-            self.input.electrons.params["toldfe"] = None
-            #self.input.electrons.params["irdden"] = 1 # actually irdden will be 1 by default if iscf < 0
+            self.dataset[0].electrons.params["iscf"] = -2
+            self.dataset[0].electrons.params["nband"] = 8
+            self.dataset[0].electrons.params["tolwfr"] = 1.0e-12 # when kptopt < 0 namely band structure calculatin, we can only use tolwfr
+            self.dataset[0].electrons.params["tolvrs"] = None
+            self.dataset[0].electrons.params["toldfe"] = None
+            #self.dataset[0].electrons.params["irdden"] = 1 # actually irdden will be 1 by default if iscf < 0
 
 
             # generate pbs job submit script
@@ -136,6 +130,50 @@ class static_run(abinit):
 
         server_handle(auto=auto, directory=directory, jobfilebase="static-bands", server=self.run_params["server"])
 
+    def scf_nscf_dos_bands(self, directory="tmp-abinit-static", runopt="gen", auto=0):
+        """
+        """
+        self.files.name = "static-scf-nscf-dos-bands.files"
+        self.files.main_in = "static-scf-nscf-dos-bands.in"
+        self.files.main_out = "static-scf-nscf-dos-bands.out"
+        self.files.wavefunc_in = "static-scf-nscf-dos-bands-i"
+        self.files.wavefunc_out = "static-scf-nscf-dos-bands-o"
+        self.files.tmp = "tmp"
+        if runopt == "gen" or runopt == "genrun":
+
+            # overall default parameters setting
+
+            # 1) scf
+
+            # 2) nscf
+            self.dataset[0].electrons.params["irdwfk"] = 1
+            self.dataset[0].electrons.params["irdden"] = 1
+
+
+            # 3) bands
+            self.dataset[0].electrons.params["iscf"] = -2
+            self.dataset[0].electrons.params["nband"] = 8
+            self.dataset[0].electrons.params["tolwfr"] = 1.0e-12 # when kptopt < 0 namely band structure calculatin, we can only use tolwfr
+            self.dataset[0].electrons.params["tolvrs"] = None
+            self.dataset[0].electrons.params["toldfe"] = None
+            #self.dataset[0].electrons.params["irdden"] = 1 # actually irdden will be 1 by default if iscf < 0
+
+
+            # generate pbs job submit script
+            self.gen_pbs(directory=directory, script="static-scf-nscf-dos-bands.pbs", cmd="abinit", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+
+            # generate local bash job run script
+            self.gen_bash(directory=directory, script="static-scf-nscf-dos-bands.sh", cmd="abinit", mpi=self.run_params["mpi"])
+
+        if runopt == "run" or runopt == "genrun":
+            os.chdir(directory)
+            os.system("bash %s" % "static-scf-nscf-dos-bands.sh")
+            os.chdir("../")
+
+        server_handle(auto=auto, directory=directory, jobfilebase="static-scf-nscf-dos-bands", server=self.run_params["server"])
+
+
+
     def converge_ecut(self, emin, emax, step, directory="tmp-abinit-ecut", runopt="gen", auto=0):
 
         if runopt == "gen" or runopt == "genrun":
@@ -143,7 +181,7 @@ class static_run(abinit):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             os.system("cp *.psp8 %s/" % directory)
-            os.system("cp %s %s/" % (self.input.system.xyz.file, directory))
+            os.system("cp %s %s/" % (self.dataset[0].system.xyz.file, directory))
 
             os.chdir(directory)
             n_test = int((emax - emin) / step)
@@ -155,18 +193,18 @@ class static_run(abinit):
                     fout.write(inp_name)
                     fout.write("\n")
                     fout.write("ecut-%d.out\n" % cutoff)
-                    fout.write("ecut-%d-input\n" % cutoff)
+                    fout.write("ecut-%d-dataset[0]\n" % cutoff)
                     fout.write("ecut-%d-output\n" % cutoff)
                     fout.write("temp\n")
-                    for element in self.input.system.xyz.specie_labels:
+                    for element in self.dataset[0].system.xyz.specie_labels:
                         fout.write("%s\n" % (element + ".psp8"))
                 #
-                self.input.electrons.params["ecut"] = cutoff
+                self.dataset[0].electrons.params["ecut"] = cutoff
                 with open(inp_name, 'w') as fout:
-                    #self.input.electrons.to_input(fout)
-                    #self.input.system.to_input(fout)
-                    fout.write(self.input.electrons.to_string())
-                    fout.write(self.input.system.to_string())
+                    #self.dataset[0].electrons.to_dataset[0](fout)
+                    #self.dataset[0].system.to_dataset[0](fout)
+                    fout.write(self.dataset[0].electrons.to_string())
+                    fout.write(self.dataset[0].system.to_string())
             os.chdir("../")
 
             # generate pbs script files

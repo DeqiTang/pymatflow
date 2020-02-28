@@ -17,9 +17,9 @@ class neb_run(abinit):
         """
         super().__init__()
         self.images = []
-        self.input.electrons.basic_setting()
+        self.dataset[0].electrons.basic_setting()
 
-        self.input.guard.set_queen(queen="neb")
+        self.dataset[0].guard.set_queen(queen="neb")
 
         self.params = {
                 "imgmov": 5,
@@ -67,7 +67,7 @@ class neb_run(abinit):
             for image in self.images:
                 os.system("cp %s %s/" % (image.xyz.file, directory))
 
-            self.input.electrons.set_scf_nscf("scf")
+            self.dataset[0].electrons.set_scf_nscf("scf")
             #
 
             # generate pbs submit script
@@ -80,9 +80,9 @@ class neb_run(abinit):
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
                 fout.write("cat > %s<<EOF\n" % self.files.main_in)
-                #self.input.electrons.to_input(fout)
-                fout.write(self.input.electrons.to_string())
-                self.images_to_input(fout)
+                #self.dataset[0].electrons.to_dataset[0](fout)
+                fout.write(self.dataset[0].electrons.to_string())
+                self.images_to_dataset[0](fout)
                 fout.write("\n")
                 fout.write("# ===============================\n")
                 fout.write("# neb related setting\n")
@@ -92,7 +92,7 @@ class neb_run(abinit):
                         fout.write("%s %s\n" % (item, str(self.params[item])))
                 fout.write("EOF\n")
                 fout.write("cat > %s<<EOF\n" % self.files.name)
-                #self.files.to_files(fout, system=self.input.system)
+                #self.files.to_files(fout, system=self.dataset[0].system)
                 #self.files.to_files(fout, system=self.images[0])
                 fout.write(self.files.to_string(system=self.images[0]))
                 fout.write("EOF\n")
@@ -104,8 +104,8 @@ class neb_run(abinit):
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="neb", server=self.run_params["server"])
 
-    def images_to_input(self, fout):
-        #self.images[0].to_input(fout)
+    def images_to_dataset[0](self, fout):
+        #self.images[0].to_dataset[0](fout)
         fout.write(self.images[0].to_string())
         fout.write("\n")
         fout.write("xangst_lastimg\n")

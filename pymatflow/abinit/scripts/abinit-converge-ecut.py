@@ -34,6 +34,10 @@ if __name__ == "__main__":
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
 
     #---------------------------------------------------------------------------
+    parser.add_argument("--chkprim", type=int, default=1,
+            choices=[0, 1],
+            help="check whether the input cell is primitive. if your cell is not primitive, set chkprim to 0. for more information, refer to https://docs.abinit.org/variables/gstate/#chkprim")
+
 
     parser.add_argument("--ixc", type=int, default=11,
             choices=[1, 2, 3 ,4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 27, 28, 40, 41, 42],
@@ -82,6 +86,7 @@ if __name__ == "__main__":
 
     params = {}
 
+    params["chkprim"] = args.chkprim
     params["ixc"] = args.ixc
     params["vdw_xc"] = args.vdw_xc
     params["vdw_tol"] = args.vdw_tol
