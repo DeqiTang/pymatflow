@@ -1,0 +1,3 @@
+"""
+module for molecule structure
+"""

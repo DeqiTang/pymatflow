@@ -30,10 +30,6 @@ setup(
     install_requires = [],
 
     scripts = [
-        "pymatflow/abinit/scripts/bands_abinit.py",
-        "pymatflow/abinit/scripts/converge_ecut_abinit.py",
-        "pymatflow/abinit/scripts/md_abinit.py",
-        "pymatflow/abinit/scripts/phonon_abinit.py",
         "pymatflow/abinit/scripts/abinit-md.py",
         "pymatflow/abinit/scripts/abinit-opt.py",
         "pymatflow/abinit/scripts/abinit-converge-ecut.py",
@@ -45,7 +41,7 @@ setup(
         "pymatflow/abinit/scripts/abinit-opt-cubic.py",
         "pymatflow/abinit/scripts/abinit-opt-tetragonal.py",
         "pymatflow/abinit/scripts/abinit-opt-hexagonal.py",
-        "pymatflow/abinit/scripts/abinit-dfpt-elastic-piezo.py",
+        "pymatflow/abinit/scripts/abinit-dfpt-elastic-piezo-dielec.py",
         "pymatflow/abinit/scripts/abinit-dfpt-phonon.py",
         "pymatflow/abinit/scripts/abinit-scf-nscf-dos-bands.py",
         "pymatflow/abinit/post/scripts/post-abinit-neb.py",
@@ -53,7 +49,7 @@ setup(
         "pymatflow/abinit/post/scripts/post-abinit-scf.py",
         "pymatflow/abinit/post/scripts/post-abinit-md.py",
         "pymatflow/abinit/post/scripts/post-abinit-phonopy.py",
-        "pymatflow/abinit/post/scripts/post-abinit-dfpt-elastic-piezo.py",
+        "pymatflow/abinit/post/scripts/post-abinit-dfpt-elastic-piezo-dielec.py",
         "pymatflow/cp2k/scripts/cp2k-aimd.py",
         "pymatflow/cp2k/scripts/cp2k-converge-cutoff.py",
         "pymatflow/cp2k/scripts/cp2k-converge-rel-cutoff.py",
@@ -160,16 +156,16 @@ setup(
         "pymatflow/siesta/post/scripts/post-siesta-opt.py",
         "pymatflow/siesta/post/scripts/post-siesta-md.py",
         "pymatflow/siesta/post/scripts/post-siesta-phonopy.py",
-        "pymatflow/tools/xyz-build-supercell.py",
-        "pymatflow/tools/cluster_sphere.py",
-        "pymatflow/tools/xyz-fix-atoms.py",
-        "pymatflow/tools/xyzinfo.py",
-        "pymatflow/tools/cif-to-xyz-modified.py",
-        "pymatflow/tools/cif-to-pdb.py",
-        "pymatflow/tools/pdb-to-cif.py",
-        "pymatflow/tools/xyz-modified-to-crystal.py",
-        "pymatflow/tools/kpath-xyz-seekpath.py",
-        "pymatflow/tools/pot-from-xyz-modified.py",
+        "pymatflow/scripts/xyz-build-supercell.py",
+        "pymatflow/scripts/cluster_sphere.py",
+        "pymatflow/scripts/xyz-fix-atoms.py",
+        "pymatflow/scripts/xyzinfo.py",
+        "pymatflow/scripts/cif-to-xyz-modified.py",
+        "pymatflow/scripts/cif-to-pdb.py",
+        "pymatflow/scripts/pdb-to-cif.py",
+        "pymatflow/scripts/xyz-modified-to-crystal.py",
+        "pymatflow/scripts/kpath-xyz-seekpath.py",
+        "pymatflow/scripts/pot-from-xyz-modified.py",
         "pymatflow/remote/scripts/thq.py",
         "pymatflow/remote/scripts/thcancel.py",
         "pymatflow/remote/scripts/thpull.py",
@@ -184,11 +180,16 @@ setup(
         "pymatflow/flow/scripts/flow-pes-relax-qe.py",
         "pymatflow/flow/scripts/flow-pes-relax-cp2k.py",
         ],
-    #entry_points = {
-    #    'console_scripts': [
-    #        'noteseton = main:main'
-    #    ]
-    #},
+    entry_points = {
+        'console_scripts': [
+            'matflow = pymatflow.cmd.matflow:main',
+            'mflow = pymatflow.cmd.matflow:main',
+            'postflow = pymatflow.cmd.postflow:main',
+            'pflow = pymatflow.cmd.postflow:main',
+            'structflow = pymatflow.cmd.structflow:main',
+            'sflow = pymatflow.cmd.structflow:main',
+        ]
+    },
 
     cmdclass = {
         'clean': CleanCommand,

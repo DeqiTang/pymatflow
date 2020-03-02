@@ -9,24 +9,24 @@ import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pymatflow.abinit.post.dfpt import dfpt_elastic_piezo_anaddb_out
+from pymatflow.abinit.post.dfpt import dfpt_elastic_piezo_dielec_anaddb_out
 
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="previously dfpt elastic running directory", type=str, default="tmp-abinit-dfpt-elastic-piezo")
+    parser.add_argument("-d", "--directory", help="previously dfpt elastic running directory", type=str, default="tmp-abinit-dfpt-elastic-piezo-dielec")
 
     args = parser.parse_args()
 
     os.chdir(args.directory)
-    elastic = dfpt_elastic_piezo_anaddb_out()
+    elastic = dfpt_elastic_piezo_dielec_anaddb_out()
     elastic.get_info(file="anaddb.out")
 
     os.system("mkdir -p post-processing")
     os.chdir("post-processing")
 
-    with open("elastic-piezo.md", 'w', encoding='utf-8') as fout:
+    with open("elastic-piezo-dielec.md", 'w', encoding='utf-8') as fout:
         fout.write("# 弹性张量-压电张量实验报告\n")
         fout.write("## 计算输出原始数据\n")
         fout.write("**Elastic Tensor (clamped ion)`%s`**\n" % elastic.run_info["elastic_tensor_clamped_ion_unit"])
@@ -58,18 +58,40 @@ if __name__ == "__main__":
             fout.write("\n")
         fout.write("```\n")
 
-        fout.write("**Proper piezoelectric constants (clamped ion)`%s`**\n" % elastic.run_info["piezo_tensor_clamped_ion_unit"])
+
+        fout.write("**Proper piezoelectric constants (clamped ion)`%s`**\n" % elastic.run_info["piezo_tensor_e_clamped_ion_unit"])
         fout.write("```\n")
         for i in range(6):
             for j in range(3):
-                fout.write("%.8f " % elastic.run_info["piezo_tensor_clamped_ion"][i][j])
+                fout.write("%.8f " % elastic.run_info["piezo_tensor_e_clamped_ion"][i][j])
             fout.write("\n")
         fout.write("```\n")
-        fout.write("**Proper piezoelectric constants (relaxed ion)`%s`**\n" % elastic.run_info["piezo_tensor_relaxed_ion_unit"])
+        fout.write("**Proper piezoelectric constants (relaxed ion)`%s`**\n" % elastic.run_info["piezo_tensor_e_relaxed_ion_unit"])
         fout.write("```\n")
         for i in range(6):
             for j in range(3):
-                fout.write("%.8f " % elastic.run_info["piezo_tensor_relaxed_ion"][i][j])
+                fout.write("%.8f " % elastic.run_info["piezo_tensor_e_relaxed_ion"][i][j])
+            fout.write("\n")
+        fout.write("```\n")
+        fout.write("**Piezoelectric d tensor (relaxed ion)`%s`**\n" % elastic.run_info["piezo_tensor_d_relaxed_ion_unit"])
+        fout.write("```\n")
+        for i in range(6):
+            for j in range(3):
+                fout.write("%.8f " % elastic.run_info["piezo_tensor_d_relaxed_ion"][i][j])
+            fout.write("\n")
+        fout.write("```\n")
+        fout.write("**Piezoelectric g tensor (relaxed ion)`%s`**\n" % elastic.run_info["piezo_tensor_g_relaxed_ion_unit"])
+        fout.write("```\n")
+        for i in range(6):
+            for j in range(3):
+                fout.write("%.8f " % elastic.run_info["piezo_tensor_g_relaxed_ion"][i][j])
+            fout.write("\n")
+        fout.write("```\n")
+        fout.write("**Piezoelectric h tensor (relaxed ion)`%s`**\n" % elastic.run_info["piezo_tensor_h_relaxed_ion_unit"])
+        fout.write("```\n")
+        for i in range(6):
+            for j in range(3):
+                fout.write("%.8f " % elastic.run_info["piezo_tensor_h_relaxed_ion"][i][j])
             fout.write("\n")
         fout.write("```\n")
         fout.write("\n")
@@ -82,6 +104,9 @@ if __name__ == "__main__":
         fout.write("```\n")
         fout.write("你可以查看该文件\n")
         fout.write('\n')
+        fout.write("**计算压电g、h张量需要anaddb中设置dieflag为3或者4并设置iinstrflag为1，eflag为2,3,4或5:**\n")
+        fout.write("如果不满足条件anaddb会给出警告，但是计算任然会继续下去，给出的值不具参考意义\n")
+
 
         fout.write("## 数据处理\n")
         fout.write("如果这里anaddb分析出的Compliance tensor就是所谓的柔性张量那么我们就可以转换得到压电应变常数\n")
@@ -99,11 +124,10 @@ if __name__ == "__main__":
         fout.write("上面的压电常数时压电应力常数单位是 $C/m^(-2)$\n")
         fout.write("而压电应力常数与压电应变常数可以通过弹性柔顺系数进行转换:\n")
         fout.write("$[e] = [[d]^{t}[s]^{-1}]^{t}$\n")
-        fout.write("$[d] = [[s][e]]^{t}$\n")
         fout.write("$[d] = [e]^{t}[s]^{t}$\n")
-        fout.write("$$\n")
+        fout.write("$[d] = [[s][e]]^{t}$\n")
 
-        e = np.mat(elastic.run_info["piezo_tensor_clamped_ion"])
+        e = np.mat(elastic.run_info["piezo_tensor_e_clamped_ion"])
         s = np.mat(elastic.run_info["compliance_tensor_clamped_ion"])
         d = np.transpose(s * e) * 1.0e4
         fout.write("计算所得压电应变常数为(clamped ion) $pC/N$:\n")
@@ -113,7 +137,7 @@ if __name__ == "__main__":
                 fout.write("%.8f " % d[i, j])
             fout.write("\n")
         fout.write("```\n")
-        e = np.mat(elastic.run_info["piezo_tensor_relaxed_ion"])
+        e = np.mat(elastic.run_info["piezo_tensor_e_relaxed_ion"])
         s = np.mat(elastic.run_info["compliance_tensor_relaxed_ion"])
         d = np.transpose(s * e) * 1.0e4
         fout.write("计算所得压电应变常数为(relaxed ion)$pC/N$:\n")
@@ -123,6 +147,8 @@ if __name__ == "__main__":
                 fout.write("%.8f " % d[i, j])
             fout.write("\n")
         fout.write("```\n")
+        fout.write("但是注意到这里计算得到的压电应变常数与anaddb输出的piezoelectric d tensor差别很大。\n")
+        fout.write("建议还是参考anaddb自身输出的piezoelectric d tensor\n")
 
 
     os.chdir("../")
@@ -133,6 +159,6 @@ if __name__ == "__main__":
     # print information to the terminal
     # --------------------------------------------------------------------------
     print("=====================================================================\n")
-    print("                           post-abinit-dfpt-elastic-piezo.py\n")
+    print("                           post-abinit-dfpt-elastic-piezo-dielec.py\n")
     print("---------------------------------------------------------------------\n")
     print("\n")

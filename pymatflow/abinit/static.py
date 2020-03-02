@@ -20,7 +20,7 @@ class static_run(abinit):
         self.dataset[0].guard.set_queen(queen="static")
 
         #self.dataset[0].electrons.basic_setting()
-
+        self.set_ndtset(3)
 
     def scf(self, directory="tmp-abinit-static", runopt="gen", auto=0):
         self.files.name = "static-scf.files"
@@ -51,6 +51,7 @@ class static_run(abinit):
             os.chdir("../")
 
         server_handle(auto=auto, directory=directory, jobfilebase="static-scf", server=self.run_params["server"])
+
 
     def nscf(self, directory="tmp-abinit-static", runopt="gen", auto=0):
 
@@ -256,3 +257,57 @@ class static_run(abinit):
             os.chdir("../")
 
         server_handle(auto=auto, directory=directory, jobfilebase="converge-ecut", server=self.run_params["server"])
+
+    def run(self, directory="tmp-abinit-static", runopt="gen", auto=0):
+        self.files.name = "static.files"
+        self.files.main_in = "static.in"
+        self.files.main_out = "static.out"
+        self.files.wavefunc_in = "static-i"
+        self.files.wavefunc_out = "static-o"
+        self.files.tmp = "tmp"
+        if runopt == "gen" or runopt == "genrun":
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
+            os.system("cp *.psp8 %s/" % directory)
+            os.system("cp *.GGA_PBE-JTH.xml %s/" % directory)
+            os.system("cp %s %s/" % (self.dataset[0].system.xyz.file, directory))
+
+            # 0) overall default dataset
+            self.dataset[0].electrons.params["iscf"] = 7
+            self.dataset[0].electrons.params["prtden"] = 1
+            self.dataset[0].electrons.use_tol(tol="tolvrs", value=1.0e-8) # user must set it
+
+            # 1) scf
+            self.dataset[1].electrons.params["iscf"] = 7
+            self.dataset[1].electrons.params["prtden"] = 1
+            self.dataset[1].electrons.use_tol(tol="tolvrs", value=1.0e-8) # user must set it
+
+            # 2) nscf dos
+            self.dataset[2].electrons.params["iscf"] = -3
+            self.dataset[2].electrons.params["prtdos"] = 1
+            self.dataset[2].electrons.params["getwfk"] = 1
+            self.dataset[2].electrons.params["getden"] = 1
+            self.dataset[2].electrons.use_tol(tol="tolvrs", value=1.0e-8) # user must set it
+
+
+            # 3) nscf bands
+            self.dataset[3].electrons.params["iscf"] = -2
+            self.dataset[3].electrons.params["nband"] = 8
+            self.dataset[3].electrons.params["getwfk"] = 1
+            self.dataset[3].electrons.params["getden"] = 1
+            # when kptopt < 0 namely band structure calculatin, we can only use
+            self.dataset[3].electrons.use_tol(tol="tolwfr", value=1.0e-12)
+
+            # generate pbs job submit script
+            self.gen_pbs(directory=directory, script="static.pbs", cmd="abinit", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+
+            # generate local bash job run script
+            self.gen_bash(directory=directory, script="static.sh", cmd="abinit", mpi=self.run_params["mpi"])
+
+        if runopt == "run" or runopt == "genrun":
+            os.chdir(directory)
+            os.system("bash %s" % "static.sh")
+            os.chdir("../")
+
+        server_handle(auto=auto, directory=directory, jobfilebase="static", server=self.run_params["server"])

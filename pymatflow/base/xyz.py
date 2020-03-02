@@ -6,7 +6,7 @@ import sys
 import os
 import shutil
 import copy
-import pymatflow.base as base
+from pymatflow.base.element import element
 from pymatflow.base.atom import Atom
 
 """
@@ -71,7 +71,7 @@ class base_xyz:
         species = list(species)
         species_with_order = {}
         for i in species:
-            species_with_order[i] = base.element[i].number
+            species_with_order[i] = element[i].number
         tmp = sorted(zip(species_with_order.values(), species_with_order.keys()))
         for i in range(len(tmp)):
             tmp[i] = list(tmp[i])
@@ -106,39 +106,17 @@ class base_xyz:
         self.specie_labels = dict()
         self.get_xyz(xyzfile=xyzfile)
 
-    def build_supercell(self, n):
-        """
-        :param n: [n1, n2, n3]
-        """
-        self.origin_atoms = copy.deepcopy(self.atoms)
-        self.origin_cell = copy.deepcopy(self.cell)
-        self.origin_natom = copy.deepcopy(self.natom)
-        #
-        #for i in range(3):
-        #    self.cell[3*i+0] = n[i] * self.cell[3*i+0]
-        #    self.cell[3*i+1] = n[i] * self.cell[3*i+1]
-        #    self.cell[3*i+2] = n[i] * self.cell[3*i+2]
-        for i in range(3):
-            for j in range(3):
-                self.cell[i][j] = n[i] * self.cell[i][j]
-        #
-        # clone the atoms to build supercell
-        for i in range(3):
-            natom_now = len(self.atoms)
-            for j in range(n[i] - 1):
-                for atom in self.atoms[:natom_now]:
-                    #x = atom.x + float(j + 1) * self.origin_cell[3*i+0]
-                    #y = atom.y + float(j + 1) * self.origin_cell[3*i+1]
-                    #z = atom.z + float(j + 1) * self.origin_cell[3*i+2]
-                    x = atom.x + float(j + 1) * self.origin_cell[i][0]
-                    y = atom.y + float(j + 1) * self.origin_cell[i][1]
-                    z = atom.z + float(j + 1) * self.origin_cell[i][2]
-                    self.atoms.append(Atom(atom.name, x, y, z))
-        self.natom = len(self.atoms)
-
     def to_xyz(self, fname):
         with open(fname, 'w') as fout:
-            fout.write("%d\n" % self.natom)
+            fout.write("%d\n" % len(self.atoms))
+            #fout.write("cell: %f %f %f | %f %f %f | %f %f %f\n" % (self.cell[0], self.cell[1], self.cell[2], self.cell[3], self.cell[4], self.cell[5], self.cell[6], self.cell[7], self.cell[8]))
+            fout.write("cell: %f %f %f | %f %f %f | %f %f %f\n" % (self.cell[0][0], self.cell[0][1], self.cell[0][2], self.cell[1][0], self.cell[1][1], self.cell[1][2], self.cell[2][0], self.cell[2][1], self.cell[2][2]))
+            for atom in self.atoms:
+                fout.write("%s %f %f %f\n" % (atom.name, atom.x, atom.y, atom.z))
+
+    def to_xyz_file(self, fname):
+        with open(fname, 'w') as fout:
+            fout.write("%d\n" % len(self.atoms))
             #fout.write("cell: %f %f %f | %f %f %f | %f %f %f\n" % (self.cell[0], self.cell[1], self.cell[2], self.cell[3], self.cell[4], self.cell[5], self.cell[6], self.cell[7], self.cell[8]))
             fout.write("cell: %f %f %f | %f %f %f | %f %f %f\n" % (self.cell[0][0], self.cell[0][1], self.cell[0][2], self.cell[1][0], self.cell[1][1], self.cell[1][2], self.cell[2][0], self.cell[2][1], self.cell[2][2]))
             for atom in self.atoms:

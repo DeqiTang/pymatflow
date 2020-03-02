@@ -5,7 +5,7 @@ import sys
 import argparse
 
 from pymatflow.remote.server import server_handle
-from pymatflow.abinit.dfpt import dfpt_elastic_piezo
+from pymatflow.abinit.dfpt import dfpt_elastic_piezo_dielec
 
 """
 usage:
@@ -15,7 +15,7 @@ usage:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-d", "--directory", type=str, default="tmp-abinit-dfpt-elastic-piezo",
+    parser.add_argument("-d", "--directory", type=str, default="tmp-abinit-dfpt-elastic-piezo-dielec",
             help="Directory for the dfpt elastic running.")
 
     parser.add_argument("-f", "--file", type=str,
@@ -69,7 +69,7 @@ if __name__ == "__main__":
             choices=["pbs", "yh"],
             help="type of remote server, can be pbs or yh")
 
-    parser.add_argument("--jobname", type=str, default="opt-cubic",
+    parser.add_argument("--jobname", type=str, default="dfpt",
             help="jobname on the pbs server")
 
     parser.add_argument("--nodes", type=int, default=1,
@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
     kpoints["ngkpt"] = args.ngkpt
 
-    task = dfpt_elastic_piezo()
+    task = dfpt_elastic_piezo_dielec()
     task.get_xyz(args.file)
     task.set_params(params=params)
     task.set_kpoints(kpoints=kpoints)

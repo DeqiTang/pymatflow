@@ -120,6 +120,7 @@ class abinit_electrons:
             "ecut", "ixc", "nstep", "diemac", "iscf",
             'toldfe', 'tolwfr', 'toldff', 'tolrff', 'tolvrs',
             "occopt", "nband", "occ", "wtk",
+            "prtden", "prtdos",
             ]
         self.status = True
         self.kpoints = kpoints()

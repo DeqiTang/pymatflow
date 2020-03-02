@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 
 
-class dfpt_elastic_piezo_anaddb_out:
+class dfpt_elastic_piezo_dielec_anaddb_out:
     """
     Note:
     """
@@ -42,8 +42,13 @@ class dfpt_elastic_piezo_anaddb_out:
         self.run_info["compliance_tensor_clamped_ion"] = []
         self.run_info["compliance_tensor_relaxed_ion"] = []
 
-        self.run_info["piezo_tensor_clamped_ion"] = []
-        self.run_info["piezo_tensor_relaxed_ion"] = []
+        self.run_info["piezo_tensor_e_clamped_ion"] = []
+        self.run_info["piezo_tensor_e_relaxed_ion"] = []
+
+        # for piezoelectric tensor d, g and h, only relaxed ion piezo tensor is available
+        self.run_info["piezo_tensor_d_relaxed_ion"] = []
+        self.run_info["piezo_tensor_g_relaxed_ion"] = []
+        self.run_info["piezo_tensor_h_relaxed_ion"] = []
 
         for i in range(len(self.lines)):
             if len(self.lines[i].split()) == 0:
@@ -93,17 +98,41 @@ class dfpt_elastic_piezo_anaddb_out:
                         float(self.lines[i+j+3].split()[5]),
                     ])
             if self.lines[i].split()[0] == "Proper" and self.lines[i].split()[1] == "piezoelectric" and self.lines[i].split()[3] == "(clamped":
-                self.run_info["piezo_tensor_clamped_ion_unit"] = self.lines[i].split("ion)")[1][:-1]
+                self.run_info["piezo_tensor_e_clamped_ion_unit"] = self.lines[i].split("ion)")[1][:-1]
                 for j in range(6):
-                    self.run_info["piezo_tensor_clamped_ion"].append([
+                    self.run_info["piezo_tensor_e_clamped_ion"].append([
                         float(self.lines[i+j+2].split()[0]),
                         float(self.lines[i+j+2].split()[1]),
                         float(self.lines[i+j+2].split()[2]),
                     ])
             if self.lines[i].split()[0] == "Proper" and self.lines[i].split()[1] == "piezoelectric" and self.lines[i].split()[3] == "(relaxed":
-                self.run_info["piezo_tensor_relaxed_ion_unit"] = self.lines[i].split("ion)")[1][:-1]
+                self.run_info["piezo_tensor_e_relaxed_ion_unit"] = self.lines[i].split("ion)")[1][:-1]
                 for j in range(6):
-                    self.run_info["piezo_tensor_relaxed_ion"].append([
+                    self.run_info["piezo_tensor_e_relaxed_ion"].append([
+                        float(self.lines[i+j+2].split()[0]),
+                        float(self.lines[i+j+2].split()[1]),
+                        float(self.lines[i+j+2].split()[2]),
+                    ])
+            if self.lines[i].split()[0] == "Piezoelectric" and self.lines[i].split()[1] == "d" and self.lines[i].split()[3] == "(relaxed":
+                self.run_info["piezo_tensor_d_relaxed_ion_unit"] = self.lines[i].split("ion)")[1][:-1]
+                for j in range(6):
+                    self.run_info["piezo_tensor_d_relaxed_ion"].append([
+                        float(self.lines[i+j+2].split()[0]),
+                        float(self.lines[i+j+2].split()[1]),
+                        float(self.lines[i+j+2].split()[2]),
+                    ])
+            if self.lines[i].split()[0] == "Piezoelectric" and self.lines[i].split()[1] == "g" and self.lines[i].split()[3] == "(relaxed":
+                self.run_info["piezo_tensor_g_relaxed_ion_unit"] = self.lines[i].split("ion)")[1][:-1]
+                for j in range(6):
+                    self.run_info["piezo_tensor_g_relaxed_ion"].append([
+                        float(self.lines[i+j+2].split()[0]),
+                        float(self.lines[i+j+2].split()[1]),
+                        float(self.lines[i+j+2].split()[2]),
+                    ])
+            if self.lines[i].split()[0] == "Piezoelectric" and self.lines[i].split()[1] == "h" and self.lines[i].split()[3] == "(relaxed":
+                self.run_info["piezo_tensor_h_relaxed_ion_unit"] = self.lines[i].split("ion)")[1][:-1]
+                for j in range(6):
+                    self.run_info["piezo_tensor_h_relaxed_ion"].append([
                         float(self.lines[i+j+2].split()[0]),
                         float(self.lines[i+j+2].split()[1]),
                         float(self.lines[i+j+2].split()[2]),

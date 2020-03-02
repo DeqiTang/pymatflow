@@ -25,6 +25,12 @@ Procedure:
 
     5) fifth, the self-consistent response-function computations of the atomic displacement perturbations with a q wavevector, with the full set of k-points (with kptopt=3)
 
+Note:
+    Actually there are many combination of response function calculation implemented in Abinit.
+    For instance, there are ways to  calculate Born effective charge. you can calculate it
+    from phonon response or from electric field response.
+    we know rfelfd=2 we can do ddk calculation, and ddk can also be calculated using brrryopt=-2
+
 """
 import os
 import sys
@@ -37,7 +43,7 @@ from pymatflow.abinit.abinit import abinit
 from pymatflow.abinit.base.guard import abinit_guard
 
 
-class dfpt_elastic_piezo(abinit):
+class dfpt_elastic_piezo_dielec(abinit):
     """
     procedure for DFPT calculation:
         1) ground-state calculation
@@ -59,7 +65,7 @@ class dfpt_elastic_piezo(abinit):
 
         self.set_ndtset(3)
 
-    def run(self, directory="tmp-abinit-dfpt-elastic-piezo", runopt="gen", auto=0):
+    def run(self, directory="tmp-abinit-dfpt-elastic-piezo-dielec", runopt="gen", auto=0):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -94,7 +100,7 @@ class dfpt_elastic_piezo(abinit):
             self.dataset[2].electrons.kpoints.params["kptopt"] = 2
             self.dataset[2].electrons.kpoints.params["ngkpt"] = self.dataset[0].electrons.kpoints.params["ngkpt"]
             self.dataset[2].electrons.params["iscf"] = -3
-            self.dataset[2].dfpt.params["rfelfd"] = 2
+            self.dataset[2].dfpt.params["rfelfd"] = 2 # here we only do ddk calculation, no electric field perturbation
             self.dataset[2].dfpt.params["rfdir"] = [1, 1, 1]
             self.dataset[2].dfpt.params["nqpt"] = 1
             self.dataset[2].dfpt.params["qpt"] = [0, 0, 0]
@@ -109,14 +115,19 @@ class dfpt_elastic_piezo(abinit):
             self.dataset[3].dfpt.params["nqpt"] = 1
             self.dataset[3].dfpt.params["qpt"] = [0, 0, 0]
             self.dataset[3].dfpt.params["rfphon"] = 1
-            self.dataset[3].dfpt.params["rfelfd"] = None
+            # in dataset 2 we only do the ddk calculation, and int the output file you can only find Effective charge
+            # (from phonon response). now we can do electric field perturbation using rfelfd=3,
+            # this way Born effective charge (from electric fiedl perturbation) will also be print out to the abinit output
+            # and output of anaddb will contains information of Effective charge.
+            # plus the output can be analysed further by anaddb and dielectric tensor can be calculated.
+            self.dataset[3].dfpt.params["rfelfd"] = 3 # you can also set it to None, if you want no perturbation to electric field
             self.dataset[3].dfpt.params["rfatpol"] = [1, self.dataset[0].system.xyz.natom]
             self.dataset[3].dfpt.params["rfdir"] = [1, 1, 1]
             self.dataset[3].dfpt.params["rfstrs"] = 3
 
 
             # pbs jobsubmit script
-            with open(os.path.join(directory, "dfpt-elastic-piezo.pbs"), 'w') as fout:
+            with open(os.path.join(directory, "dfpt-elastic-piezo-dielec.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 fout.write("#PBS -N %s\n" % self.run_params["jobname"])
                 fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
@@ -135,9 +146,17 @@ class dfpt_elastic_piezo(abinit):
                 #with open(os.path.join(directory, "anaddb.in"), "w") as fout:
                 fout.write("cat > %s <<EOF\n" % "anaddb.in")
                 fout.write("elaflag 3\n")
-                fout.write("piezoflag 3\n")
+                fout.write("piezoflag 7\n")
+                # piezoflag = 7 means calculate all the possible piezoelectric tensors, including e (clamped and relaxed ion), d, g and h tensors
+                # if g and h tensor are to be calculated must set dieflag to 3 or 4, or it will print the wrong value
+                # but the calculation will continue
                 fout.write("instrflag 1\n")
                 fout.write("chneut 1\n")
+                fout.write("dieflag 1\n")
+                fout.write("# if ecut and kmesh is not sufficient, the calc of dielectric tensor might collapse\n")
+                #  The frequency-dependent dielectric tensor is calculated
+                # see https://docs.abinit.org/variables/anaddb/#dieflag
+                # if ecut and kmesh is not sufficient, the calc of dielectric tensor might collapse
                 fout.write("EOF\n")
                 #with open(os.path.join(directory, "anaddb.files"), 'w') as fout:
                 fout.write("cat > %s <<EOF\n" % "anaddb.files")
@@ -152,7 +171,7 @@ class dfpt_elastic_piezo(abinit):
                 fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s\n" % ("anaddb", "anaddb.files"))
 
             # pbs local bash script
-            with open(os.path.join(directory, "dfpt-elastic-piezo.sh"), 'w') as fout:
+            with open(os.path.join(directory, "dfpt-elastic-piezo-dielec.sh"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
 
                 fout.write("cat > %s<<EOF\n" % self.files.main_in)
@@ -167,9 +186,17 @@ class dfpt_elastic_piezo(abinit):
                 #with open(os.path.join(directory, "anaddb.in"), "w") as fout:
                 fout.write("cat > %s <<EOF\n" % "anaddb.in")
                 fout.write("elaflag 3\n")
-                fout.write("piezoflag 3\n")
+                fout.write("piezoflag 7 \n")
+                # piezoflag = 7 means calculate all the possible piezoelectric tensors, including e (clamped and relaxed ion), d, g and h tensors
+                # if g and h tensor are to be calculated must set dieflag to 3 or 4, or it will print the wrong value
+                # but the calculation will continue
                 fout.write("instrflag 1\n")
                 fout.write("chneut 1\n")
+                fout.write("dieflag 1\n")
+                fout.write("# if ecut and kmesh is not sufficient, the calc of dielectric tensor might collapse\n")
+                #  The frequency-dependent dielectric tensor is calculated
+                # see https://docs.abinit.org/variables/anaddb/#dieflag
+                # if ecut and kmesh is not sufficient, the calc of dielectric tensor might collapse
                 fout.write("EOF\n")
                 #with open(os.path.join(directory, "anaddb.files"), 'w') as fout:
                 fout.write("cat > %s <<EOF\n" % "anaddb.files")
@@ -185,9 +212,9 @@ class dfpt_elastic_piezo(abinit):
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("bash dfpt-elastic-piezo.sh")
+            os.system("bash dfpt-elastic-piezo-dielec.sh")
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="dfpt-elastic-piezo", server=self.run_params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="dfpt-elastic-piezo-dielec", server=self.run_params["server"])
 
 
 
@@ -254,7 +281,11 @@ class dfpt_phonon(abinit):
             # overall default dataset
             self.dataset[0].electrons.params["getwfk"] = 1
             self.dataset[0].electrons.kpoints.params["kptopt"] = 3
-            self.dataset[0].dfpt.params["rfphon"]  = 1
+            #self.dataset[0].dfpt.params["rfphon"]  = 1
+            # If one of rfphon, rfddk, rfelfd, or rfstrs is non-zero, while optdriver is not defined in the input file,
+            # ABINIT will set optdriver to 1 automatically(means for response function calc)
+            # so we should not set them in the dataset 0 for the default setting.
+            # but rfatpol and rfdir can be set in the dataset 0 which will not affect default value of optdriver
             self.dataset[0].dfpt.params["rfatpol"] = [1, self.dataset[0].system.xyz.natom]
             self.dataset[0].dfpt.params["rfdir"] = [1, 1, 1]
             self.dataset[0].electrons.use_tol(tol="tolvrs", value=1.0e-8)
