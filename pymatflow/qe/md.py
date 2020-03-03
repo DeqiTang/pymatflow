@@ -3,7 +3,7 @@ Molecular Dynamics calc
 """
 import os
 import shutil
-import matplotlib.pyplot as plt
+
 
 from pymatflow.remote.server import server_handle
 from pymatflow.qe.pwscf import pwscf
@@ -85,7 +85,7 @@ class md_run(pwscf):
             #
             self.arts.pseudo.dir = os.path.abspath(directory)
             self.control.pseudo_dir = os.path.abspath(directory)
-            
+
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)

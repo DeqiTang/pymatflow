@@ -89,8 +89,6 @@ def main():
             choices=[0, 1, 2, 3],
             help="choices of runtype. 0->static_run; 1->optimization; 2->dfpt-elastic-piezo-dielec")
 
-
-
     subparser.add_argument("--kpath-manual", type=str, nargs="+", default=None,
             help="manual input kpath for band structure calculation")
 
@@ -198,8 +196,10 @@ def main():
             pass
         elif args.runtype == 1:
             # optimization
-            from pymatflow.abinit.opt import opt_run
-            task = opt_run()
+            from pymatflow.abinit.post.opt import opt
+            post = opt()
+            post.parse(os.path.join(args.directory, "optimization.out"))
+            post.export(directory=args.directory)
         elif args.runtype == 2:
             # dfpt-elastic-piezo-dielec
             #from pymatflow.abinit.post.dfpt import dfpt_elastic_piezo_dielec_anaddb_out

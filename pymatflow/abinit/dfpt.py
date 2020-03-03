@@ -35,7 +35,7 @@ Note:
 import os
 import sys
 import shutil
-import matplotlib.pyplot as plt
+
 
 from pymatflow.remote.server import server_handle
 from pymatflow.abinit.abinit import abinit
@@ -170,7 +170,7 @@ class dfpt_elastic_piezo_dielec(abinit):
                 fout.write("EOF\n")
                 fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s\n" % ("anaddb", "anaddb.files"))
 
-            # pbs local bash script
+            # local bash script
             with open(os.path.join(directory, "dfpt-elastic-piezo-dielec.sh"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
 
@@ -279,7 +279,7 @@ class dfpt_phonon(abinit):
                 self.dataset[i].dfpt.status = True
 
             # overall default dataset
-            self.dataset[0].electrons.params["getwfk"] = 1
+
             self.dataset[0].electrons.kpoints.params["kptopt"] = 3
             #self.dataset[0].dfpt.params["rfphon"]  = 1
             # If one of rfphon, rfddk, rfelfd, or rfstrs is non-zero, while optdriver is not defined in the input file,
@@ -291,6 +291,7 @@ class dfpt_phonon(abinit):
             self.dataset[0].electrons.use_tol(tol="tolvrs", value=1.0e-8)
 
             # 1) ground state scf calculation
+            self.dataset[1].electrons.params["iscf"] = 7
             self.dataset[1].electrons.use_tol(tol="tolvrs", value=1.0e-10)
             self.dataset[1].electrons.kpoints.params["ngkpt"] = self.dataset[0].electrons.kpoints.params["ngkpt"]
 
@@ -310,6 +311,7 @@ class dfpt_phonon(abinit):
             # 3) Response function calculation of Q=0 phonons and electric field pert.
 
             self.dataset[3].electrons.params["getddk"] = 2
+            self.dataset[3].electrons.params["getwfk"] = 1
             self.dataset[3].electrons.kpoints.params["kptopt"] = 2
             self.dataset[3].electrons.kpoints.params["ngkpt"] = self.dataset[0].electrons.kpoints.params["ngkpt"]
             self.dataset[3].dfpt.params["rfelfd"] = 3
@@ -322,6 +324,7 @@ class dfpt_phonon(abinit):
                 specialk = []
                 for kpoint in self.qpath:
                     if kpoint[3] not in specialk:
+                        self.dataset[i].electrons.params["getwfk"] = 1
                         self.dataset[i].dfpt.params["qpt"] = kpoint[0:3]
                         self.dataset[i].electrons.use_tol(tol="tolvrs", value=1.0e-8)
                         self.dataset[i].electrons.kpoints.params["ngkpt"] = self.dataset[0].electrons.kpoints.params["ngkpt"]
@@ -330,9 +333,122 @@ class dfpt_phonon(abinit):
                         pass
             #
             # generate pbs job submit script
-            self.gen_pbs(directory=directory, script="dfpt-phonon.pbs", cmd="abinit", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            #self.gen_pbs(directory=directory, script="dfpt-phonon.pbs", cmd="abinit", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # generate local bash job run script
-            self.gen_bash(directory=directory, script="dfpt-phonon.sh", cmd="abinit", mpi=self.run_params["mpi"])
+            #self.gen_bash(directory=directory, script="dfpt-phonon.sh", cmd="abinit", mpi=self.run_params["mpi"])
+
+            # pbs jobsubmit script
+            with open(os.path.join(directory, "dfpt-phonon.pbs"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+                fout.write("\n")
+                fout.write("cd $PBS_O_WORKDIR\n")
+                fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+                fout.write("cat > %s<<EOF\n" % self.files.main_in)
+                fout.write(self.to_string())
+                fout.write("EOF\n")
+                fout.write("cat > %s<<EOF\n" % self.files.name)
+                fout.write(self.files.to_string(system=self.dataset[0].system))
+                fout.write("EOF\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s\n" % ("abinit", self.files.name))
+
+                # use mrgddb and anaddb to analyse DDB file generated previously
+                fout.write("cat %s <<EOF\n" % "mrgddb.in")
+                fout.write("mrgddb.ddb.out\n")
+                fout.write("xxx\n")
+                fout.write("%d\n" % (self.ndtset-2))
+                for i in range(3, self.ndtset+1):
+                    fout.write("dfpt-phonon-o_DS%d_DDB\n" % i)
+                fout.write("EOF\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE mrgddb < mrgddb.in\n")
+
+                # anaddb
+                fout.write("cat > %s <<EOF\n" % "anaddb.in")
+                fout.write("ifcflag 1\n")
+                fout.write("ifcout 0\n")
+                fout.write("! wavevector grid\n")
+                fout.write("brav 2\n")
+                fout.write("ngqpt 3 3 3\n")
+                fout.write("! effective charge\n")
+                fout.write("chneut 1\n")
+                fout.write("! interatomic force constant info\n")
+                fout.write("dipdip 1\n")
+                fout.write("! Phonon band structure output for band2eps\n")
+                fout.write("eivec 4\n")
+                fout.write("! wavevector list\n")
+
+
+
+                fout.write("EOF\n")
+
+
+                #with open(os.path.join(directory, "anaddb.files"), 'w') as fout:
+                fout.write("cat > %s <<EOF\n" % "anaddb.files")
+                fout.write("anaddb.in\n")
+                fout.write("anaddb.out\n")
+                fout.write("%s_DS3_DDB\n" % self.files.wavefunc_out)
+                fout.write("dummy_moldyn\n")
+                fout.write("dummy_GKK\n")
+                fout.write("dummy_epout\n")
+                fout.write("dummy_ddk\n")
+                fout.write("EOF\n")
+                #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s\n" % ("anaddb", "anaddb.files"))
+
+            # local bash script
+            with open(os.path.join(directory, "dfpt-phonon.sh"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+
+                fout.write("cat > %s<<EOF\n" % self.files.main_in)
+                fout.write(self.to_string())
+                fout.write("EOF\n")
+                fout.write("cat > %s<<EOF\n" % self.files.name)
+                fout.write(self.files.to_string(system=self.dataset[0].system))
+                fout.write("EOF\n")
+                fout.write("%s %s < %s\n" % (self.run_params["mpi"], "abinit", self.files.name))
+
+                # use mrgddb and anaddb to analyse DDB file generated previously
+                fout.write("cat %s <<EOF\n" % "mrgddb.in")
+                fout.write("mrgddb.ddb.out\n")
+                fout.write("xxx\n")
+                fout.write("%d\n" % (self.ndtset-2))
+                for i in range(3, self.ndtset+1):
+                    fout.write("dfpt-phonon-o_DS%d_DDB\n" % i)
+                fout.write("EOF\n")
+                fout.write("%s mrgddb < mrgddb.in\n" % self.run_params["mpi"])
+
+                # anaddb
+                fout.write("cat > %s <<EOF\n" % "anaddb.in")
+                fout.write("ifcflag 1\n")
+                fout.write("ifcout 0\n")
+                fout.write("! wavevector grid\n")
+                fout.write("brav 2\n")
+                fout.write("ngqpt 3 3 3\n")
+                fout.write("! effective charge\n")
+                fout.write("chneut 1\n")
+                fout.write("! interatomic force constant info\n")
+                fout.write("dipdip 1\n")
+                fout.write("! Phonon band structure output for band2eps\n")
+                fout.write("eivec 4\n")
+                fout.write("! wavevector list\n")
+
+
+
+                fout.write("EOF\n")
+
+
+                #with open(os.path.join(directory, "anaddb.files"), 'w') as fout:
+                fout.write("cat > %s <<EOF\n" % "anaddb.files")
+                fout.write("anaddb.in\n")
+                fout.write("anaddb.out\n")
+                fout.write("%s_DS3_DDB\n" % self.files.wavefunc_out)
+                fout.write("dummy_moldyn\n")
+                fout.write("dummy_GKK\n")
+                fout.write("dummy_epout\n")
+                fout.write("dummy_ddk\n")
+                fout.write("EOF\n")
+                #fout.write("%s %s < %s\n" % (self.run_params["mpi"], "anaddb", "anaddb.files"))
+
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

@@ -6,7 +6,7 @@ import sys
 import os
 import shutil
 import seekpath
-import matplotlib.pyplot as plt
+
 
 from pymatflow.remote.server import server_handle
 from pymatflow.abinit.abinit import abinit

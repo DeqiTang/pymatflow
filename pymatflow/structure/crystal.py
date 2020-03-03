@@ -38,7 +38,10 @@ class crystal():
     def from_xyz_file(self, xyz):
         """
         """
-        pass
+        xyz = base.base_xyz()
+        xyz.get_xyz(xyz)
+        self.cell = xyz.cell
+        self.atoms = xyz.atoms
 
     def from_cif_file(self, cif):
         """
@@ -164,3 +167,19 @@ class crystal():
         xyz.natom = len(self.atoms)
         xyz.set_species_number()
         return xyz
+
+    def remove_atom(self, number):
+        """ remove one atom from self.atoms
+        :param number: an integer specifying the atom to remove
+        """
+        del self.atoms[number]
+
+    def remove_atoms(self, number):
+        """ remove several atoms from self.atoms
+        :param number: a list of integer specifying atoms to remove
+        """
+        for i in number:
+            self.atoms[i] = None
+        for atom in self.atoms:
+            if atom == None:
+                self.atoms.remove(atom)

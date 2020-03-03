@@ -5,7 +5,6 @@ import os
 import re
 import shutil
 import pymatflow.base as base
-import matplotlib.pyplot as plt
 
 from pymatflow.remote.server import server_handle
 from pymatflow.qe.pwscf import pwscf

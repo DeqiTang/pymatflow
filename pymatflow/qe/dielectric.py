@@ -2,7 +2,7 @@
 import os
 import sys
 import shutil
-import matplotlib.pyplot as plt
+
 
 #from pymatflow.qe.base.control import qe_control
 #from pymatflow.qe.base.system import qe_system

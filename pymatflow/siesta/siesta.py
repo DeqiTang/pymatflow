@@ -5,7 +5,6 @@ import numpy as np
 import sys
 import os
 import shutil
-import matplotlib.pyplot as plt
 
 from pymatflow.siesta.base.system import siesta_system
 from pymatflow.siesta.base.electrons import siesta_electrons

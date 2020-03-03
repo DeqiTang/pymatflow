@@ -71,7 +71,7 @@ if __name__ == "__main__":
             default=0,
             help="whether to optimize the cell shape and dimension. fore more information, refer to https://docs.abinit.org/variables/rlx/#optcell")
 
-    parser.add_argument("--ecutsm", type=int, default=None,
+    parser.add_argument("--ecutsm", type=float, default=None,
             help="when optcell != 0, must specify encutsm larser than zero. for more information refer to https://docs.abinit.org/variables/rlx/#ecutsm")
 
 

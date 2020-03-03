@@ -5,7 +5,7 @@ import numpy as np
 import sys
 import os
 import shutil
-import matplotlib.pyplot as plt
+
 
 from pymatflow.cp2k.cp2k import cp2k
 #from pymatflow.cp2k.base.glob import cp2k_glob

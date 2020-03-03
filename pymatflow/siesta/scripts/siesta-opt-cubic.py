@@ -165,9 +165,9 @@ if __name__ == "__main__":
         fout.write("\n")
         fout.write("cd $PBS_O_WORKDIR\n")
         fout.write("cat > optimization.fdf<<EOF\n")
-        task.system.to_input(fout)
-        task.electrons.to_input(fout)
-        task.ions.to_input(fout)
+        task.system.to_fdf(fout)
+        task.electrons.to_fdf(fout)
+        task.ions.to_fdf(fout)
         fout.write("EOF\n")
         fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
 

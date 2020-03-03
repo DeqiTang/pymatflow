@@ -4,7 +4,7 @@ Static calc
 import os
 import sys
 import shutil
-import matplotlib.pyplot as plt
+
 
 from pymatflow.remote.server import server_handle
 from pymatflow.qe.pwscf import pwscf
@@ -515,7 +515,7 @@ class static_run(pwscf):
 
             self.arts.pseudo.dir = os.path.abspath(directory)
             self.control.pseudo_dir = os.path.abspath(directory)
-            
+
             with open(os.path.join(directory, inpname1), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)
@@ -842,7 +842,7 @@ class static_run(pwscf):
                 fout.write("\n")
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
-                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
+                #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
                 for plot_num_i in self.inputpp["plot_num"]:
                     fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("pp.x", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
 
@@ -976,3 +976,183 @@ class static_run(pwscf):
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="xspectra", server=self.run_params["server"])
     #
+
+    def run(self, directory="tmp-qe-static", runopt="gen", auto=0, kpath=None):
+        """
+        directory: a place for all the generated files
+
+        :param directory: the overall static calculation directory
+
+        :param runopt: determine whether the calculation is executed.
+                there are three values: 'gen', 'genrun', 'run'
+                'gen': only generate the input files
+                'genrun': generate input files and run
+                'run': run from the previously generated input files
+        Note:
+            scf, nscf, pdos, bands in a single run
+        """
+        if runopt == 'gen' or runopt == 'genrun':
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
+
+            #os.system("cp *.UPF %s/" % directory)
+            #os.system("cp %s %s/" % (self.arts.xyz.file, directory))
+
+            # do not copy too many files at the same time or it will be slow
+            # so we do not copy all UPF files in the directory but just copy
+            # those used in the calculation.
+            shutil.copyfile(self.arts.xyz.file, os.path.join(directory, os.path.basename(self.arts.xyz.file)))
+            all_upfs = [s for s in os.listdir() if s.split(".")[-1] == "UPF"]
+            for element in self.arts.xyz.specie_labels:
+                for upf in all_upfs:
+                    if upf.split(".")[0] == element:
+                        shutil.copyfile(upf, os.path.join(directory, upf))
+                        break
+            self.arts.pseudo.dir = os.path.abspath(directory)
+            self.control.pseudo_dir = os.path.abspath(directory)
+            #
+
+            # 1) scf
+            self.control.calculation("scf")
+            with open(os.path.join(directory, "static-scf.in"), 'w') as fout:
+                self.control.to_in(fout)
+                self.system.to_in(fout)
+                self.electrons.to_in(fout)
+                self.arts.to_in(fout)
+
+            # 2) nscf
+            self.control.calculation("nscf")
+            with open(os.path.join(directory, "static-nscf.in"), 'w') as fout:
+                self.control.to_in(fout)
+                self.system.to_in(fout)
+                self.electrons.to_in(fout)
+                self.arts.to_in(fout)
+
+            # 3) projwfc
+            with open(os.path.join(directory, "static-projwfc.in"), 'w') as fout:
+                fout.write("&PROJWFC\n")
+                for item in self.projwfc_input:
+                    if item in ["ngauss", "degauss", "emin", "emax", "deltae"]:
+                        continue
+                    if self.projwfc_input[item] is not None:
+                        if type(self.projwfc_input[item]) == str:
+                            fout.write("%s = '%s'\n" % (item, self.projwfc_input[item]))
+                        else:
+                            fout.write("%s = %s\n" % (item, self.projwfc_input[item]))
+                if self.projwfc_input["ngauss"] == 'default':
+                    fout.write("! use ngauss read from input for pw.x store in xxx.save\n")
+                else:
+                    fout.write("ngauss = %d\n" % self.projwfc_input["ngauss"])
+                if self.projwfc_input["degauss"] == 'default':
+                    fout.write("! use degauss read from input for pw.x stored in xxx.save\n")
+                    fout.write("! or degauss = DeltaE, if DeltaE is specified\n")
+                    fout.write("! we better set degauss and ngauss ourselves!\n")
+                else:
+                    fout.write("degauss = %f\n" % self.projwfc_input["degauss"])
+                if self.projwfc_input["emin"] == 'default':
+                    fout.write("!using default Emin: lower band value plus 3 times gauss smearing value\n")
+                else:
+                    fout.write("emin = %f\n" % self.projwfc_input["emin"])
+                if self.projwfc_input["emax"] == 'default':
+                    fout.write("!using default Emax: upper band value minus 3 times gauss smearing value\n")
+                else:
+                    fout.write("emax = %f\n" % self.projwfc_input["emax"])
+                if self.projwfc_input["deltae"] == 'default':
+                    fout.write("!using default DeltaE value\n")
+                else:
+                    fout.write("deltae = %f\n" % self.projwfc_input["deltae"])
+                fout.write("/\n")
+                fout.write("\n")
+
+            # 4) band structure
+            self.control.calculation('bands')
+            self.set_kpoints(kpoints_option="crystal_b", crystal_b=kpath)
+            with open(os.path.join(directory, "static-bands.in"), 'w') as fout:
+                self.control.to_in(fout)
+                self.system.to_in(fout)
+                self.electrons.to_in(fout)
+                self.arts.to_in(fout)
+            #
+            with open(os.path.join(directory, "bands.in"), 'w') as fout:
+                fout.write("&BANDS\n")
+                for item in self.bands_input:
+                    if self.bands_input[item] is not None:
+                        if type(self.bands_input[item]) == str and self.bands_input[item].lower() not in [".true.", ".false."]:
+                            fout.write("%s = '%s'\n" % (item, self.bands_input[item]))
+                        else:
+                            fout.write("%s = %s\n" % (item, self.bands_input[item]))
+                fout.write("/\n")
+                fout.write("\n")
+
+            # 5) pp.x
+            prefix="pp"
+            table = {
+                    0: "electron-pseudo-charge-density",
+                    1: "total-potential",
+                    2: "local-ionic-potential",
+                    3: "ldos",
+                    4: "local-density-of-electronic-entropy",
+                    5: "stm",
+                    6: "spin-polar",
+                    7: "molecular-orbitals",
+                    8: "electron-local-function",
+                    9: "charge-density-minus-superposition-of-atomic-densities",
+                    10: "ILDOS",
+                    11: "v_bare+v_H-potential",
+                    12: "sawtooth-electric-field-potential",
+                    13: "nocollinear-magnetization",
+                    17: "all-electron-charge-density-paw-only",
+                    18: "exchage-correlation-magnetic-field-noncollinear-case",
+                    19: "reduced-density-gradient",
+                    20: "product-of-charge-density-with-hessian",
+                    21: "all-electron-density-paw-only",
+                    }
+            for plot_num_i in self.inputpp["plot_num"]:
+                with open(os.path.join(directory, prefix+"-"+table[plot_num_i]+".in"), 'w') as fout:
+                    self._pp_inputpp(fout, plot_num=plot_num_i, filplot=table[plot_num_i]+".dat")
+                    self._pp_plot(fout, output_format=self.plotpp["output_format"], iflag=self.plotpp["iflag"], filepp=table[plot_num_i]+".dat")
+
+            # gen yhbatch script
+            with open(os.path.join(directory, "static.sub"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("yhrun -N 1 -n 24 pw.x < static-scf.in > static-scf.out\n")
+                fout.write("yhrun -N 1 -n 24 pw.x < static-nscf.in > static-nscf.out\n")
+                fout.write("yhrun -N 1 -n 24 projwfc.x < static-projwfc.in > static-projwfc.out\n")
+                fout.write("yhrun -N 1 -n 24 pw.x < static-bands.in > static-bands.out\n")
+                fout.write("yhrun -N 1 -n 24 bands.x < bands.in > bands.out\n")
+                for plot_num_i in self.inputpp["plot_num"]:
+                    fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % ("pp.x", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
+
+            # gen pbs script
+            with open(os.path.join(directory, "static.pbs"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+                fout.write("\n")
+                fout.write("cd $PBS_O_WORKDIR\n")
+                fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < static-scf.in > static-scf.out\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < static-nscf.in > static-nscf.out\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE projwfc.x < static-projwfc.in > static-projwfc.out\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < static-bands.in > static-bands.out\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE bands.x < bands.in > bands.out\n")
+                for plot_num_i in self.inputpp["plot_num"]:
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("pp.x", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
+
+            # gen local bash script
+            with open(os.path.join(directory, "static.sh"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("%s pw.x < static-scf.in | tee static-scf.out\n" % self.run_params["mpi"])
+                fout.write("%s pw.x < static-nscf.in | tee static-nscf.out\n" % self.run_params["mpi"])
+                fout.write("%s projwfc.x < static-projwfc.in | tee static-projwfc.out\n" % self.run_params["mpi"])
+                fout.write("%s pw.x < static-bands.in > static-bands.out\n" % self.run_params["mpi"])
+                fout.write("%s bands.x < bands.in | tee bands.out\n" % self.run_params["mpi"])
+                for plot_num_i in self.inputpp["plot_num"]:
+                    fout.write("%s pp.x < %s | tee %s\n" % (self.run_params["mpi"], prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
+
+        if runopt == 'genrun' or runopt == 'run':
+            os.chdir(directory)
+            os.system("bash static.sh")
+            os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="static", server=self.run_params["server"])

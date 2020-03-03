@@ -5,9 +5,8 @@ import sys
 import re
 import os
 import shutil
-import seekpath
 import numpy as np
-import matplotlib.pyplot as plt
+
 
 from pymatflow.remote.server import server_handle
 from pymatflow.qe.pwscf import pwscf

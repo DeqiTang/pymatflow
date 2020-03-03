@@ -51,7 +51,7 @@ def main():
     # --------------------------------------------------------------------------
     subparser = subparsers.add_parser("kpath", help="using kpath subcommand")
 
-    subparser.add_argument("--from", type=str, default="seekpath",
+    subparser.add_argument("--engine", type=str, default="seekpath",
             choices=["seekpath"],
             help="choose tool to generate kpath")
 
@@ -98,20 +98,20 @@ def main():
         # will convert file type according to the suffix of the specified input and output file
         if args.input.split(".")[-1] == "cif":
             if args.output.split(".")[-1] == "xyz":
-                os.system("cif-to-modified-xyz.py -i %s -o %s" % (args.input, args.output))
+                os.system("cif-to-xyz-modified.py -i %s -o %s" % (args.input, args.output))
             elif args.output.split(".")[-1] == "pdb":
                 os.system("cif-to-pdb.py -i %s -o %s" % (args.input, args.output))
             else:
                 pass
         elif args.input.split(".")[-1] == "xyz":
             if args.output.split(".")[-1] == "cif":
-                os.system("xyz-modified-tocif.py -i %s -o %s" % (args.input, args.output))
+                os.system("xyz-modified-to-cif.py -i %s -o %s" % (args.input, args.output))
             else:
                 pass
         else:
             pass
     elif args.driver == "kpath":
-        if args.from == "seekpath":
+        if args.engine == "seekpath":
             os.system("kpath-xyz-seekpath.py -i %s -o %s" % (args.input, args.output))
         else:
             pass

@@ -35,7 +35,7 @@ parameters in the second line of ``CO2.xyz`` manually, in format like this::
 Tutorials
 -----------------------
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    tutorials/tutorials_en.rst
    tutorials/tutorials_cn.rst
@@ -48,7 +48,7 @@ Pymatflow官方微信公众号"生材有道"目前已经开始试运营。欢迎
 .. image:: /_images/qrcode_for_shengcaiyoudao_1.jpg
 
 往期公众号文章
-`使用Phonopy+CP2K计算固体声子谱(Pymatflow篇) <https://mp.weixin.qq.com/s?__biz=MzU4MjM5NDUyMg==&tempkey=MTA1MF9keDgwYjk5STdpRlZFVGVyZnlSRGlZTXI4LW5IdUN6RTd6a3RmNm9tOHVMc0ZvVmRTQnUwQWJDeENUZWNMOEx1NW1UVFl5aW1EM1owZGpvVDRZWFNTN0FmTWtKRU1mTWQ4UEc0cnJlT202VlJNUU5JUEJzc2VXSVc1NHo4cFBjSGxiaUFVQnJaR2YzYjVOeDNJYm00WWdXdGhTZE92WEs3M0phS3N3fn4%3D&chksm=7db9b52f4ace3c3908f0b9f37b78bf5682ab04a1d432f7ac7dd2a73d5d3e977ce2935d5987ba#rd>`_
+`使用Phonopy+CP2K计算固体声子谱(Pymatflow篇) <https://mp.weixin.qq.com/s?__biz=MzU4MjM5NDUyMg==&mid=2247484123&idx=1&sn=b8e4a63132bd810451b4fcc661712953&chksm=fdb9b52ecace3c38931de687746277ff4952eda95e500f0d9ad9be9b0049657c4dcdebfce831&token=1714777517&lang=zh_CN#rd>`_
 
 `使用Pymatflow辅助Quantum ESPRESSO计算能带 <https://mp.weixin.qq.com/s?__biz=MzU4MjM5NDUyMg==&mid=2247484108&idx=1&sn=8433830398824f147bd98b46893803c6&chksm=fdb9b539cace3c2f1e4b673f9d5f5cc039dbd8e382f874e77a935515b86b1fb2c12baddec5ae&token=1365138185&lang=zh_CN#rd>`_
 

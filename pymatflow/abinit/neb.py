@@ -3,7 +3,7 @@ Nudged Elastic Band calculation
 """
 import os
 import shutil
-import matplotlib.pyplot as plt
+
 
 from pymatflow.remote.server import server_handle
 from pymatflow.abinit.abinit import abinit

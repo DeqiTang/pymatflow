@@ -86,17 +86,26 @@ def main():
     subparser = subparsers.add_parser("abinit", help="using abinit as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default="static",
-            choices=[0, 1, 2, 3],
-            help="choices of runtype. 0->static_run; 1->optimization; 2->dfpt-elastic-piezo-dielec")
+            choices=[0, 1, 2, 3, 4, 5, 6],
+            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-opt; 3->hexagonal-opt; 4->tetragonal-opt; 5->dfpt-elastic-piezo-dielec")
+
+    subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
+            help="Directory to do the calculation")
+
+    # structure file: either xyz or cif. they are exclusive
+    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
+    # so we put them in every subsubparser
+    structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
+    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
+    structfile.add_argument("--xyz", type=str, default=None,
+            help="The xyz structure file with second line specifying cell parameters")
+
+    structfile.add_argument("--cif", type=str, default=None,
+            help="The cif structure file")
 
     subparser.add_argument("--chkprim", type=int, default=1,
             choices=[0, 1],
             help="check whether the input cell is primitive. if your cell is not primitive, set chkprim to 0. for more information, refer to https://docs.abinit.org/variables/gstate/#chkprim")
-
-
-    subparser.add_argument("--properties", nargs="+", type=int,
-            default=[],
-            help="options for properties calculation")
 
     subparser.add_argument("--kpath-manual", type=str, nargs="+", default=None,
             help="manual input kpath for band structure calculation")
@@ -156,20 +165,44 @@ def main():
             choices=[0, 1, 2, 3],
             help="can be 0, 1, 2, 3. for more information, refer to https://docs.abinit.org/variables/files/#prtdos")
 
+    subparser.add_argument("--properties", nargs="+", type=int,
+            default=[],
+            help="options for properties calculation")
 
-    subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
-            help="Directory to do the calculation")
+    # -----------------------------------------------------------
+    #                        ions moving related parameters
+    # -----------------------------------------------------------
 
-    # structure file: either xyz or cif. they are exclusive
-    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
-    # so we put them in every subsubparser
-    structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
-    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
-    structfile.add_argument("--xyz", type=str, default=None,
-            help="The xyz structure file with second line specifying cell parameters")
+    subparser.add_argument("--ionmov", type=int, default=3,
+            choices=[2, 3, 4, 5],
+            help="type of ionmov algorithm. fore more information, refer to https://docs.abinit.org/variables/rlx/#ionmov")
 
-    structfile.add_argument("--cif", type=str, default=None,
-            help="The cif structure file")
+    subparser.add_argument("--optcell", type=int,
+            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            default=0,
+            help="whether to optimize the cell shape and dimension. fore more information, refer to https://docs.abinit.org/variables/rlx/#optcell")
+
+    subparser.add_argument("--chkdilatmx", type=int, default=None,
+            choices=[0, 1],
+            help="check dilatmx. fore more information, refer to https://docs.abinit.org/variables/rlx/#chkdilatmx")
+
+    subparser.add_argument("--dilatmx", type=float, default=None,
+            help="lattice dilation maximal value. fore more information, refer to https://docs.abinit.org/variables/rlx/#dilatmx")
+
+    subparser.add_argument("--ecutsm", type=float, default=None,
+            help="when optcell != 0, must specify encutsm larser than zero. for more information refer to https://docs.abinit.org/variables/rlx/#ecutsm")
+
+    # ------------------------------------------------
+    # na stepa nc stepc
+    # ------------------------------------------------
+    subparser.add_argument("--na", type=int, default=10,
+            help="number of a to run")
+    subparser.add_argument("--stepa", type=float, default=0.05,
+            help="step of a in unit of Angstrom")
+    subparser.add_argument("--nc", type=int, default=10,
+            help="number of c to run")
+    subparser.add_argument("--stepc", type=float, default=0.05,
+            help="step of c in unit of Angstrom")
 
     # run option
     subparser.add_argument("--runopt", type=str, default="gen",
@@ -180,9 +213,7 @@ def main():
             choices=[0, 1, 2, 3],
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
 
-
-    # -----------------------------------------------------------------
-    #                      run params
+    # run params
     # -----------------------------------------------------------------
 
     subparser.add_argument("--mpi", type=str, default="",
@@ -208,8 +239,24 @@ def main():
     subparser = subparsers.add_parser("cp2k", help="using cp2k as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default="static",
-            choices=[0, 1, 2, 3],
-            help="choices of runtype. 0->static_run; 1->optimization;")
+            choices=[0, 1, 2, 3, 4 ,5],
+            help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell;")
+
+    subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
+            help="Directory to do the calculation")
+
+
+    # structure file: either xyz or cif. they are exclusive
+    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
+    # so we put them in every subsubparser
+    structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
+    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
+    structfile.add_argument("--xyz", type=str, default=None,
+            help="The xyz structure file with second line specifying cell parameters")
+
+    structfile.add_argument("--cif", type=str, default=None,
+            help="The cif structure file")
+
 
     # force_eval/dft related parameters
 
@@ -333,16 +380,72 @@ def main():
             default=[1],
             help="PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST")
 
-    # structure file: either xyz or cif. they are exclusive
-    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
-    # so we put them in every subsubparser
-    structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
-    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
-    structfile.add_argument("--xyz", type=str, default=None,
-            help="The xyz structure file with second line specifying cell parameters")
+    # --------------------------------------------------------------------------
+    # MOTION/CELL_OPT related parameters
+    # --------------------------------------------------------------------------
+    subparser.add_argument("--cell-opt-optimizer", type=str, default="BFGS",
+            help="optimization algorithm for geometry optimization: BFGS, CG, LBFGS")
 
-    structfile.add_argument("--cif", type=str, default=None,
-            help="The cif structure file")
+    subparser.add_argument("--cell-opt-max-iter", type=int, default=200,
+            help="maximum number of geometry optimization steps.")
+
+    subparser.add_argument("--cell-opt-type", type=str, default="DIRECT_CELL_OPT",
+            choices=["DIRECT_CELL_OPT", "GEO_OPT", "MD"],
+            help="specify which kind of geometry optimization to perform: DIRECT_CELL_OPT(default), GEO_OPT, MD")
+
+    subparser.add_argument("--cell-opt-max-dr", type=float, default=3e-3,
+            help="Convergence criterion for the maximum geometry change between the current and the last optimizer iteration.")
+
+    subparser.add_argument("--cell-opt-max-force", type=float, default=4.50000000E-004,
+            help="Convergence criterion for the maximum force component of the current configuration.")
+
+    subparser.add_argument("--cell-opt-rms-dr", type=float, default=1.50000000E-003,
+            help="Convergence criterion for the root mean square (RMS) geometry change between the current and the last optimizer iteration.")
+
+    subparser.add_argument("--cell-opt-rms-force", type=float, default=3.00000000E-004,
+            help="Convergence criterion for the root mean square (RMS) force of the current configuration.")
+
+    subparser.add_argument("--cell-opt-pressure-tolerance", type=float, default=1.00000000E+002,
+            help="Specifies the Pressure tolerance (compared to the external pressure) to achieve during the cell optimization.")
+
+
+    # --------------------------------------------------------------------------
+    # MOTION/GEO_OPT related parameters
+    # --------------------------------------------------------------------------
+    subparser.add_argument("--geo-opt-optimizer", type=str, default="BFGS",
+            help="optimization algorithm for geometry optimization: BFGS, CG, LBFGS")
+
+    subparser.add_argument("--geo-opt-max-iter", type=int, default=200,
+            help="maximum number of geometry optimization steps.")
+
+    subparser.add_argument("--geo-opt-type", type=str, default="MINIMIZATION",
+            help="specify which kind of geometry optimization to perform: MINIMIZATION(default), TRANSITION_STATE")
+
+    subparser.add_argument("--geo-opt-max-dr", type=float, default=3e-3,
+            help="Convergence criterion for the maximum geometry change between the current and the last optimizer iteration.")
+
+    subparser.add_argument("--geo-opt-max-force", type=float, default=4.50000000E-004,
+            help="Convergence criterion for the maximum force component of the current configuration.")
+
+    subparser.add_argument("--geo-opt-rms-dr", type=float, default=1.50000000E-003,
+            help="Convergence criterion for the root mean square (RMS) geometry change between the current and the last optimizer iteration.")
+
+    subparser.add_argument("--geo-opt-rms-force", type=float, default=3.00000000E-004,
+            help="Convergence criterion for the root mean square (RMS) force of the current configuration.")
+
+    # na nc stepa stepc
+    # -----------------------------------------
+    subparser.add_argument("--na", type=int, default=10,
+            help="number of a used")
+
+    subparser.add_argument("--nc", type=int, default=10,
+            help="number of c used")
+
+    subparser.add_argument("--stepa", type=float, default=0.05,
+            help="a step")
+
+    subparser.add_argument("--stepc", type=float, default=0.05,
+            help="c step")
 
     # run option
     subparser.add_argument("--runopt", type=str, default="gen",
@@ -381,12 +484,22 @@ def main():
     subparser = subparsers.add_parser("qe", help="using quantum espresso as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4],
-            help="choices of runtype. 0->static_run; 1->optimization;")
+            choices=[0, 1, 2, 3, 4, 5, 6, 7],
+            help="choices of runtype. 0->static_run; 1->relax; 2->vc-relax; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->neb; 7->dfpt;")
 
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory for the running.")
 
+    # structure file: either xyz or cif. they are exclusive
+    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
+    # so we put them in every subsubparser
+    structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
+    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
+    structfile.add_argument("--xyz", type=str, default=None,
+            help="The xyz structure file with second line specifying cell parameters")
+
+    structfile.add_argument("--cif", type=str, default=None,
+            help="The cif structure file")
 
     # -------------------------------------------------------------------
     #                       scf related parameters
@@ -401,9 +514,13 @@ def main():
             choices=["automatic", "gamma", "crystal_b"],
             help="Kpoints generation scheme option for the SCF or non-SCF calculation")
 
-    subparser.add_argument("--kpoints-mp", type=int, nargs="+",
+    subparser.add_argument("--kpoints-mp", type=int, nargs=6,
             default=[1, 1, 1, 0, 0, 0],
             help="Monkhorst-Pack kpoint grid, in format like --kpoints-mp 1 1 1 0 0 0")
+
+    subparser.add_argument("--kpoints-mp-nscf", type=int, nargs=6,
+            default=[3, 3, 3, 0, 0, 0],
+            help="Monkhorst-Pack kpoint grid, in format like --kpoints-mp 3 3 3 0 0 0")
 
     subparser.add_argument("--kpath-manual", type=str, nargs="+", default=None,
             help="manual input kpath in crystal_b, like --kpath-manual '0.000000 0.000000 0.000000 GAMMA 5' '0.500000 0.000000 0.000000 X 5' '0.0000 0.000 0.50000 A |' '0.5 0.5 0.5 R '")
@@ -454,6 +571,65 @@ def main():
             choices=["x", "y", "z"],
             help="specify direction of pressure acting on system.")
 
+    # projwfc
+    subparser.add_argument("--projwfc-filpdos", type=str, default="projwfc",
+            help="output projected dos file name")
+
+    subparser.add_argument("--projwfc-ngauss", type=str, default="default",
+            help="gaussian broadening type")
+
+    subparser.add_argument("--projwfc-degauss", type=str, default='default',
+            help="gaussian broadening")
+
+    subparser.add_argument("--projwfc-emin", type=str, default='default',
+            help="min energy for DOS")
+
+    subparser.add_argument("--projwfc-emax", type=str, default='default',
+            help="max energy for DOS")
+
+    subparser.add_argument("--projwfc-deltae", type=str, default='default',
+            help="DeltaE: energy grid step (eV)")
+
+    # -----------------------------------------
+    #         bands.x related parameters
+    # -----------------------------------------
+    subparser.add_argument("--lsym", type=str, default=".true.",
+            choices=[".true.", ".false."],
+            help="set lsym variable in bands.x input.")
+
+    subparser.add_argument("--plot-num", type=int, nargs="+", default=[0],
+            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 17, 18, 19, 20, 21],
+            help="""
+                type of analysis stored in the filplot file for later plot, 0: electron-pseudo-charge-density,
+                    1: total-potential,
+                    2: local-ionic-potential,
+                    3: ldos,
+                    4: local-density-of-electronic-entropy,
+                    5: stm,
+                    6: spin-polar,
+                    7: molecular-orbitals,
+                    8: electron-local-function,
+                    9: charge-density-minus-superposition-of-atomic-densities,
+                    10: ILDOS,
+                    11: v_bare+v_H-potential,
+                    12: sawtooth-electric-field-potential,
+                    13: nocollinear-magnetization,
+                    17: all-electron-charge-density-paw-only,
+                    18: exchage-correlation-magnetic-field-noncollinear-case,
+                    19: reduced-density-gradient,
+                    20: product-of-charge-density-with-hessian,
+                    21: all-electron-density-paw-only,""")
+
+    subparser.add_argument("--iflag", type=int,
+            default=3,
+            choices=[0, 1, 2, 3, 4],
+            help="dimension of the plot. 0: 1D plot of the spherical average, 1: 1D plot, 2: 2D plot, 3: 3D plot, 4: 2D polar plot on a sphere")
+
+    subparser.add_argument("--output-format", type=int, default=5,
+            choices=[0, 1, 2, 3, 4, 5, 6, 7],
+            help="output file format for visualization. 0: gnuplot(1D), 1: no longer supported, 2: plotrho(2D), 3: XCRYSDEN(2d), 4: no longer supported, 5: XCRYSDEN(3D), 6: gaussian cube(3D), 7: gnuplot(2D)")
+
+
     # -------------------------------------------------------------------
     #               geometric optimization related parameters
     # -------------------------------------------------------------------
@@ -473,16 +649,19 @@ def main():
             choices=['all', 'ibrav', 'x', 'y', 'z', 'xy', 'xz', 'yz', 'xyz', 'shape', 'volume', '2Dxy', '2Dshape', 'epitaxial_ab', 'epitaxial_ac', 'epitaxial_bc'],
             help="cell_dofree for &cell/")
 
-    # structure file: either xyz or cif. they are exclusive
-    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
-    # so we put them in every subsubparser
-    structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
-    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
-    structfile.add_argument("--xyz", type=str, default=None,
-            help="The xyz structure file with second line specifying cell parameters")
+    # na nc stepa stepc
+    # -----------------------------------------
+    subparser.add_argument("--na", type=int, default=10,
+            help="number of a used")
 
-    structfile.add_argument("--cif", type=str, default=None,
-            help="The cif structure file")
+    subparser.add_argument("--nc", type=int, default=10,
+            help="number of c used")
+
+    subparser.add_argument("--stepa", type=float, default=0.05,
+            help="a step")
+
+    subparser.add_argument("--stepc", type=float, default=0.05,
+            help="c step")
 
     subparser.add_argument("--images", type=str, nargs="+",
             help="the image xyz file(--images first.xyz imtermediate-1.xyz intermediate-2.xyz ... last.xyz)")
@@ -545,7 +724,6 @@ def main():
             help="set lraman, can be 'true' or 'false' only. default is None which means 'false' in real world.")
 
 
-
     # -----------------------------------------------------------------
     #                      run params
     # -----------------------------------------------------------------
@@ -574,11 +752,22 @@ def main():
     subparser = subparsers.add_parser("siesta", help="using siesta as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1],
-            help="choices of runtype. 0->static_run; 1->optimization;")
+            choices=[0, 1, 2, 3, 4],
+            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell;")
 
-    parser.add_argument("-d", "--directory", type=str, default="matflow-running",
+    subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory for the running.")
+
+    # structure file: either xyz or cif. they are exclusive
+    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
+    # so we put them in every subsubparser
+    structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
+    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
+    structfile.add_argument("--xyz", type=str, default=None,
+            help="The xyz structure file with second line specifying cell parameters")
+
+    structfile.add_argument("--cif", type=str, default=None,
+            help="The cif structure file")
 
     # --------------------------------------------------------------------------
     subparser.add_argument("--meshcutoff", type=int, default=200,
@@ -606,6 +795,12 @@ def main():
     subparser.add_argument("--kpoints-mp", type=int, nargs="+",
             default=[3, 3, 3],
             help="set kpoints like '3 3 3'")
+
+    subparser.add_argument("--kpath-manual", type=str, nargs="+", default=None,
+            help="manual input kpath for band structure calculation")
+
+    subparser.add_argument("--kpath-file", type=str,
+            help="file to read the kpath for band structure calculation")
 
     subparser.add_argument("--occupation", type=str, default="FD",
             choices=["FD", "MP"],
@@ -670,16 +865,32 @@ def main():
             default=[10, 10, 10],
             help="Siesta2Wannier90.UnkGrid[1-3]")
 
-    # structure file: either xyz or cif. they are exclusive
-    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
-    # so we put them in every subsubparser
-    structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
-    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
-    structfile.add_argument("--xyz", type=str, default=None,
-            help="The xyz structure file with second line specifying cell parameters")
+    #           ions relaed parameter
+    # ==================================================
+    subparser.add_argument("--vc", type=str, default="false",
+            choices=["true", "false"],
+            help="MD.VariableCell")
 
-    structfile.add_argument("--cif", type=str, default=None,
-            help="The cif structure file")
+    subparser.add_argument("--forcetol", type=float, default=0.04,
+            help="Force tolerance in coordinate optimization. default=0.04 eV/Ang")
+
+    subparser.add_argument("--stresstol", type=float, default=1,
+            help="Stress tolerance in variable-cell CG optimization. default=1 GPa")
+
+    subparser.add_argument("--targetpressure", type=float, default=0,
+            help="Target pressure for Parrinello-Rahman method, variable cell optimizations, and annealing options.")
+
+    # na nc stepa stepc
+    # --------------------------------------------------------------------------
+    subparser.add_argument("--na", type=int, default=10,
+            help="number of a used")
+    subparser.add_argument("--nc", type=int, default=10,
+            help="number of c used")
+    subparser.add_argument("--stepa", type=float, default=0.05,
+            help="a step")
+    subparser.add_argument("--stepc", type=float, default=0.05,
+            help="c step")
+
 
     # run option
     subparser.add_argument("--runopt", type=str, default="gen",
@@ -753,11 +964,12 @@ def main():
         params["nband"] = args.nband
         params["occ"] = args.occ
 
-        params["nsppol"] = args.nsppol
-        params["prtden"] = args.prtden
-        params["prtdos"] = args.prtdos
+
         if args.runtype == 0:
             # static
+            params["nsppol"] = args.nsppol
+            params["prtden"] = args.prtden
+            params["prtdos"] = args.prtdos
             from pymatflow.abinit.static import static_run
             task = static_run()
             if get_kpath(args.kpath_manual, args.kpath_file) == None:
@@ -766,24 +978,83 @@ def main():
                 print("in abinit static runing you must provide kpath\n")
                 sys.exit(1)
             task.dataset[3].electrons.kpoints.set_band(kptbounds=get_kpath(args.kpath_manual, args.kpath_file))
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints=kpoints)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 1:
             # optimization
+            params["optcell"] = args.optcell
+            params["chkdilatmx"] = args.chkdilatmx
+            params["dilatmx"] = args.dilatmx
+            params["ionmov"] = args.ionmov
+            params["ecutsm"] = args.ecutsm
             from pymatflow.abinit.opt import opt_run
             task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints=kpoints)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 2:
+            ## cubic optimization
+            params["optcell"] = 0 # must be 0
+            params["ionmov"] = args.ionmov
+            from pymatflow.abinit.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints=kpoints)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa)
+        elif args.runtype == 3:
+            # hexagonal optimization
+            params["optcell"] = 0 # must be 0
+            params["ionmov"] = args.ionmov
+            from pymatflow.abinit.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints=kpoints)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa, nc=args.nc, stepc=args.stepc)
+        elif args.runtype == 4:
+            # tetragonal optimization
+            params["optcell"] = 0 # must be 0
+            params["ionmov"] = args.ionmov
+            from pymatflow.abinit.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints=kpoints)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa, nc=args.nc, stepc=args.stepc)
+        elif args.runtype == 5:
             # dfpt-elastic-piezo-dielec
             from pymatflow.abinit.dfpt import dfpt_elastic_piezo_dielec
             task = dfpt_elastic_piezo_dielec()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints=kpoints)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 6:
+            # dfpt-phonon
+            from pymatflow.abinit.dfpt import dfpt_phonon
+            task = dfpt_phonon()
+            task.get_qpath(get_kpath(args.kpath_manual, args.kpath_file))
+
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints=kpoints)
+            task.set_properties(properties=args.properties)
+            task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
         else:
             pass
-
-        task.get_xyz(xyzfile)
-        task.set_params(params=params)
-        task.set_kpoints(kpoints=kpoints)
-        task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
-        task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
-
-
+# ==============================================================================
+# CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K C2PK CP2K
+# ==============================================================================
     elif args.driver == "cp2k":
         params = {}
 
@@ -802,17 +1073,11 @@ def main():
         params["FORCE_EVAL-DFT-SCF-OT"] = args.ot
         params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"] = args.alpha
         params["FORCE_EVAL-DFT-KPOINTS-SCHEME"] = args.kpoints_scheme
-
-        #force_eval["DFT-XC-VDW_POTENTIAL"] = args.usevdw
         params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"] = args.vdw_potential_type
         params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-TYPE"] = args.pair_type
         params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-R_CUTOFF"] = args.r_cutoff
-
-
         params["FORCE_EVAL-DFT-PRINT-ELF_CUBE-STRIDE"] = args.dft_print_elf_cube_stride
         params["FORCE_EVAL-DFT-PRINT-E_DENSITY_CUBE-STRIDE"] = args.dft_print_e_density_cube_stride
-
-
         params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-RANGE"] = args.properties_resp_slab_sampling_range
         params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-SURF_DIRECTION"] = args.properties_resp_slab_sampling_surf_direction
         params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST"] = args.properties_resp_slab_sampling_atom_list
@@ -827,8 +1092,91 @@ def main():
             task.set_vdw(usevdw=True if args.usevdw.lower() == "true" else False)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
             task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 1:
+            # geo opt
+            params["MOTION-GEO_OPT-MAX_ITER"] = args.geo_opt_max_iter
+            params["MOTION-GEO_OPT-OPTIMIZER"] = args.geo_opt_optimizer
+            params["MOTION-GEO_OPT-TYPE"] = args.geo_opt_type
+            params["MOTION-GEO_OPT-MAX_DR"] = args.geo_opt_max_dr
+            params["MOTION-GEO_OPT-MAX_FORCE"] = args.geo_opt_max_force
+            params["MOTION-GEO_OPT-RMS_DR"] = args.geo_opt_rms_dr
+            params["MOTION-GEO_OPT-RMS_FORCE"] = args.geo_opt_rms_force
+            from pymatflow.cp2k.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_geo_opt()
+            task.set_params(params=params)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.geo_opt(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 2:
+            # cell opt
+            params["MOTION-CELL_OPT-MAX_ITER"] = args.cell_opt_max_iter
+            params["MOTION-CELL_OPT-OPTIMIZER"] = args.cell_opt_optimizer
+            params["MOTION-CELL_OPT-TYPE"] = args.cell_opt_type
+            params["MOTION-CELL_OPT-MAX_DR"] = args.cell_opt_max_dr
+            params["MOTION-CELL_OPT-MAX_FORCE"] = args.cell_opt_max_force
+            params["MOTION-CELL_OPT-RMS_DR"] = args.cell_opt_rms_dr
+            params["MOTION-CELL_OPT-RMS_FORCE"] = args.cell_opt_rms_force
+            params["MOTION-CELL_OPT-PRESSURE_TOLERANCE"] = args.cell_opt_pressure_tolerance
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_cell_opt()
+            task.set_params(params=params)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.cell_opt(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 3:
+            # cubic cell opt
+            params["MOTION-GEO_OPT-MAX_ITER"] = args.geo_opt_max_iter
+            params["MOTION-GEO_OPT-OPTIMIZER"] = args.geo_opt_optimizer
+            params["MOTION-GEO_OPT-TYPE"] = args.geo_opt_type
+            params["MOTION-GEO_OPT-MAX_DR"] = args.geo_opt_max_dr
+            params["MOTION-GEO_OPT-MAX_FORCE"] = args.geo_opt_max_force
+            params["MOTION-GEO_OPT-RMS_DR"] = args.geo_opt_rms_dr
+            params["MOTION-GEO_OPT-RMS_FORCE"] = args.geo_opt_rms_force
+            from pymatflow.cp2k.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_geo_opt()
+            task.set_params(params=params)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.nc, stepa=args.stepa)
+        elif args.runtype == 4:
+            # hexagonal cell opt
+            params["MOTION-GEO_OPT-MAX_ITER"] = args.geo_opt_max_iter
+            params["MOTION-GEO_OPT-OPTIMIZER"] = args.geo_opt_optimizer
+            params["MOTION-GEO_OPT-TYPE"] = args.geo_opt_type
+            params["MOTION-GEO_OPT-MAX_DR"] = args.geo_opt_max_dr
+            params["MOTION-GEO_OPT-MAX_FORCE"] = args.geo_opt_max_force
+            params["MOTION-GEO_OPT-RMS_DR"] = args.geo_opt_rms_dr
+            params["MOTION-GEO_OPT-RMS_FORCE"] = args.geo_opt_rms_force
+            from pymatflow.cp2k.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_geo_opt()
+            task.set_params(params=params)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
+        elif args.runtype == 5:
+            # tetragonal cell opt
+            params["MOTION-GEO_OPT-MAX_ITER"] = args.geo_opt_max_iter
+            params["MOTION-GEO_OPT-OPTIMIZER"] = args.geo_opt_optimizer
+            params["MOTION-GEO_OPT-TYPE"] = args.geo_opt_type
+            params["MOTION-GEO_OPT-MAX_DR"] = args.geo_opt_max_dr
+            params["MOTION-GEO_OPT-MAX_FORCE"] = args.geo_opt_max_force
+            params["MOTION-GEO_OPT-RMS_DR"] = args.geo_opt_rms_dr
+            params["MOTION-GEO_OPT-RMS_FORCE"] = args.geo_opt_rms_force
+            from pymatflow.cp2k.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_geo_opt()
+            task.set_params(params=params)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
         else:
             pass
+# ==============================================================================
+# Quantum ESPERSSO Quantum ESPERSSO Quantum ESPERSSO Quantum ESPERSSO Quantum ESPERSSO
+# ==============================================================================
     elif args.driver == "qe":
         control = {}
         electrons = {}
@@ -872,19 +1220,104 @@ def main():
 
 
         if args.runtype == 0:
+            # static scf nscf projwfc bands pp.x in a single run
             from pymatflow.qe.static import static_run
+            projwfc_input = {}
+            if args.projwfc_ngauss == 'default':
+                ngauss = args.projwfc_ngauss
+            else:
+                ngauss = int(args.projwfc_ngauss)
+            if args.projwfc_degauss == 'default':
+                degauss = args.projwfc_degauss
+            else:
+                degauss = float(args.projwfc_degauss)
+            if args.projwfc_emin == 'default':
+                emin = args.projwfc_emin
+            else:
+                emin = float(args.projwfc_emin)
+            if args.projwfc_emax == 'default':
+                emax = args.projwfc_emax
+            else:
+                emax = float(args.projwfc_emax)
+            if args.projwfc_deltae == 'default':
+                deltae = args.projwfc_deltae
+            else:
+                deltae = float(args.projwfc_deltae)
+
+            projwfc_input["filpdos"] = args.projwfc_filpdos
+            projwfc_input["ngauss"] = ngauss
+            projwfc_input["degauss"] = degauss
+            projwfc_input["emin"] = emin
+            projwfc_input["emax"] = emax
+            projwfc_input["deltae"] = deltae
+            bands = {}
+            bands["lsym"] = args.lsym
+            inputpp = {}
+            plotpp = {}
+            inputpp["plot_num"] = args.plot_num
+            plotpp["iflag"] = args.iflag
+            plotpp["output_format"] = args.output_format
             task = static_run()
             task.get_xyz(xyzfile)
             task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
             task.set_params(control=control, system=system, electrons=electrons)
             task.set_atomic_forces(pressure=args.pressure, pressuredir=args.pressuredir)
+            task.set_projwfc(projwfc_input=projwfc_input)
+            task.set_bands(bands_input=bands)
+            task.set_pp(inputpp=inputpp, plotpp=plotpp)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
-            task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto)
+            task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpath=get_kpath(args.kpath_manual, args.kpath_file))
         elif args.runtype == 1:
-            pass
+            # relax
+            from pymatflow.qe.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_relax()
+            task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+            task.set_params(control=control, system=system, electrons=electrons, ions=ions)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.relax(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 2:
-            pass
+            # vc-relax
+            from pymatflow.qe.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_vc_relax()
+            task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+            task.set_params(control=control, system=system, electrons=electrons, ions=ions)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.vc_relax(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 3:
+            # cubic cell opt
+            from pymatflow.qe.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_relax()
+            task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+            task.set_params(control=control, system=system, electrons=electrons, ions=ions)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa)
+        elif args.runtype == 4:
+            # hexagonal cell opt
+            from pymatflow.qe.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_relax()
+            task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+            task.set_params(control=control, system=system, electrons=electrons, ions=ions)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
+        elif args.runtype == 5:
+            # tetragonal cell opt
+            from pymatflow.qe.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_relax()
+            task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+            task.set_params(control=control, system=system, electrons=electrons, ions=ions)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
+        elif args.runtype == 6:
             from pymatflow.qe.neb import neb_run
             task = neb_run()
             task.get_images(images=args.images)
@@ -892,7 +1325,7 @@ def main():
             task.set_path(path=path)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
             task.neb(directory=directory, runopt=args.runopt, restart_mode=args.restart_mode, auto=args.auto)
-        elif args.runtype == 4:
+        elif args.runtype == 7:
             from pymatflow.qe.dfpt import dfpt_run
             task = dfpt_run()
             task.get_xyz(xyzfile)
@@ -900,6 +1333,9 @@ def main():
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
             task.phx(directory=args.directory, runopt=args.runopt, auto=args.auto)
 
+# ==============================================================================
+# SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA
+# ==============================================================================
     elif args.driver == "siesta":
         params = {}
 
@@ -914,6 +1350,7 @@ def main():
         params["ElectronicTemperature"] = args.electronic_temperature
 
         if args.runtype == 0:
+            # static
             from pymatflow.siesta.static import static_run
             task = static_run()
             task.get_xyz(xyzfile)
@@ -940,7 +1377,60 @@ def main():
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
             task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto, properties=args.properties)
-
+        elif args.runtype == 1:
+            # optimization
+            from pymatflow.siesta.opt import opt_run
+            params["MD.VariableCell"] = args.vc
+            params["MD.MaxForceTol"] = args.forcetol
+            params["MD.MaxStressTol"] = args.stresstol
+            params["MD.TargetPressure"] = args.targetpressure
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints_mp=args.kpoints_mp)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.opt(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 2:
+            # cubic cell
+            from pymatflow.siesta.opt import opt_run
+            params["MD.VariableCell"] = "false"
+            params["MD.MaxForceTol"] = args.forcetol
+            params["MD.MaxStressTol"] = args.stresstol
+            params["MD.TargetPressure"] = args.targetpressure
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints_mp=args.kpoints_mp)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa)
+        elif args.runtype == 3:
+            # hexagonal cell
+            from pymatflow.siesta.opt import opt_run
+            params["MD.VariableCell"] = "false"
+            params["MD.MaxForceTol"] = args.forcetol
+            params["MD.MaxStressTol"] = args.stresstol
+            params["MD.TargetPressure"] = args.targetpressure
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints_mp=args.kpoints_mp)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
+        elif args.runtype == 4:
+            # tetragonal cell
+            from pymatflow.siesta.opt import opt_run
+            params["MD.VariableCell"] = "false"
+            params["MD.MaxForceTol"] = args.forcetol
+            params["MD.MaxStressTol"] = args.stresstol
+            params["MD.TargetPressure"] = args.targetpressure
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints_mp=args.kpoints_mp)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
+        else:
+            pass
     # --------------------------------------------------------------------------
 
 

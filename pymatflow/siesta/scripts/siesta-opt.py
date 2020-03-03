@@ -32,9 +32,6 @@ if __name__ == "__main__":
 
     # --------------------------------------------------------------------------
     #parser.add_argument("-p", "--properties" ,help="Option for properties calculation", type=int, default=0)
-    parser.add_argument("-m", "--mode", type=int, default=0,
-            choices=[0, 1],
-            help="Optimization mode: 0(not-variable-cell), 1(variable-cell)")
 
     # =========================
     #      Electrons
@@ -109,8 +106,6 @@ if __name__ == "__main__":
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================
     args = parser.parse_args()
-    xyzfile = args.file
-    directory = args.directory
 
     params = {}
 
@@ -134,4 +129,4 @@ if __name__ == "__main__":
     task.set_params(params=params)
     task.set_kpoints(kpoints_mp=args.kpoints_mp)
     task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
-    task.opt(directory=directory, runopt=args.runopt, auto=args.auto, mode=args.mode)
+    task.opt(directory=args.directory, runopt=args.runopt, auto=args.auto)

@@ -8,6 +8,7 @@ class abinit_ions:
         self.params = {}
         self.incharge = [
             "ionmov", "optcell", "ecutsm", "ntime", "tolmxde", "tolmxf",
+            "dilatmx",
             ]
         self.status = True
     def to_input(self, fout):
