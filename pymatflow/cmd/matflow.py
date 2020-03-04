@@ -949,6 +949,231 @@ def main():
 
 
 
+    # --------------------------------------------------------------------------
+    # VASP
+    # --------------------------------------------------------------------------
+    subparser = subparsers.add_parser("vasp", help="using vasp as calculator")
+
+    subparser.add_argument("-r", "--runtype", type=int, default=0,
+            choices=[0, 1, 2, 3, 4, 5, 6, 7],
+            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->neb; 6->vasp-phonon; 7->phonopy")
+
+    subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
+            help="Directory for the running.")
+
+    # structure file: either xyz or cif. they are exclusive
+    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
+    # so we put them in every subsubparser
+    structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
+    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
+    structfile.add_argument("--xyz", type=str, default=None,
+            help="The xyz structure file with second line specifying cell parameters")
+
+    structfile.add_argument("--cif", type=str, default=None,
+            help="The cif structure file")
+
+    # run option
+    subparser.add_argument("--runopt", type=str, default="gen",
+            choices=["gen", "run", "genrun"],
+            help="Generate or run or both at the same time.")
+
+    subparser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+
+    # --------------------------------------------------------
+    #                   INCAR PARAMETERS
+    # --------------------------------------------------------
+    subparser.add_argument("--prec", type=str, default="Normal",
+            choices=["Normal", "Accurate", "A", "N"],
+            help="PREC, default value: Normal")
+
+    subparser.add_argument("--encut", type=int, default=300,
+            help="ENCUT, default value: 300 eV")
+
+    subparser.add_argument("--ediff", type=float, default=1.0e-4,
+            help="EDIFF, default value: 1.0e-4")
+
+    subparser.add_argument("--kpoints-mp", type=int, nargs="+",
+            default=[1, 1, 1, 0, 0, 0],
+            help="set kpoints like -k 1 1 1 0 0 0")
+
+    subparser.add_argument("--kpoints-mp-scf", type=int, nargs="+",
+            default=[1, 1, 1, 0, 0, 0],
+            help="set kpoints like -k 1 1 1 0 0 0")
+
+    subparser.add_argument("--kpoints-mp-nscf", type=int, nargs="+",
+            default=[3, 3, 3, 0, 0, 0],
+            help="set kpoints like -k 1 1 1 0 0 0")
+
+    subparser.add_argument("--kpath-manual", type=str, nargs="+", default=None,
+            help="set kpoints for band structure calculation manually")
+
+    subparser.add_argument("--kpath-file", type=str, default="kpath.txt",
+            help="set kpoints for band structure calculation manually from file")
+
+    subparser.add_argument("--kpath-intersections", type=int, default=15,
+            help="intersection of the line mode kpoint for band calculation")
+
+    subparser.add_argument("--ismear", type=int, default=0,
+            help="smearing type(methfessel-paxton(>0), gaussian(0), fermi-dirac(-1), tetra(-4), tetra-bloch-dorrected(-5)), default: 0")
+
+    subparser.add_argument("--sigma", type=float, default=0.01,
+            help="determines the width of the smearing in eV.")
+
+    subparser.add_argument("--ivdw", type=int, default=None,
+            choices=[0, 11, 12, 21, 202, 4],
+            help="IVDW = 0(no correction), 1(dft-d2), 11(dft-d3 Grimme), 12(dft-d3 Becke-Jonson), default: None which means 0, no correction")
+    # -----------------------------------------------------------------
+
+    subparser.add_argument("--lorbit", type=int, default=None,
+            choices=[0, 1, 2, 5, 10, 11, 12],
+            help="together with an appropriate RWIGS, determines whether the PROCAR or PROOUT files are written")
+
+    subparser.add_argument("--loptics", type=str, default="FALSE",
+            choices=["TRUE", "FALSE"],
+            help="calculates the frequency dependent dielectric matrix after the electronic ground state has been determined.")
+
+    # magnetic related
+    subparser.add_argument("--ispin", type=int, default=None,
+            choices=[1, 2],
+            help="specifies spin polarization: 1->no spin polarized, 2->spin polarized(collinear). combine SIPIN with MAGMOM to study collinear magnetism.")
+
+    subparser.add_argument("--magmom", type=float, nargs="+", default=None,
+            help="Specifies the initial magnetic moment for each atom, if and only if ICHARG=2, or if ICHARG=1 and the CHGCAR file contains no magnetisation density.")
+
+    subparser.add_argument("--lnoncollinear", type=str, default=None,
+            choices=["T", "F", ".TRUE.", ".FALSE."],
+            help="specifies whether fully non-collinear magnetic calculations are performed")
+
+    subparser.add_argument("--lsorbit", type=str, default=None,
+            choices=["T", "F", ".TRUE.", ".FALSE."],
+            help="specifies whether spin-orbit coupling is taken into account.")
+
+    # hybrid functional
+    subparser.add_argument("--lhfcalc", type=str, default=None,
+            choices=["T", "F", ".TRUE.", ".FALSE."],
+            help=" specifies whether Hartree-Fock/DFT hybrid functional type calculations are performed")
+
+    subparser.add_argument("--hfscreen", type=float, default=None,
+            choices=[0.3, 0.2],
+            help=" specifies the range-separation parameter in range separated hybrid functionals: HSE03->0.3, HSE06->0.2, must also set LHFCALC=.TRUE.")
+
+    subparser.add_argument("--lsubrot", type=str, default=None,
+            choices=["T", "F", ".TRUE.", ".FALSE."],
+            help="This flag can be set for hybrid functionals (HF-type calculations).")
+
+    subparser.add_argument("--nsw", type=int, default=1,
+            choices=[1],
+            help="NSW sets the maximum number of ionic steps")
+
+    subparser.add_argument("--ediffg", type=float, default=None,
+            help="EDIFFG, default value: 10*EDIFF")
+
+
+    subparser.add_argument("--ibrion", type=int, default=2,
+            choices=[5, 6, 7, 8],
+            help="IBRION = 5(), 6(), 7(), 8(): refer to https://cms.mpi.univie.ac.at/wiki/index.php/IBRION for how to set the algorithm of optimization you need!")
+
+
+
+    parser.add_argument("--isif", type=int, default=None,
+            choices=[0, 1, 2, 3, 4, 5, 6, 7],
+            help="ISIF = 0-7: refer to https://cms.mpi.univie.ac.at/wiki/index.php/ISIF for how to set the type of Geometri Optimization you need!")
+
+    subparser.add_argument("--potim", type=float, default=None,
+            help="step width scaling (ionic relaxations), default: None = 0.015 in phonon calculation")
+
+    # special
+    subparser.add_argument("--algo", type=str, default=None,
+            choices=["N", "D", "V", "F"],  #"Exact", "G0W0", "GW0", "GW"],
+            help=" a convenient option to specify the electronic minimisation algorithm (as of VASP.4.5) and/or to select the type of GW calculations")
+
+    subparser.add_argument("--ialgo", type=int, default=None,
+            choices=[5, 6, 7, 8, 38, 44, 46, 48],
+            help="IALGO selects the algorithm used to optimize the orbitals.Mind: We strongly urge the users to select the algorithms via ALGO. Algorithms other than those available via ALGO are subject to instabilities.")
+
+    subparser.add_argument("--addgrid", type=str, default=None,
+            choices=[".TRUE.", ".FALSE.", "T", "F"],
+            help="ADDGRID determines whether an additional support grid is used for the evaluation of the augmentation charges.")
+
+    subparser.add_argument("--isym", type=int, default=None,
+            choices=[-1, 0, 1, 2, 3],
+            help=" ISYM determines the way VASP treats symmetry.")
+
+    subparser.add_argument('--lreal', type=str, default=None,
+            choices=["T", "F", ".TRUE.", ".FALSE.", "O", "On", "A", "Auto"],
+            help="LREAL determines whether the projection operators are evaluated in real-space or in reciprocal space.")
+
+    # write PARAMETERS
+    subparser.add_argument("--lwave", type=str, default=None,
+            choices=['T', 'F', ".TRUE.", '.FALSE.'],
+            help="LWAVE determines whether the wavefunctions are written to the WAVECAR file at the end of a run.")
+
+    subparser.add_argument("--lcharg", type=str, default=None,
+            choices=['T', 'F', ".TRUE.", '.FALSE.'],
+            help="LCHARG determines whether the charge densities (files CHGCAR and CHG) are written.")
+
+
+    # properties parameters
+    subparser.add_argument("--lelf", type=str, default=None,
+            choices=["T", "F", ".TRUE.", ".FALSE."],
+            help="LELF determines whether to create an ELFCAR file or not.")
+
+
+
+    subparser.add_argument("--nimage", type=int, default=5,
+            help="number of image to interpolate. total image will be nimage+2.")
+
+    subparser.add_argument("--images", type=str, nargs="+",
+            help="the image xyz file(--images first.xyz final.xyz)")
+
+
+    # PHONOPY parameters
+    # ----------------------------------------
+    subparser.add_argument("--supercell-n", type=int, nargs="+",
+            default=[1, 1, 1],
+            help="supercell for phonopy, like [2, 2, 2]")
+
+
+    # na stepa nc stepc
+    # ----------------------------------------------
+    subparser.add_argument("--na", type=int, default=10,
+            help="number of a to run")
+    subparser.add_argument("--stepa", type=float, default=0.05,
+            help="step of a in unit of Angstrom")
+    subparser.add_argument("--nc", type=int, default=10,
+            help="number of c to run")
+    subparser.add_argument("--stepc", type=float, default=0.05,
+            help="step of c in unit of Angstrom")
+
+
+    # pymatflow.vasp inside PARAMETERS
+    subparser.add_argument("--selective-dynamics", type=str, default="False",
+            choices=["True", "False", "T", "F"],
+            help="whether use selective dyanmics")
+
+    # -----------------------------------------------------------------
+    #                      run params
+    # -----------------------------------------------------------------
+
+    subparser.add_argument("--mpi", type=str, default="",
+            help="MPI command")
+
+    subparser.add_argument("--server", type=str, default="pbs",
+            choices=["pbs", "yh", "lsf_sz"],
+            help="type of remote server, can be pbs or yh or lsf_sz")
+
+    subparser.add_argument("--jobname", type=str, default="vasp-scf",
+            help="jobname on the pbs server")
+
+    subparser.add_argument("--nodes", type=int, default=1,
+            help="Nodes used in server")
+
+    subparser.add_argument("--ppn", type=int, default=32,
+            help="ppn of the server")
+
+
 
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
@@ -1497,6 +1722,114 @@ def main():
             task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
         else:
             pass
+    elif args.driver == "vasp":
+        params = {}
+        params["PREC"] = args.prec
+        params["ENCUT"] = args.encut
+        params["EDIFF"] = args.ediff
+        params["ISMEAR"] = args.ismear
+        params["SIGMA"] = args.sigma
+        params["IVDW"] = args.ivdw
+        params["EDIFFG"] = args.ediffg
+        params["NSW"] = args.nsw
+        params["IBRION"] = args.ibrion
+        params["ISIF"] = args.isif
+        params["POTIM"] = args.potim
+
+        params["LORBIT"] = args.lorbit
+        params["LOPTICS"] = args.loptics
+        params["LSUBROT"] = args.lsubrot
+
+        params["ALGO"] = args.algo
+        params["IALGO"] = args.ialgo
+        params["ADDGRID"] = args.addgrid
+        params["ISYM"] = args.isym
+        params["LREAL"] = args.lreal
+        params["ISPIN"] = args.ispin
+        params["MAGMOM"] = args.magmom # magmom can be a list that can be automatically dealt with by base.incar.to_incar()
+        params["LNONCOLLLINEAR"] = args.lnoncollinear
+        params["LSORBIT"] = args.lsorbit
+        params["ALGO"] = args.algo
+        params["LHFCALC"] = args.lhfcalc
+        params["HFSCREEN"] = args.hfscreen
+
+        params["LELF"] = args.lelf
+
+        if args.runtype == 0:
+            # static
+            from pymatflow.vasp.static import static_run
+            task = static_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpoints_mp_scf=args.kpoints_mp_scf, kpoints_mp_nscf=args.kpoints_mp_nscf, kpath=get_kpath(args.kpath_manual, args.kpath_file), kpath_intersections=args.kpath_intersections)
+        elif args.runtype == 1:
+            # optimization
+            from pymatflow.vasp.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints_mp=args.kpoints_mp)
+            task.poscar.selective_dynamics = True if args.selective_dynamics.upper()[0] == "T" else False
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.optimize(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 2:
+            # cubic cell
+            from pymatflow.vasp.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints_mp=args.kpoints_mp)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa)
+        elif args.runtype == 3:
+            # hexagonal cell
+            from pymatflow.vasp.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints_mp=args.kpoints_mp)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
+        elif args.runtype == 4:
+            # tetragonal cell
+            from pymatflow.vasp.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints_mp=args.kpoints_mp)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
+        elif args.runtype == 5:
+            # neb
+            from pymatflow.vasp.neb import neb_run
+            task = neb_run()
+            task.get_images(args.images)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints_mp=args.kpoints_mp)
+            task.nimage = args.nimage
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.neb(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 6:
+            # vasp phonon
+            from pymatflow.vasp.phonon import phonon_run
+            task = phonon_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints_mp=args.kpoints_mp)
+            task.supercell_n = args.supercell_n
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.phonon(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 7:
+            # phonopy
+            from pymatflow.vasp.phonopy import phonopy_run
+            task = phonopy_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints_mp=args.kpoints_mp)
+            task.supercell_n = args.supercell_n
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
     # --------------------------------------------------------------------------
 
 
