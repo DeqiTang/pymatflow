@@ -86,8 +86,8 @@ def main():
     subparser = subparsers.add_parser("abinit", help="using abinit as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default="static",
-            choices=[0, 1, 2, 3, 4, 5, 6],
-            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-opt; 3->hexagonal-opt; 4->tetragonal-opt; 5->dfpt-elastic-piezo-dielec")
+            choices=[0, 1, 2, 3, 4, 5, 6, 7],
+            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-opt; 3->hexagonal-opt; 4->tetragonal-opt; 5->dfpt-elastic-piezo-dielec; 6->dfpt-phonon; 7->phonopy")
 
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory to do the calculation")
@@ -213,6 +213,10 @@ def main():
             choices=[0, 1, 2, 3],
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
 
+    subparser.add_argument("--supercell-n", type=int, nargs="+",
+            default=[1, 1, 1],
+            help="supercell build for phonopy.")
+
     # run params
     # -----------------------------------------------------------------
 
@@ -239,8 +243,8 @@ def main():
     subparser = subparsers.add_parser("cp2k", help="using cp2k as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default="static",
-            choices=[0, 1, 2, 3, 4 ,5],
-            help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell;")
+            choices=[0, 1, 2, 3, 4 ,5, 6],
+            help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->phonopy")
 
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory to do the calculation")
@@ -457,6 +461,12 @@ def main():
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
 
 
+    #                   PHONOPY related parameters
+    # ------------------------------------------------------------------
+    subparser.add_argument("--supercell-n", nargs="+", type=int, default=[1, 1, 1],
+            help="Supercell for Phonopy calculation.")
+
+
     # -----------------------------------------------------------------
     #                      run params
     # -----------------------------------------------------------------
@@ -484,8 +494,8 @@ def main():
     subparser = subparsers.add_parser("qe", help="using quantum espresso as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5, 6, 7],
-            help="choices of runtype. 0->static_run; 1->relax; 2->vc-relax; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->neb; 7->dfpt;")
+            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8],
+            help="choices of runtype. 0->static_run; 1->relax; 2->vc-relax; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->neb; 7->dfpt; 8->phonopy")
 
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory for the running.")
@@ -708,20 +718,27 @@ def main():
 
     # for phx
     # --------------------------------------------------------------
-    parser.add_argument("--tr2-ph", type=float, default=1.0e-14,
+    subparser.add_argument("--tr2-ph", type=float, default=1.0e-14,
             help="threshold for self-consistency.")
 
-    parser.add_argument("--nq", type=int, nargs="+",
+    subparser.add_argument("--nq", type=int, nargs="+",
             default=[0, 0, 0],
             help="set value of nq1 nq2 nq3.")
 
-    parser.add_argument("--epsil", type=str, default=None,
+    subparser.add_argument("--epsil", type=str, default=None,
             choices=[".true.", ".false."],
             help="set epsil in inputph")
 
-    parser.add_argument("--lraman", type=str, default=None,
+    subparser.add_argument("--lraman", type=str, default=None,
             choices=["true", "false"],
             help="set lraman, can be 'true' or 'false' only. default is None which means 'false' in real world.")
+
+    # Phonopy
+    # ---------------------------------------------------------
+    subparser.add_argument("--supercell-n", type=int, nargs="+",
+            default=[1, 1, 1],
+            help="supercell build for Phonopy.")
+
 
 
     # -----------------------------------------------------------------
@@ -752,8 +769,8 @@ def main():
     subparser = subparsers.add_parser("siesta", help="using siesta as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4],
-            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell;")
+            choices=[0, 1, 2, 3, 4, 5],
+            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->phonpy")
 
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory for the running.")
@@ -768,6 +785,16 @@ def main():
 
     structfile.add_argument("--cif", type=str, default=None,
             help="The cif structure file")
+
+    # run option
+    subparser.add_argument("--runopt", type=str, default="gen",
+            choices=["gen", "run", "genrun"],
+            help="Generate or run or both at the same time.")
+
+    subparser.add_argument("--auto", type=int, default=3,
+            choices=[0, 1, 2, 3],
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+
 
     # --------------------------------------------------------------------------
     subparser.add_argument("--meshcutoff", type=int, default=200,
@@ -892,14 +919,12 @@ def main():
             help="c step")
 
 
-    # run option
-    subparser.add_argument("--runopt", type=str, default="gen",
-            choices=["gen", "run", "genrun"],
-            help="Generate or run or both at the same time.")
 
-    subparser.add_argument("--auto", type=int, default=3,
-            choices=[0, 1, 2, 3],
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+    #      Phonopy
+    # -------------------------------
+    subparser.add_argument("-n", "--supercell-n", type=int, nargs="+",
+            default=[1, 1,1],
+            help="supercell option for phonopy, like '2 2 2'")
 
 
     # -----------------------------------------------------------------
@@ -1050,6 +1075,16 @@ def main():
             task.set_kpoints(kpoints=kpoints)
             task.set_properties(properties=args.properties)
             task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 7:
+            # phonopy phonon
+            from pymatflow.abinit.phonopy import phonopy_run
+            task = phonopy_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints=kpoints)
+            task.supercell_n = args.supercell_n
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
         else:
             pass
 # ==============================================================================
@@ -1172,6 +1207,15 @@ def main():
             task.set_params(params=params)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
             task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
+        elif args.runtype == 6:
+            # phonopy
+            from pymatflow.cp2k.phonopy import phonopy_run
+            task = phonopy_run()
+            task.get_xyz(xyzfile)
+            task.supercell_n = args.supercell_n
+            task.set_params(params=params)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
         else:
             pass
 # ==============================================================================
@@ -1332,6 +1376,18 @@ def main():
             task.set_inputph(inputph=inputph)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
             task.phx(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 8:
+            # phonopy
+            from pymatflow.qe.phonopy import phonopy_run
+            task = phonopy_run()
+            task.get_xyz(xyzfile)
+            task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+            task.set_params(control=control, system=system, electrons=electrons)
+            task.supercell_n = args.supercell_n
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        else:
+            pass
 
 # ==============================================================================
 # SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA
@@ -1429,6 +1485,16 @@ def main():
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
             task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
+        elif args.runtype == 5:
+            # phonopy
+            from pymatflow.siesta.phonopy import phonopy_run
+            task = phonopy_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints_mp=args.kpoints_mp)
+            task.supercell_n = args.supercell_n
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
         else:
             pass
     # --------------------------------------------------------------------------

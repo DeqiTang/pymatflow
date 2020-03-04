@@ -22,8 +22,6 @@ class crystal():
     """
     def __init__(self):
         """
-        Note: use 'have a' rather than 'is kind of' to make crystal() more independent
-            of base_xyz().
         """
         self.cell = None
         self.atoms = None
@@ -35,18 +33,20 @@ class crystal():
         self.cell = basexyz.cell
         self.atoms = basexyz.atoms
 
-    def from_xyz_file(self, xyz):
+    def from_xyz_file(self, filepath):
         """
         """
         xyz = base.base_xyz()
-        xyz.get_xyz(xyz)
+        xyz.get_xyz(filepath)
         self.cell = xyz.cell
         self.atoms = xyz.atoms
 
     def from_cif_file(self, cif):
         """
+        :param cif: filepath for cif file
         """
-        pass
+        import pymatflow.third.aseio
+        self.cell, self.atoms = aseio.read_cif(cif)
 
     def get_cell(self, cell):
         """
@@ -155,6 +155,17 @@ class crystal():
                     z = atom.z + float(j + 1) * self.cell[i][2]
                     atoms.append(Atom(atom.name, x, y, z))
         return {"cell": cell, "atoms": [[atom.name, atom.x, atom.y, atom.z] for atom in atoms]}
+
+    def write_xyz(self, filepath):
+        """
+        :param filepath: output xyz file path
+        """
+        with open(filepath, 'w') as fout:
+            fout.write("%d\n" % len(self.atoms))
+            fout.write("cell: %f %f %f | %f %f %f | %f %f %f\n" % (self.cell[0][0], self.cell[0][1], self.cell[0][2], self.cell[1][0], self.cell[1][1], self.cell[1][2], self.cell[2][0], self.cell[2][1], self.cell[2][2]))
+            for atom in self.atoms:
+                fout.write("%s\t%f\t%f\t%f\n" % (atom.name, atom.x, atom.y, atom.z))
+
 
     def to_base_xyz(self):
         """

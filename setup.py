@@ -160,7 +160,6 @@ setup(
         "pymatflow/scripts/cluster_sphere.py",
         "pymatflow/scripts/xyz-fix-atoms.py",
         "pymatflow/scripts/xyzinfo.py",
-        "pymatflow/scripts/cif-to-xyz-modified.py",
         "pymatflow/scripts/cif-to-pdb.py",
         "pymatflow/scripts/pdb-to-cif.py",
         "pymatflow/scripts/xyz-modified-to-crystal.py",

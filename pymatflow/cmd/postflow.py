@@ -86,8 +86,8 @@ def main():
     subparser = subparsers.add_parser("abinit", help="using abinit as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default="static",
-            choices=[0, 1, 2, 3],
-            help="choices of runtype. 0->static_run; 1->optimization; 2->dfpt-elastic-piezo-dielec")
+            choices=[0, 1, 2, 3, 4, 5, 6, 7],
+            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-opt; 3->hexagonal-opt; 4->tetragonal-opt; 5->dfpt-elastic-piezo-dielec; 6->dfpt-phonon; 7->phonopy")
 
     subparser.add_argument("--kpath-manual", type=str, nargs="+", default=None,
             help="manual input kpath for band structure calculation")
@@ -106,8 +106,9 @@ def main():
     subparser = subparsers.add_parser("cp2k", help="using cp2k as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default="static",
-            choices=[0, 1, 2, 3],
-            help="choices of runtype. 0->static_run; 1->optimization;")
+            choices=[0, 1, 2, 3, 4 ,5, 6],
+            help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->phonopy")
+
 
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory for the running.")
@@ -127,8 +128,9 @@ def main():
     subparser = subparsers.add_parser("qe", help="using quantum espresso as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4],
-            help="choices of runtype. 0->static_run; 1->optimization;")
+            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8],
+            help="choices of runtype. 0->static_run; 1->relax; 2->vc-relax; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->neb; 7->dfpt; 8->phonopy")
+
 
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory for the running.")
@@ -162,8 +164,9 @@ def main():
     subparser = subparsers.add_parser("siesta", help="using siesta as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1],
-            help="choices of runtype. 0->static_run; 1->optimization;")
+            choices=[0, 1, 2, 3, 4, 5],
+            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->phonpy")
+
 
     parser.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory for the running.")
@@ -190,6 +193,9 @@ def main():
 
 
 
+# ==============================================================================
+# Abinit Abinit Abinit Abinit Abinit Abinit Abinit Abinit Abinit Abinit Abinit
+# ==============================================================================
     if args.driver == "abinit":
         if args.runtype == 0:
             # static
@@ -200,20 +206,34 @@ def main():
             post = opt()
             post.parse(os.path.join(args.directory, "optimization.out"))
             post.export(directory=args.directory)
-        elif args.runtype == 2:
+        elif args.runtype == 5:
             # dfpt-elastic-piezo-dielec
             #from pymatflow.abinit.post.dfpt import dfpt_elastic_piezo_dielec_anaddb_out
             #post = dfpt_elastic_piezo_dielec_anaddb_out()
             os.system("post-abinit-dfpt-elastic-piezo-dielec.py -d %s" % args.directory)
+        elif args.runtype == 6:
+            # dfpt-phonon
+            pass
+        elif args.runtype == 7:
+            # phonopy
+            os.system("post-abinit-phonopy.py -d %s -f %s --qpath-file %s --supercell-n %d %d %d" % (args.directory, args.xyz, args.kpath_file, args.supercell_n[0], args.supercell_n[1], args.supercell_n[2]))
         else:
             pass
 
-
+# ==============================================================================
+# CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K
+# ==============================================================================
     elif args.driver == "cp2k":
         if args.runtype == 0:
             pass
+        elif args.runtype == 6 :
+            # phonopy
+            os.system("post-cp2k-phonopy.py -d %s -f %s --qpath-file %s --supercell-n %d %d %d" % (args.directory, args.xyz, args.kpath_file, args.supercell_n[0], args.supercell_n[1], args.supercell_n[2]))
         else:
             pass
+# ==============================================================================
+# Quantum ESPRESSO Qautnum ESPRESSO Quantum ESPRESSO Quantum ESPRESSO Quantum ESPRESSO
+# ==============================================================================
     elif args.driver == "qe":
         if args.runtype == 0:
             from pymatflow.qe.post.scf import scf_out
@@ -230,13 +250,24 @@ def main():
             os.chdir("../")
             task.export(directory=args.directory, nebint=args.nebint, nebdat=args.nebdat, md=args.md)
 
-        elif args.runtype == 4:
+        elif args.runtype == 7:
             # dfpt phonon
             os.system("post-qe-matdyn.py -d %s --option gnuplot --freq 0 0.1" % args.directory)
-
+        elif args.runtype == 8:
+            # phonopy phonon
+            os.system("post-qe-phonopy.py -d %s -f %s --qpath-file %s --supercell-n %d %d %d" % (args.directory, args.xyz, args.kpath_file, args.supercell_n[0], args.supercell_n[1], args.supercell_n[2]))
+        else:
+            pass
+# ==============================================================================
+# SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA
+# ==============================================================================
     elif args.driver == "siesta":
         if args.runtype == 0:
             pass
+        elif args.runtype == 5:
+            # phonopy
+            os.system("post-siesta-phonopy.py -d %s -f %s --qpath-file %s --supercell-n %d %d %d" % (args.directory, args.xyz, args.kpath_file, args.supercell_n[0], args.supercell_n[1], args.supercell_n[2]))
+
     # --------------------------------------------------------------------------
 
 

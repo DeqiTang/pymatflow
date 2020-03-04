@@ -3,7 +3,8 @@
 import numpy as np
 from pymatflow.base.xyz import base_xyz
 import argparse
-
+import pymatflow.third.aseio as aseio
+from pymatflow.structure.crystal import crystal
 """
 """
 
@@ -16,7 +17,7 @@ if __name__ == "__main__":
     parser.add_argument("--format", type=str, default='qe',
             choices=['qe'], # currently only support qe format
             help="crystal(fractional) coordinate in format for specific software")
-    
+
     args = parser.parse_args()
 
     xyz = base_xyz()

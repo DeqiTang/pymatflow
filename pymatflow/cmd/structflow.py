@@ -96,18 +96,69 @@ def main():
         os.system("xyz-fix-atoms.py -i %s -o %s --fix %s" % (args.input, args.output, fix_str))
     elif args.driver == "convert":
         # will convert file type according to the suffix of the specified input and output file
-        if args.input.split(".")[-1] == "cif":
-            if args.output.split(".")[-1] == "xyz":
-                os.system("cif-to-xyz-modified.py -i %s -o %s" % (args.input, args.output))
-            elif args.output.split(".")[-1] == "pdb":
-                os.system("cif-to-pdb.py -i %s -o %s" % (args.input, args.output))
-            else:
-                pass
-        elif args.input.split(".")[-1] == "xyz":
+        if args.input.split(".")[-1] == "xyz":
             if args.output.split(".")[-1] == "cif":
-                os.system("xyz-modified-to-cif.py -i %s -o %s" % (args.input, args.output))
+                import pymatflow.third.aseio as aseio
+                from pymatflow.structure.crystal import crystal
+                print("=========================================================\n")
+                print("         structflow convert xyz to cif\n")
+                print("---------------------------------------------------------\n")
+                print("with the help from ase.io\n")
+                a = crystal()
+                a.from_xyz_file(args.input)
+                aseio.write_cif(cell=a.cell, atoms=a.atoms, filepath=args.output)
+            elif args.output.split(".")[-1] == "xtd":
+                import pymatflow.third.aseio as aseio
+                from pymatflow.structure.crystal import crystal
+                print("=========================================================\n")
+                print("         structflow convert xyz to xtd\n")
+                print("---------------------------------------------------------\n")
+                print("with the help from ase.io\n")
+                a = crystal()
+                a.from_xyz_file(args.input)
+                aseio.write_xtd(cell=a.cell, atoms=a.atoms, filepath=args.output)
             else:
                 pass
+        elif args.input.split(".")[-1] == "cif":
+            if args.output.split(".")[-1] == "xyz":
+                print("=====================================\n")
+                print("      structflow convertt cif to xyz\n")
+                print("-------------------------------------\n")
+                print("convert from cif to xyz-modified\n")
+                print("with the help from ase.io\n")
+                a = crystal()
+                a.cell, a.atoms = aseio.read_cif(args.cif)
+                a.write_xyz(filepath=args.xyz)
+            elif args.output.split(".")[-1] == "xtd":
+                import pymatflow.third.aseio as aseio
+                #from pymatflow.structure.crystal import crystal
+                print("=========================================================\n")
+                print("         structflow convert cif to xtb\n")
+                print("---------------------------------------------------------\n")
+                print("with the help from ase.io\n")
+                cell, atoms = aseio.read_cif(args.input)
+                aseio.write_xtd(cell=cell, atoms=atoms, filepath=args.output)
+            else:
+                pass
+        elif args.input.split(".")[-1] == "xtb":
+            if args.output.split(".")[-1] == "xyz":
+                print("=====================================\n")
+                print("      structflow convert xtb to xyz\n")
+                print("-------------------------------------\n")
+                print("convert from xtb to xyz-modified\n")
+                print("with the help from ase.io\n")
+                a = crystal()
+                a.cell, a.atoms = aseio.read_xtb(args.input)
+                a.write_xyz(filepath=args.output)
+            elif args.output.split(".")[-1] == "cif":
+                print("=====================================\n")
+                print("      structflow convert xtb to cif\n")
+                print("-------------------------------------\n")
+                print("convert from xtb to xyz-modified\n")
+                print("with the help from ase.io\n")
+                cell, atoms = aseio.read_xtb(args.input)
+                aseio.write_cif(cell=cell, atoms=atoms, filepath=args.output)
+
         else:
             pass
     elif args.driver == "kpath":
