@@ -48,9 +48,11 @@ class md_run(abinit):
             #
 
             # generate pbs job submit script
-            self.gen_pbs(directory=directory, script="molecular-dynamics.pbs", cmd="abinit", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_llhpc(directory=directory, script="molecular-dynamics.slurm", cmd="$PMF_ABINIT")
+            # generate pbs job submit script
+            self.gen_pbs(directory=directory, script="molecular-dynamics.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # generate local bash job run script
-            self.gen_bash(directory=directory, script="molecular-dynamics.sh", cmd="abinit", mpi=self.run_param["mpi"])
+            self.gen_bash(directory=directory, script="molecular-dynamics.sh", cmd="$PMF_ABINIT", mpi=self.run_param["mpi"])
 
 
         if runopt == "run" or runopt == "genrun":

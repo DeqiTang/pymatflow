@@ -77,6 +77,7 @@ class pwscf:
         self.run_params["nodes"] = nodes
         self.run_params["ppn"] = ppn
 
+
     def set_atomic_forces(self, pressure=None, pressuredir=None):
         self.arts.set_atomic_forces(pressure=pressure, direction=pressuredir)
 
@@ -117,6 +118,31 @@ class pwscf:
 
     def set_spin(self):
         pass
+
+    def set_llhpc(self, partition="free", nodes=1, ntask=24, jobname="matflow_job", stdout="slurm.out", stderr="slurm.err"):
+        self.run_params["server"] = "llhpc"
+        self.run_params["partition"] = partition
+        self.run_params["jobname"] = jobname
+        self.run_params["nodes"] = nodes
+        self.run_params["ntask"] = ntask
+        self.run_params["stdout"] = stdout
+        self.run_params["stderr"] = stderr
+
+    def gen_llhpc(self, inpname, output, directory, cmd="pw.x"):
+        """
+        generating yhbatch job script for calculation
+        better pass in $PMF_PWX
+        """
+        with open(os.path.join(directory, inpname.split(".in")[0]+".slurm"), 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+            fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+            fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+            fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+            fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+            fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+            fout.write("yhrun %s < %s > %s\n" % (cmd, inpname, output))
+
 
     def gen_yh(self, inpname, output, directory, cmd="pw.x"):
         """

@@ -111,11 +111,17 @@ class phonopy_run(pwscf):
             # end build the phonopy
 
             # gen yhbatch script
-            with open(os.path.join(directory, "phonopy-job.sub"), 'w') as fout:
+            with open(os.path.join(directory, "phonopy-job.slurm"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 fout.write("\n")
                 for disp in disp_dirs:
-                    fout.write("yhrun -N 1 -n 24 pw.x < supercell-%s-full.in > supercell-%s.out\n" % (disp, disp))
+                    fout.write("yhrun $PMF_PWX < supercell-%s-full.in > supercell-%s.out\n" % (disp, disp))
             # gen pbs script
             with open(os.path.join(directory, "phonopy-job.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
@@ -125,7 +131,7 @@ class phonopy_run(pwscf):
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
                 fout.write("\n")
                 for disp in disp_dirs:
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < supercell-%s-full.in > supercell-%s.out\n" % (disp, disp))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_PWX < supercell-%s-full.in > supercell-%s.out\n" % (disp, disp))
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -135,7 +141,7 @@ class phonopy_run(pwscf):
                 for line in fin:
                     disp_dirs.append(line.split(".")[0].split("-")[1])
             for disp in disp_dirs:
-                os.system("%s pw.x < supercell-%s-full.in | tee supercell-%s.out" % (self.run_params["mpi"], disp, disp))
+                os.system("%s $PMF_PWX < supercell-%s-full.in | tee supercell-%s.out" % (self.run_params["mpi"], disp, disp))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="phonopy-job", server=self.run_params["server"])
     #

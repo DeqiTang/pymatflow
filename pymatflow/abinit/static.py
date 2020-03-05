@@ -38,11 +38,13 @@ class static_run(abinit):
 
             #self.dataset[0].electrons.set_scf_nscf("scf")
 
+            # generate llhpc submit script
+            self.gen_llhpc(directory=directory, script="static-scf.slurm", cmd="$PMF_ABINIT"):
             # generate pbs job submit script
-            self.gen_pbs(directory=directory, script="static-scf.pbs", cmd="abinit", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, script="static-scf.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
             # generate local bash job run script
-            self.gen_bash(directory=directory, script="static-scf.sh", cmd="abinit", mpi=self.run_params["mpi"])
+            self.gen_bash(directory=directory, script="static-scf.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -76,11 +78,13 @@ class static_run(abinit):
 
             #
 
+            # generate llhpc submit script
+            self.gen_llhpc(directory=directory, script="static-nscf.slurm", cmd="$PMF_ABINIT"):
             # generate pbs job submit script
-            self.gen_pbs(directory=directory, script="static-nscf.pbs", cmd="abinit", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, script="static-nscf.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
             # generate local bash job run script
-            self.gen_bash(directory=directory, script="static-nscf.sh", cmd="abinit", mpi=self.run_params["mpi"])
+            self.gen_bash(directory=directory, script="static-nscf.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -117,11 +121,13 @@ class static_run(abinit):
             #self.dataset[0].electrons.params["irdden"] = 1 # actually irdden will be 1 by default if iscf < 0
 
 
+            # generate llhpc submit script
+            self.gen_llhpc(directory=directory, script="static-bands.slurm", cmd="$PMF_ABINIT"):
             # generate pbs job submit script
-            self.gen_pbs(directory=directory, script="static-bands.pbs", cmd="abinit", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, script="static-bands.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
             # generate local bash job run script
-            self.gen_bash(directory=directory, script="static-bands.sh", cmd="abinit", mpi=self.run_params["mpi"])
+            self.gen_bash(directory=directory, script="static-bands.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -159,11 +165,13 @@ class static_run(abinit):
             #self.dataset[0].electrons.params["irdden"] = 1 # actually irdden will be 1 by default if iscf < 0
 
 
+            # generate llhpc submit script
+            self.gen_llhpc(directory=directory, script="static-scf-nscf-dos-bands.slurm", cmd="$PMF_ABINIT"):
             # generate pbs job submit script
-            self.gen_pbs(directory=directory, script="static-scf-nscf-dos-bands.pbs", cmd="abinit", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, script="static-scf-nscf-dos-bands.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
             # generate local bash job run script
-            self.gen_bash(directory=directory, script="static-scf-nscf-dos-bands.sh", cmd="abinit", mpi=self.run_params["mpi"])
+            self.gen_bash(directory=directory, script="static-scf-nscf-dos-bands.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -207,6 +215,21 @@ class static_run(abinit):
                     fout.write(self.dataset[0].system.to_string())
             os.chdir("../")
 
+            # generate llhpc script files
+            with open(os.path.join(directory, "converge-ecut.slurm"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                for i in range(n_test + 1):
+                    cutoff = int(emin + i * step)
+                    #inp_name = "ecut-%d.in" % cutoff
+                    files_name = "ecut-%d.files" % cutoff
+                    fout.write("yhrun %s < %s\n" % ("$PMF_ABINIT", files_name))
+
             # generate pbs script files
             with open(os.path.join(directory, "converge-ecut.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
@@ -219,7 +242,7 @@ class static_run(abinit):
                     cutoff = int(emin + i * step)
                     #inp_name = "ecut-%d.in" % cutoff
                     files_name = "ecut-%d.files" % cutoff
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s\n" % ("abinit", files_name))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s\n" % ("$PMF_ABINIT", files_name))
             # generate the result analsysis scripts
             os.system("mkdir -p %s/post-processing" % directory)
             with open(os.path.join(directory, "post-processing/analysis-ecut.sh"), 'w') as fout:
@@ -298,11 +321,15 @@ class static_run(abinit):
             # when kptopt < 0 namely band structure calculatin, we can only use
             self.dataset[3].electrons.use_tol(tol="tolwfr", value=1.0e-12)
 
+
+            # generate llhpc job submit script
+            self.gen_llhpc(directory=directory, script="static.slurm", cmd="$PMF_ABINIT")
+
             # generate pbs job submit script
-            self.gen_pbs(directory=directory, script="static.pbs", cmd="abinit", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, script="static.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
             # generate local bash job run script
-            self.gen_bash(directory=directory, script="static.sh", cmd="abinit", mpi=self.run_params["mpi"])
+            self.gen_bash(directory=directory, script="static.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

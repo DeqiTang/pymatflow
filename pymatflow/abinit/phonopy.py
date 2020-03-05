@@ -79,11 +79,17 @@ class phonopy_run(abinit):
             os.chdir("../")
 
             # generate yhbatch scripts
-            with open(os.path.join(directory, "phonopy-job.sub"), 'w') as fout:
+            with open(os.path.join(directory, "phonopy-job.slurm"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 for disp in disps:
                     fout.write("cd disp-%s\n" % disp)
-                    fout.write("yhrun -N 1 -n 24 abinit < supercell-%s.files\n" % disp)
+                    fout.write("yhrun $PMF_ABINIT < supercell-%s.files\n" % disp)
                     fout.write("cd ../\n")
 
             # generate pbs scripts
@@ -96,7 +102,7 @@ class phonopy_run(abinit):
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
                 for disp in disps:
                     fout.write("cd disp-%s\n" % disp)
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE abinit < supercell-%s.files\n" % disp)
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_ABINIT < supercell-%s.files\n" % disp)
                     fout.write("cd ../\n")
 
 
@@ -106,7 +112,7 @@ class phonopy_run(abinit):
             disps = self.get_disps("./")
             for disp in disps:
                 os.chdir("disp-%s" % disp)
-                os.system("abinit < supercell-%s.files" % disp)
+                os.system("$PMF_ABINIT < supercell-%s.files" % disp)
                 os.chdir("../")
             os.chdir("../")
 

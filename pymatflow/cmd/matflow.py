@@ -235,7 +235,18 @@ def main():
 
     subparser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
+    # llhpc
+    subparser.add_argument("--partition", type=str, default="free",
+            help="choose partition to submit job")
 
+    subparser.add_argument("--ntask", type=int, default=24,
+            help="choose task number")
+
+    subparser.add_argument("--stdout", type=str, default="slurm.out",
+            help="set standard out")
+
+    subparser.add_argument("--stderr", type=str, default="slurm.err",
+            help="set standard err")
 
     # --------------------------------------------------------------------------
     # CP2K
@@ -486,6 +497,18 @@ def main():
 
     subparser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
+    # llhpc
+    subparser.add_argument("--partition", type=str, default="free",
+            help="choose partition to submit job")
+
+    subparser.add_argument("--ntask", type=int, default=24,
+            help="choose task number")
+
+    subparser.add_argument("--stdout", type=str, default="slurm.out",
+            help="set standard out")
+
+    subparser.add_argument("--stderr", type=str, default="slurm.err",
+            help="set standard err")
 
 
     # --------------------------------------------------------------------------
@@ -760,7 +783,18 @@ def main():
 
     subparser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
+    # llhpc
+    subparser.add_argument("--partition", type=str, default="free",
+            help="choose partition to submit job")
 
+    subparser.add_argument("--ntask", type=int, default=24,
+            help="choose task number")
+
+    subparser.add_argument("--stdout", type=str, default="slurm.out",
+            help="set standard out")
+
+    subparser.add_argument("--stderr", type=str, default="slurm.err",
+            help="set standard err")
 
 
     # --------------------------------------------------------------------------
@@ -946,7 +980,18 @@ def main():
 
     subparser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
+    # llhpc
+    subparser.add_argument("--partition", type=str, default="free",
+            help="choose partition to submit job")
 
+    subparser.add_argument("--ntask", type=int, default=24,
+            help="choose task number")
+
+    subparser.add_argument("--stdout", type=str, default="slurm.out",
+            help="set standard out")
+
+    subparser.add_argument("--stderr", type=str, default="slurm.err",
+            help="set standard err")
 
 
     # --------------------------------------------------------------------------
@@ -1257,6 +1302,7 @@ def main():
             task.set_params(params=params)
             task.set_kpoints(kpoints=kpoints)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 1:
             # optimization
@@ -1271,6 +1317,7 @@ def main():
             task.set_params(params=params)
             task.set_kpoints(kpoints=kpoints)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 2:
             ## cubic optimization
@@ -1282,6 +1329,7 @@ def main():
             task.set_params(params=params)
             task.set_kpoints(kpoints=kpoints)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa)
         elif args.runtype == 3:
             # hexagonal optimization
@@ -1293,6 +1341,7 @@ def main():
             task.set_params(params=params)
             task.set_kpoints(kpoints=kpoints)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa, nc=args.nc, stepc=args.stepc)
         elif args.runtype == 4:
             # tetragonal optimization
@@ -1304,6 +1353,7 @@ def main():
             task.set_params(params=params)
             task.set_kpoints(kpoints=kpoints)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa, nc=args.nc, stepc=args.stepc)
         elif args.runtype == 5:
             # dfpt-elastic-piezo-dielec
@@ -1313,6 +1363,7 @@ def main():
             task.set_params(params=params)
             task.set_kpoints(kpoints=kpoints)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 6:
             # dfpt-phonon
@@ -1324,6 +1375,8 @@ def main():
             task.set_params(params=params)
             task.set_kpoints(kpoints=kpoints)
             task.set_properties(properties=args.properties)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 7:
             # phonopy phonon
@@ -1334,6 +1387,7 @@ def main():
             task.set_kpoints(kpoints=kpoints)
             task.supercell_n = args.supercell_n
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
         else:
             pass
@@ -1376,6 +1430,7 @@ def main():
                 task.force_eval.dft.printout.band_structure.set_band(kpath=get_kpath(args.kpath_manual, args.kpath_file))
             task.set_vdw(usevdw=True if args.usevdw.lower() == "true" else False)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 1:
             # geo opt
@@ -1392,6 +1447,7 @@ def main():
             task.set_geo_opt()
             task.set_params(params=params)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.geo_opt(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 2:
             # cell opt
@@ -1408,6 +1464,7 @@ def main():
             task.set_cell_opt()
             task.set_params(params=params)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.cell_opt(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 3:
             # cubic cell opt
@@ -1424,6 +1481,7 @@ def main():
             task.set_geo_opt()
             task.set_params(params=params)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.nc, stepa=args.stepa)
         elif args.runtype == 4:
             # hexagonal cell opt
@@ -1440,6 +1498,7 @@ def main():
             task.set_geo_opt()
             task.set_params(params=params)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
         elif args.runtype == 5:
             # tetragonal cell opt
@@ -1456,6 +1515,7 @@ def main():
             task.set_geo_opt()
             task.set_params(params=params)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
         elif args.runtype == 6:
             # phonopy
@@ -1465,6 +1525,7 @@ def main():
             task.supercell_n = args.supercell_n
             task.set_params(params=params)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
         else:
             pass
@@ -1560,6 +1621,7 @@ def main():
             task.set_bands(bands_input=bands)
             task.set_pp(inputpp=inputpp, plotpp=plotpp)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpath=get_kpath(args.kpath_manual, args.kpath_file))
         elif args.runtype == 1:
             # relax
@@ -1570,6 +1632,7 @@ def main():
             task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
             task.set_params(control=control, system=system, electrons=electrons, ions=ions)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.relax(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 2:
             # vc-relax
@@ -1580,6 +1643,7 @@ def main():
             task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
             task.set_params(control=control, system=system, electrons=electrons, ions=ions)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.vc_relax(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 3:
             # cubic cell opt
@@ -1590,6 +1654,7 @@ def main():
             task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
             task.set_params(control=control, system=system, electrons=electrons, ions=ions)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa)
         elif args.runtype == 4:
             # hexagonal cell opt
@@ -1600,6 +1665,7 @@ def main():
             task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
             task.set_params(control=control, system=system, electrons=electrons, ions=ions)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
         elif args.runtype == 5:
             # tetragonal cell opt
@@ -1610,6 +1676,7 @@ def main():
             task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
             task.set_params(control=control, system=system, electrons=electrons, ions=ions)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
         elif args.runtype == 6:
             from pymatflow.qe.neb import neb_run
@@ -1618,6 +1685,7 @@ def main():
             task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
             task.set_path(path=path)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.neb(directory=directory, runopt=args.runopt, restart_mode=args.restart_mode, auto=args.auto)
         elif args.runtype == 7:
             from pymatflow.qe.dfpt import dfpt_run
@@ -1625,6 +1693,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_inputph(inputph=inputph)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.phx(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 8:
             # phonopy
@@ -1635,6 +1704,7 @@ def main():
             task.set_params(control=control, system=system, electrons=electrons)
             task.supercell_n = args.supercell_n
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
         else:
             pass
@@ -1682,6 +1752,7 @@ def main():
             task.set_params(params=params)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto, properties=args.properties)
         elif args.runtype == 1:
             # optimization
@@ -1695,6 +1766,7 @@ def main():
             task.set_params(params=params)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.opt(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 2:
             # cubic cell
@@ -1708,6 +1780,7 @@ def main():
             task.set_params(params=params)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa)
         elif args.runtype == 3:
             # hexagonal cell
@@ -1721,6 +1794,7 @@ def main():
             task.set_params(params=params)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
         elif args.runtype == 4:
             # tetragonal cell
@@ -1734,6 +1808,7 @@ def main():
             task.set_params(params=params)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
         elif args.runtype == 5:
             # phonopy
@@ -1744,6 +1819,7 @@ def main():
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.supercell_n = args.supercell_n
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
         else:
             pass

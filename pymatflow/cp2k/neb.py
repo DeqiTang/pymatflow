@@ -76,13 +76,13 @@ class neb_run(cp2k):
                 self.motion.to_input(fout)
 
             # gen server job comit file
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt")
+            self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_CP2K")
             # gen pbs server job comit file
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_CP2K", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_CP2K -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="neb", server=self.run_params["server"])
     #

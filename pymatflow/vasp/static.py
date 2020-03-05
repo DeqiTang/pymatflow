@@ -41,7 +41,7 @@ class static_run(vasp):
             with open(os.path.join(directory, "POSCAR"), 'w') as fout:
                 self.poscar.to_poscar(fout)
 
-            # gen yhbatch script
+            # gen llhpc script
             self.gen_llhpc(directory=directory, scriptname="static-scf.slurm", cmd="vasp_std")
             # gen pbs script
             self.gen_pbs(directory=directory, cmd="vasp_std", scriptname="static-scf.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
@@ -118,7 +118,7 @@ class static_run(vasp):
 
         if runopt == "gen" or runopt == "genrun":
 
-            # gen yhbatch script
+            # gen llhpc script
             self.gen_llhpc(directory=directory, scriptname="static-bands.slurm", cmd="vasp_std")
             # gen pbs script
             self.gen_pbs(directory=directory, cmd="vasp_std", scriptname="static-bands.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])

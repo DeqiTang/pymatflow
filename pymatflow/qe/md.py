@@ -49,13 +49,13 @@ class md_run(pwscf):
                 self.ions.to_in(fout)
                 self.arts.to_in(fout)
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_PWX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="md", server=self.run_params["server"])
 
@@ -95,13 +95,13 @@ class md_run(pwscf):
                 self.arts.to_in(fout)
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_PWX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="vc-md", server=self.run_params["server"])
 

@@ -42,10 +42,13 @@ class static_run(siesta):
                 self.electrons.to_fdf(fout)
                 self.properties.to_fdf(fout)
 
-            # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="siesta")
+            # gen llhpc script
+            self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="siesta")
             # gen pbs script
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="siesta", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            # gen local bash script
+            self.gen_bash(directory=directory, inpname=inpname, output=output, cmd="siesta", mpi=self.run_params["mpi"])
+
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -74,14 +77,17 @@ class static_run(siesta):
                 self.electrons.to_fdf(fout)
                 self.properties.to_fdf(fout)
 
-            # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="siesta")
+            # gen llhpc script
+            self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="siesta")
             # gen pbs script
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="siesta", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            # gen local bash script
+            self.gen_bash(directory=directory, inpname=inpname, output=output, cmd="siesta", mpi=self.run_params["mpi"])
+
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s siesta < %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_SIESTA < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="static-scf-restart", server=self.run_params["server"])
 
@@ -108,14 +114,20 @@ class static_run(siesta):
                     self.electrons.to_fdf(fout)
                     #self.properties.to_fdf(fout)
 
-            # gen yhbatch running script
-            with open("converge-cutoff.sub", 'w') as fout:
+            # gen llhpc running script
+            with open("converge-cutoff.slurm", 'w') as fout:
                 fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 for i in range(n_test + 1):
                     meshcutoff = int(emin + i * step)
                     inp_name = "cutoff-%d.fdf" % meshcutoff
                     out_f_name = "cutoff-%d.out" % meshcutoff
-                    fout.write("yhrun -N 1 -n 24 siesta < %s > %s\n" % (inp_name, out_f_name))
+                    fout.write("yhrun $PMF_SIESTA < %s > %s\n" % (inp_name, out_f_name))
 
             # gen pbs running script
             with open("converge-cutoff.pbs", 'w') as fout:
@@ -130,13 +142,19 @@ class static_run(siesta):
                     inp_name = "cutoff-%d.fdf" % meshcutoff
                     out_f_name = "cutoff-%d.out" % meshcutoff
                     fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE siesta < %s > %s\n" % (inp_name, out_f_name))
+            # gen local bash running script
+            with open("converge-cutoff.sh", 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                for i in range(n_test + 1):
+                    meshcutoff = int(emin + i * step)
+                    inp_name = "cutoff-%d.fdf" % meshcutoff
+                    out_f_name = "cutoff-%d.out" % meshcutoff
+                    fout.write("%s $PMF_SIESTA < %s > %s\n" % (self.run_params["mpi"], inp_name, out_f_name))
+
 
         if runopt == "run" or runopt == "genrun":
-            # run
             os.chdir(directory)
-            for i in range(n_test + 1):
-                meshcutoff = int(emin + i * step)
-                os.system("%s siesta < cutoff-%d.fdf | tee cutoff-%d.out" % (self.run_params["mpi"], meshcutoff, meshcutoff))
+            os.system("bash converge-cutoff.sh")
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="converge-cutoff", server=self.run_params["server"])
 

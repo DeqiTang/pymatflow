@@ -136,13 +136,13 @@ class neb_run(pwscf):
                 fout.write("END_ENGINE_INPUT\n")
                 fout.write("END\n")
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="neb.x")
+            self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_NEBX")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="neb.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_NEBX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s neb.x -inp %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_NEBX -inp %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="neb", server=self.run_params["server"])
 

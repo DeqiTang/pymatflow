@@ -44,9 +44,12 @@ class md_run(siesta):
                 self.ions.to_fdf(fout)
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="siesta")
+            self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="siesta")
             # gen pbs script
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="siesta", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            # gen local bash script
+            self.gen_bash(directory=directory, inpname=inpname, output=output, cmd="siesta", mpi=self.run_params["mpi"])
+
 
         if runopt == "run" or runopt == "genrun":
             # run the simulation

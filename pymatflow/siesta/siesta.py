@@ -60,6 +60,30 @@ class siesta:
         self.run_params["nodes"] = nodes
         self.run_params["ppn"] = ppn
 
+    def set_llhpc(self, partition="free", nodes=1, ntask=24, jobname="matflow_job", stdout="slurm.out", stderr="slurm.err"):
+        self.run_params["server"] = "llhpc"
+        self.run_params["partition"] = partition
+        self.run_params["jobname"] = jobname
+        self.run_params["nodes"] = nodes
+        self.run_params["ntask"] = ntask
+        self.run_params["stdout"] = stdout
+        self.run_params["stderr"] = stderr
+
+    def gen_llhpc(self, directory, inpname, output, cmd="siesta"):
+        """
+        generating yhbatch job script for calculation
+        """
+        with open(os.path.join(directory, inpname.split(".fdf")[0]+".slurm"), 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+            fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+            fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+            fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+            fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+            fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+            fout.write("yhrun $PMF_SIESTA\n")
+
+
     def gen_yh(self, inpname, output, directory="tmp-siesta-static", cmd="siesta"):
         """
         generating yhbatch job script for calculation
@@ -79,4 +103,13 @@ class siesta:
             fout.write("\n")
             fout.write("cd $PBS_O_WORKDIR\n")
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
-            fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
+            fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_SIESTA < %s > %s\n" % (inpname, output))
+
+    def gen_bash(self, inpname, output, directory, cmd="siesta", jobname="siesta", mpi=""):
+        """
+        generating local bash job script for calculation
+        """
+        with open(os.path.join(directory, inpname.split(".fdf")[0]+".sh"), 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("#PBS -N %s\n" % jobname)
+            fout.write("%s $PMF_SIESTA < %s > %s\n" % (mpi, inpname, output))

@@ -55,13 +55,13 @@ class opt_run(cp2k):
                 self.motion.to_input(fout)
 
             # gen server job comit file
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt")
+            self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_CP2K")
             # gen pbs server job comit file
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_CP2K", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_CP2K -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="geo-opt", server=self.run_params["server"])
 
@@ -88,13 +88,13 @@ class opt_run(cp2k):
                 self.motion.to_input(fout)
 
             # gen server job comit file
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt")
+            self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_CP2K")
             # gen pbs server job comit file
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_CP2K", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_CP2K -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="cell-opt", server=self.run_params["server"])
 
@@ -140,6 +140,35 @@ class opt_run(cp2k):
             self.force_eval.to_input(fout)
             self.motion.to_input(fout)
 
+        # gen llhpc script
+        with open("geo-opt-cubic.slurm", 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+            fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+            fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+            fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+            fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+            fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+            fout.write("\n")
+            fout.write("# get begin and end line number of the cell block in geo-opt.inp.template\n")
+            fout.write("cell_block_begin=`cat geo-opt.inp.template | grep -n \'&CELL\' | head -n 1 | cut -d \':\' -f1`\n")
+            fout.write("cell_block_end=`cat geo-opt.inp.template | grep -n \'&END CELL\' | head -n 1 | cut -d \':\' -f1`\n")
+            fout.write("\n")
+
+            a = self.force_eval.subsys.xyz.cell[0][0]
+
+            fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
+            fout.write("do\n")
+            fout.write("  cat geo-opt.inp.template | head -n +${cell_block_begin} > geo-opt-${a}.inp\n")
+            fout.write("  cat >> geo-opt-${a}.inp <<EOF\n")
+            fout.write("\t\t\tA ${a} 0.000000 0.000000\n")
+            fout.write("\t\t\tB 0.000000 ${a} 0.000000\n")
+            fout.write("\t\t\tC 0.000000 0.000000 ${a}\n")
+            fout.write("\t\t\tPERIODIC xyz\n")
+            fout.write("EOF\n")
+            fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
+            fout.write("  yhrun $PMF_CP2K -inp geo-opt-${a}.inp > geo-opt-${a}.out\n")
+            fout.write("done\n")
 
         # gen pbs script
         with open("geo-opt-cubic.pbs", 'w') as fout:
@@ -167,7 +196,7 @@ class opt_run(cp2k):
             fout.write("\t\t\tPERIODIC xyz\n")
             fout.write("EOF\n")
             fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
-            fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -inp geo-opt-${a}.inp > geo-opt-${a}.out\n")
+            fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -inp geo-opt-${a}.inp > geo-opt-${a}.out\n")
             fout.write("done\n")
 
         # gen local bash script
@@ -193,7 +222,7 @@ class opt_run(cp2k):
             fout.write("\t\t\tPERIODIC xyz\n")
             fout.write("EOF\n")
             fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
-            fout.write("  %s cp2k.popt -inp geo-opt-${a}.inp | tee geo-opt-${a}.out\n" % self.run_params["mpi"])
+            fout.write("  %s $PMF_CP2K -inp geo-opt-${a}.inp | tee geo-opt-${a}.out\n" % self.run_params["mpi"])
             fout.write("done\n")
 
 
@@ -247,6 +276,90 @@ class opt_run(cp2k):
             self.motion.to_input(fout)
 
 
+        # gen llhpc script
+        with open("geo-opt-hexagonal.slurm", 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+            fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+            fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+            fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+            fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+            fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+            fout.write("# get begin and end line number of the cell block in geo-opt.inp.template\n")
+            fout.write("cell_block_begin=`cat geo-opt.inp.template | grep -n \'&CELL\' | head -n 1 | cut -d \':\' -f1`\n")
+            fout.write("cell_block_end=`cat geo-opt.inp.template | grep -n \'&END CELL\' | head -n 1 | cut -d \':\' -f1`\n")
+            fout.write("\n")
+
+            a = self.force_eval.subsys.xyz.cell[0][0]
+            c = self.force_eval.subsys.xyz.cell[2][2]
+            fout.write("v11=%f\n" % self.force_eval.subsys.xyz.cell[0][0])
+            fout.write("v12=%f\n" % self.force_eval.subsys.xyz.cell[0][1])
+            fout.write("v13=%f\n" % self.force_eval.subsys.xyz.cell[0][2])
+            fout.write("v21=%f\n" % self.force_eval.subsys.xyz.cell[1][0])
+            fout.write("v22=%f\n" % self.force_eval.subsys.xyz.cell[1][1])
+            fout.write("v23=%f\n" % self.force_eval.subsys.xyz.cell[1][2])
+            fout.write("v31=%f\n" % self.force_eval.subsys.xyz.cell[2][0])
+            fout.write("v32=%f\n" % self.force_eval.subsys.xyz.cell[2][1])
+            fout.write("v33=%f\n" % self.force_eval.subsys.xyz.cell[2][2])
+            if na >= 2:
+                # a is optimized
+                fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
+                fout.write("do\n")
+                if nc >= 2:
+                    # optimize both a and c
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("do\n")
+                    fout.write("  vec21=`echo \"scale=6; result=${v21} * ${a} / ${v11}; if (length(result)==scale(result)) print 0; print result\" | bc`\n")
+                    fout.write("  vec22=`echo \"scale=6; result=${v22} * ${a} / ${v11}; if (length(result)==scale(result)) print 0; print result\" | bc`\n")
+                    # here with the usage of length and scale in bs processing, we can make sure that number like '.123' will be correctly
+                    # set as '0.123', namely the ommited 0 by bs by default is not ommited now!
+                    fout.write("  cat geo-opt.inp.template | head -n +${cell_block_begin} > geo-opt-${a}-${c}.inp\n")
+                    fout.write("  cat >> geo-opt-${a}-${c}.inp <<EOF\n")
+                    fout.write("\t\t\tA ${a} 0.000000 0.000000\n")
+                    fout.write("\t\t\tB ${vec21} ${vec22} 0.000000\n")
+                    fout.write("\t\t\tC 0.000000 0.000000 ${c}\n")
+                    fout.write("\t\t\tPERIODIC xyz\n")
+                    fout.write("EOF\n")
+                    fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}.inp\n")
+                    fout.write("  yhrun $PMF_CP2K -inp geo-opt-${a}-${c}.inp > geo-opt-${a}-${c}.out\n")
+                    fout.write("done\n")
+                else:
+                    # only optimize a
+                    fout.write("  vec21=`echo \"scale=6; result=${v21} * ${a} / ${v11}; if (length(result)==scale(result)) print 0; print result\" | bc`\n")
+                    fout.write("  vec22=`echo \"scale=6; result=${v22} * ${a} / ${v11}; if (length(result)==scale(result)) print 0; print result\" | bc`\n")
+                    fout.write("  cat geo-opt.inp.template | head -n +${cell_block_begin} > geo-opt-${a}.inp\n")
+                    fout.write("  cat >> geo-opt-${a}.inp <<EOF\n")
+                    fout.write("\t\t&CELL\n")
+                    fout.write("\t\t\tA ${a} 0.000000 0.000000\n")
+                    fout.write("\t\t\tB ${vec21} ${vec22} 0.000000\n")
+                    fout.write("\t\t\tC 0.000000 0.000000 ${v33}\n")
+                    fout.write("\t\t\tPERIODIC xyz\n")
+                    fout.write("EOF\n")
+                    fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
+                    fout.write("  yhrun $PMF_CP2K -in geo-opt-${a}.inp > geo-opt-${a}.out\n")
+                fout.write("done\n")
+            else:
+                # a is not optimized
+                if nc >= 2:
+                    # only optimize c
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("do\n")
+                    fout.write("  cat geo-opt.inp.template | head -n +${cell_block_begin} > geo-opt-${c}.inp\n")
+                    fout.write("  cat >> geo-opt-${c}.in<<EOF\n")
+                    fout.write("\t\t&CELL\n")
+                    fout.write("\t\t\tA ${v11} 0.000000 0.000000\n")
+                    fout.write("\t\t\tB ${v21} ${v22} 0.000000\n")
+                    fout.write("\t\t\tC 0.000000 0.000000 ${c}\n")
+                    fout.write("\t\t\tPERIODIC xyz\n")
+                    fout.write("EOF\n")
+                    fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${c}.inp\n")
+                    fout.write("  yhrun $PMF_CP2K -in geo-opt-${c}.inp > geo-opt-${c}.out\n")
+                    fout.write("done\n")
+                else:
+                    # neither a or c is optimized
+                    pass
+
+
         # gen pbs script
         with open("geo-opt-hexagonal.pbs", 'w') as fout:
             fout.write("#!/bin/bash\n")
@@ -292,7 +405,7 @@ class opt_run(cp2k):
                     fout.write("\t\t\tPERIODIC xyz\n")
                     fout.write("EOF\n")
                     fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}.inp\n")
-                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -inp geo-opt-${a}-${c}.inp > geo-opt-${a}-${c}.out\n")
+                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -inp geo-opt-${a}-${c}.inp > geo-opt-${a}-${c}.out\n")
                     fout.write("done\n")
                 else:
                     # only optimize a
@@ -307,7 +420,7 @@ class opt_run(cp2k):
                     fout.write("\t\t\tPERIODIC xyz\n")
                     fout.write("EOF\n")
                     fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
-                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -in geo-opt-${a}.inp > geo-opt-${a}.out\n")
+                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -in geo-opt-${a}.inp > geo-opt-${a}.out\n")
                 fout.write("done\n")
             else:
                 # a is not optimized
@@ -324,7 +437,7 @@ class opt_run(cp2k):
                     fout.write("\t\t\tPERIODIC xyz\n")
                     fout.write("EOF\n")
                     fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${c}.inp\n")
-                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -in geo-opt-${c}.inp > geo-opt-${c}.out\n")
+                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -in geo-opt-${c}.inp > geo-opt-${c}.out\n")
                     fout.write("done\n")
                 else:
                     # neither a or c is optimized
@@ -373,7 +486,7 @@ class opt_run(cp2k):
                     fout.write("\t\t\tPERIODIC xyz\n")
                     fout.write("EOF\n")
                     fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}.inp\n")
-                    fout.write("  %s cp2k.popt -inp geo-opt-${a}-${c}.inp | tee geo-opt-${a}-${c}.out\n" % self.run_params["mpi"])
+                    fout.write("  %s $PMF_CP2K -inp geo-opt-${a}-${c}.inp | tee geo-opt-${a}-${c}.out\n" % self.run_params["mpi"])
                     fout.write("done\n")
                 else:
                     # only optimize a
@@ -388,7 +501,7 @@ class opt_run(cp2k):
                     fout.write("\t\t\tPERIODIC xyz\n")
                     fout.write("EOF\n")
                     fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
-                    fout.write("  %s cp2k.popt -in geo-opt-${a}.inp | tee geo-opt-${a}.out\n" % self.run_params["mpi"])
+                    fout.write("  %s $PMF_CP2K -in geo-opt-${a}.inp | tee geo-opt-${a}.out\n" % self.run_params["mpi"])
                 fout.write("done\n")
             else:
                 # a is not optimized
@@ -405,7 +518,7 @@ class opt_run(cp2k):
                     fout.write("\t\t\tPERIODIC xyz\n")
                     fout.write("EOF\n")
                     fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${c}.inp\n")
-                    fout.write("  %s cp2k.popt -in geo-opt-${c}.inp | tee geo-opt-${c}.out\n" % self.run_params["mpi"])
+                    fout.write("  %s $PMF_CP2K -in geo-opt-${c}.inp | tee geo-opt-${c}.out\n" % self.run_params["mpi"])
                     fout.write("done\n")
                 else:
                     # neither a or c is optimized
@@ -515,6 +628,84 @@ class opt_run(cp2k):
             self.motion.to_input(fout)
 
 
+        # gen llhpc script
+        with open("geo-opt-tetragonal.slurm", 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+            fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+            fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+            fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+            fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+            fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+            fout.write("\n")
+            fout.write("# get begin and end line number of the cell block in geo-opt.inp.template\n")
+            fout.write("cell_block_begin=`cat geo-opt.inp.template | grep -n \'&CELL\' | head -n 1 | cut -d \':\' -f1`\n")
+            fout.write("cell_block_end=`cat geo-opt.inp.template | grep -n \'&END CELL\' | head -n 1 | cut -d \':\' -f1\n`")
+            fout.write("\n")
+
+            a = self.force_eval.subsys.xyz.cell[0][0]
+            c = self.force_eval.subsys.xyz.cell[2][2]
+
+            fout.write("v11=%f\n" % self.force_eval.subsys.xyz.cell[0][0])
+            fout.write("v12=%f\n" % self.force_eval.subsys.xyz.cell[0][1])
+            fout.write("v13=%f\n" % self.force_eval.subsys.xyz.cell[0][2])
+            fout.write("v21=%f\n" % self.force_eval.subsys.xyz.cell[1][0])
+            fout.write("v22=%f\n" % self.force_eval.subsys.xyz.cell[1][1])
+            fout.write("v23=%f\n" % self.force_eval.subsys.xyz.cell[1][2])
+            fout.write("v31=%f\n" % self.force_eval.subsys.xyz.cell[2][0])
+            fout.write("v32=%f\n" % self.force_eval.subsys.xyz.cell[2][1])
+            fout.write("v33=%f\n" % self.force_eval.subsys.xyz.cell[2][2])
+            if na >= 2:
+                # a is optimized
+                fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
+                fout.write("do\n")
+                if nc >= 2:
+                    # optimize both a and c
+                    fout.write("  for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("  do\n")
+                    fout.write("    cat geo-opt.inp.template | head -n +${cell_block_begin} > geo-opt-${a}-${c}.inp\n")
+                    fout.write("    cat >> geo-opt-${a}-${c}.inp <<EOF\n")
+                    fout.write("\t\t\tA ${a} 0.000000 0.000000\n")
+                    fout.write("\t\t\tB 0.000000 ${a} 0.000000\n")
+                    fout.write("\t\t\tC 0.000000 0.000000 ${c}\n")
+                    fout.write("\t\t\tPERIODIC XYZ\n")
+                    fout.write("EOF\n")
+                    fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}.inp\n")
+                    fout.write("    yhrun $PMF_CP2K -in geo-opt-${a}-${c}.inp > geo-opt-${a}-${c}.out\n")
+                    fout.write("  done\n")
+                else:
+                    # only optimize a
+                    fout.write("    cat geo-opt.inp.template | head -n +${cell_block_begin} > geo-opt-${a}.inp\n")
+                    fout.write("    cat >> geo-opt-${a}.inp <<EOF\n")
+                    fout.write("\t\t\tA ${a} 0.000000 0.000000\n")
+                    fout.write("\t\t\tB 0.000000 ${a} 0.000000\n")
+                    fout.write("\t\t\tC 0.000000 0.000000 ${v33}\n")
+                    fout.write("\t\t\tPERIODIC XYZ\n")
+                    fout.write("EOF\n")
+                    fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
+                    fout.write("    yhrun $PMF_CP2K -in geo-opt-${a}.inp > geo-opt-${a}.out\n")
+                fout.write("done\n")
+            else:
+            # a is not optimized
+                if nc >= 2:
+                    # only optimize c
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("do\n")
+                    fout.write("  cat geo-opt.inp.template | head -n +${cell_block_begin} > geo-opt-${c}.inp\n")
+                    fout.write("  cat >> geo-opt-${c}.in<<EOF\n")
+                    fout.write("\t\t\tA ${v11} 0.000000 0.000000\n")
+                    fout.write("\t\t\tB 0.000000 ${v22} 0.000000\n")
+                    fout.write("\t\t\tC 0.000000 0.000000 ${c}\n")
+                    fout.write("\t\t\tPERIODIC XYZ\n")
+                    fout.write("EOF\n")
+                    fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
+                    fout.write("    yhrun $PMF_CP2K -in geo-opt-${a}.inp > geo-opt-${a}.out\n")
+                    fout.write("done\n")
+                else:
+                    # neither a or c is optimized
+                    pass
+
+
         # gen pbs script
         with open("geo-opt-tetragonal.pbs", 'w') as fout:
             fout.write("#!/bin/bash\n")
@@ -557,7 +748,7 @@ class opt_run(cp2k):
                     fout.write("\t\t\tPERIODIC XYZ\n")
                     fout.write("EOF\n")
                     fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}.inp\n")
-                    fout.write("    mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -in geo-opt-${a}-${c}.inp > geo-opt-${a}-${c}.out\n")
+                    fout.write("    mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -in geo-opt-${a}-${c}.inp > geo-opt-${a}-${c}.out\n")
                     fout.write("  done\n")
                 else:
                     # only optimize a
@@ -569,7 +760,7 @@ class opt_run(cp2k):
                     fout.write("\t\t\tPERIODIC XYZ\n")
                     fout.write("EOF\n")
                     fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
-                    fout.write("    mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -in geo-opt-${a}.inp > geo-opt-${a}.out\n")
+                    fout.write("    mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -in geo-opt-${a}.inp > geo-opt-${a}.out\n")
                 fout.write("done\n")
             else:
             # a is not optimized
@@ -585,7 +776,7 @@ class opt_run(cp2k):
                     fout.write("\t\t\tPERIODIC XYZ\n")
                     fout.write("EOF\n")
                     fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
-                    fout.write("    mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -in geo-opt-${a}.inp > geo-opt-${a}.out\n")
+                    fout.write("    mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -in geo-opt-${a}.inp > geo-opt-${a}.out\n")
                     fout.write("done\n")
                 else:
                     # neither a or c is optimized
@@ -630,7 +821,7 @@ class opt_run(cp2k):
                     fout.write("\t\t\tPERIODIC XYZ\n")
                     fout.write("EOF\n")
                     fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}.inp\n")
-                    fout.write("    %s cp2k.popt -in geo-opt-${a}-${c}.inp | tee geo-opt-${a}-${c}.out\n" % self.run_params["mpi"])
+                    fout.write("    %s $PMF_CP2K -in geo-opt-${a}-${c}.inp | tee geo-opt-${a}-${c}.out\n" % self.run_params["mpi"])
                     fout.write("  done\n")
                 else:
                     # only optimize a
@@ -642,7 +833,7 @@ class opt_run(cp2k):
                     fout.write("\t\t\tPERIODIC XYZ\n")
                     fout.write("EOF\n")
                     fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
-                    fout.write("    %s cp2k.popt -in geo-opt-${a}.inp | tee geo-opt-${a}.out\n" % self.run_params["mpi"])
+                    fout.write("    %s $PMF_CP2K -in geo-opt-${a}.inp | tee geo-opt-${a}.out\n" % self.run_params["mpi"])
                 fout.write("done\n")
             else:
             # a is not optimized
@@ -658,7 +849,7 @@ class opt_run(cp2k):
                     fout.write("\t\t\tPERIODIC XYZ\n")
                     fout.write("EOF\n")
                     fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
-                    fout.write("    %s cp2k.popt -in geo-opt-${a}.inp | tee geo-opt-${a}.out\n" % self.run_params["mpi"])
+                    fout.write("    %s $PMF_CP2K -in geo-opt-${a}.inp | tee geo-opt-${a}.out\n" % self.run_params["mpi"])
                     fout.write("done\n")
                 else:
                     # neither a or c is optimized

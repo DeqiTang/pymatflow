@@ -38,7 +38,7 @@ class opt_run(vasp):
                 self.poscar.to_poscar(fout)
 
             # gen slurm script
-            self.gen_yh(directory=directory, cmd="vasp", scriptname="optimization.slurm")
+            self.gen_llhpc(directory=directory, cmd="vasp", scriptname="optimization.slurm")
             # gen pbs script
             self.gen_pbs(directory=directory, cmd="vasp_std", scriptname="optimization.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # gen local bash script
@@ -80,6 +80,10 @@ class opt_run(vasp):
             fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
             fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
 
+            fout.write("cat > INCAR<<EOF\n")
+            self.incar.to_incar(fout)
+            fout.write("EOF\n")
+
             a = self.poscar.xyz.cell[0][0]
 
             fout.write("v11=%f\n" % self.poscar.xyz.cell[0][0])
@@ -95,7 +99,7 @@ class opt_run(vasp):
             fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
             fout.write("do\n")
             fout.write("  mkdir relax-${a}\n")
-            fout.write("  cp POTCAR KPOITNS INCAR relax-${a}/\n")
+            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
             fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
             fout.write("general comment\n")
             fout.write("1.0\n")
@@ -117,10 +121,10 @@ class opt_run(vasp):
             fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
             fout.write("\n")
             fout.write("cd $PBS_O_WORKDIR\n")
+            fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
             fout.write("cat > INCAR<<EOF\n")
             self.incar.to_incar(fout)
             fout.write("EOF\n")
-            fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
 
             a = self.poscar.xyz.cell[0][0]
 
@@ -137,7 +141,7 @@ class opt_run(vasp):
             fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
             fout.write("do\n")
             fout.write("  mkdir relax-${a}\n")
-            fout.write("  cp POTCAR KPOITNS INCAR relax-${a}/\n")
+            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
             fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
             fout.write("general comment\n")
             fout.write("1.0\n")
@@ -175,7 +179,7 @@ class opt_run(vasp):
             fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
             fout.write("do\n")
             fout.write("  mkdir relax-${a}\n")
-            fout.write("  cp POTCAR KPOITNS INCAR relax-${a}/\n")
+            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
             fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
             fout.write("general comment\n")
             fout.write("1.0\n")
@@ -203,7 +207,8 @@ class opt_run(vasp):
             fout.write("do\n")
             fout.write("  energy=`cat ../relax-${a}/OUTCAR | grep 'energy  without entropy=' | tail -1`\n")
             fout.write("  cat >> energy-latconst.data <<EOF\n")
-            fout.write("${a} ${energy:27:-36}\n")
+            #fout.write("${a} ${energy:27:-36}\n")
+            fout.write("${a} ${energy:27:17}\n")
             fout.write("EOF\n")
             fout.write("done\n")
             fout.write("cat > energy-latconst.gp<<EOF\n")
@@ -538,7 +543,8 @@ class opt_run(vasp):
                     fout.write("do\n")
                     fout.write("  energy=`cat ../relax-${a}-${c}/OUTCAR | grep 'energy  without entropy=' | tail -1`\n")
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
-                    fout.write("${a} ${c} ${energy:27:-36}\n")
+                    #fout.write("${a} ${c} ${energy:27:-36}\n")
+                    fout.write("${a} ${c} ${energy:27:17}\n")
                     fout.write("EOF\n")
                     fout.write("done\n")
                     fout.write("done\n")
@@ -557,7 +563,8 @@ class opt_run(vasp):
                 else:
                     fout.write("  energy=`cat ../relax-${a}/OUTCAR | grep 'energy  without entropy=' | tail -1`\n")
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
-                    fout.write("${a} ${energy:27:-36}\n")
+                    #fout.write("${a} ${energy:27:-36}\n")
+                    fout.write("${a} ${energy:27:17}\n")
                     fout.write("EOF\n")
                     fout.write("done\n")
 
@@ -577,7 +584,8 @@ class opt_run(vasp):
                     fout.write("do\n")
                     fout.write("  energy=`cat ../relax-${c}/OUTCAR | grep 'energy  without entropy=' | tail -1`\n")
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
-                    fout.write("${c} ${energy:27:-36}\n")
+                    #fout.write("${c} ${energy:27:-36}\n")
+                    fout.write("${c} ${energy:27:17}\n")
                     fout.write("EOF\n")
                     fout.write("done\n")
                     fout.write("cat > energy-latconst.gp<<EOF\n")
@@ -900,7 +908,8 @@ class opt_run(vasp):
                     fout.write("do\n")
                     fout.write("  energy=`cat ../relax-${a}-${c}/OUTCAR | grep 'energy  without entropy=' | tail -1`\n")
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
-                    fout.write("${a} ${c} ${energy:27:-36}\n")
+                    #fout.write("${a} ${c} ${energy:27:-36}\n")
+                    fout.write("${a} ${c} ${energy:27:17}\n")
                     fout.write("EOF\n")
                     fout.write("done\n")
                     fout.write("done\n")
@@ -919,7 +928,8 @@ class opt_run(vasp):
                 else:
                     fout.write("  energy=`cat ../relax-${a}/OUTCAR | grep 'energy  without entropy=' | tail -1`\n")
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
-                    fout.write("${a} ${energy:27:-36}\n")
+                    #fout.write("${a} ${energy:27:-36}\n")
+                    fout.write("${a} ${energy:27:17}\n")
                     fout.write("EOF\n")
                     fout.write("done\n")
 
@@ -939,7 +949,8 @@ class opt_run(vasp):
                     fout.write("do\n")
                     fout.write("  energy=`cat ../relax-${c}/OUTCAR | grep 'energy  without entropy=' | tail -1`\n")
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
-                    fout.write("${c} ${energy:27:-36}\n")
+                    #fout.write("${c} ${energy:27:-36}\n")
+                    fout.write("${c} ${energy:27:17}\n")
                     fout.write("EOF\n")
                     fout.write("done\n")
                     fout.write("cat > energy-latconst.gp<<EOF\n")

@@ -219,13 +219,13 @@ class dfpt_run:
                 fout.write("\n")
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="ph.x")
+            self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_PHX")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="ph.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_PHX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s ph.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_PHX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="phx", server=self.run_params["server"])
 
@@ -270,13 +270,13 @@ class dfpt_run:
                 fout.write("/\n")
                 fout.write("\n")
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="q2r.x")
+            self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_Q2RX")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="q2r.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_Q2RX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s q2r.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("% $PMF_Q2RX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="q2r", server=self.run_params["server"])
 
@@ -354,12 +354,12 @@ class dfpt_run:
 
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="matdyn.x")
+            self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_MATDYNX")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="matdyn.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_MATDYNX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s matdyn.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_MATDYNX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="matdyn", server=self.run_params["server"])
 
@@ -391,12 +391,12 @@ class dfpt_run:
                 fout.write("%f %f\n" % (freq_step, freq_reference)) # Freq. step and reference freq. on the plotband-flreq.ps
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="plotband.x")
+            self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_PLOTBANDX")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="plotband.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_PLOTBANDX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s plotband.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_PLOTBANDX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="plotband", server=self.run_params["server"])
 
@@ -458,13 +458,13 @@ class dfpt_run:
                 fout.write("\n")
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="dynmat.x")
+            self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_DYNMATX")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="dynmat.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_DYNMATX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s dynmat.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_DYNAMATX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="dynmat-gamma", server=self.run_params["server"])
 
@@ -483,13 +483,29 @@ class dfpt_run:
         self.dynmat(mpi=mpi, runopt=runopt)
 
     #
-    def gen_yh(self, inpname, output, directory="tmp-qe-static", cmd="ph.x"):
+
+    def set_llhpc(self, partition="free", nodes=1, ntask=24, jobname="matflow_job", stdout="slurm.out", stderr="slurm.err"):
+        self.run_params["server"] = "llhpc"
+        self.run_params["partition"] = partition
+        self.run_params["jobname"] = jobname
+        self.run_params["nodes"] = nodes
+        self.run_params["ntask"] = ntask
+        self.run_params["stdout"] = stdout
+        self.run_params["stderr"] = stderr
+
+    def gen_llhpc(self, inpname, output, directory="tmp-qe-static", cmd="ph.x"):
         """
         generating yhbatch job script for calculation
         """
         with open(os.path.join(directory, inpname.split(".in")[0]+".sub"), 'w') as fout:
             fout.write("#!/bin/bash\n")
-            fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % (cmd, inpname, output))
+            fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+            fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+            fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+            fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+            fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+            fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+            fout.write("yhrun %s < %s > %s\n" % (cmd, inpname, output))
 
     def gen_pbs(self, inpname, output, directory, cmd, jobname, nodes=1, ppn=32):
         """

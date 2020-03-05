@@ -127,6 +127,38 @@ class abinit:
             print("trying to get the unexisted element from self.dataset\n")
             sys.exit()
 
+    def set_llhpc(self, partition="free", nodes=1, ntask=24, jobname="matflow_job", stdout="slurm.out", stderr="slurm.err"):
+        self.run_params["server"] = "llhpc"
+        self.run_params["partition"] = partition
+        self.run_params["jobname"] = jobname
+        self.run_params["nodes"] = nodes
+        self.run_params["ntask"] = ntask
+        self.run_params["stdout"] = stdout
+        self.run_params["stderr"] = stderr
+
+    def gen_llhpc(self, directory, script="abinit.slurm", cmd="abinit"):
+        """
+        generating yhbatch job script for calculation
+        better pass in $PMF_ABINIT
+        """
+        with open(os.path.join(directory, script), 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+            fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+            fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+            fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+            fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+            fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+            fout.write("cat > %s<<EOF\n" % self.files.main_in)
+            #self.input.to_input(fout)
+            fout.write(self.to_string())
+            fout.write("EOF\n")
+            fout.write("cat > %s<<EOF\n" % self.files.name)
+            #self.files.to_files(fout, system=self.input.system)
+            fout.write(self.files.to_string(system=self.dataset[0].system))
+            fout.write("EOF\n")
+            fout.write("yhrun %s < %s\n" % (cmd, self.files.name))
+
     def gen_yh(self, inpname, output, directory, cmd="abinit"):
         """
         generating yhbatch job script for calculation

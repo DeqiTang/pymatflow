@@ -70,6 +70,37 @@ class neb_run(abinit):
             self.dataset[0].electrons.set_scf_nscf("scf")
             #
 
+            # generate llhpc submit script
+            script="neb.slurm"
+            with open(os.path.join(directory, script),  'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                fout.write("cat > %s<<EOF\n" % self.files.main_in)
+                #self.dataset[0].electrons.to_dataset[0](fout)
+                fout.write(self.dataset[0].electrons.to_string())
+                self.images_to_dataset[0](fout)
+                fout.write("\n")
+                fout.write("# ===============================\n")
+                fout.write("# neb related setting\n")
+                fout.write("# ===============================\n")
+                for item in self.params:
+                    if self.params[item] is not None:
+                        fout.write("%s %s\n" % (item, str(self.params[item])))
+                fout.write("EOF\n")
+                fout.write("cat > %s<<EOF\n" % self.files.name)
+                #self.files.to_files(fout, system=self.dataset[0].system)
+                #self.files.to_files(fout, system=self.images[0])
+                fout.write(self.files.to_string(system=self.images[0]))
+                fout.write("EOF\n")
+                fout.write("yhrun %s < %s\n" % ("$PMF_ABINIT", self.files.name))
+
+
+
             # generate pbs submit script
             script="neb.pbs"
             with open(os.path.join(directory, script),  'w') as fout:
@@ -96,11 +127,11 @@ class neb_run(abinit):
                 #self.files.to_files(fout, system=self.images[0])
                 fout.write(self.files.to_string(system=self.images[0]))
                 fout.write("EOF\n")
-                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s\n" % ("abinit", self.files.name))
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s\n" % ("$PMF_ABINIT", self.files.name))
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("abinit < %s" % inpname.split(".")[0]+".files")
+            os.system("$PMF_ABINIT < %s" % inpname.split(".")[0]+".files")
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="neb", server=self.run_params["server"])
 

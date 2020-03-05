@@ -76,13 +76,13 @@ class static_run(pwscf):
                 self.arts.to_in(fout)
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pw.x")
+            self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
             # gen pbs scripts
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="pw.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == 'genrun' or runopt == 'run':
             os.chdir(directory)
-            os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_PWX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="static-scf", server=self.run_params["server"])
 
@@ -117,13 +117,13 @@ class static_run(pwscf):
                 self.arts.to_in(fout)
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="pw.x")
+            self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
             # gen pbs scripts
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="pw.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == 'genrun' or runopt == 'run':
             os.chdir(directory)
-            os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_PWX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="static-nscf", server=self.run_params["server"])
 
@@ -152,13 +152,19 @@ class static_run(pwscf):
                     self.electrons.to_in(fout)
                     self.arts.to_in(fout)
             # gen yhbatch running script
-            with open("converge-ecutwfc.sub", 'w') as fout:
+            with open("converge-ecutwfc.slurm", 'w') as fout:
                 fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 for i in range(n_test + 1):
                     ecut_wfc = int(emin + i * step)
                     inp_name = "ecutwfc-%d.in" % ecut_wfc
                     out_f_name = "ecutwfc-%d.out" % ecut_wfc
-                    fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inp_name, out_f_name))
+                    fout.write("yhrun $PMF_PWX < %s > %s\n" % (inp_name, out_f_name))
             # gen pbs running script
             with open("converge-ecutwfc.pbs", 'w') as fout:
                 fout.write("#!/bin/bash\n")
@@ -170,7 +176,7 @@ class static_run(pwscf):
                     ecut_wfc = int(emin + i * step)
                     inp_name = "ecutwfc-%d.in" % ecut_wfc
                     out_f_name = "ecutwfc-%d.out" % ecut_wfc
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < %s > %s\n" % (inp_name, out_f_name))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_PWX < %s > %s\n" % (inp_name, out_f_name))
             os.chdir("../")
 
         if runopt == "run" or runopt == "genrun":
@@ -180,7 +186,7 @@ class static_run(pwscf):
                 ecut_wfc = int(emin + i * step)
                 inp_name = "ecutwfc-%d.in" % ecut_wfc
                 out_f_name = "ecutwfc-%d.out" % ecut_wfc
-                os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inp_name, out_f_name))
+                os.system("%s $PMF_PWX < %s | tee %s" % (self.run_params["mpi"], inp_name, out_f_name))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="converge-ecutwfc", server=self.run_params["server"])
 
@@ -210,13 +216,19 @@ class static_run(pwscf):
                     self.electrons.to_in(fout)
                     self.arts.to_in(fout)
             # gen yhbatch running script
-            with open("converge-ecutrho.sub", 'w') as fout:
+            with open("converge-ecutrho.slurm", 'w') as fout:
                 fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 for i in range(n_test + 1):
                     ecut_rho = int(emin + i * step)
                     inp_name = "ecutrho-%d.in" % ecut_rho
                     out_f_name = "ecutrho-%d.out" % ecut_rho
-                    fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inp_name, out_f_name))
+                    fout.write("yhrun $PMF_PWX < %s > %s\n" % (inp_name, out_f_name))
 
             # gen pbs running script
             with open("converge-ecutrho.pbs", 'w') as fout:
@@ -229,7 +241,7 @@ class static_run(pwscf):
                     ecut_rho = int(emin + i * step)
                     inp_name = "ecutrho-%d.in" % ecut_rho
                     out_f_name = "ecutrho-%d.out" % ecut_rho
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < %s > %s\n" % (inp_name, out_f_name))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_PWX < %s > %s\n" % (inp_name, out_f_name))
             os.chdir("../")
 
         if runopt == "run" or runopt == "genrun":
@@ -239,7 +251,7 @@ class static_run(pwscf):
                 ecut_rho = int(emin + i * step)
                 inp_name = "ecutrho-%d.in" % ecut_rho
                 out_f_name = "ecutrho-%d.out" % ecut_rho
-                os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inp_name, out_f_name))
+                os.system("%s $PMF_PWX < %s | tee %s" % (self.run_params["mpi"], inp_name, out_f_name))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="converge-ecutrho", server=self.run_params["server"])
     #
@@ -278,13 +290,19 @@ class static_run(pwscf):
                     self.arts.to_in(fout)
 
             # gen yhbatch running script
-            with open("converge-kpoints.sub", 'w') as fout:
+            with open("converge-kpoints.slurm", 'w') as fout:
                 fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 for i in range(n_test + 1):
                     nk = nk_min + i * step # nk1 = nk2 = nk3 = nk
                     inp_name = "kpoints-%d.in" % nk
                     out_f_name = "kpoints-%d.out" % nk
-                    fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inp_name, out_f_name))
+                    fout.write("yhrun $PMF_PWX < %s > %s\n" % (inp_name, out_f_name))
             # gen pbs running script
             with open("converge-kpoints.pbs", 'w') as fout:
                 fout.write("#!/bin/bash\n")
@@ -296,7 +314,7 @@ class static_run(pwscf):
                     nk = nk_min + i * step # nk1 = nk2 = nk3 = nk
                     inp_name = "kpoints-%d.in" % nk
                     out_f_name = "kpoints-%d.out" % nk
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < %s > %s\n" % (inp_name, out_f_name))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_PWX < %s > %s\n" % (inp_name, out_f_name))
             os.chdir("../")
 
         if runopt == "run" or runopt == "genrun":
@@ -306,7 +324,7 @@ class static_run(pwscf):
                 nk = nk_min + i * step
                 inp_name = "kpoints-%d.in" % nk
                 out_f_name = "kpoints-%d.out" % nk
-                os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inp_name, out_f_name))
+                os.system("%s $PMF_PWX < %s | tee %s" % (self.run_params["mpi"], inp_name, out_f_name))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="converge-kpoints", server=self.run_params["server"])
 
@@ -363,13 +381,13 @@ class static_run(pwscf):
                     self.arts.to_in(fout)
 
             # gen yhbatch running script
-            with open("converge-degauss.sub", 'w') as fout:
+            with open("converge-degauss.slurm", 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 for i in range(n_test + 1):
                     degauss = degauss_min + i * step
                     inp_name = "degauss-%f.in" % degauss
                     out_f_name = "degauss-%f.out" % degauss
-                    fout.write("yhrun -N 1 -n 24 pw.x < %s > %s\n" % (inp_name, out_f_name))
+                    fout.write("yhrun $PMF_PWX < %s > %s\n" % (inp_name, out_f_name))
             # gen pbs running script
             with open("converge-degauss.pbs", 'w') as fout:
                 fout.write("#!/bin/bash\n")
@@ -381,7 +399,7 @@ class static_run(pwscf):
                     degauss = degauss_min + i * step
                     inp_name = "degauss-%f.in" % degauss
                     out_f_name = "degauss-%f.out" % degauss
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < %s > %s\n" % (inp_name, out_f_name))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_PWX < %s > %s\n" % (inp_name, out_f_name))
             os.chdir("../")
 
         if runopt == "run" or runopt == "genrun":
@@ -391,7 +409,7 @@ class static_run(pwscf):
                 degauss = degauss_min + i * step
                 inp_name = "degauss-%f.in" % degauss
                 out_f_name = "degauss-%f.out" % degauss
-                os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inp_name, out_f_name))
+                os.system("%s $PMF_PWX < %s | tee %s" % (self.run_params["mpi"], inp_name, out_f_name))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="converge-degauss", server=self.run_params["server"])
 
@@ -469,13 +487,13 @@ class static_run(pwscf):
                 fout.write("\n")
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="dos.x")
+            self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_DOSX")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="dos.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_DOSX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s dos.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_DOSX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="static-dos", server=self.run_params["server"])
 
@@ -534,10 +552,16 @@ class static_run(pwscf):
                 fout.write("\n")
 
             # gen yhbatch script
-            with open(os.path.join(directory, "band-structure.sub"), 'w') as fout:
+            with open(os.path.join(directory, "band-structure.slurm"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % ("pw.x", inpname1, output1))
-                fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % ("bands.x", inpname2, output2))
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                fout.write("yhrun %s < %s > %s\n" % ("$PMF_PWX", inpname1, output1))
+                fout.write("yhrun %s < %s > %s\n" % ("$PMF_BANDSX", inpname2, output2))
             # gen pbs script
             with open(os.path.join(directory, "band-structure.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
@@ -545,13 +569,13 @@ class static_run(pwscf):
                 fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
-                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("pw.x", inpname1, output1))
-                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("bands.x", inpname2, output2))
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("$PMF_PWX", inpname1, output1))
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("$PMF_BANDSX", inpname2, output2))
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inpname1, output1))
-            os.system("%s bands.x < %s | tee %s" % (self.run_params["mpi"], inpname2, output2))
+            os.system("%s $PMF_PWX < %s | tee %s" % (self.run_params["mpi"], inpname1, output1))
+            os.system("%s $PMF_BANDSX < %s | tee %s" % (self.run_params["mpi"], inpname2, output2))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="band-structure.pbs", server=self.run_params["server"])
 
@@ -646,13 +670,13 @@ class static_run(pwscf):
                 fout.write("\n")
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="projwfc.x")
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="$PMF_PROJWFCX")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="projwfc.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_PROJWFCX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s projwfc.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_PROJWFCX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="static-projwfc.pbs", server=self.run_params["server"])
 
@@ -730,13 +754,13 @@ class static_run(pwscf):
                 fout.write("\n")
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="molecularpdos.x")
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="$PMF_MOLECULARPDOSX")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="molecularpdos.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_MOLECULARPDOSX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s molecularpdos.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_MOLECULARPDOSX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="static-molecular-pdos", server=self.run_params["server"])
 
@@ -761,12 +785,12 @@ class static_run(pwscf):
                 fout.write("/\n")
                 fout.write("\n")
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="fs.x")
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="$PMF_FSX")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="fs.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_FSX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s fs.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_FSX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="fermi-surface", server=self.run_params["server"])
 
@@ -830,10 +854,16 @@ class static_run(pwscf):
                     self._pp_plot(fout, output_format=self.plotpp["output_format"], iflag=self.plotpp["iflag"], filepp=table[plot_num_i]+".dat")
 
             # gen yhbatch script
-            with open(os.path.join(directory, "pp.x.sub"), 'w') as fout:
+            with open(os.path.join(directory, "pp.x.slurm"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 for plot_num_i in self.inputpp["plot_num"]:
-                    fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % ("pp.x", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
+                    fout.write("yhrun %s < %s > %s\n" % ("$PMF_PPX", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
             # gen pbs script
             with open(os.path.join(directory, "pp.x.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
@@ -844,7 +874,7 @@ class static_run(pwscf):
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
                 #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
                 for plot_num_i in self.inputpp["plot_num"]:
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("pp.x", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("$PMF_PPX", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -966,13 +996,13 @@ class static_run(pwscf):
                 fout.write("&plot\n")
                 fout.write("/\n")
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="xspectra.x")
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="$PMF_XSPECTRAX")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="xspectra.x", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_XSPECTRAX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s xspectra.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_XSPECTRAX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="xspectra", server=self.run_params["server"])
     #
@@ -1114,15 +1144,21 @@ class static_run(pwscf):
                     self._pp_plot(fout, output_format=self.plotpp["output_format"], iflag=self.plotpp["iflag"], filepp=table[plot_num_i]+".dat")
 
             # gen yhbatch script
-            with open(os.path.join(directory, "static.sub"), 'w') as fout:
+            with open(os.path.join(directory, "static.slurm"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("yhrun -N 1 -n 24 pw.x < static-scf.in > static-scf.out\n")
-                fout.write("yhrun -N 1 -n 24 pw.x < static-nscf.in > static-nscf.out\n")
-                fout.write("yhrun -N 1 -n 24 projwfc.x < static-projwfc.in > static-projwfc.out\n")
-                fout.write("yhrun -N 1 -n 24 pw.x < static-bands.in > static-bands.out\n")
-                fout.write("yhrun -N 1 -n 24 bands.x < bands.in > bands.out\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                fout.write("yhrun $PMF_PWX < static-scf.in > static-scf.out\n")
+                fout.write("yhrun $PMF_PWX < static-nscf.in > static-nscf.out\n")
+                fout.write("yhrun $PMF_PROJWFCX < static-projwfc.in > static-projwfc.out\n")
+                fout.write("yhrun $PMF_PWX < static-bands.in > static-bands.out\n")
+                fout.write("yhrun $PMF_BANDSX < bands.in > bands.out\n")
                 for plot_num_i in self.inputpp["plot_num"]:
-                    fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % ("pp.x", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
+                    fout.write("yhrun %s < %s > %s\n" % ("$PMF_PPX", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
 
             # gen pbs script
             with open(os.path.join(directory, "static.pbs"), 'w') as fout:
@@ -1132,24 +1168,24 @@ class static_run(pwscf):
                 fout.write("\n")
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
-                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < static-scf.in > static-scf.out\n")
-                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < static-nscf.in > static-nscf.out\n")
-                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE projwfc.x < static-projwfc.in > static-projwfc.out\n")
-                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < static-bands.in > static-bands.out\n")
-                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE bands.x < bands.in > bands.out\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_PWX < static-scf.in > static-scf.out\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_PWX < static-nscf.in > static-nscf.out\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_PROJWFCX < static-projwfc.in > static-projwfc.out\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_PWX < static-bands.in > static-bands.out\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_BANDSX < bands.in > bands.out\n")
                 for plot_num_i in self.inputpp["plot_num"]:
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("pp.x", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("$PMF_PPX", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
 
             # gen local bash script
             with open(os.path.join(directory, "static.sh"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("%s pw.x < static-scf.in | tee static-scf.out\n" % self.run_params["mpi"])
-                fout.write("%s pw.x < static-nscf.in | tee static-nscf.out\n" % self.run_params["mpi"])
-                fout.write("%s projwfc.x < static-projwfc.in | tee static-projwfc.out\n" % self.run_params["mpi"])
-                fout.write("%s pw.x < static-bands.in > static-bands.out\n" % self.run_params["mpi"])
-                fout.write("%s bands.x < bands.in | tee bands.out\n" % self.run_params["mpi"])
+                fout.write("%s $PMF_PWX < static-scf.in | tee static-scf.out\n" % self.run_params["mpi"])
+                fout.write("%s $PMF_PWX < static-nscf.in | tee static-nscf.out\n" % self.run_params["mpi"])
+                fout.write("%s $PMF_PROJWFCX < static-projwfc.in | tee static-projwfc.out\n" % self.run_params["mpi"])
+                fout.write("%s $PMF_PWX < static-bands.in > static-bands.out\n" % self.run_params["mpi"])
+                fout.write("%s $PMF_BANDSX < bands.in | tee bands.out\n" % self.run_params["mpi"])
                 for plot_num_i in self.inputpp["plot_num"]:
-                    fout.write("%s pp.x < %s | tee %s\n" % (self.run_params["mpi"], prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
+                    fout.write("%s $PMF_PPX < %s | tee %s\n" % (self.run_params["mpi"], prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
 
         if runopt == 'genrun' or runopt == 'run':
             os.chdir(directory)

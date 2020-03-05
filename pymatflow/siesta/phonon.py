@@ -52,14 +52,14 @@ class phonon_run(siesta):
                     self.properties.to_fdf(fout)
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="siesta")
+            self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="siesta")
             # gen pbs script
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="siesta", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             # run the simulation
             os.chdir(directory)
-            os.system("%s siesta < %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_SIESTA < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             # analyse the result
             import matplotlib.pyplot as plt
             os.chdir("../")

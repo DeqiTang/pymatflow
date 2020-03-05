@@ -125,10 +125,16 @@ class phonopy_run(cp2k):
 
             #
             # generate yhbatch file
-            with open(os.path.join(directory, "phonopy-job.sub"), 'w') as fout:
-                fout.write("#!/bin/bash\n\n")
+            with open(os.path.join(directory, "phonopy-job.slurm"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 for disp in disps:
-                    fout.write("yhrun -N 1 -n 24 cp2k.popt -in phonon-supercell-%s.inp > phonon-supercell-%s.inp.out\n" % (disp, disp))
+                    fout.write("yhrun -N 1 -n 24 $PMF_CP2K -in phonon-supercell-%s.inp > phonon-supercell-%s.inp.out\n" % (disp, disp))
 
             # generate pbs file
             with open(os.path.join(directory, "phonopy-job.pbs"), 'w') as fout:
@@ -139,7 +145,7 @@ class phonopy_run(cp2k):
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
                 for disp in disps:
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -in phonon-supercell-%s.inp > phonon-supercell-%s.inp.out\n" % (disp, disp))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -in phonon-supercell-%s.inp > phonon-supercell-%s.inp.out\n" % (disp, disp))
 
 
         if runopt == "run" or runopt == "genrun":
@@ -150,7 +156,7 @@ class phonopy_run(cp2k):
                     disps.append(line.split(".")[0].split("-")[2])
             for disp in disps:
                 in_name = "supercell-%s.inp" % disp
-                os.system("%s cp2k.popt -in phonon-supercell-%s.inp | tee phonon-supercell-%s.inp.out" % (self.run_params["mpi"], disp, disp))
+                os.system("%s $PMF_CP2K -in phonon-supercell-%s.inp | tee phonon-supercell-%s.inp.out" % (self.run_params["mpi"], disp, disp))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="phonopy-job", server=self.run_params["server"])
 

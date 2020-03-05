@@ -103,11 +103,17 @@ class phonopy_run(siesta):
 
 
             # gen yhbatch script
-            with open(os.path.join(directory, "phonopy-job.sub"), 'w') as fout:
+            with open(os.path.join(directory, "phonopy-job.slurm"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 for disp in disp_dirs:
                     fout.write("cd disp-%s\n" % disp)
-                    fout.write("yhrun -N 1 -n 24 siesta < supercell-%s.fdf > supercell-%s.out\n" % (disp, disp))
+                    fout.write("yhrun $PMF_SIESTA < supercell-%s.fdf > supercell-%s.out\n" % (disp, disp))
                     fout.write("cd ../\n")
 
             # gen pbs script

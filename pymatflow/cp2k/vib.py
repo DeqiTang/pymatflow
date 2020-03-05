@@ -51,13 +51,13 @@ class vib_run(cp2k):
                 self.vibrational_analysis.to_input(fout)
 
             # gen server job comit file
-            self.gen_yh(directory=directory, cmd="cp2k.popt", inpname=inpname, output=output)
+            self.gen_llhpc(directory=directory, cmd="$PMF_CP2K", inpname=inpname, output=output)
             # gen pbs server job comit file
-            self.gen_pbs(directory=directory, cmd="cp2k.popt", inpname=inpname, output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, cmd="$PMF_CP2K", inpname=inpname, output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_CP2K -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="vib", server=self.run_params["server"])
     #

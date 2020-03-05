@@ -59,13 +59,13 @@ class static_run(cp2k):
                 self.force_eval.to_input(fout)
 
             # gen server job comit file
-            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt")
+            self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_CP2K")
             # gen pbs server job comit file
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="cp2k.popt", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_CP2K", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
            os.chdir(directory)
-           os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
+           os.system("%s $PMF_CP2K -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
            os.chdir("../")
 
         server_handle(auto=auto, directory=directory, jobfilebase="static-scf", server=self.run_params["server"])
@@ -108,13 +108,19 @@ class static_run(cp2k):
                     self.force_eval.to_input(fout)
 
             # gen yhbatch running script
-            with open(os.path.join(directory, "converge-cutoff.sub"), 'w') as fout:
+            with open(os.path.join(directory, "converge-cutoff.slurm"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 for i in range(n_test + 1):
                     cutoff = int(emin + i * step)
                     inpname = "cutoff-%d.inp" % cutoff
                     out_f_name = "cutoff-%d.out" % cutoff
-                    fout.write("yhrun -N 1 -n 24 cp2k.popt -in %s | tee %s\n" % (inpname, out_f_name))
+                    fout.write("yhrun $PMF_CP2K -in %s > %s\n" % (inpname, out_f_name))
 
             # gen pbs running script
             with open(os.path.join(directory, "converge-cutoff.pbs"), 'w') as fout:
@@ -128,7 +134,7 @@ class static_run(cp2k):
                     cutoff = int(emin + i * step)
                     inpname = "cutoff-%d.inp" % cutoff
                     out_f_name = "cutoff-%d.out" % cutoff
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -in %s > %s\n" % (inpname, out_f_name))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -in %s > %s\n" % (inpname, out_f_name))
 
         # run
         if runopt == "run" or runopt == "genrun":
@@ -137,7 +143,7 @@ class static_run(cp2k):
                 cutoff = int(emin + i * step)
                 inpname = "cutoff-%d.inp" % cutoff
                 output = "cutoff-%d.out" % cutoff
-                os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
+                os.system("%s $PMF_CP2K -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="converge-cutoff", server=self.run_params["server"])
 
@@ -174,13 +180,19 @@ class static_run(cp2k):
                     self.force_eval.to_input(fout)
 
             # gen yhbatch running script
-            with open(os.path.join(directory, "converge-rel-cutoff.sub"), 'w') as fout:
+            with open(os.path.join(directory, "converge-rel-cutoff.slurm"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 for i in range(n_test + 1):
                     rel_cutoff = int(emin + i * step)
                     inpname = "rel-cutoff-%d.inp" % rel_cutoff
                     out_f_name = "rel-cutoff-%d.out" % rel_cutoff
-                    fout.write("yhrun -N 1 -n 24 cp2k.popt -in %s | tee %s\n" % (inpname, out_f_name))
+                    fout.write("yhrun $PMF_CP2K -in %s > %s\n" % (inpname, out_f_name))
 
             # gen pbs running script
             with open("converge-rel-cutoff.pbs", 'w') as fout:
@@ -194,7 +206,7 @@ class static_run(cp2k):
                     rel_cutoff = int(emin + i * step)
                     inpname = "rel-cutoff-%d.inp" % rel_cutoff
                     out_f_name = "rel-cutoff-%d.out" % rel_cutoff
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -in %s > %s\n" % (inpname, out_f_name))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -in %s > %s\n" % (inpname, out_f_name))
 
         # run
         if runopt == "run" or runopt == "genrun":
@@ -203,7 +215,7 @@ class static_run(cp2k):
                 rel_cutoff = int(emin + i * step)
                 inpname = "rel-cutoff-%d.inp" % rel_cutoff
                 output = "rel-cutoff-%d.out" % rel_cutoff
-                os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
+                os.system("%s $PMF_CP2K -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="converge-rel-cutoff", server=self.run_params["server"])
 
@@ -242,13 +254,19 @@ class static_run(cp2k):
                     self.force_eval.to_input(fout)
 
             # gen yhbatch running script
-            with open(os.path.join(directory, "converge-kpoints.sub"), 'w') as fout:
+            with open(os.path.join(directory, "converge-kpoints.slurm"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 for i in range(n_test + 1):
                     kpoint = int(kmin + i * step)
                     inpname = "kpoints-%d.inp" % kpoint
                     out_f_name = "kpoints-%d.out" % kpoint
-                    fout.write("yhrun -N 1 -n 24 cp2k.popt -in %s | tee %s\n" % (inpname, out_f_name))
+                    fout.write("yhrun $PMF_CP2K -in %s > %s\n" % (inpname, out_f_name))
 
             # gen pbs running script
             with open(os.path.join(directory, "converge-kpoints.pbs"), 'w') as fout:
@@ -262,7 +280,7 @@ class static_run(cp2k):
                     kpoint = int(kmin + i * step)
                     inpname = "kpoints-%d.inp" % kpoint
                     out_f_name = "kpoints-%d.out" % kpoint
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -in %s > %s\n" % (inpname, out_f_name))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -in %s > %s\n" % (inpname, out_f_name))
 
         # run
         if runopt == "run" or runopt == "genrun":
@@ -271,7 +289,7 @@ class static_run(cp2k):
                 kpoint = int(kmin + i * step)
                 inpname = "kpoints-%d.inp" % kpoint
                 output = "kpoints-%d.out" % kpoint
-                os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
+                os.system("%s $PMF_CP2K -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="converge-kpoints", server=self.run_params["server"])
 
@@ -305,12 +323,18 @@ class static_run(cp2k):
                     self.force_eval.to_input(fout)
 
             # gen yhbatch running script
-            with open(os.path.join(directory, "converge-kpoints.sub"), 'w') as fout:
+            with open(os.path.join(directory, "converge-kpoints.slurm"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 for i in range(len(kpoints_list)):
                     inpname = "kpoints-%dx%dx%d.inp" % (kpoints_list[i][0], kpoints_list[i][1], kpoints_list[i][2])
                     out_f_name = "kpoints-%dx%dx%d.out" % (kpoints_list[i][0], kpoints_list[i][1], kpoints_list[i][2])
-                    fout.write("yhrun -N 1 -n 24 cp2k.popt -in %s | tee %s\n" % (inpname, out_f_name))
+                    fout.write("yhrun $PMF_CP2K -in %s > %s\n" % (inpname, out_f_name))
 
             # gen obs running script
             with open(os.path.join(directory, "converge-kpoints.pbs"), 'w') as fout:
@@ -323,7 +347,7 @@ class static_run(cp2k):
                 for i in range(len(kpoints_list)):
                     inpname = "kpoints-%dx%dx%d.inp" % (kpoints_list[i][0], kpoints_list[i][1], kpoints_list[i][2])
                     out_f_name = "kpoints-%dx%dx%d.out" % (kpoints_list[i][0], kpoints_list[i][1], kpoints_list[i][2])
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE cp2k.popt -in %s > %s\n" % (inpname, out_f_name))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -in %s > %s\n" % (inpname, out_f_name))
 
         # run
         if runopt == "run" or runopt == "genrun":
@@ -331,6 +355,6 @@ class static_run(cp2k):
             for i in range(len(kpoints_list)):
                 inpname = "kpoints-%dx%dx%d.inp" % (kpoints_list[i][0], kpoints_list[i][1], kpoints_list[i][2])
                 output = "kpoints-%dx%dx%d.out" % (kpoints_list[i][0], kpoints_list[i][1], kpoints_list[i][2])
-                os.system("%s cp2k.psmp -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
+                os.system("%s $PMF_CP2K -in %s > %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="converge-kpoints", server=self.run_params["server"])

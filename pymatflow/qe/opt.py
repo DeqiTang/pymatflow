@@ -56,13 +56,13 @@ class opt_run(pwscf):
                 self.ions.to_in(fout)
                 self.arts.to_in(fout)
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_PWX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="relax", server=self.run_params["server"])
 
@@ -102,13 +102,13 @@ class opt_run(pwscf):
                 self.cell.to_in(fout)
                 self.arts.to_in(fout)
             # gen yhbatch script
-            self.gen_yh(directory=directory, inpname=inpname, output=output)
+            self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, cmd="$PMF_PWX", output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("%s pw.x < %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_PWX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="vc-relax", server=self.run_params["server"])
 
@@ -227,6 +227,33 @@ class opt_run(pwscf):
                 self.arts.write_atomic_forces(fout)
             # =========================
 
+        # gen llhpc script
+        with open("relax-cubic.slurm", 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+            fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+            fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+            fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+            fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+            fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+            #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
+
+            a = self.arts.xyz.cell[0][0]
+
+            fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
+            fout.write("do\n")
+            fout.write("  cp relax.in.template relax-${a}.in\n")
+            fout.write("  cat >> relax-${a}.in <<EOF\n")
+            fout.write("\n")
+            fout.write("CELL_PARAMETERS angstrom\n")
+            fout.write("${a} 0.000000 0.000000\n")
+            fout.write("0.000000 ${a} 0.000000\n")
+            fout.write("0.000000 0.000000 ${a}\n")
+            fout.write("EOF\n")
+            fout.write("  yhrun $PMF_PWX < relax-${a}.in > relax-${a}.out\n")
+            fout.write("done\n")
+
+
         # gen pbs script
         with open("relax-cubic.pbs", 'w') as fout:
             fout.write("#!/bin/bash\n")
@@ -249,7 +276,7 @@ class opt_run(pwscf):
             fout.write("0.000000 ${a} 0.000000\n")
             fout.write("0.000000 0.000000 ${a}\n")
             fout.write("EOF\n")
-            fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < relax-${a}.in > relax-${a}.out\n")
+            fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_PWX < relax-${a}.in > relax-${a}.out\n")
             fout.write("done\n")
 
         # gen local bash script
@@ -268,7 +295,7 @@ class opt_run(pwscf):
             fout.write("0.000000 ${a} 0.000000\n")
             fout.write("0.000000 0.000000 ${a}\n")
             fout.write("EOF\n")
-            fout.write("  %s pw.x < relax-${a}.in | tee relax-${a}.out\n" % self.run_params["mpi"])
+            fout.write("  %s $PMF_PWX < relax-${a}.in | tee relax-${a}.out\n" % self.run_params["mpi"])
             fout.write("done\n")
 
 
@@ -402,6 +429,84 @@ class opt_run(pwscf):
                 self.arts.write_atomic_forces(fout)
             # =========================
 
+        # gen llhpc script
+        with open("relax-hexagonal.slurm", 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+            fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+            fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+            fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+            fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+            fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+            #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
+
+            a = self.arts.xyz.cell[0][0]
+            c = self.arts.xyz.cell[2][2]
+            fout.write("v11=%f\n" % self.arts.xyz.cell[0][0])
+            fout.write("v12=%f\n" % self.arts.xyz.cell[0][1])
+            fout.write("v13=%f\n" % self.arts.xyz.cell[0][2])
+            fout.write("v21=%f\n" % self.arts.xyz.cell[1][0])
+            fout.write("v22=%f\n" % self.arts.xyz.cell[1][1])
+            fout.write("v23=%f\n" % self.arts.xyz.cell[1][2])
+            fout.write("v31=%f\n" % self.arts.xyz.cell[2][0])
+            fout.write("v32=%f\n" % self.arts.xyz.cell[2][1])
+            fout.write("v33=%f\n" % self.arts.xyz.cell[2][2])
+            if na >= 2:
+                # a is optimized
+                fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
+                fout.write("do\n")
+                if nc >= 2:
+                    # optimize both a and c
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("do\n")
+                    fout.write("  vec21=`echo \"scale=6; result=${v21} * ${a} / ${v11}; if (length(result)==scale(result)) print 0; print result\" | bc`\n")
+                    fout.write("  vec22=`echo \"scale=6; result=${v22} * ${a} / ${v11}; if (length(result)==scale(result)) print 0; print result\" | bc`\n")
+                    # here with the usage of length and scale in bs processing, we can make sure that number like '.123' will be correctly
+                    # set as '0.123', namely the ommited 0 by bs by default is not ommited now!
+                    fout.write("  cp relax.in.template relax-${a}-${c}.in\n")
+                    fout.write("  cat >> relax-${a}-${c}.in <<EOF\n")
+                    fout.write("\n")
+                    fout.write("CELL_PARAMETERS angstrom\n")
+                    fout.write("${a} 0.000000 0.000000\n")
+                    fout.write("${vec21} ${vec22} 0.000000\n")
+                    fout.write("0.000000 0.000000 ${c}\n")
+                    fout.write("EOF\n")
+                    fout.write("  yhrun $PMF_PWX < relax-${a}-${c}.in > relax-${a}-${c}.out\n")
+                    fout.write("done\n")
+                else:
+                    # only optimize a
+                    fout.write("  vec21=`echo \"scale=6; result=${v21} * ${a} / ${v11}; if (length(result)==scale(result)) print 0; print result\" | bc`\n")
+                    fout.write("  vec22=`echo \"scale=6; result=${v22} * ${a} / ${v11}; if (length(result)==scale(result)) print 0; print result\" | bc`\n")
+                    fout.write("  cp relax.in.template relax-${a}.in\n")
+                    fout.write("  cat >> relax-${a}.in <<EOF\n")
+                    fout.write("\n")
+                    fout.write("CELL_PARAMETERS angstrom\n")
+                    fout.write("${a} 0.000000 0.000000\n")
+                    fout.write("${vec21} ${vec22} 0.000000\n")
+                    fout.write("0.000000 0.000000 ${v33}\n")
+                    fout.write("EOF\n")
+                    fout.write("  yhrun $PMF_PWX < relax-${a}.in > relax-${a}.out\n")
+                fout.write("done\n")
+            else:
+                # a is not optimized
+                if nc >= 2:
+                    # only optimize c
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("do\n")
+                    fout.write("  cp relax.in.template relax-${c}.in\n")
+                    fout.write("  cat >> relax-${c}.in<<EOF\n")
+                    fout.write("\n")
+                    fout.write("CELL_PARAMETERS angstrom\n")
+                    fout.write("${v11} 0.000000 0.000000\n")
+                    fout.write("${v21} ${v22} 0.000000\n")
+                    fout.write("0.000000 0.000000 ${c}\n")
+                    fout.write("EOF\n")
+                    fout.write("  yhrun $PMF_PWX < relax-${c}.in > relax-${c}.out\n")
+                    fout.write("done\n")
+                else:
+                    # neither a or c is optimized
+                    pass
+
         # gen pbs script
         with open("relax-hexagonal.pbs", 'w') as fout:
             fout.write("#!/bin/bash\n")
@@ -443,7 +548,7 @@ class opt_run(pwscf):
                     fout.write("${vec21} ${vec22} 0.000000\n")
                     fout.write("0.000000 0.000000 ${c}\n")
                     fout.write("EOF\n")
-                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < relax-${a}-${c}.in > relax-${a}-${c}.out\n")
+                    fout.write("  yhrun $PMF_PWX < relax-${a}-${c}.in > relax-${a}-${c}.out\n")
                     fout.write("done\n")
                 else:
                     # only optimize a
@@ -457,7 +562,7 @@ class opt_run(pwscf):
                     fout.write("${vec21} ${vec22} 0.000000\n")
                     fout.write("0.000000 0.000000 ${v33}\n")
                     fout.write("EOF\n")
-                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < relax-${a}.in > relax-${a}.out\n")
+                    fout.write("  yhrun $PMF_PWX < relax-${a}.in > relax-${a}.out\n")
                 fout.write("done\n")
             else:
                 # a is not optimized
@@ -473,7 +578,7 @@ class opt_run(pwscf):
                     fout.write("${v21} ${v22} 0.000000\n")
                     fout.write("0.000000 0.000000 ${c}\n")
                     fout.write("EOF\n")
-                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < relax-${c}.in > relax-${c}.out\n")
+                    fout.write("  yhrun $PMF_PWX < relax-${c}.in > relax-${c}.out\n")
                     fout.write("done\n")
                 else:
                     # neither a or c is optimized
@@ -514,7 +619,7 @@ class opt_run(pwscf):
                     fout.write("${vec21} ${vec22} 0.000000\n")
                     fout.write("0.000000 0.000000 ${c}\n")
                     fout.write("EOF\n")
-                    fout.write("  %s pw.x < relax-${a}-${c}.in | tee relax-${a}-${c}.out\n" % self.run_params["mpi"])
+                    fout.write("  %s $PMF_PWX < relax-${a}-${c}.in | tee relax-${a}-${c}.out\n" % self.run_params["mpi"])
                     fout.write("done\n")
                 else:
                     # only optimize a
@@ -528,7 +633,7 @@ class opt_run(pwscf):
                     fout.write("${vec21} ${vec22} 0.000000\n")
                     fout.write("0.000000 0.000000 ${v33}\n")
                     fout.write("EOF\n")
-                    fout.write("  %s pw.x < relax-${a}.in | tee relax-${a}.out\n" % self.run_params["mpi"])
+                    fout.write("  %s $PMF_PWX < relax-${a}.in | tee relax-${a}.out\n" % self.run_params["mpi"])
                 fout.write("done\n")
             else:
                 # a is not optimized
@@ -544,7 +649,7 @@ class opt_run(pwscf):
                     fout.write("${v21} ${v22} 0.000000\n")
                     fout.write("0.000000 0.000000 ${c}\n")
                     fout.write("EOF\n")
-                    fout.write("  %s pw.x < relax-${c}.in | tee relax-${c}.out\n" % self.run_params["mpi"])
+                    fout.write("  %s $PMF_PWX < relax-${c}.in | tee relax-${c}.out\n" % self.run_params["mpi"])
                     fout.write("done\n")
                 else:
                     # neither a or c is optimized
@@ -735,6 +840,82 @@ class opt_run(pwscf):
                 self.arts.write_atomic_forces(fout)
             # =========================
 
+        # gen local bash script
+        with open("relax-tetragonal.slurm", 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("#!/bin/bash\n")
+            fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+            fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+            fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+            fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+            fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+            fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+            #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
+
+            a = self.arts.xyz.cell[0][0]
+            c = self.arts.xyz.cell[2][2]
+
+            fout.write("v11=%f\n" % self.arts.xyz.cell[0][0])
+            fout.write("v12=%f\n" % self.arts.xyz.cell[0][1])
+            fout.write("v13=%f\n" % self.arts.xyz.cell[0][2])
+            fout.write("v21=%f\n" % self.arts.xyz.cell[1][0])
+            fout.write("v22=%f\n" % self.arts.xyz.cell[1][1])
+            fout.write("v23=%f\n" % self.arts.xyz.cell[1][2])
+            fout.write("v31=%f\n" % self.arts.xyz.cell[2][0])
+            fout.write("v32=%f\n" % self.arts.xyz.cell[2][1])
+            fout.write("v33=%f\n" % self.arts.xyz.cell[2][2])
+
+            if na >= 2:
+                # a is optimized
+                fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
+                fout.write("do\n")
+                if nc >= 2:
+                    # optimize both a and c
+                    fout.write("  for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("  do\n")
+                    fout.write("    cp relax.in.template relax-${a}-${c}.in\n")
+                    fout.write("    cat >> relax-${a}-${c}.in <<EOF\n")
+                    fout.write("\n")
+                    fout.write("CELL_PARAMETERS angstrom\n")
+                    fout.write("${a} 0.000000 0.000000\n")
+                    fout.write("0.000000 ${a} 0.000000\n")
+                    fout.write("0.000000 0.000000 ${c}\n")
+                    fout.write("EOF\n")
+                    fout.write("    yhrun $PMF_PWX < relax-${a}-${c}.in > relax-${a}-${c}.out\n")
+                    fout.write("  done\n")
+                else:
+                    # only optimize a
+                    fout.write("    cp relax.in.template relax-${a}.in\n")
+                    fout.write("    cat >> relax-${a}.in <<EOF\n")
+                    fout.write("\n")
+                    fout.write("CELL_PARAMETERS angstrom\n")
+                    fout.write("${a} 0.000000 0.000000\n")
+                    fout.write("0.000000 ${a} 0.000000\n")
+                    fout.write("0.000000 0.000000 ${v33}\n")
+                    fout.write("EOF\n")
+                    fout.write("    yhrun $PMF_PWX < relax-${a}.in > relax-${a}.out\n")
+                fout.write("done\n")
+            else:
+                # a is not optimized
+                if nc >= 2:
+                    # only optimize c
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("do\n")
+                    fout.write("  cp relax.in.template relax-${c}.in\n")
+                    fout.write("  cat >> relax-${c}.in<<EOF\n")
+                    fout.write("\n")
+                    fout.write("CELL_PARAMETERS angstrom\n")
+                    fout.write("${v11} 0.000000 0.000000\n")
+                    fout.write("0.000000 ${v22} 0.000000\n")
+                    fout.write("0.000000 0.000000 ${c}\n")
+                    fout.write("EOF\n")
+                    fout.write("  yhrun $PMF_PWX < relax-${c}.in > relax-${c}.out\n")
+                    fout.write("done\n")
+                else:
+                    # neither a or c is optimized
+                    pass
+
+
         # gen pbs script
         with open("relax-tetragonal.pbs", 'w') as fout:
             fout.write("#!/bin/bash\n")
@@ -774,7 +955,7 @@ class opt_run(pwscf):
                     fout.write("0.000000 ${a} 0.000000\n")
                     fout.write("0.000000 0.000000 ${c}\n")
                     fout.write("EOF\n")
-                    fout.write("    mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < relax-${a}-${c}.in > relax-${a}-${c}.out\n")
+                    fout.write("    mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_PWX < relax-${a}-${c}.in > relax-${a}-${c}.out\n")
                     fout.write("  done\n")
                 else:
                     # only optimize a
@@ -786,7 +967,7 @@ class opt_run(pwscf):
                     fout.write("0.000000 ${a} 0.000000\n")
                     fout.write("0.000000 0.000000 ${v33}\n")
                     fout.write("EOF\n")
-                    fout.write("    mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < relax-${a}.in > relax-${a}.out\n")
+                    fout.write("    mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_PWX < relax-${a}.in > relax-${a}.out\n")
                 fout.write("done\n")
             else:
                 # a is not optimized
@@ -802,7 +983,7 @@ class opt_run(pwscf):
                     fout.write("0.000000 ${v22} 0.000000\n")
                     fout.write("0.000000 0.000000 ${c}\n")
                     fout.write("EOF\n")
-                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE pw.x < relax-${c}.in > relax-${c}.out\n")
+                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_PWX < relax-${c}.in > relax-${c}.out\n")
                     fout.write("done\n")
                 else:
                     # neither a or c is optimized
@@ -853,7 +1034,7 @@ class opt_run(pwscf):
                     fout.write("0.000000 ${a} 0.000000\n")
                     fout.write("0.000000 0.000000 ${v33}\n")
                     fout.write("EOF\n")
-                    fout.write("    %s pw.x < relax-${a}.in | tee relax-${a}.out\n" % self.run_params["mpi"])
+                    fout.write("    %s $PMF_PWX < relax-${a}.in | tee relax-${a}.out\n" % self.run_params["mpi"])
                 fout.write("done\n")
             else:
                 # a is not optimized
@@ -869,7 +1050,7 @@ class opt_run(pwscf):
                     fout.write("0.000000 ${v22} 0.000000\n")
                     fout.write("0.000000 0.000000 ${c}\n")
                     fout.write("EOF\n")
-                    fout.write("  %s pw.x < relax-${c}.in | tee relax-${c}.out\n" % self.run_params["mpi"])
+                    fout.write("  %s $PMF_PWX < relax-${c}.in | tee relax-${c}.out\n" % self.run_params["mpi"])
                     fout.write("done\n")
                 else:
                     # neither a or c is optimized
