@@ -167,8 +167,26 @@ def main():
             choices=[0, 1, 2, 3, 4, 5],
             help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->phonpy")
 
+    subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
+            help="Directory for the running.")
 
-    parser.add_argument("-d", "--directory", type=str, default="matflow-running",
+    subparser.add_argument("--kpath-manual", type=str, nargs="+", default=None,
+            help="manual input kpath like --kpath-manual '0.000000 0.000000 0.000000 GAMMA 5' '0.500000 0.000000 0.000000 X 5' '0.0000 0.000 0.50000 A |' '0.5 0.5 0.5 R '")
+
+    subparser.add_argument("--kpath-file", type=str,
+            help="manual input kpath read from the file")
+
+
+    # --------------------------------------------------------------------------
+    # VASP
+    # --------------------------------------------------------------------------
+    subparser = subparsers.add_parser("vasp", help="using vasp as calculator")
+
+    subparser.add_argument("-r", "--runtype", type=int, default=0,
+            choices=[0, 1, 2, 3, 4, 5],
+            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell;")
+
+    subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory for the running.")
 
 
@@ -177,6 +195,8 @@ def main():
 
     subparser.add_argument("--kpath-file", type=str,
             help="manual input kpath read from the file")
+
+
 
 
     # ==========================================================
@@ -267,6 +287,16 @@ def main():
         elif args.runtype == 5:
             # phonopy
             os.system("post-siesta-phonopy.py -d %s -f %s --qpath-file %s --supercell-n %d %d %d" % (args.directory, args.xyz, args.kpath_file, args.supercell_n[0], args.supercell_n[1], args.supercell_n[2]))
+
+# ==============================================================================
+# VASP
+# ==============================================================================
+    elif args.driver == "vasp":
+        if args.runtype == 0:
+            pass
+        elif args.runtype == 2:
+            # cubic cell
+            os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
 
     # --------------------------------------------------------------------------
 

@@ -988,6 +988,9 @@ def main():
             choices=["Normal", "Accurate", "A", "N"],
             help="PREC, default value: Normal")
 
+    subparser.add_argument("--ncore", type=int, default=None,
+            help="NCORE determines the number of compute cores that work on an individual orbital ")
+
     subparser.add_argument("--encut", type=int, default=300,
             help="ENCUT, default value: 300 eV")
 
@@ -1063,8 +1066,7 @@ def main():
             choices=["T", "F", ".TRUE.", ".FALSE."],
             help="This flag can be set for hybrid functionals (HF-type calculations).")
 
-    subparser.add_argument("--nsw", type=int, default=1,
-            choices=[1],
+    subparser.add_argument("--nsw", type=int, default=None,
             help="NSW sets the maximum number of ionic steps")
 
     subparser.add_argument("--ediffg", type=float, default=None,
@@ -1072,12 +1074,12 @@ def main():
 
 
     subparser.add_argument("--ibrion", type=int, default=2,
-            choices=[5, 6, 7, 8],
+            choices=[-1, 0, 1, 2, 3, 5, 6, 7, 8, 44],
             help="IBRION = 5(), 6(), 7(), 8(): refer to https://cms.mpi.univie.ac.at/wiki/index.php/IBRION for how to set the algorithm of optimization you need!")
 
 
 
-    parser.add_argument("--isif", type=int, default=None,
+    subparser.add_argument("--isif", type=int, default=None,
             choices=[0, 1, 2, 3, 4, 5, 6, 7],
             help="ISIF = 0-7: refer to https://cms.mpi.univie.ac.at/wiki/index.php/ISIF for how to set the type of Geometri Optimization you need!")
 
@@ -1725,6 +1727,7 @@ def main():
     elif args.driver == "vasp":
         params = {}
         params["PREC"] = args.prec
+        params["NCORE"] = args.ncore
         params["ENCUT"] = args.encut
         params["EDIFF"] = args.ediff
         params["ISMEAR"] = args.ismear
