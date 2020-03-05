@@ -43,7 +43,7 @@ class md_run(vasp):
                 self.poscar.to_poscar(fout)
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, cmd="vasp", scriptname="md.sub")
+            self.gen_yh(directory=directory, cmd="vasp", scriptname="md.slurm")
             # gen pbs script
             self.gen_pbs(directory=directory, cmd="vasp_std", scriptname="md.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # gen local bash script

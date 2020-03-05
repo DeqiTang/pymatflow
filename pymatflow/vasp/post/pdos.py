@@ -98,7 +98,9 @@ class post_pdos:
             self.data[i]["ion"] = ion_list[i]
 
         #
-    def matplotlib_proj_elem_l_m(self):
+    def matplotlib_proj_elem_l_m(self, plotrange=[0, 1]):
+        begin = int(len(self.data[0]["spin_1"]["energy"]) * plotrange[0])
+        end = int(len(self.data[0]["spin_1"]["energy"]) * plotrange[1])
         if self.magnetic_status == "spin-unpolarized":
             """
             data:{
@@ -122,13 +124,14 @@ class post_pdos:
             for element in data:
                 for lm in data[element]["spin_1"]:
                     if lm != "energy":
-                        plt.plot(data[element]["spin_1"]["energy"], data[element]["spin_1"][lm], label=element+"(%s)" % lm)
+                        plt.plot(data[element]["spin_1"]["energy"][begin:end], data[element]["spin_1"][lm][begin:end], label=element+"(%s)" % lm)
             plt.title("Partial Density of States")
             plt.xlabel("Energy(ev)")
             plt.ylabel("PDOS")
             plt.legend()
-            #plt.savefig("pdos-proj-elem-lm.png")
+            plt.savefig("pdos-proj-elem-lm.png")
             plt.show()
+            plt.close()
 
     def export(self, directory="tmp-vasp-static", plotrange=[0, 1], option="matplotlib"):
         """
@@ -146,5 +149,5 @@ class post_pdos:
         os.system("mkdir -p %s/post-processing" % directory)
         os.chdir(os.path.join(directory, "post-processing"))
         #(option=option,  plotrange=plotrange)
-        self.matplotlib_proj_elem_l_m()
-        os.chdir("../")
+        self.matplotlib_proj_elem_l_m(plotrange=plotrange)
+        os.chdir("../../")

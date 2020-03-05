@@ -121,14 +121,16 @@ def main():
                 pass
         elif args.input.split(".")[-1] == "cif":
             if args.output.split(".")[-1] == "xyz":
+                from pymatflow.structure.crystal import crystal
+                import pymatflow.third.aseio as aseio
                 print("=====================================\n")
                 print("      structflow convertt cif to xyz\n")
                 print("-------------------------------------\n")
                 print("convert from cif to xyz-modified\n")
                 print("with the help from ase.io\n")
                 a = crystal()
-                a.cell, a.atoms = aseio.read_cif(args.cif)
-                a.write_xyz(filepath=args.xyz)
+                a.cell, a.atoms = aseio.read_cif(args.input)
+                a.write_xyz(filepath=args.output)
             elif args.output.split(".")[-1] == "xtd":
                 import pymatflow.third.aseio as aseio
                 #from pymatflow.structure.crystal import crystal
@@ -142,6 +144,8 @@ def main():
                 pass
         elif args.input.split(".")[-1] == "xtb":
             if args.output.split(".")[-1] == "xyz":
+                from pymatflow.structure.crystal import crystal
+                import pymatflow.third.aseio as aseio
                 print("=====================================\n")
                 print("      structflow convert xtb to xyz\n")
                 print("-------------------------------------\n")
@@ -151,6 +155,7 @@ def main():
                 a.cell, a.atoms = aseio.read_xtb(args.input)
                 a.write_xyz(filepath=args.output)
             elif args.output.split(".")[-1] == "cif":
+                import pymatflow.third.aseio as aseio
                 print("=====================================\n")
                 print("      structflow convert xtb to cif\n")
                 print("-------------------------------------\n")

@@ -183,8 +183,8 @@ def main():
     subparser = subparsers.add_parser("vasp", help="using vasp as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5],
-            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell;")
+            choices=[0, 1, 2, 3, 4, 5, 6, 7],
+            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->neb; 6->vasp-phonon; 7->phonopy")
 
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory for the running.")
@@ -196,6 +196,17 @@ def main():
     subparser.add_argument("--kpath-file", type=str,
             help="manual input kpath read from the file")
 
+    subparser.add_argument("--plotrange", type=float, nargs="+",
+            default=[0, 1.0],
+            help="range to plot. in percentage")
+
+    subparser.add_argument("--bandrange", type=float, nargs="+",
+            default=[0, 1.0],
+            help="band range to plot. in percentage")
+
+    subparser.add_argument("--engine", type=str, default="matplotlib",
+            choices=["matplotlib", "gnuplot"],
+            help="plot engine, matplotlib or gnuplot")
 
 
 
@@ -293,11 +304,50 @@ def main():
 # ==============================================================================
     elif args.driver == "vasp":
         if args.runtype == 0:
-            pass
+            # static
+            from pymatflow.vasp.post.pdos import post_pdos
+            pdos = post_pdos()
+            pdos.get_vasprun(os.path.join(args.directory, "vasprun.xml"))
+            pdos.export(directory=args.directory, option=args.engine, plotrange=args.plotrange)
+            from pymatflow.vasp.post.bands import post_bands
+            bands = post_bands()
+            bands.get_vasprun(os.path.join(args.directory, "vasprun.xml"))
+            bands.get_kpath(kpath_manual=args.kpath_manual, kpath_file=args.kpath_file)
+            bands.export(directory=args.directory, option=args.engine, bandrange=args.bandrange)
+        elif args.runtype == 1:
+            # optimization
+            from pymatflow.vasp.post.opt import opt_out
+            os.chdir(args.directory)
+            opt = opt_out()
+            opt.get_info(outcar="OUTCAR", poscar="POSCAR")
+            os.chdir("../")
+            opt.export(directory=args.directory)
         elif args.runtype == 2:
             # cubic cell
             os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
-
+        elif args.runtype == 3:
+            # hexagonal cell
+            os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
+        elif args.runtype == 4:
+            # tetragonal cell
+            os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
+        elif args.runtype == 5:
+            # neb
+            pass
+        elif args.runtype == 6:
+            # vasp phonon
+            from pymatflow.vasp.post.phonon import phonon_post
+            task = phonon_post()
+            task.get_kpath(get_kpath(args.kpath_manual, args.kpath_file))
+            task.get_xyz(xyzfile)
+            task.export(directory=args.directory)
+        elif args.runtype == 7:
+            # phonopy
+            from pymatflow.vasp.post.phonopy import phonopy_post
+            task = phonopy_post()
+            task.get_kpath(get_kpath(args.kpath_manual, args.kpath_file))
+            task.get_xyz(xyzfile)
+            task.export(directory=args.directory)
     # --------------------------------------------------------------------------
 
 

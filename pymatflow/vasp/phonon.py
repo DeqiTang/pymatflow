@@ -47,8 +47,8 @@ class phonon_run(vasp):
             #with open(os.path.join(directory, "INCAR"), 'w') as fout:
             #    self.incar.to_incar(fout)
 
-            # gen yhbatch script
-            self.gen_yh(directory=directory, cmd="vasp", scriptname="phonon.sub")
+            # gen llhpc script
+            self.gen_yh(directory=directory, cmd="vasp", scriptname="phonon.slurm")
             # gen pbs script
             self.gen_pbs(directory=directory, cmd="vasp_std", scriptname="phonon.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # gen local bash script

@@ -42,7 +42,7 @@ class static_run(vasp):
                 self.poscar.to_poscar(fout)
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, scriptname="static-scf.sub", cmd="vasp_std")
+            self.gen_llhpc(directory=directory, scriptname="static-scf.slurm", cmd="vasp_std")
             # gen pbs script
             self.gen_pbs(directory=directory, cmd="vasp_std", scriptname="static-scf.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # gen local bash script
@@ -78,8 +78,8 @@ class static_run(vasp):
 
         if runopt == "gen" or runopt == "genrun":
 
-            # gen yhbatch script
-            self.gen_yh(directory=directory, scriptname="static-nscf.sub", cmd="vasp_std")
+            # gen llhpc script
+            self.gen_llhpc(directory=directory, scriptname="static-nscf.slurm", cmd="vasp_std")
             # gen pbs script
             self.gen_pbs(directory=directory, cmd="vasp_std", scriptname="static-nscf.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # gen local bash script
@@ -119,7 +119,7 @@ class static_run(vasp):
         if runopt == "gen" or runopt == "genrun":
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, scriptname="static-bands.sub", cmd="vasp_std")
+            self.gen_llhpc(directory=directory, scriptname="static-bands.slurm", cmd="vasp_std")
             # gen pbs script
             self.gen_pbs(directory=directory, cmd="vasp_std", scriptname="static-bands.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # gen local bash script
@@ -157,13 +157,19 @@ class static_run(vasp):
                 shutil.copyfile("POTCAR", os.path.join("encut-%d" % encut, "POTCAR"))
 
 
-            # gen yhbatch running script
-            with open("converge-encut.sub", 'w') as fout:
+            # gen llhpc script
+            with open("converge-encut.slurm", 'w') as fout:
                 fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 for i in range(n_test + 1):
                     encut = int(emin + i * step)
                     fout.write("cd ./encut-%d\n" % encut)
-                    fout.write("yhrun -N 1 -n 24 vasp\n")
+                    fout.write("yhrun $PMF_VASP_STD\n")
                     fout.write("cd ../\n")
                     fout.write("\n")
             # gen pbs running script
@@ -217,13 +223,19 @@ class static_run(vasp):
                 shutil.copyfile("POTCAR", os.path.join("kpoints-%d" % kpoints, "POTCAR"))
 
 
-            # gen yhbatch running script
-            with open("converge-kpoints.sub", 'w') as fout:
+            # gen llhpc script
+            with open("converge-kpoints.slurm", 'w') as fout:
                 fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 for i in range(n_test + 1):
                     kpoints = int(kmin + i * step)
                     fout.write("cd ./kpoints-%d\n" % kpoints)
-                    fout.write("yhrun -N 1 -n 24 vasp\n")
+                    fout.write("yhrun $PMF_VASP_STD\n")
                     fout.write("cd ../\n")
                     fout.write("\n")
             # gen pbs running script
@@ -277,13 +289,19 @@ class static_run(vasp):
                 shutil.copyfile("POTCAR", os.path.join("sigma-%.6f" % sigma, "POTCAR"))
 
 
-            # gen yhbatch running script
-            with open("converge-sigma.sub", 'w') as fout:
+            # gen llhpc running script
+            with open("converge-sigma.slurm", 'w') as fout:
                 fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 for i in range(n_test + 1):
                     sigma = sigma_min + i * step
                     fout.write("cd ./sigma-%.6f\n" % sigma)
-                    fout.write("yhrun -N 1 -n 24 vasp\n")
+                    fout.write("yhrun %PMF_VASP_STD\n")
                     fout.write("cd ../\n")
                     fout.write("\n")
             # gen pbs running script
@@ -315,6 +333,9 @@ class static_run(vasp):
 
     #
 
+    def set_scf(self, params):
+        pass
+
     def run(self, directory="tmp-vasp-static", runopt="gen", auto=0,
         kpoints_mp_scf=[1, 1, 1, 0, 0, 0], kpoints_mp_nscf=[3, 3, 3, 0, 0, 0], kpath=None, kpath_intersections=15):
         """
@@ -333,6 +354,9 @@ class static_run(vasp):
             shutil.copyfile("POTCAR", os.path.join(directory, "POTCAR"))
             os.system("cp %s %s/" % (self.poscar.xyz.file, directory))
 
+            self.incar.set_params({
+                "IBRION": -1,
+            })
             # scf
             self.set_kpoints(option="automatic", kpoints_mp=kpoints_mp_scf)
             incar_scf = self.incar.to_string()
@@ -340,11 +364,12 @@ class static_run(vasp):
 
             # nscf
             self.set_kpoints(option="automatic", kpoints_mp=kpoints_mp_nscf)
+
             incar_nscf = self.incar.to_string()
             kpoints_nscf = self.kpoints.to_string()
 
             # band structure
-            self.set_params({
+            self.incar.set_params({
                 "ICHARG": 11,
                 "LORBIT": 11,
                 })
@@ -354,9 +379,15 @@ class static_run(vasp):
 
 
 
-            # gen yhbatch script
-            with open(os.path.join(directory, "static.sub"), 'w') as fout:
+            # gen llhpc script
+            with open(os.path.join(directory, "static.slurm"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 fout.write("cat >POSCAR<<EOF\n")
                 self.poscar.to_poscar(fout)
                 fout.write("EOF\n")
@@ -369,7 +400,9 @@ class static_run(vasp):
                 #self.kpoints.to_kpoints(fout)
                 fout.write(kpoints_scf)
                 fout.write("EOF\n")
-                fout.write("yhrun -N 1 -n 24 $PMF_VASP_STD \n")
+                fout.write("yhrun $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.scf\n")
+                fout.write("cp vasprun.xml vasprun.xml.scf\n")
 
                 fout.write("# nscf\n")
                 fout.write("cat > INCAR<<EOF\n")
@@ -380,7 +413,9 @@ class static_run(vasp):
                 #self.kpoints.to_kpoints(fout)
                 fout.write(kpoints_nscf)
                 fout.write("EOF\n")
-                fout.write("yhrun -N 1 -n 24 $PMF_VASP_STD \n")
+                fout.write("yhrun $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.nscf\n")
+                fout.write('cp vasprun.xml vasprun.xml.nscf\n')
 
 
                 fout.write("# band structure\n")
@@ -392,7 +427,9 @@ class static_run(vasp):
                 #self.kpoints.to_kpoints(fout)
                 fout.write(kpoints_bands)
                 fout.write("EOF\n")
-                fout.write("yhrun -N 1 -n 24 $PMF_VASP_STD \n")
+                fout.write("yhrun $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.bands\n")
+                fout.write("cp vasprun.xml vasprun.xml.bands\n")
 
             # gen pbs script
             with open(os.path.join(directory, "static.pbs"), 'w') as fout:
@@ -415,6 +452,8 @@ class static_run(vasp):
                 fout.write(kpoints_scf)
                 fout.write("EOF\n")
                 fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.scf\n")
+                fout.write("cp vasprun.xml vasprun.xml.scf\n")
 
                 fout.write("# nscf\n")
                 fout.write("cat > INCAR<<EOF\n")
@@ -426,6 +465,8 @@ class static_run(vasp):
                 fout.write(kpoints_nscf)
                 fout.write("EOF\n")
                 fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.nscf\n")
+                fout.write("cp vasprun.xml vasprun.xml.nscf\n")
 
 
                 fout.write("# band structure\n")
@@ -438,6 +479,8 @@ class static_run(vasp):
                 fout.write(kpoints_bands)
                 fout.write("EOF\n")
                 fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.bands\n")
+                fout.write("cp vasprun.xml vasprun.xml.bands\n")
 
             # gen local bash script
             with open(os.path.join(directory, "static.sh"), 'w') as fout:
@@ -455,6 +498,8 @@ class static_run(vasp):
                 fout.write(kpoints_scf)
                 fout.write("EOF\n")
                 fout.write("%s $PMF_VASP_STD \n" % self.run_params["mpi"])
+                fout.write("cp OUTCAR OUTCAR.scf\n")
+                fout.write("cp vasprun.xml vasprun.xml.scf\n")
 
                 fout.write("# nscf\n")
                 fout.write("cat > INCAR<<EOF\n")
@@ -466,6 +511,8 @@ class static_run(vasp):
                 fout.write(kpoints_nscf)
                 fout.write("EOF\n")
                 fout.write("%s $PMF_VASP_STD \n" % self.run_params["mpi"])
+                fout.write("cp OUTCAR OUTCAR.nscf\n")
+                fout.write("cp vasprun.xml vasprun.xml.nscf\n")
 
 
                 fout.write("# band structure\n")
@@ -478,6 +525,8 @@ class static_run(vasp):
                 fout.write(kpoints_bands)
                 fout.write("EOF\n")
                 fout.write("%s $PMF_VASP_STD \n" % self.run_params["mpi"])
+                fout.write("cp OUTCAR OUTCAR.bands\n")
+                fout.write("cp vasprun.xml vasprun.xml.bands\n")
 
             # gen lsf_sz script
             with open(os.path.join(directory, "static.lsf_sz"), 'w') as fout:
@@ -512,6 +561,8 @@ class static_run(vasp):
                 fout.write(kpoints_scf)
                 fout.write("EOF\n")
                 fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                fout.write("cp OUTCAR OUTCAR.scf\n")
+                fout.write("cp vasprun.xml vasprun.xml.scf\n")
 
                 fout.write("# nscf\n")
                 fout.write("cat > INCAR<<EOF\n")
@@ -523,6 +574,8 @@ class static_run(vasp):
                 fout.write(kpoints_nscf)
                 fout.write("EOF\n")
                 fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                fout.write("cp OUTCAR OUTCAR.nscf\n")
+                fout.write("cp vasprun.xml vasprun.xml.nscf\n")
 
 
                 fout.write("# band structure\n")
@@ -535,6 +588,8 @@ class static_run(vasp):
                 fout.write(kpoints_bands)
                 fout.write("EOF\n")
                 fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                fout.write("cp OUTCAR OUTCAR.bands\n")
+                fout.write("cp vasprun.xml vasprun.xml.bands\n")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

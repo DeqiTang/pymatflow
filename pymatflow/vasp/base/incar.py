@@ -158,6 +158,7 @@ class vasp_incar:
         if self.runtype == "neb":
             incar_out += neb
 
+        print(incar_out)
         return incar_out
 
 
@@ -176,7 +177,7 @@ class vasp_incar:
             })
         if self.runtype == "static":
             self.set_params({
-                "IBRIONS": -1,
+                "IBRION": -1,
                 })
         elif self.runtype == "opt":
             self.set_params({

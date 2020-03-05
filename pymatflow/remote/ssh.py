@@ -19,7 +19,7 @@ class ssh:
         self.ip = None
         self.user = None
         self.password = None
-    
+
     def get_info(self, conf):
         config = configparser.ConfigParser()
         config.read(conf)
@@ -38,11 +38,11 @@ class ssh:
 
     def submit(self, workdir, jobfile, server="pbs"):
         """
-        server: pbs or yh
+        server: pbs or llhpc
         """
         channel = self.session.open_session()
-        if server == "yh":
-            channel.execute("cd %s; yhbatch -p free %s" % (os.path.join(self.serverdir, workdir), jobfile))
+        if server == "llhpc":
+            channel.execute("cd %s; yhbatch %s" % (os.path.join(self.serverdir, workdir), jobfile))
         elif server == "pbs":
             channel.execute("cd %s; qsub %s" % (os.path.join(self.serverdir, workdir), jobfile))
         print("\n\n")

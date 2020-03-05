@@ -83,13 +83,20 @@ class phonopy_run(vasp):
                 os.chdir("../")
             os.chdir("../") # end of input generation chdir outside of the directory
 
-            # generate the yhbatch script
-            with open(os.path.join(directory, "phonopy-job.sub"), 'w') as fout:
-                fout.write("#!/bin/bash\n\n")
+            # generate the llhpc script
+            with open(os.path.join(directory, "phonopy-job.slurm"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 for disp in disps:
                     fout.write("cd disp-%s\n" % disp)
-                    fout.write("vasp\n")
+                    fout.write("yhrun $PMF_VASP_STD\n")
                     fout.write("cd ../\n")
+
             # generate the pbs script
             with open(os.path.join(directory, "phonopy-job.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n\n")

@@ -198,6 +198,7 @@ setup(
         "pymatflow/vasp/scripts/vasp-efficiency-test.py",
         "pymatflow/vasp/scripts/vasp-phonon.py",
         "pymatflow/vasp/scripts/vasp-berry.py",
+        "pymatflow/vasp/scripts/llhpc-env.py",
         "pymatflow/vasp/post/scripts/post-vasp-opt.py",
         "pymatflow/vasp/post/scripts/post-vasp-md.py",
         "pymatflow/vasp/post/scripts/post-vasp-converge.py",

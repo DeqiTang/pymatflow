@@ -260,7 +260,7 @@ class post_bands:
             plt.title("Band Structure")
             plt.xlabel("K")
             plt.ylabel("Energy(eV)")
-            plt.savefig("spin-unpolarized.png")
+            plt.savefig("band-structure-spin-unpolarized.png")
 
         if self.magnetic_status == "spin-polarized":
             nband = len(self.eigenval_spin1[0]["energy"])
@@ -272,20 +272,22 @@ class post_bands:
                 plt.xlabel("K")
                 plt.ylabel("Energy(eV)")
                 plt.xticks(self.locs, self.labels_for_matplotlib)
-                plt.savefig("spin-polarized-1.png")
+                plt.savefig("band-structure-spin-polarized-1.png")
             for i in range(len(self.eigenval_spin2[0]["energy"])):
                 plt.plot(self.xcoord_k, [self.eigenval_spin2[k]["energy"][i] - self.efermi for k in range(len(self.eigenval_spin2))])
                 plt.title("Band Structure(Spin 2)")
                 plt.xlabel("K")
                 plt.ylabel("Energy(eV)")
                 plt.xticks(self.locs, self.labels_for_matplotlib)
-                plt.savefig("spin-polarized-2.png")
+                plt.savefig("band-structure-spin-polarized-2.png")
             plt.title("Band Structure(all spin)")
             plt.xlabel("K")
             plt.ylabel("Energy(eV)")
             plt.xticks(self.locs, self.labels_for_matplotlib)
-            plt.savefig("spin-polarized-all.png")
+            plt.savefig("band-structure-spin-polarized-all.png")
+
         plt.show()
+        plt.close()
 
     def _plot_band_gnuplot(self, bandrange=[0, 1.0]):
         """
@@ -500,4 +502,4 @@ class post_bands:
         os.system("mkdir -p %s/post-processing" % directory)
         os.chdir(os.path.join(directory, "post-processing"))
         self.plot_band(option=option,  bandrange=bandrange)
-        os.chdir("../")
+        os.chdir("../../")

@@ -78,7 +78,7 @@ class neb_run(vasp):
             # 当设置IOPT > 0，的时候也要注意需要明确设置EDIFFG < 0
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, cmd="vasp", scriptname="neb.sub")
+            self.gen_yh(directory=directory, cmd="vasp", scriptname="neb.slurm")
             # gen pbs script
             self.gen_pbs(directory=directory, cmd="vasp_std", scriptname="neb.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # gen local bash script

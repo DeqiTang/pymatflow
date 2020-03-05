@@ -211,7 +211,7 @@ def main():
 
     subparser.add_argument("--auto", type=int, default=3,
             choices=[0, 1, 2, 3],
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|llhpc].conf")
 
     subparser.add_argument("--supercell-n", type=int, nargs="+",
             default=[1, 1, 1],
@@ -224,8 +224,8 @@ def main():
             help="MPI command: like 'mpirun -np 4'")
 
     subparser.add_argument("--server", type=str, default="pbs",
-            choices=["pbs", "yh"],
-            help="type of remote server, can be pbs or yh")
+            choices=["pbs", "llhpc"],
+            help="type of remote server, can be pbs or llhpc")
 
     subparser.add_argument("--jobname", type=str, default="matflow-job",
             help="jobname on the pbs server")
@@ -458,7 +458,7 @@ def main():
 
     subparser.add_argument("--auto", type=int, default=3,
             choices=[0, 1, 2, 3],
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|llhpc].conf")
 
 
     #                   PHONOPY related parameters
@@ -475,8 +475,8 @@ def main():
             help="MPI command: like 'mpirun -np 4'")
 
     subparser.add_argument("--server", type=str, default="pbs",
-            choices=["pbs", "yh"],
-            help="type of remote server, can be pbs or yh")
+            choices=["pbs", "llhpc"],
+            help="type of remote server, can be pbs or llhpc")
 
     subparser.add_argument("--jobname", type=str, default="matflow-job",
             help="jobname on the pbs server")
@@ -683,7 +683,7 @@ def main():
 
     subparser.add_argument("--auto", type=int, default=3,
             choices=[0, 1, 2, 3],
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|llhpc].conf")
 
     # params for neb namelist &path
     subparser.add_argument("--string-method", type=str, default="neb",
@@ -749,8 +749,8 @@ def main():
             help="MPI command: like 'mpirun -np 4'")
 
     subparser.add_argument("--server", type=str, default="pbs",
-            choices=["pbs", "yh"],
-            help="type of remote server, can be pbs or yh")
+            choices=["pbs", "llhpc"],
+            help="type of remote server, can be pbs or llhpc")
 
     subparser.add_argument("--jobname", type=str, default="matflow-job",
             help="jobname on the pbs server")
@@ -793,7 +793,7 @@ def main():
 
     subparser.add_argument("--auto", type=int, default=3,
             choices=[0, 1, 2, 3],
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|llhpc].conf")
 
 
     # --------------------------------------------------------------------------
@@ -935,8 +935,8 @@ def main():
             help="MPI command: like 'mpirun -np 4'")
 
     subparser.add_argument("--server", type=str, default="pbs",
-            choices=["pbs", "yh"],
-            help="type of remote server, can be pbs or yh")
+            choices=["pbs", "llhpc"],
+            help="type of remote server, can be pbs or llhpc")
 
     subparser.add_argument("--jobname", type=str, default="matflow-job",
             help="jobname on the pbs server")
@@ -979,7 +979,7 @@ def main():
 
     subparser.add_argument("--auto", type=int, default=3,
             choices=[0, 1, 2, 3],
-            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf")
+            help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|llhpc].conf")
 
     # --------------------------------------------------------
     #                   INCAR PARAMETERS
@@ -1078,7 +1078,6 @@ def main():
             help="IBRION = 5(), 6(), 7(), 8(): refer to https://cms.mpi.univie.ac.at/wiki/index.php/IBRION for how to set the algorithm of optimization you need!")
 
 
-
     subparser.add_argument("--isif", type=int, default=None,
             choices=[0, 1, 2, 3, 4, 5, 6, 7],
             help="ISIF = 0-7: refer to https://cms.mpi.univie.ac.at/wiki/index.php/ISIF for how to set the type of Geometri Optimization you need!")
@@ -1123,6 +1122,18 @@ def main():
             help="LELF determines whether to create an ELFCAR file or not.")
 
 
+    #                     neb related PARAMETERS
+    # --------------------------------------------------------------------------
+    subparser.add_argument("--iopt", type=int, default=1,
+            choices=[0, 1, 2],
+            help="chioce for optimizer: 0->vasp, 1, 2->vtst")
+
+    subparser.add_argument("--lclimb", type=str, default="T",
+            choices=["T", "F"],
+            help="whether use climbing image")
+
+    subparser.add_argument("--spring", type=int, default=-5,
+            help="gives the spring constant between the images as used in the elastic band method")
 
     subparser.add_argument("--nimage", type=int, default=5,
             help="number of image to interpolate. total image will be nimage+2.")
@@ -1163,8 +1174,8 @@ def main():
             help="MPI command")
 
     subparser.add_argument("--server", type=str, default="pbs",
-            choices=["pbs", "yh", "lsf_sz"],
-            help="type of remote server, can be pbs or yh or lsf_sz")
+            choices=["pbs", "llhpc", "lsf_sz"],
+            help="type of remote server, can be pbs or llhpc or lsf_sz")
 
     subparser.add_argument("--jobname", type=str, default="vasp-scf",
             help="jobname on the pbs server")
@@ -1174,6 +1185,18 @@ def main():
 
     subparser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
+    # llhpc
+    subparser.add_argument("--partition", type=str, default="free",
+            help="choose partition to submit job")
+
+    subparser.add_argument("--ntask", type=int, default=24,
+            help="choose task number")
+
+    subparser.add_argument("--stdout", type=str, default="slurm.out",
+            help="set standard out")
+
+    subparser.add_argument("--stderr", type=str, default="slurm.err",
+            help="set standard err")
 
 
 
@@ -1738,11 +1761,9 @@ def main():
         params["IBRION"] = args.ibrion
         params["ISIF"] = args.isif
         params["POTIM"] = args.potim
-
         params["LORBIT"] = args.lorbit
         params["LOPTICS"] = args.loptics
         params["LSUBROT"] = args.lsubrot
-
         params["ALGO"] = args.algo
         params["IALGO"] = args.ialgo
         params["ADDGRID"] = args.addgrid
@@ -1755,83 +1776,94 @@ def main():
         params["ALGO"] = args.algo
         params["LHFCALC"] = args.lhfcalc
         params["HFSCREEN"] = args.hfscreen
-
         params["LELF"] = args.lelf
+        params["IOPT"] = args.iopt
+        params["LCLIMB"] = args.lclimb
+        params["SPRING"] = args.spring
+        params["IMAGES"] = args.nimage
 
         if args.runtype == 0:
             # static
             from pymatflow.vasp.static import static_run
             task = static_run()
             task.get_xyz(xyzfile)
-            task.set_params(params)
+            task.set_params(params, runtype="static")
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpoints_mp_scf=args.kpoints_mp_scf, kpoints_mp_nscf=args.kpoints_mp_nscf, kpath=get_kpath(args.kpath_manual, args.kpath_file), kpath_intersections=args.kpath_intersections)
         elif args.runtype == 1:
             # optimization
             from pymatflow.vasp.opt import opt_run
             task = opt_run()
             task.get_xyz(xyzfile)
-            task.set_params(params=params)
+            task.set_params(params=params, runtype="opt")
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.poscar.selective_dynamics = True if args.selective_dynamics.upper()[0] == "T" else False
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.optimize(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 2:
             # cubic cell
             from pymatflow.vasp.opt import opt_run
             task = opt_run()
             task.get_xyz(xyzfile)
-            task.set_params(params=params)
+            task.set_params(params=params, runtype="opt")
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa)
         elif args.runtype == 3:
             # hexagonal cell
             from pymatflow.vasp.opt import opt_run
             task = opt_run()
             task.get_xyz(xyzfile)
-            task.set_params(params=params)
+            task.set_params(params=params, runtype="opt")
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
         elif args.runtype == 4:
             # tetragonal cell
             from pymatflow.vasp.opt import opt_run
             task = opt_run()
             task.get_xyz(xyzfile)
-            task.set_params(params=params)
+            task.set_params(params=params, runtype="opt")
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
         elif args.runtype == 5:
             # neb
             from pymatflow.vasp.neb import neb_run
             task = neb_run()
             task.get_images(args.images)
-            task.set_params(params=params)
+            task.set_params(params=params, runtype="neb")
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.nimage = args.nimage
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.neb(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 6:
             # vasp phonon
             from pymatflow.vasp.phonon import phonon_run
             task = phonon_run()
             task.get_xyz(xyzfile)
-            task.set_params(params=params)
+            task.set_params(params=params, runtype="phonon")
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.supercell_n = args.supercell_n
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.phonon(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 7:
             # phonopy
             from pymatflow.vasp.phonopy import phonopy_run
             task = phonopy_run()
             task.get_xyz(xyzfile)
-            task.set_params(params=params)
+            task.set_params(params=params, runtype="phonopy")
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.supercell_n = args.supercell_n
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
     # --------------------------------------------------------------------------
 

@@ -202,6 +202,79 @@ class opt_out:
                 for atom in self.trajectory[i]:
                     fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
 
+    def export(self, directory="tmp-vasp-optimization"):
+        os.chdir(directory)
+        os.system("mkdir -p post-processing")
+        os.chdir("post-processing")
+        # now we are in post-processing, generate the output and return
+        self.print_trajectory()
+        self.print_final_structure()
+
+        #plt.plot(self.run_info["self-energies"])
+        #plt.title("Energy per scf step")
+        #plt.xlabel("Scf step")
+        #plt.ylabel("Total energy")
+        #plt.tight_layout()
+        #plt.savefig("energy-per-scf-step.png")
+        #plt.close()
+
+        with open("self-info.md", 'w', encoding='utf-8') as fout:
+            fout.write("# 几何优化实验统计\n")
+            fout.write("几何优化类型: ISIF = %d\n" % self.run_params["ISIF"])
+            fout.write("几何优化任务是否结束:%s\n" % str(self.job_done))
+            if self.job_done == True:
+                fout.write("是否成功优化: %s\n" % str(self.relaxed))
+            else:
+                fout.write("是否成功优化: %s\n" % ("运行未结束, 结果未知"))
+            fout.write("## 离子步参数\n")
+            for item in self.run_params:
+                fout.write("- %s: %s\n" % (item, str(self.run_params[item])))
+            fout.write("## 电子步参数\n")
+            for item in self.run_params:
+                fout.write("- %s: %s\n" % (item, str(self.run_params[item])))
+            fout.write("## 运行信息\n")
+            # calculate the running time and print it out
+            # Importante: the length of the time string might be different, depending
+            # on the value of hours and minutes and seconds. if they are two digits
+            # number, they will be divided like: '11: 6: 2', only when they all are
+            # two digtis number, they will not be divided '11:16:12'
+            # so we have to preprocess it to build the right time string to pass into
+            # datetime.datetime.strptime()
+            start_str = self.run_info["start_time"].split()[4]+"-"+self.run_info["start_time"].split()[5]
+            if self.job_done == True:
+                #stop_str = self.run_info["stop-time"].split()[8]+"-"+self.run_info["stop-time"].split()[5]+self.run_info["stop-time"].split()[6]+self.run_info["stop-time"].split()[7]
+                pass
+
+            start = datetime.datetime.strptime(start_str, "%Y.%m.%d-%H:%M:%S")
+            #if self.job_done == True:
+            #    stop = datetime.datetime.strptime(stop_str, "%d%b%Y-%H:%M:%S")
+            #    delta_t = stop -start
+            fout.write("- Time consuming:\n")
+            fout.write("  - job starts at %s\n" % start)
+            fout.write("  - Elapsed time: %.3f(sec) = %.3f(min) = %.3f(hour)\n" % (self.run_info["elapsed_time"], self.run_info["elapsed_time"]/60, self.run_info["elapsed_time"]/3600))
+            #if self.job_done == True:
+            #    fout.write("  - totally %.1f seconds, or %.3f minutes or %.5f hours\n" % (delta_t.total_seconds(), delta_t.total_seconds()/60, delta_t.total_seconds()/3600))
+            #else:
+            #    fout.write("  - job is not finished yet, but it starts at %s\n" % start)
+            # end the time information
+            for item in self.run_info:
+                fout.write("- %s: %s\n" % (item, str(self.run_info[item])))
+
+            fout.write("## 运行信息图示\n")
+            fout.write("Iterations per SCF\n")
+            fout.write("![Iterations per SCF](iterations-per-scf.png)\n")
+
+            fout.write("Total energies per SCF\n")
+            fout.write("![Total energies per SCF](total-energies-per-scf.png)\n")
+
+            fout.write("Fermi energies per SCF\n")
+            fout.write("![Fermi energies per SCF](fermi-energies-per-scf.png)\n")
+
+            fout.write("Total forces per SCF\n")
+            fout.write("![Total forces per SCF](total-forces-rms-per-scf.png)\n")
+
+        os.chdir("../")
+        os.chdir("../")
 
 
 class opt_post:
