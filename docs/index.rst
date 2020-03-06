@@ -35,10 +35,17 @@ parameters in the second line of ``CO2.xyz`` manually, in format like this::
 Tutorials
 -----------------------
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   tutorials/tutorials_en.rst
-   tutorials/tutorials_cn.rst
+   tutorials/en.rst
+   tutorials/cn.rst
+
+Manuals
+------------------------
+.. toctree::
+   :maxdepth: 1
+
+   manual_cn.rst
 
 For Chinese User
 ----------------

@@ -38,11 +38,11 @@ class opt_run(vasp):
                 self.poscar.to_poscar(fout)
 
             # gen slurm script
-            self.gen_llhpc(directory=directory, cmd="vasp", scriptname="optimization.slurm")
+            self.gen_llhpc(directory=directory, cmd="$PMF_VASP_STD", scriptname="optimization.slurm")
             # gen pbs script
-            self.gen_pbs(directory=directory, cmd="vasp_std", scriptname="optimization.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD", scriptname="optimization.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # gen local bash script
-            self.gen_bash(directory=directory, cmd="vasp_std", scriptname="optimization.sh")
+            self.gen_bash(directory=directory, cmd="$PMF_VASP_STD", scriptname="optimization.sh")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

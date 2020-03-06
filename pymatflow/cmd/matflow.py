@@ -8,7 +8,7 @@ import argparse
 
 def get_kpath(kpath_manual=None, kpath_file=None):
     """
-    :param kpath_manual: manual input kpath like --kpath '0.000000 0.000000 0.000000 GAMMA 5' '0.500000 0.000000 0.000000 X 5' '0.0000 0.000 0.50000 A |' '0.5 0.5 0.5 R '
+    :param kpath_manual: manual input kpath like --kpath-manual '0.000000 0.000000 0.000000 GAMMA 5' '0.500000 0.000000 0.000000 X 5' '0.0000 0.000 0.50000 A |' '0.5 0.5 0.5 R '
     :param kpath_file: manual input kpath read from the file
     :return kpath or None(when kpath_manual and kpath_file are both None)
     """

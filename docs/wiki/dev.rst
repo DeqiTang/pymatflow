@@ -172,6 +172,15 @@ task.geo_opt(directory="xxx")
 然后此脚本会根据能带结构计算中的k点来给出matdyn.x计算用得到的q点，从Quantum Espresso官网给出的Summer school on [Advanced Materials and Molecular Modelling with Quantum ESPRESSO](http://qe2019.ijs.si/), Ljubljana, Slovenia, September 15-20, 2019教程的[Github仓库](https://gitlab.com/QEF/material-for-ljubljana-qe-summer-school)的Day-3/example1b的matdyn.Si.in文件中的q点设置我们可以初步判断matdyn.x的q点应该也是tpiba_b类型(我还不能完全确定!!!!!!!)，那么本脚本在给出q点的时候主要就要统一使用bands.x输出中的tpiba_b类型的k点，就算pw.x的band类型的计算输入文件中以crystal_b类型给出高对称点，我们也只需要利用到其中对应的#label注释，然后对应高对称点转化为tpiba_b后，也是在bands.x的输出中，所以在给出matdyn.x的qpint的时候我们以bands.x中的输出为准。
 
 
+### QE处理声子谱
+
+**`qe-get-matdyn-qpoints-from-bands-calc.py`**
+
+通过分析qe能带结构的输出来获取k点用与设置qe的matdyn.x计算中使用的q点。非常不错的方案。
+
+注意再作能带计算的时候，如果pw.x的band类型计算的高对称点的设定是以crystal_b的方式进行，那么要注意在进行pw.x的band类型计算后，再用band.x计算后在band.x输出文件中，你会发现高对称点的坐标不一定一样了，因为band.x输出的k点坐标不是crystal_b类型，你会发现其类型被转换成了tpiba_b，单位是2pi/a。所以你会发现如果是四方晶胞，且a=8.82，c=6.22，时，crystal_b类型的A(0.5, 0.5, 0.5)在bands.x的输出文件中会对应于点(0.5, 0.5, 0.709)，0.5与0.709的比值恰好等于c与a的比值。因为crystal_b类型的kx, ky, kz的单位是对应的2pi/a, 2pi/b, 2pi/c，那么当转换为tpiba_b时，都以2pi/a为单位，则新的坐标肯定只有kx不会变，ky，kz均会变化，只不过这里四方a=b，那么ky坐标变化比例为1，也就不变了。但是c != a，于是kz变了。
+
+然后此脚本会根据能带结构计算中的k点来给出matdyn.x计算用得到的q点，从Quantum Espresso官网给出的Summer school on [Advanced Materials and Molecular Modelling with Quantum ESPRESSO](http://qe2019.ijs.si/), Ljubljana, Slovenia, September 15-20, 2019教程的[Github仓库](https://gitlab.com/QEF/material-for-ljubljana-qe-summer-school)的Day-3/example1b的matdyn.Si.in文件中的q点设置我们可以初步判断matdyn.x的q点应该也是tpiba_b类型(我还不能完全确定!!!!!!!)，那么本脚本在给出q点的时候主要就要统一使用bands.x输出中的tpiba_b类型的k点，就算pw.x的band类型的计算输入文件中以crystal_b类型给出高对称点，我们也只需要利用到其中对应的#label注释，然后对应高对称点转化为tpiba_b后，也是在bands.x的输出中，所以在给出matdyn.x的qpint的时候我们以bands.x中的输出为准。
 
 ## 关于各程序中K点的设置
 
@@ -223,3 +232,100 @@ QE的tpiba_b类型的K点就是直角坐标，kx、ky、kz的单位长度都是2
 * 将auto默认设置为在服务器上运行、
 * 将xyz类更进一步分离出来，与计算器的结构部分代码进一步解离。
 * 编写测试代码，可以改造一些base_xyz，让他除了能够从xyz文件获取结构，也能直接从一个python数据结构获取结构。
+
+
+在对晶体材料的体相进行研究时，常会用到倒空间这个强有力的工具。在使用`Pymatflow`的过程中，所有设计倒空间高对称点路径的任务都以一个规范的形式进行管理。
+
+在能带计算核声子谱计算中用到的高对称K点路径的数据结构`kpath`如下:
+
+```python
+[[kx, ky, kz, label, connect_indicator], ...] like [[0.0, 0.0, 0.0, 'GAMMA', 15], ...]
+```
+
+这是一个由高对称点组成的列表。列表同时包含了高对称点之间的连接信息。
+
+Notes:
+
+   * 如果一个K点的``connect_indicator`` 值为一个整数，那么它将通过该整数个点连接到下一个K点。
+* 如果一个K点的`connect_indicator `值是 `|`，那么它与后面的K点处于断开状态。
+* `kx, ky, kz`是倒空间K点坐标的分数坐标，亦或称作crystal格式。
+
+Besides, users can preparing the corresponding high symmmetry path in a file with
+such a format::
+
+此外，用户可以将高对称点路径信息准备在文件中，`Pymatflow`可以读取并构建上述`kpath`信息。文件格式如下:
+
+```Text
+5
+0.0 0.0 0.0 #GAMMA 15
+x.x x.x x.x #XXX |
+x.x x.x x.x #XXX 10
+x.x x.x x.x #XXX 15
+x.x x.x x.x #XXX 20
+```
+
+文件的第一行制定了文件后面给出的行数。
+
+每一行对应于`kpath`数据结构中的一个元素:
+
+* 行中前三个元素对应于K点的x、y和z坐标
+* 行中第四个元素对应于K点的符号(需要是大写)
+* 行中第五个元素对应于K点与其后K点的连接关系，意义和上述`kpath`数据结构中一致
+
+用户往往需要通过`--kpath-file`参数向`Pymatflow`的命令行工具(如`matflow`、`postflow`、`structflow`)指定包含有高对称K点的文件路径。要注意这里同样坐标必须是分数坐标。
+
+
+
+
+## 关于各程序中K点的设置
+
+此前已经将由seekpath生成高对称点以及K点路径集成到了能带计算和Phonopy声子谱计算中，但是我发现seekpath给出的k点对应的cell参数与输入的参数相比可能是变化了的，因此可能不值得信赖。
+
+我打算将集成的seekpath生成k点部分改写为手动读取K点文件，然后以后计算时单独提供K点文件，如果要用seekpath，也可以用脚本生成可用的K点文件，然后pymatflow读取来进行计算。目前QE已经实现了手动读取，但是还没有移除掉内部的seekpath部分代码。
+
+对于`Quantum ESPRESSO`有一个技巧就是:
+
+在pw.x的bands类型计算的crystal_b类型的高对称点设置时，如果某个点后的 整数个连接点被设置为0，那么其效果是最后可以从bands.x的输出中查看到两个高对称点的xcoord是一样的。这是合理的，因为两个点之间的链接数为0，那么中间距离肯定就是0了。这样有一个好处就是，我们在设置$\Gamma–X–M–\Gamma–Z–R–A–Z|X–R|M–A$类型的布里渊区K-Path的时候，我们可以设置高对称点$Z|X$、$R|M$中链接的$Z$和$X$以及$R$和$M$的点数为0，那么最后相对应的$Z$与$X$以及$R$与$M$点的xcoord就会是一样的，我们在作能带图的时候就可以用$Z|X$、$R|M$这样的符号来表示，很方便。并且我的qe.post.band已经能够自动处理这种情况，从pw.x的bands计算输入文件中读取高对称点符号，从bands.x输出中获得对应高对称点的xcoord，下一步就是很不错的一步，对以后的高对称点label和xcoord进行refine处理，如果发现某两个相邻点的xcoord一样，那么就将两个合并，丢掉一个xcoord，并且将两个label进行合并为"xxx|xxx"的形式。
+
+在SIESTA的Bandsline模式中，我也想这样实现，但是不幸的是SIESTA中设置0个点来连接相邻高对称点时，计算输出的SystemLabel.bands文件中可以看到，程序直接从0个连接点处断开，后面的点就没输出了，意味着按照QE那种设置0个点链接断开点的技巧$\Gamma–X–M–\Gamma–Z–R–A–Z|X–R|M–A$这样一条路径，最后只会计算输出$\Gamma–X–M–\Gamma–Z–R–A–Z$，SIESTA读取到链接Z到X的点为0个时，就会舍弃后面的！！！！这个方法是行不通的，我又尝试了设置为1个点来链接，但是SystemLabel.bands文件末查到的对应两个高对称点的xcoord就不一样了，这不适合脚本向qe后处理那样自动处理。
+
+**`post-xxx-phonoy.py`**的使用
+
+`--qpath`参数，与能带计算中的``--kpath`参数格式一样，尽管phonoy不需要单独设置每个高对称q点之间链接点的数量，但是为了使用习惯的一致性，`--qpath`参数仍然需要`--qpath '0.0 0.0 0.0 GAMMA 10' ' 0.5 0.0 0.0 X |'`这样来设置。其中每个q点的最后一个值如果是"|"，那么表示其未与后面的q链接。如果不是"|"就表示是链接的。由于该值不会被脚本传递给Phonopy使用，因此除了"|"以外的任何合法字符都会被认为是表明是链接状态。
+
+如果是在其它脚本中`--kpath`的每个k点的最后一个参数应该要么是"|"要么是一个整数，表示该点与后面的点断开或者以该整数个点进行链接。
+
+### K点的单位类型
+
+就像实空间坐标有直角坐标(Cartesian)和晶体坐标(Crystal又叫做分数坐标Fractional)一样，倒易空间的K点也有直角坐标和晶体坐标(有时也叫作reciprocal坐标)。QE的crystal_b、CP2K的B_VECTOR、SIESTA的ReciprocalLatticeVectors类型的BandLinesScale、Abinit的kpt、kptbounds，以及vasp设置rec类型的K点都是晶体坐标或者说reciproca primitive vector形式。这样的kx、ky、kz的单位长度其实就分别是b1、b2、b3。
+
+QE的tpiba_b类型的K点就是直角坐标，kx、ky、kz的单位长度都是2pi/a。
+
+晶体坐标类型的K点大多都是有理数，使用起来比较方便。
+
+
+
+
+
+## 几何结构核心选取xyz结构:
+
+* 由于我的计划会在pymatflow中实现许多对结构的操作，而我目前的几何只是只能支持我在Cartesian这样的直角坐标上进行操作。
+* 另外，没有必要支持所有类型的结构文件的直接结构操作，我们以xyz文件(modified version)为核心进行操作，然后提供工具将其转换为其它类型的结构文件就可以了。
+
+
+
+## 各类工具使用Wiki
+
+**`pes-flow-static.py`**
+
+`pes-flow.py`的工作方式是，读取xyz文件，指定最后n个原子作为一个集合进行运动，对每个运动的镜像进行静态scf计算获取能量，然后作图。
+
+注意`--xrange`指定的是运动原子的x坐标变化的**相对**变化范围，`--yrange`同理。该工具还会自动生成用于生成xyz轨道文件的bash脚本`get_traj.sh`(运行较慢)。xyz格式的轨道文件可以通过`xcrystal --xyz trajectory.xyz`可视化。
+
+**`pes-flow-relax.py`**
+
+目前`pes-flow-static.py`工具通过静态的scf计算来获取每个坐标点对应的能量。实际上还可以考虑在每个坐标点进行relax计算，relax的时候保持x和y不变，只允许z方向移动，这样得到的势能面对于判断吸附位点更有意义，因为在每个xy点上对z进行了优化，得到了对应xy上的能量最小的z。这个时候可以保证势能面上xy点对应的是最小能量状态。
+
+那么该如何实用`pes-flow-relax.py`以及`pes-flow-static.py`呢? 很简单，我们需要准备一个包含体系结构的xyz文件，文件中包含有计算中所涉及到的所有原子，但是要注意，用于扫描势能面的要移动的原子或原子团簇需要放在xyz文件的最后，然后通过`--last-n-move`传递给`pes-flow-relax|static.py`脚本。然后还是老规矩xyz文件第二行要定义晶胞参数来工`Pymatflow`使用。
+
+当然为了实现定制化的势能面计算，我们还需要给程序额外的参数。与几何优化relax有关的参数这里就不作阐述，我们来看看与势能面有关的参数。首先是前面有讲过的`--last-n-move`参数用于指定进行移动扫描的原子或团簇。然后就是设定扫描空间范围的`--xrange`、`--yrange`、`--zshift`、参数。xyz文件中的移动的原子的初始位置将作为定义扫描空间范围的参考位置，xrange确定了移动原子的x的相对变化范围和步长，比如`--xrange -2 2 0.5`表示所有移动的原子的坐标将在原始值+(-2)到原始值+(2)这个范围内进行改变，改变 的步长是`0.5 angstrom`。

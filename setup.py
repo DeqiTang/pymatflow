@@ -27,7 +27,7 @@ setup(
     #data_files
     include_package_data = True,
     platforms = "any",
-    install_requires = [],
+    install_requires = ["ase"],
 
     scripts = [
         "pymatflow/abinit/scripts/abinit-md.py",
