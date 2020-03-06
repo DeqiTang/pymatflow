@@ -117,6 +117,26 @@ def main():
                 a = crystal()
                 a.from_xyz_file(args.input)
                 aseio.write_xtd(cell=a.cell, atoms=a.atoms, filepath=args.output)
+            elif args.output.split(".")[-1] == "xsd":
+                import pymatflow.third.aseio as aseio
+                from pymatflow.structure.crystal import crystal
+                print("=========================================================\n")
+                print("         structflow convert xyz to xsd\n")
+                print("---------------------------------------------------------\n")
+                print("with the help from ase.io\n")
+                a = crystal()
+                a.from_xyz_file(args.input)
+                aseio.write_xsd(cell=a.cell, atoms=a.atoms, filepath=args.output)
+            elif args.output.split(".")[-1] == "xsf":
+                import pymatflow.third.aseio as aseio
+                from pymatflow.structure.crystal import crystal
+                print("=========================================================\n")
+                print("         structflow convert xyz to xsf\n")
+                print("---------------------------------------------------------\n")
+                print("with the help from ase.io\n")
+                a = crystal()
+                a.from_xyz_file(args.input)
+                aseio.write_xsf(cell=a.cell, atoms=a.atoms, filepath=args.output)
             else:
                 pass
         elif args.input.split(".")[-1] == "cif":
@@ -140,32 +160,107 @@ def main():
                 print("with the help from ase.io\n")
                 cell, atoms = aseio.read_cif(args.input)
                 aseio.write_xtd(cell=cell, atoms=atoms, filepath=args.output)
+            elif args.output.split(".")[-1] == "xsd":
+                import pymatflow.third.aseio as aseio
+                #from pymatflow.structure.crystal import crystal
+                print("=========================================================\n")
+                print("         structflow convert cif to xsb\n")
+                print("---------------------------------------------------------\n")
+                print("with the help from ase.io\n")
+                cell, atoms = aseio.read_cif(args.input)
+                aseio.write_xsd(cell=cell, atoms=atoms, filepath=args.output)
+            elif args.output.split(".")[-1] == "xsf":
+                import pymatflow.third.aseio as aseio
+                #from pymatflow.structure.crystal import crystal
+                print("=========================================================\n")
+                print("         structflow convert cif to xsf\n")
+                print("---------------------------------------------------------\n")
+                print("with the help from ase.io\n")
+                cell, atoms = aseio.read_cif(args.input)
+                aseio.write_xsf(cell=cell, atoms=atoms, filepath=args.output)
             else:
                 pass
-        elif args.input.split(".")[-1] == "xtb":
+        elif args.input.split(".")[-1] == "xsd":
             if args.output.split(".")[-1] == "xyz":
                 from pymatflow.structure.crystal import crystal
                 import pymatflow.third.aseio as aseio
                 print("=====================================\n")
-                print("      structflow convert xtb to xyz\n")
+                print("      structflow convert xsd to xyz\n")
                 print("-------------------------------------\n")
-                print("convert from xtb to xyz-modified\n")
+                print("convert from xsb to xyz-modified\n")
                 print("with the help from ase.io\n")
                 a = crystal()
-                a.cell, a.atoms = aseio.read_xtb(args.input)
+                a.cell, a.atoms = aseio.read_xsd(args.input)
                 a.write_xyz(filepath=args.output)
             elif args.output.split(".")[-1] == "cif":
                 import pymatflow.third.aseio as aseio
                 print("=====================================\n")
-                print("      structflow convert xtb to cif\n")
+                print("      structflow convert xsd to cif\n")
                 print("-------------------------------------\n")
-                print("convert from xtb to xyz-modified\n")
+                print("convert from xtb to cif\n")
                 print("with the help from ase.io\n")
-                cell, atoms = aseio.read_xtb(args.input)
+                cell, atoms = aseio.read_xsd(args.input)
                 aseio.write_cif(cell=cell, atoms=atoms, filepath=args.output)
-
+            elif args.output.split(".")[-1] == "xtd":
+                import pymatflow.third.aseio as aseio
+                #from pymatflow.structure.crystal import crystal
+                print("=========================================================\n")
+                print("         structflow convert xsd to xtd\n")
+                print("---------------------------------------------------------\n")
+                print("with the help from ase.io\n")
+                cell, atoms = aseio.read_xsd(args.input)
+                aseio.write_xtd(cell=cell, atoms=atoms, filepath=args.output)
+            elif args.output.split(".")[-1] == "xsf":
+                import pymatflow.third.aseio as aseio
+                #from pymatflow.structure.crystal import crystal
+                print("=========================================================\n")
+                print("         structflow convert xsd to xsf\n")
+                print("---------------------------------------------------------\n")
+                print("with the help from ase.io\n")
+                cell, atoms = aseio.read_xsd(args.input)
+                aseio.write_xsf(cell=cell, atoms=atoms, filepath=args.output)
+        elif args.input.split(".")[-1] == "xsf":
+            if args.output.split(".")[-1] == "xyz":
+                from pymatflow.structure.crystal import crystal
+                import pymatflow.third.aseio as aseio
+                print("=====================================\n")
+                print("      structflow convert xsf to xyz\n")
+                print("-------------------------------------\n")
+                print("convert from xsb to xyz-modified\n")
+                print("with the help from ase.io\n")
+                a = crystal()
+                a.cell, a.atoms = aseio.read_xsf(args.input)
+                a.write_xyz(filepath=args.output)
+            elif args.output.split(".")[-1] == "cif":
+                import pymatflow.third.aseio as aseio
+                print("=====================================\n")
+                print("      structflow convert xsf to cif\n")
+                print("-------------------------------------\n")
+                print("convert from xtb to cif\n")
+                print("with the help from ase.io\n")
+                cell, atoms = aseio.read_xsf(args.input)
+                aseio.write_cif(cell=cell, atoms=atoms, filepath=args.output)
+            elif args.output.split(".")[-1] == "xtd":
+                import pymatflow.third.aseio as aseio
+                #from pymatflow.structure.crystal import crystal
+                print("=========================================================\n")
+                print("         structflow convert xsf to xtd\n")
+                print("---------------------------------------------------------\n")
+                print("with the help from ase.io\n")
+                cell, atoms = aseio.read_xsf(args.input)
+                aseio.write_xtd(cell=cell, atoms=atoms, filepath=args.output)
+            elif args.output.split(".")[-1] == "xsd":
+                import pymatflow.third.aseio as aseio
+                #from pymatflow.structure.crystal import crystal
+                print("=========================================================\n")
+                print("         structflow convert xsf to xsd\n")
+                print("---------------------------------------------------------\n")
+                print("with the help from ase.io\n")
+                cell, atoms = aseio.read_xsf(args.input)
+                aseio.write_xsd(cell=cell, atoms=atoms, filepath=args.output)
         else:
             pass
+
     elif args.driver == "kpath":
         if args.engine == "seekpath":
             os.system("kpath-xyz-seekpath.py -i %s -o %s" % (args.input, args.output))

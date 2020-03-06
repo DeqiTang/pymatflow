@@ -39,7 +39,7 @@ class static_run(abinit):
             #self.dataset[0].electrons.set_scf_nscf("scf")
 
             # generate llhpc submit script
-            self.gen_llhpc(directory=directory, script="static-scf.slurm", cmd="$PMF_ABINIT"):
+            self.gen_llhpc(directory=directory, script="static-scf.slurm", cmd="$PMF_ABINIT")
             # generate pbs job submit script
             self.gen_pbs(directory=directory, script="static-scf.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
@@ -79,7 +79,7 @@ class static_run(abinit):
             #
 
             # generate llhpc submit script
-            self.gen_llhpc(directory=directory, script="static-nscf.slurm", cmd="$PMF_ABINIT"):
+            self.gen_llhpc(directory=directory, script="static-nscf.slurm", cmd="$PMF_ABINIT")
             # generate pbs job submit script
             self.gen_pbs(directory=directory, script="static-nscf.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
@@ -122,7 +122,7 @@ class static_run(abinit):
 
 
             # generate llhpc submit script
-            self.gen_llhpc(directory=directory, script="static-bands.slurm", cmd="$PMF_ABINIT"):
+            self.gen_llhpc(directory=directory, script="static-bands.slurm", cmd="$PMF_ABINIT")
             # generate pbs job submit script
             self.gen_pbs(directory=directory, script="static-bands.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 
@@ -166,7 +166,7 @@ class static_run(abinit):
 
 
             # generate llhpc submit script
-            self.gen_llhpc(directory=directory, script="static-scf-nscf-dos-bands.slurm", cmd="$PMF_ABINIT"):
+            self.gen_llhpc(directory=directory, script="static-scf-nscf-dos-bands.slurm", cmd="$PMF_ABINIT")
             # generate pbs job submit script
             self.gen_pbs(directory=directory, script="static-scf-nscf-dos-bands.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
 

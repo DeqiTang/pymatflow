@@ -98,10 +98,19 @@ def main():
     structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
     # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
     structfile.add_argument("--xyz", type=str, default=None,
-            help="The xyz structure file with second line specifying cell parameters")
+            help="The xyz structure file with the second line specifying the cell parameter")
 
     structfile.add_argument("--cif", type=str, default=None,
             help="The cif structure file")
+
+    structfile.add_argument("--xsd", type=str, default=None,
+            help="The xsd structure file")
+
+    structfile.add_argument("--xsf", type=str, default=None,
+            help="The xsf structure file")
+
+    subparser.add_argument("--pot", type=str, nargs="+", default="./",
+            help="specify the path to the all the needed pseudopotential, default behavior is find them in the current directory automatically. if you pass 'auto' to it, matflow will get the pots automatically(need simple configuration, see manual)")
 
     subparser.add_argument("--chkprim", type=int, default=1,
             choices=[0, 1],
@@ -267,11 +276,13 @@ def main():
     structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
     # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
     structfile.add_argument("--xyz", type=str, default=None,
-            help="The xyz structure file with second line specifying cell parameters")
+            help="The xyz structure file with the second line specifying the cell parameter")
 
     structfile.add_argument("--cif", type=str, default=None,
             help="The cif structure file")
 
+    structfile.add_argument("--xsf", type=str, default=None,
+            help="The xsf structure file")
 
     # force_eval/dft related parameters
 
@@ -529,11 +540,19 @@ def main():
     structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
     # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
     structfile.add_argument("--xyz", type=str, default=None,
-            help="The xyz structure file with second line specifying cell parameters")
+            help="The xyz structure file with the second line specifying the cell parameter")
 
     structfile.add_argument("--cif", type=str, default=None,
             help="The cif structure file")
 
+    structfile.add_argument("--xsd", type=str, default=None,
+            help="The xsd structure file")
+
+    structfile.add_argument("--xsf", type=str, default=None,
+            help="The xsf structure file")
+
+    subparser.add_argument("--pot", type=str, nargs="+", default="./",
+            help="specify the path to the all the needed pseudopotential, default behavior is find them in the current directory automatically. if you pass 'auto' to it, matflow will get the pots automatically(need simple configuration, see manual)")
     # -------------------------------------------------------------------
     #                       scf related parameters
     # -------------------------------------------------------------------
@@ -815,10 +834,19 @@ def main():
     structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
     # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
     structfile.add_argument("--xyz", type=str, default=None,
-            help="The xyz structure file with second line specifying cell parameters")
+            help="The xyz structure file with the second line specifying the cell parameter")
 
     structfile.add_argument("--cif", type=str, default=None,
             help="The cif structure file")
+
+    structfile.add_argument("--xsd", type=str, default=None,
+            help="The xsd structure file")
+
+    structfile.add_argument("--xsf", type=str, default=None,
+            help="The xsf structure file")
+
+    subparser.add_argument("--pot", type=str, nargs="+", default="./",
+            help="specify the path to the all the needed pseudopotential, default behavior is find them in the current directory automatically. if you pass 'auto' to it, matflow will get the pots automatically(need simple configuration, see manual)")
 
     # run option
     subparser.add_argument("--runopt", type=str, default="gen",
@@ -1012,10 +1040,19 @@ def main():
     structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
     # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
     structfile.add_argument("--xyz", type=str, default=None,
-            help="The xyz structure file with second line specifying cell parameters")
+            help="The xyz structure file with the second line specifying the cell parameter")
 
     structfile.add_argument("--cif", type=str, default=None,
             help="The cif structure file")
+
+    structfile.add_argument("--xsd", type=str, default=None,
+            help="The xsd structure file")
+
+    structfile.add_argument("--xsf", type=str, default=None,
+            help="The xsf structure file")
+
+    subparser.add_argument("--pot", type=str, default="./",
+            help="specify the path to the POTCAR, default is ./. if you pass 'auto' to it, matflow will build the POTCAR foryou(need simple configuration, see manual)")
 
     # run option
     subparser.add_argument("--runopt", type=str, default="gen",
@@ -1260,11 +1297,37 @@ def main():
     # dealing wich structure files
     if args.xyz != None:
         xyzfile = args.xyz
-    else:
-        os.system("cif-to-xyz-modified.py -i %s -o %s.xyz" % (args.cif, args.cif))
+    elif args.cif != None:
+        os.system("structflow convert -i %s -o %s.xyz" % (args.cif, args.cif))
         xyzfile = "%s.xyz" % args.cif
+    elif args.xsd != None:
+        os.system("structflow convert -i %s -o %s.xyz" % (args.xsd, args.xsd))
+        xyzfile = "%s.xyz" % args.xsd
+    elif args.xsf != None:
+        os.sytem("structflow convert -i % -o %s.xyz" % (args.xsf, args.xsf))
+        xyzfile = "%s.xyz" % args.xsf
 
-
+    # dealing with pseudo potential file
+    if args.pot == "./":
+        #TODO make a simple check, whether there exists the potential file
+        pass
+    elif args.pot == "auto":
+        if args.driver == "abinit":
+            os.system("pot-from-xyz-modified.py -i %s -d ./ -p abinit --abinit-type=PAW_PBE" % xyzfile)
+        elif args.driver == "qe":
+            os.system("pot-from-xyz-modified.py -i %s -d ./ -p qe --qe-type=PAW_PBE" % xyzfile)
+        elif args.driver == "siesta":
+            print("=============================================================\n")
+            print("                     WARNING\n")
+            print("-------------------------------------------------------------\n")
+            print("support for auto preparation of pseudopotential file for siesta\n")
+            print("is not fully implemented now!\n")
+            print("please prepare it yourself\n")
+            sys.exit(1)
+        elif args.driver == "vasp":
+            os.system("vasp-potcar-from-xyz.py -i %s -o ./POTCAR" % xyzfile)
+    else:
+        os.system("cp %s/* ./" % args.pot)
 
 
     if args.driver == "abinit":

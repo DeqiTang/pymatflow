@@ -21,7 +21,7 @@ if __name__ == "__main__":
             help="the cif file name")
 
     parser.add_argument("--pot-database", type=str,
-            default=os.path.join(os.path.expanduser("~"), ".POT"),
+            default=os.path.join(os.path.expanduser("~"), ".pot-vasp"),
             help="vasp pot databse directory")
 
     args = parser.parse_args()

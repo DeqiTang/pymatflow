@@ -83,7 +83,7 @@ class neb_run(abinit):
                 fout.write("cat > %s<<EOF\n" % self.files.main_in)
                 #self.dataset[0].electrons.to_dataset[0](fout)
                 fout.write(self.dataset[0].electrons.to_string())
-                self.images_to_dataset[0](fout)
+                self.images_to_input(fout)
                 fout.write("\n")
                 fout.write("# ===============================\n")
                 fout.write("# neb related setting\n")
@@ -113,7 +113,7 @@ class neb_run(abinit):
                 fout.write("cat > %s<<EOF\n" % self.files.main_in)
                 #self.dataset[0].electrons.to_dataset[0](fout)
                 fout.write(self.dataset[0].electrons.to_string())
-                self.images_to_dataset[0](fout)
+                self.images_to_input(fout)
                 fout.write("\n")
                 fout.write("# ===============================\n")
                 fout.write("# neb related setting\n")
@@ -135,7 +135,7 @@ class neb_run(abinit):
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="neb", server=self.run_params["server"])
 
-    def images_to_dataset[0](self, fout):
+    def images_to_input(self, fout):
         #self.images[0].to_dataset[0](fout)
         fout.write(self.images[0].to_string())
         fout.write("\n")

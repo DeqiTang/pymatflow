@@ -39,7 +39,7 @@ def write_cif(cell, atoms, filepath):
     for atom in atoms:
         numbers.append(base.element[atom.name].number)
         positions.append([atom.x, atom.y, atom.z])
-    a = Atoms(numbers=numbers, cell=cell, positions=positions)
+    a = Atoms(numbers=numbers, cell=cell, positions=positions, pbc=True)
     ase.io.write(filepath, a, format='cif')
 
 
@@ -76,5 +76,78 @@ def write_xtd(cell, atoms, filepath):
     for atom in atoms:
         numbers.append(base.element[atom.name].number)
         positions.append([atom.x, atom.y, atom.z])
-    a = Atoms(numbers=numbers, cell=cell, positions=positions)
+    a = Atoms(numbers=numbers, cell=cell, positions=positions, pbc=True)
     ase.io.write(filepath, a, format='xtd')
+
+
+def read_xsd(filepath):
+    """
+    :param filepath filepath of the xtd file
+    :return cell and atoms need to build the pymatflow.structure.crystal object
+    """
+    a = ase.io.read(filepath, format='xsd')
+    cell = a.cell.tolist()
+    atoms = []
+    for i in range(len(a.arrays['numbers'])):
+        for item in base.element:
+            if base.element[item].number == a.arrays['numbers'][i]:
+                symbol = item
+                break
+        atoms.append(base.Atom(
+            symbol,
+            a.arrays['positions'][i, 0],
+            a.arrays['positions'][i, 1],
+            a.arrays['positions'][i, 2]
+            ))
+    return cell, atoms
+
+def write_xsd(cell, atoms, filepath):
+    """
+    :param cell: cell of the structure
+    :param atoms: atoms of the structure
+    :param filepath: the output xtd file path
+    """
+    from ase import Atoms
+    numbers = []
+    positions = []
+    for atom in atoms:
+        numbers.append(base.element[atom.name].number)
+        positions.append([atom.x, atom.y, atom.z])
+    a = Atoms(numbers=numbers, cell=cell, positions=positions, pbc=True)
+    ase.io.write(filepath, a, format='xsd')
+
+def read_xsf(filepath):
+    """
+    :param filepath filepath of the xtd file
+    :return cell and atoms need to build the pymatflow.structure.crystal object
+    """
+    a = ase.io.read(filepath, format='xsf')
+    cell = a.cell.tolist()
+    atoms = []
+    for i in range(len(a.arrays['numbers'])):
+        for item in base.element:
+            if base.element[item].number == a.arrays['numbers'][i]:
+                symbol = item
+                break
+        atoms.append(base.Atom(
+            symbol,
+            a.arrays['positions'][i, 0],
+            a.arrays['positions'][i, 1],
+            a.arrays['positions'][i, 2]
+            ))
+    return cell, atoms
+
+def write_xsf(cell, atoms, filepath):
+    """
+    :param cell: cell of the structure
+    :param atoms: atoms of the structure
+    :param filepath: the output xtd file path
+    """
+    from ase import Atoms
+    numbers = []
+    positions = []
+    for atom in atoms:
+        numbers.append(base.element[atom.name].number)
+        positions.append([atom.x, atom.y, atom.z])
+    a = Atoms(numbers=numbers, cell=cell, positions=positions, pbc=True)
+    ase.io.write(filepath, a, format='xsf')

@@ -40,7 +40,7 @@ class opt_run(abinit):
 
             #
             # generate llhpc job submit script
-            self.gen_llhpc(directory=directory, script="optimization.slurm", cmd="$PMF_ABINIT"])
+            self.gen_llhpc(directory=directory, script="optimization.slurm", cmd="$PMF_ABINIT")
 
             # generate pbs job submit script
             self.gen_pbs(directory=directory, script="optimization.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
