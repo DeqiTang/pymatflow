@@ -120,7 +120,6 @@ class pwscf:
         pass
 
     def set_llhpc(self, partition="free", nodes=1, ntask=24, jobname="matflow_job", stdout="slurm.out", stderr="slurm.err"):
-        self.run_params["server"] = "llhpc"
         self.run_params["partition"] = partition
         self.run_params["jobname"] = jobname
         self.run_params["nodes"] = nodes
