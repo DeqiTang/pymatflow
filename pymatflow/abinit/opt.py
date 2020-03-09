@@ -275,7 +275,7 @@ class opt_run(abinit):
             # end
             fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
             fout.write("do\n")
-            fout.write("  energy=`cat ../relax-${a}/%s | grep 'Etotal=' | tail -1 | cut -d \"=\" -f 1`\n" % self.files.main_out)
+            fout.write("  energy=`cat ../relax-${a}/%s | grep 'Etotal=' | tail -1 | cut -d \"=\" -f 2`\n" % self.files.main_out)
             fout.write("  cat >> energy-latconst.data <<EOF\n")
             fout.write("${a} ${energy}\n")
             fout.write("EOF\n")
@@ -288,6 +288,7 @@ class opt_run(abinit):
             fout.write("set ylabel 'Energy'\n")
             fout.write("plot 'energy-latconst.data' w l\n")
             fout.write("EOF\n")
+            fout.write("gnuplot energy-latconst.data\n")
 
         #os.system("cd post-processing; bash get_energy.sh; cd ../")
         os.chdir("../")
@@ -640,7 +641,7 @@ class opt_run(abinit):
                 if nc >= 2:
                     fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
                     fout.write("do\n")
-                    fout.write("  energy=`cat ../relax-${a}-%{c}/%s | grep 'Etotal=' | tail -1 | cut -d \"=\" -f 1`\n" % self.files.main_out)
+                    fout.write("  energy=`cat ../relax-${a}-%{c}/%s | grep 'Etotal=' | tail -1 | cut -d \"=\" -f 2`\n" % self.files.main_out)
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
                     fout.write("${a} ${c} ${energy}\n")
                     fout.write("EOF\n")
@@ -656,6 +657,7 @@ class opt_run(abinit):
                     fout.write("set zlabel 'Energy'\n")
                     fout.write("splot 'energy-latconst.data'\n")
                     fout.write("EOF\n")
+                    fout.write("gnuplot energy-latconst.data\n")
                 else:
                     fout.write("  energy=`cat ../relax-${a}/%s | grep 'Etotal=' | tail -1 | cut -d \"=\" -f 1`\n" % self.files.main_out)
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
@@ -671,6 +673,7 @@ class opt_run(abinit):
                     fout.write("set ylabel 'Energy'\n")
                     fout.write("plot 'energy-latconst.data' w l\n")
                     fout.write("EOF\n")
+                    fout.write("gnuplot energy-latconst.data\n")
             else:
                 if nc >= 2:
                     fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
@@ -688,6 +691,7 @@ class opt_run(abinit):
                     fout.write("set ylabel 'Energy'\n")
                     fout.write("plot 'energy-latconst.data' w l\n")
                     fout.write("EOF\n")
+                    fout.write("gnuplot energy-latconst.data\n")
                 else:
                     # nothing to do
                     pass
@@ -1028,7 +1032,7 @@ class opt_run(abinit):
                 if nc >= 2:
                     fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
                     fout.write("do\n")
-                    fout.write("  energy=`cat ../relax-${a}/%s | grep 'Etotal=' | tail -1 | cut -d \"=\" -f 1`\n" % self.files.main_out)
+                    fout.write("  energy=`cat ../relax-${a}/%s | grep 'Etotal=' | tail -1 | cut -d \"=\" -f 2`\n" % self.files.main_out)
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
                     fout.write("${a} ${c} ${energy:32:-36}\n")
                     fout.write("EOF\n")
@@ -1044,8 +1048,9 @@ class opt_run(abinit):
                     fout.write("set zlabel 'Energy'\n")
                     fout.write("splot 'energy-latconst.data'\n")
                     fout.write("EOF\n")
+                    fout.write("gnuplot energy-latconst.data\n")
                 else:
-                    fout.write("  energy=`cat ../relax-${a}/%s | grep 'Etotal=' | tail -1 | cut -d \"=\" -f 1`\n" % self.files.main_out)
+                    fout.write("  energy=`cat ../relax-${a}/%s | grep 'Etotal=' | tail -1 | cut -d \"=\" -f 2`\n" % self.files.main_out)
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
                     fout.write("${a} ${energy:32:-36}\n")
                     fout.write("EOF\n")
@@ -1059,11 +1064,12 @@ class opt_run(abinit):
                     fout.write("set ylabel 'Energy'\n")
                     fout.write("plot 'energy-latconst.data' w l\n")
                     fout.write("EOF\n")
+                    fout.write("gnuplot energy-latconst.data\n")
             else:
                 if nc >= 2:
                     fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
                     fout.write("do\n")
-                    fout.write("  energy=`cat ../relax-${a}/%s | grep 'Etotal=' | tail -1 | cut -d \"=\" -f 1`\n" % self.files.main_out)
+                    fout.write("  energy=`cat ../relax-${a}/%s | grep 'Etotal=' | tail -1 | cut -d \"=\" -f 2`\n" % self.files.main_out)
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
                     fout.write("${c} ${energy:32:-36}\n")
                     fout.write("EOF\n")
@@ -1076,6 +1082,7 @@ class opt_run(abinit):
                     fout.write("set ylabel 'Energy'\n")
                     fout.write("plot 'energy-latconst.data' w l\n")
                     fout.write("EOF\n")
+                    fout.write("gnuplot energy-latconst.data\n")
                 else:
                     # nothing to do
                     pass

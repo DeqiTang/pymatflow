@@ -50,7 +50,7 @@ class vasp:
         static_allowed = [
             "PREC", "NCORE", "ENCUT", "EDIFF", "ISMEAR", "SIGMA",
             "IVDW", "LORBIT", "LOPTICS", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
-            "LSORBIT", "LHFCALC", "HFSCREEN", "LSUBROT", "ALGO", "IALGO", "ADDGRID",
+            "LSORBIT","SAXIS", "LMAXMIX", "LHFCALC", "HFSCREEN", "LSUBROT", "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG", "LELF", ""
         ]
         opt_allowed = [

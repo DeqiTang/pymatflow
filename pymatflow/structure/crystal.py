@@ -25,6 +25,7 @@ class crystal():
         """
         self.cell = None
         self.atoms = None
+        self.kpath = None
 
     def from_base_xyz(self, basexyz):
         """
@@ -98,7 +99,7 @@ class crystal():
         """
         return [[self.atoms[i].name, self.atoms[i].x, self.atoms[i].y, self.atoms[i].z] for i in range(self.natom)]
 
-    def fractional(self):
+    def get_fractional(self):
         """
         :return out: fractional coordinates
             [

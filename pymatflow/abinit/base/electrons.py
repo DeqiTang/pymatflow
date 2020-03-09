@@ -73,14 +73,21 @@ class kpoints:
             # for band structure calculation using kptbounds and ndivk(ndivsm), iscf must equal to -2
             # for format of self.params["kptbounds"] see self.set_band()
             input_str += "kptopt%s %d\n" % (n if n > 0 else "", self.params["kptopt"])
-            input_str += "ndivsm%s %d\n" % (n if n > 0 else "", 10)
+            input_str += "ndivk\n"
+            for i in range(len(self.kpath) - 1):
+                if self.kpath[i][4] != "|":
+                    input_str += "%d " % (self.kpath[i][4])
+                else:
+                    input_str += "%d " % (1)
+            input_str += "\n"
             input_str += "kptbounds%s\n" % (n if n > 0 else "")
-            for i in range(len(self.params["kptbounds"])):
-                input_str += "%f %f %f #%s\n" % (
-                    self.params["kptbounds"][i][0],
-                    self.params["kptbounds"][i][1],
-                    self.params["kptbounds"][i][2],
-                    self.params["kptbounds"][i][3],
+            for i in range(len(self.kpath)):
+                input_str += "%f %f %f #%s %s\n" % (
+                    self.kpath[i][0],
+                    self.kpath[i][1],
+                    self.kpath[i][2],
+                    self.kpath[i][3],
+                    self.kpath[i][4],
                     )
         # end
         #
@@ -89,9 +96,9 @@ class kpoints:
         return input_str
 
 
-    def set_band(self, kptbounds=None):
+    def set_band(self, kpath):
         """
-            self.params["kptbounds"]:
+        :parma kpath:
                 the high symmetry k point path used in bands structure calculation
                 in format like this:
 
@@ -102,8 +109,8 @@ class kpoints:
 
                 if connect_indicator in a kpoint is '|', then it will not connect to the following point,
         """
-        self.params["kptbounds"] = kptbounds
-        self.params["kptopt"] = - (len(self.params["kptbounds"]) - 1)
+        self.kpath = kpath
+        self.params["kptopt"] = - (len(self.kpath) - 1)
         #
 
     def set_params(self, kpoints):

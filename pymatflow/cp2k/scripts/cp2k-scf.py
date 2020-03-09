@@ -93,9 +93,6 @@ if __name__ == "__main__":
             help="dft-ls_scf: use linear scaling scf method")
 
     # vdw correction related
-    parser.add_argument("--usevdw", type=str, default="FALSE",
-            choices=["TRUE", "FALSE", "true", "false"],
-            help="whether to use VDW correction")
 
     parser.add_argument("--vdw-potential-type", type=str, default="PAIR_POTENTIAL",
             choices=["PAIR_POTENTIAL", "NON_LOCAL", "NONE"],
@@ -198,7 +195,6 @@ if __name__ == "__main__":
     params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"] = args.alpha
     params["FORCE_EVAL-DFT-KPOINTS-SCHEME"] = args.kpoints_scheme
 
-    #force_eval["DFT-XC-VDW_POTENTIAL"] = args.usevdw
     params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"] = args.vdw_potential_type
     params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-TYPE"] = args.pair_type
     params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-R_CUTOFF"] = args.r_cutoff

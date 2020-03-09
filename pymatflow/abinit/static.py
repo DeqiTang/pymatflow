@@ -315,7 +315,6 @@ class static_run(abinit):
 
             # 3) nscf bands
             self.dataset[3].electrons.params["iscf"] = -2
-            self.dataset[3].electrons.params["nband"] = 8
             self.dataset[3].electrons.params["getwfk"] = 1
             self.dataset[3].electrons.params["getden"] = 1
             # when kptopt < 0 namely band structure calculatin, we can only use

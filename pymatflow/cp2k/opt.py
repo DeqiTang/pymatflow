@@ -230,7 +230,7 @@ class opt_run(cp2k):
         # generate result analysis script
         os.system("mkdir -p post-processing")
 
-        with open("get_energy.sh", 'w') as fout:
+        with open("post-processing/get_energy.sh", 'w') as fout:
             fout.write("#!/bin/bash\n")
             fout.write("cat > energy-latconst.data <<EOF\n")
             fout.write("# format: a energy(Ry)\n")
@@ -245,11 +245,12 @@ class opt_run(cp2k):
             fout.write("cat > energy-latconst.gp<<EOF\n")
             fout.write("set term gif\n")
             fout.write("set output 'energy-latconst.gif'\n")
-            fout.write("set title Energy Latconst\n")
+            fout.write("set title 'Energy Latconst'\n")
             fout.write("set xlabel 'latconst(a)'\n")
             fout.write("set ylabel 'Energy'\n")
             fout.write("plot 'energy-latconst.data' w l\n")
             fout.write("EOF\n")
+            fout.write("gnuplot energy-latconst.gp\n")
         #os.system("cd post-processing; bash get_energy.sh; cd ../")
         os.chdir("../")
 
@@ -258,7 +259,7 @@ class opt_run(cp2k):
             os.system("bash geo-opt-cubic.sh")
             os.chdir("../")
 
-        server_handle(auto=args.auto, directory=directory, jobfilebase="geo-opt-cubic", server=args.server)
+        server_handle(auto=auto, directory=directory, jobfilebase="geo-opt-cubic", server=self.run_params["server"])
 
     def hexagonal(self, directory="tmp-cp2k-opt-hexagonal", runopt="gen", auto=0, na=10, nc=10, stepa=0.05, stepc=0.05):
         if os.path.exists(directory):
@@ -527,7 +528,7 @@ class opt_run(cp2k):
         # generate result analysis script
         os.system("mkdir -p post-processing")
 
-        with open("get_energy.sh", 'w') as fout:
+        with open("post-processing/get_energy.sh", 'w') as fout:
             fout.write("#!/bin/bash\n")
             # the comment
             if na >= 2 and nc >= 2:
@@ -566,6 +567,7 @@ class opt_run(cp2k):
                     fout.write("set zlabel 'Energy'\n")
                     fout.write("splot 'energy-latconst.data'\n")
                     fout.write("EOF\n")
+                    fout.write("gnuplot energy-latconst.gp\n")
                 else:
                     fout.write("  energy=`cat ../geo-opt-${a}.out | grep 'ENERGY| Total FORCE_EVAL' | tail -n -1`\n")
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
@@ -580,6 +582,7 @@ class opt_run(cp2k):
                     fout.write("set ylabel 'Energy'\n")
                     fout.write("plot 'energy-latconst.data' w l\n")
                     fout.write("EOF\n")
+                    fout.write("gnuplot energy-latconst.gp\n")
             else:
                 # a is not optimized
                 if nc >= 2:
@@ -599,6 +602,7 @@ class opt_run(cp2k):
                     fout.write("set ylabel 'Energy'\n")
                     fout.write("plot 'energy-latconst.data' w l\n")
                     fout.write("EOF\n")
+                    fout.write("gnuplot energy-latconst.gp\n")
                 else:
                     # neither a nor c is optimized
                     pass
@@ -610,7 +614,7 @@ class opt_run(cp2k):
             os.system("bash geo-opt-hexagonal.sh")
             os.chdir("../")
 
-        server_handle(auto=args.auto, directory=directory, jobfilebase="geo-opt-hexagonal", server=args.server)
+        server_handle(auto=auto, directory=directory, jobfilebase="geo-opt-hexagonal", server=self.run_params["server"])
 
     def tetragonal(self, directory="tmp-cp2k-opt-tetragonal", runopt="gen", auto=0, na=10, nc=10, stepa=0.05, stepc=0.05):
         if os.path.exists(directory):
@@ -860,7 +864,7 @@ class opt_run(cp2k):
         # generate result analysis script
         os.system("mkdir -p post-processing")
 
-        with open("get_energy.sh", 'w') as fout:
+        with open("post-processing/get_energy.sh", 'w') as fout:
             fout.write("#!/bin/bash\n")
             # the comment
             if na >= 2 and nc >= 2:
@@ -899,6 +903,7 @@ class opt_run(cp2k):
                     fout.write("set zlabel 'Energy'\n")
                     fout.write("splot 'energy-latconst.data'\n")
                     fout.write("EOF\n")
+                    fout.write("gnuplot energy-latconst.gp\n")
                 else:
                     fout.write("  energy=`cat ../geo-opt-${a}.out | grep 'ENERGY| Total FORCE_EVAL' | tail -n -1`\n")
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
@@ -913,6 +918,7 @@ class opt_run(cp2k):
                     fout.write("set ylabel 'Energy'\n")
                     fout.write("plot 'energy-latconst.data' w l\n")
                     fout.write("EOF\n")
+                    fout.write("gnuplot energy-latconst.gp\n")
             else:
             # a is not optimized
                 if nc >= 2:
@@ -932,10 +938,11 @@ class opt_run(cp2k):
                     fout.write("set ylabel 'Energy'\n")
                     fout.write("plot 'energy-latconst.data' w l\n")
                     fout.write("EOF\n")
+                    fout.write("gnuplot energy-latconst.gp\n")
                 else:
                     # neither a nor c is optimized
                     pass
-        os.system("cd post-processing; bash get_energy.sh; cd ../")
+        #os.system("cd post-processing; bash get_energy.sh; cd ../")
         os.chdir("../")
 
         if runopt == "run" or runopt == "genrun":
@@ -943,4 +950,4 @@ class opt_run(cp2k):
             os.system("bash geo-opt-tetragonal.sh")
             os.chdir("../")
 
-        server_handle(auto=args.auto, directory=directory, jobfilebase="geo-opt-tetragonal", server=args.server)
+        server_handle(auto=auto, directory=directory, jobfilebase="geo-opt-tetragonal", server=self.run_params["server"])

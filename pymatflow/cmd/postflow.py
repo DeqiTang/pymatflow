@@ -85,7 +85,7 @@ def main():
     # --------------------------------------------------------------------------
     subparser = subparsers.add_parser("abinit", help="using abinit as calculator")
 
-    subparser.add_argument("-r", "--runtype", type=int, default="static",
+    subparser.add_argument("-r", "--runtype", type=int, default=0,
             choices=[0, 1, 2, 3, 4, 5, 6, 7],
             help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-opt; 3->hexagonal-opt; 4->tetragonal-opt; 5->dfpt-elastic-piezo-dielec; 6->dfpt-phonon; 7->phonopy")
 
@@ -99,6 +99,35 @@ def main():
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory to do the calculation")
 
+    # structure file: either xyz or cif. they are exclusive
+    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
+    # so we put them in every subsubparser
+    structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
+    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
+    structfile.add_argument("--xyz", type=str, default=None,
+            help="The xyz structure file with the second line specifying the cell parameter")
+
+    structfile.add_argument("--cif", type=str, default=None,
+            help="The cif structure file")
+
+    structfile.add_argument("--xsd", type=str, default=None,
+            help="The xsd structure file")
+
+    structfile.add_argument("--xsf", type=str, default=None,
+            help="The xsf structure file")
+
+
+    subparser.add_argument("--plotrange", type=float, nargs="+",
+            default=[0, 1.0],
+            help="range to plot. in percentage")
+
+    subparser.add_argument("--bandrange", type=float, nargs="+",
+            default=[0, 1.0],
+            help="band range to plot. in percentage")
+
+    subparser.add_argument("--engine", type=str, default="matplotlib",
+            choices=["matplotlib", "gnuplot"],
+            help="plot engine, matplotlib or gnuplot")
 
     # --------------------------------------------------------------------------
     # CP2K
@@ -121,6 +150,23 @@ def main():
             help="file to read the kpath for band structure calculation")
 
 
+    # structure file: either xyz or cif. they are exclusive
+    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
+    # so we put them in every subsubparser
+    structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
+    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
+    structfile.add_argument("--xyz", type=str, default=None,
+            help="The xyz structure file with the second line specifying the cell parameter")
+
+    structfile.add_argument("--cif", type=str, default=None,
+            help="The cif structure file")
+
+    structfile.add_argument("--xsd", type=str, default=None,
+            help="The xsd structure file")
+
+    structfile.add_argument("--xsf", type=str, default=None,
+            help="The xsf structure file")
+
 
     # --------------------------------------------------------------------------
     # Quantum ESPRESSO
@@ -140,6 +186,24 @@ def main():
 
     subparser.add_argument("--kpath-file", type=str,
             help="manual input kpath in crystal_b read from the file")
+
+    # structure file: either xyz or cif. they are exclusive
+    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
+    # so we put them in every subsubparser
+    structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
+    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
+    structfile.add_argument("--xyz", type=str, default=None,
+            help="The xyz structure file with the second line specifying the cell parameter")
+
+    structfile.add_argument("--cif", type=str, default=None,
+            help="The cif structure file")
+
+    structfile.add_argument("--xsd", type=str, default=None,
+            help="The xsd structure file")
+
+    structfile.add_argument("--xsf", type=str, default=None,
+            help="The xsf structure file")
+
 
     subparser.add_argument("--nebint", type=str, default="pwscf.int",
             help="xxx.int")
@@ -176,6 +240,23 @@ def main():
     subparser.add_argument("--kpath-file", type=str,
             help="manual input kpath read from the file")
 
+    # structure file: either xyz or cif. they are exclusive
+    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
+    # so we put them in every subsubparser
+    structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
+    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
+    structfile.add_argument("--xyz", type=str, default=None,
+            help="The xyz structure file with the second line specifying the cell parameter")
+
+    structfile.add_argument("--cif", type=str, default=None,
+            help="The cif structure file")
+
+    structfile.add_argument("--xsd", type=str, default=None,
+            help="The xsd structure file")
+
+    structfile.add_argument("--xsf", type=str, default=None,
+            help="The xsf structure file")
+
 
     # --------------------------------------------------------------------------
     # VASP
@@ -195,6 +276,23 @@ def main():
 
     subparser.add_argument("--kpath-file", type=str,
             help="manual input kpath read from the file")
+
+    # structure file: either xyz or cif. they are exclusive
+    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
+    # so we put them in every subsubparser
+    structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
+    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
+    structfile.add_argument("--xyz", type=str, default=None,
+            help="The xyz structure file with the second line specifying the cell parameter")
+
+    structfile.add_argument("--cif", type=str, default=None,
+            help="The cif structure file")
+
+    structfile.add_argument("--xsd", type=str, default=None,
+            help="The xsd structure file")
+
+    structfile.add_argument("--xsf", type=str, default=None,
+            help="The xsf structure file")
 
     subparser.add_argument("--plotrange", type=float, nargs="+",
             default=[0, 1.0],
@@ -222,6 +320,19 @@ def main():
         parser.print_help()
         sys.exit(1)
 
+    # dealing wich structure files
+    if args.xyz != None:
+        xyzfile = args.xyz
+    elif args.cif != None:
+        os.system("structflow convert -i %s -o %s.xyz" % (args.cif, args.cif))
+        xyzfile = "%s.xyz" % args.cif
+    elif args.xsd != None:
+        os.system("structflow convert -i %s -o %s.xyz" % (args.xsd, args.xsd))
+        xyzfile = "%s.xyz" % args.xsd
+    elif args.xsf != None:
+        os.sytem("structflow convert -i % -o %s.xyz" % (args.xsf, args.xsf))
+        xyzfile = "%s.xyz" % args.xsf
+
 
 
 # ==============================================================================
@@ -230,7 +341,14 @@ def main():
     if args.driver == "abinit":
         if args.runtype == 0:
             # static
-            pass
+            from pymatflow.abinit.post.bands import post_bands
+            from pymatflow.base.xyz import base_xyz
+            xyz = base_xyz()
+            xyz.get_xyz(xyzfile)
+            post = post_bands()
+            post.get_xcoord_k(kpath=get_kpath(args.kpath_manual, args.kpath_file), cell=xyz.cell)
+            post.get_ebands_agr(filepath=os.path.join(args.directory, "static-o_DS3_EBANDS.agr"))
+            post.export(directory=args.directory, bandrange=args.bandrange, option=args.engine)
         elif args.runtype == 1:
             # optimization
             from pymatflow.abinit.post.opt import opt

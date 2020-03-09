@@ -101,6 +101,3 @@ class cp2k_atom_potential:
                 self.gth_potential.set_params({item: params[item]})
             else:
                 pass
-
-
-

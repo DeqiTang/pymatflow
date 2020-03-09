@@ -253,41 +253,50 @@ class post_bands:
         if self.magnetic_status == "spin-unpolarized":
             nband = len(self.eigenval[0]["energy"])
             band_min = int(bandrange[0] * nband)
-            band_max = int(bandrange[1] * nband - 1)
+            band_max = int(bandrange[1] * nband)
             for i in range(band_min, band_max, 1):
                 plt.plot(self.xcoord_k, [self.eigenval[k]["energy"][i] - self.efermi for k in range(len(self.eigenval))], color='blue', linewidth=1)
-                plt.xticks(self.locs, self.labels_for_matplotlib)
+            plt.xticks(self.locs, self.labels_for_matplotlib)
             plt.title("Band Structure")
             plt.xlabel("K")
             plt.ylabel("Energy(eV)")
+            plt.grid(b=True, which='major')
             plt.savefig("band-structure-spin-unpolarized.png")
-
+            plt.close()
         if self.magnetic_status == "spin-polarized":
             nband = len(self.eigenval_spin1[0]["energy"])
             band_min = int(bandrange[0] * nband)
-            band_max = int(bandrange[1] * nband - 1)
+            band_max = int(bandrange[1] * nband)
             for i in range(band_min, band_max, 1):
                 plt.plot(self.xcoord_k, [self.eigenval_spin1[k]["energy"][i] - self.efermi for k in range(len(self.eigenval_spin1))])
-                plt.title("Band Structure(Spin 1)")
-                plt.xlabel("K")
-                plt.ylabel("Energy(eV)")
-                plt.xticks(self.locs, self.labels_for_matplotlib)
-                plt.savefig("band-structure-spin-polarized-1.png")
+            plt.title("Band Structure(Spin 1)")
+            plt.xlabel("K")
+            plt.ylabel("Energy(eV)")
+            plt.xticks(self.locs, self.labels_for_matplotlib)
+            plt.grid(b=True, which='major')
+            plt.savefig("band-structure-spin-polarized-1.png")
+            plt.close()
             for i in range(len(self.eigenval_spin2[0]["energy"])):
                 plt.plot(self.xcoord_k, [self.eigenval_spin2[k]["energy"][i] - self.efermi for k in range(len(self.eigenval_spin2))])
-                plt.title("Band Structure(Spin 2)")
-                plt.xlabel("K")
-                plt.ylabel("Energy(eV)")
-                plt.xticks(self.locs, self.labels_for_matplotlib)
-                plt.savefig("band-structure-spin-polarized-2.png")
+            plt.title("Band Structure(Spin 2)")
+            plt.xlabel("K")
+            plt.ylabel("Energy(eV)")
+            plt.xticks(self.locs, self.labels_for_matplotlib)
+            plt.grid(b=True, which='major')
+            plt.savefig("band-structure-spin-polarized-2.png")
+            plt.close()
+            # all spin in on figure
+            for i in range(band_min, band_max, 1):
+                plt.plot(self.xcoord_k, [self.eigenval_spin1[k]["energy"][i] - self.efermi for k in range(len(self.eigenval_spin1))])
+            for i in range(len(self.eigenval_spin2[0]["energy"])):
+                plt.plot(self.xcoord_k, [self.eigenval_spin2[k]["energy"][i] - self.efermi for k in range(len(self.eigenval_spin2))])
             plt.title("Band Structure(all spin)")
             plt.xlabel("K")
             plt.ylabel("Energy(eV)")
             plt.xticks(self.locs, self.labels_for_matplotlib)
+            plt.grid(b=True, which='major')
             plt.savefig("band-structure-spin-polarized-all.png")
-
-        plt.show()
-        plt.close()
+            plt.close()
 
     def _plot_band_gnuplot(self, bandrange=[0, 1.0]):
         """
@@ -305,7 +314,7 @@ class post_bands:
         if self.magnetic_status == "spin-unpolarized":
             nband = len(self.eigenval[0]["energy"])
             band_min = int(bandrange[0] * nband)
-            band_max = int(bandrange[1] * nband - 1)
+            band_max = int(bandrange[1] * nband)
             with open("all-bands-spin-unpolarized.data", 'w') as fout:
                 fout.write("# band structure extracted from vasprun.xml\n")
                 fout.write("# efermi: %f\n" % self.efermi)
@@ -358,7 +367,7 @@ class post_bands:
         if self.magnetic_status == "spin-polarized":
             nband = len(self.eigenval_spin1[0]["energy"])
             band_min = int(bandrange[0] * nband)
-            band_max = int(bandrange[1] * nband - 1)
+            band_max = int(bandrange[1] * nband)
 
             with open("all-bands-spin-polarized-spin-1.data", 'w') as fout:
                 fout.write("# band structure extracted from vasprun.xml\n")
