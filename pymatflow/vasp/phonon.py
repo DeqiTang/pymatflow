@@ -53,6 +53,8 @@ class phonon_run(vasp):
             self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD", scriptname="phonon.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # gen local bash script
             self.gen_bash(directory=directory, cmd="$PMF_VASP_STD", scriptname="phonon.sh")
+            # gen lsf_sz script
+            self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="phonon.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

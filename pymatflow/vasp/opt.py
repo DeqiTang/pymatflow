@@ -43,6 +43,8 @@ class opt_run(vasp):
             self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD", scriptname="optimization.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # gen local bash script
             self.gen_bash(directory=directory, cmd="$PMF_VASP_STD", scriptname="optimization.sh")
+            # gen lsf_sz script
+            self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="optimization.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -192,6 +194,61 @@ class opt_run(vasp):
             fout.write("  %s $PMF_VASP_STD\n" % self.run_params["mpi"])
             fout.write("  cd ../\n")
             fout.write("done\n")
+
+
+        # gen lsf_sz script
+        with open("opt-cubic.lsf_sz", 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("APP_NAME=intelY_mid\n")
+            fout.write("NP=%d\n" % (self.run_params["nodes"]*self.run_params["ppn"]))
+            fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
+            fout.write("RUN=\"RAW\"\n")
+            fout.write("CURDIR=$PWD\n")
+            fout.write("#VASP=/home-yg/Soft/Vasp5.4/vasp_std\n")
+            fout.write("source /home-yg/env/intel-12.1.sh\n")
+            fout.write("source /home-yg/env/openmpi-1.6.5-intel.sh\n")
+            fout.write("cd $CURDIR\n")
+            fout.write("# starting creating ./nodelist\n")
+            fout.write("rm -rf $CURDIR/nodelist >& /dev/null\n")
+            fout.write("for i in `echo $LSB_HOSTS`\n")
+            fout.write("do\n")
+            fout.write("  echo \"$i\" >> $CURDIR/nodelist \n")
+            fout.write("done\n")
+            fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\n\' \',\')\n")
+
+            fout.write("cat > INCAR<<EOF\n")
+            self.incar.to_incar(fout)
+            fout.write("EOF\n")
+
+            a = self.poscar.xyz.cell[0][0]
+
+            fout.write("v11=%f\n" % self.poscar.xyz.cell[0][0])
+            fout.write("v12=%f\n" % self.poscar.xyz.cell[0][1])
+            fout.write("v13=%f\n" % self.poscar.xyz.cell[0][2])
+            fout.write("v21=%f\n" % self.poscar.xyz.cell[1][0])
+            fout.write("v22=%f\n" % self.poscar.xyz.cell[1][1])
+            fout.write("v23=%f\n" % self.poscar.xyz.cell[1][2])
+            fout.write("v31=%f\n" % self.poscar.xyz.cell[2][0])
+            fout.write("v32=%f\n" % self.poscar.xyz.cell[2][1])
+            fout.write("v33=%f\n" % self.poscar.xyz.cell[2][2])
+
+            fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
+            fout.write("do\n")
+            fout.write("  mkdir relax-${a}\n")
+            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
+            fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
+            fout.write("general comment\n")
+            fout.write("1.0\n")
+            fout.write("${a} 0.000000 0.000000\n")
+            fout.write("0.000000 ${a} 0.000000\n")
+            fout.write("0.000000 0.000000 ${a}\n")
+            fout.write("EOF\n")
+            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
+            fout.write("  cd relax-${a}/\n")
+            fout.write("  mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+            fout.write("  cd ../\n")
+            fout.write("done\n")
+
 
         # generate result analysis script
         os.system("mkdir -p post-processing")
@@ -515,6 +572,109 @@ class opt_run(vasp):
                     # neither a or c is optimized
                     pass
 
+
+        # gen lsf_sz script
+        with open("opt-hexagonal.lsf_sz", 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("APP_NAME=intelY_mid\n")
+            fout.write("NP=%d\n" % (self.run_params["nodes"]*self.run_params["ppn"]))
+            fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
+            fout.write("RUN=\"RAW\"\n")
+            fout.write("CURDIR=$PWD\n")
+            fout.write("#VASP=/home-yg/Soft/Vasp5.4/vasp_std\n")
+            fout.write("source /home-yg/env/intel-12.1.sh\n")
+            fout.write("source /home-yg/env/openmpi-1.6.5-intel.sh\n")
+            fout.write("cd $CURDIR\n")
+            fout.write("# starting creating ./nodelist\n")
+            fout.write("rm -rf $CURDIR/nodelist >& /dev/null\n")
+            fout.write("for i in `echo $LSB_HOSTS`\n")
+            fout.write("do\n")
+            fout.write("  echo \"$i\" >> $CURDIR/nodelist \n")
+            fout.write("done\n")
+            fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\n\' \',\')\n")
+
+            fout.write("cat > INCAR<<EOF\n")
+            self.incar.to_incar(fout)
+            fout.write("EOF\n")
+
+            a = self.poscar.xyz.cell[0][0]
+            c = self.poscar.xyz.cell[2][2]
+            fout.write("v11=%f\n" % self.poscar.xyz.cell[0][0])
+            fout.write("v12=%f\n" % self.poscar.xyz.cell[0][1])
+            fout.write("v13=%f\n" % self.poscar.xyz.cell[0][2])
+            fout.write("v21=%f\n" % self.poscar.xyz.cell[1][0])
+            fout.write("v22=%f\n" % self.poscar.xyz.cell[1][1])
+            fout.write("v23=%f\n" % self.poscar.xyz.cell[1][2])
+            fout.write("v31=%f\n" % self.poscar.xyz.cell[2][0])
+            fout.write("v32=%f\n" % self.poscar.xyz.cell[2][1])
+            fout.write("v33=%f\n" % self.poscar.xyz.cell[2][2])
+            if na >= 2:
+                # a is optimized
+                fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
+                fout.write("do\n")
+                if nc >= 2:
+                    # optimize both a and c
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("do\n")
+                    fout.write("  mkdir relax-${a}-${c}\n")
+                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}-${c}/\n")
+                    fout.write("  vec21=`echo \"scale=6; result=${v21} * ${a} / ${v11}; if (length(result)==scale(result)) print 0; print result\" | bc`\n")
+                    fout.write("  vec22=`echo \"scale=6; result=${v22} * ${a} / ${v11}; if (length(result)==scale(result)) print 0; print result\" | bc`\n")
+                    # here with the usage of length and scale in bs processing, we can make sure that number like '.123' will be correctly
+                    # set as '0.123', namely the ommited 0 by bs by default is not ommited now!
+                    fout.write("  cat > relax-${a}-${c}/POSCAR<<EOF\n")
+                    fout.write("general comment\n")
+                    fout.write("1.0\n")
+                    fout.write("${a} 0.000000 0.000000\n")
+                    fout.write("${vec21} ${vec22} 0.000000\n")
+                    fout.write("0.000000 0.000000 ${c}\n")
+                    fout.write("EOF\n")
+                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
+                    fout.write("  cd relax-${a}-${c}/\n")
+                    fout.write("  mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                    fout.write("  cd ../\n")
+                    fout.write("done\n")
+                else:
+                    # only optimize a
+                    fout.write("  mkdir relax-${a}\n")
+                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
+                    fout.write("  vec21=`echo \"scale=6; result=${v21} * ${a} / ${v11}; if (length(result)==scale(result)) print 0; print result\" | bc`\n")
+                    fout.write("  vec22=`echo \"scale=6; result=${v22} * ${a} / ${v11}; if (length(result)==scale(result)) print 0; print result\" | bc`\n")
+                    fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
+                    fout.write("general comment\n")
+                    fout.write("1.0\n")
+                    fout.write("${a} 0.000000 0.000000\n")
+                    fout.write("${vec21} ${vec22} 0.000000\n")
+                    fout.write("0.000000 0.000000 ${v33}\n")
+                    fout.write("EOF\n")
+                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
+                    fout.write("  cd relax-${a}/\n")
+                    fout.write("  mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                    fout.write("  cd ../\n")
+                fout.write("done\n")
+            else:
+                # a is not optimized
+                if nc >= 2:
+                    # only optimize c
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("do\n")
+                    fout.write("  mkdir relax-${c}\n")
+                    fout.write("  cp POTCAR KPOINTS INCAR relax-${c}/\n")
+                    fout.write("  cat > relax-${c}/POSCAR<<EOF\n")
+                    fout.write("general comment\n")
+                    fout.write("1.0\n")
+                    fout.write("${v11} 0.000000 0.000000\n")
+                    fout.write("${v21} ${v22} 0.000000\n")
+                    fout.write("0.000000 0.000000 ${c}\n")
+                    fout.write("EOF\n")
+                    fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
+                    fout.write("  cd relax-${c}/\n")
+                    fout.write("  mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                    fout.write("  cd ../\n")
+                    fout.write("done\n")
+                else:
+                    # neither a or c is optimized
+                    pass
 
         # generate result analysis script
         os.system("mkdir -p post-processing")
@@ -875,6 +1035,107 @@ class opt_run(vasp):
                     fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
                     fout.write("  cd relax-${c}/\n")
                     fout.write("  %s $PMF_VASP_STD\n" % self.run_params["mpi"])
+                    fout.write("  cd ../\n")
+                    fout.write("done\n")
+                else:
+                    # neither a or c is optimized
+                    pass
+
+
+        # gen lsf_sz script
+        with open("opt-tetragonal.lsf_sz", 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("APP_NAME=intelY_mid\n")
+            fout.write("NP=%d\n" % (self.run_params["nodes"]*self.run_params["ppn"]))
+            fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
+            fout.write("RUN=\"RAW\"\n")
+            fout.write("CURDIR=$PWD\n")
+            fout.write("#VASP=/home-yg/Soft/Vasp5.4/vasp_std\n")
+            fout.write("source /home-yg/env/intel-12.1.sh\n")
+            fout.write("source /home-yg/env/openmpi-1.6.5-intel.sh\n")
+            fout.write("cd $CURDIR\n")
+            fout.write("# starting creating ./nodelist\n")
+            fout.write("rm -rf $CURDIR/nodelist >& /dev/null\n")
+            fout.write("for i in `echo $LSB_HOSTS`\n")
+            fout.write("do\n")
+            fout.write("  echo \"$i\" >> $CURDIR/nodelist \n")
+            fout.write("done\n")
+            fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\n\' \',\')\n")
+
+
+            fout.write("cat > INCAR<<EOF\n")
+            self.incar.to_incar(fout)
+            fout.write("EOF\n")
+
+            a = self.poscar.xyz.cell[0][0]
+            c = self.poscar.xyz.cell[2][2]
+
+            fout.write("v11=%f\n" % self.poscar.xyz.cell[0][0])
+            fout.write("v12=%f\n" % self.poscar.xyz.cell[0][1])
+            fout.write("v13=%f\n" % self.poscar.xyz.cell[0][2])
+            fout.write("v21=%f\n" % self.poscar.xyz.cell[1][0])
+            fout.write("v22=%f\n" % self.poscar.xyz.cell[1][1])
+            fout.write("v23=%f\n" % self.poscar.xyz.cell[1][2])
+            fout.write("v31=%f\n" % self.poscar.xyz.cell[2][0])
+            fout.write("v32=%f\n" % self.poscar.xyz.cell[2][1])
+            fout.write("v33=%f\n" % self.poscar.xyz.cell[2][2])
+
+            if na >= 2:
+                # a is optimized
+                fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
+                fout.write("do\n")
+                if nc >= 2:
+                    # optimize both a and c
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("do\n")
+                    fout.write("  mkdir relax-${a}-${c}\n")
+                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}-${c}/\n")
+                    fout.write("  cat > relax-${a}-${c}/POSCAR<<EOF\n")
+                    fout.write("general comment\n")
+                    fout.write("1.0\n")
+                    fout.write("${a} 0.000000 0.000000\n")
+                    fout.write("0.000000 ${a} 0.000000\n")
+                    fout.write("0.000000 0.000000 ${c}\n")
+                    fout.write("EOF\n")
+                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
+                    fout.write("  cd relax-${a}-${c}/\n")
+                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                    fout.write("  cd ../\n")
+                    fout.write("done\n")
+                else:
+                    # only optimize a
+                    fout.write("  mkdir relax-${a}\n")
+                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
+                    fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
+                    fout.write("general comment\n")
+                    fout.write("1.0\n")
+                    fout.write("${a} 0.000000 0.000000\n")
+                    fout.write("0.000000 ${a} 0.000000\n")
+                    fout.write("0.000000 0.000000 ${v33}\n")
+                    fout.write("EOF\n")
+                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
+                    fout.write("  cd relax-${a}/\n")
+                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                    fout.write("  cd ../\n")
+                fout.write("done\n")
+            else:
+                # a is not optimized
+                if nc >= 2:
+                    # only optimize c
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("do\n")
+                    fout.write("  mkdir relax-${c}\n")
+                    fout.write("  cp POTCAR KPOINTS INCAR relax-${c}/\n")
+                    fout.write("  cat > relax-${c}/POSCAR<<EOF\n")
+                    fout.write("general comment\n")
+                    fout.write("1.0\n")
+                    fout.write("${v11} 0.000000 0.000000\n")
+                    fout.write("0.000000 ${v22} 0.000000\n")
+                    fout.write("0.000000 0.000000 ${c}\n")
+                    fout.write("EOF\n")
+                    fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
+                    fout.write("  cd relax-${c}/\n")
+                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
                     fout.write("  cd ../\n")
                     fout.write("done\n")
                 else:

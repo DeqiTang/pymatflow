@@ -563,7 +563,7 @@ class static_run(vasp):
                 fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
                 fout.write("RUN=\"RAW\"\n")
                 fout.write("CURDIR=$PWD\n")
-                fout.write("VASP=/home-yg/Soft/Vasp5.4/vasp_std\n")
+                fout.write("#VASP=/home-yg/Soft/Vasp5.4/vasp_std\n")
                 fout.write("source /home-yg/env/intel-12.1.sh\n")
                 fout.write("source /home-yg/env/openmpi-1.6.5-intel.sh\n")
                 fout.write("cd $CURDIR\n")
