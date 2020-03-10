@@ -150,6 +150,12 @@ def main():
     gp.add_argument("--xsf", type=str, default=None,
             help="The xsf structure file")
 
+    gp.add_argument("--images", type=str, nargs="+",
+            help="the image stucture file(--images first.cif final.xsd), can only be cif, xsd, xsd, or xyz(second line is cell parameter) format")
+
+    # potential file
+    gp = subparser.add_argument_group(title="pseudopotential")
+
     gp.add_argument("--pot", type=str, default="./",
             help="specify the path to the directory containing all the needed pseudopotential, default behavior is find them in the current directory automatically. if you pass 'auto' to it, matflow will get the pots automatically(need simple configuration, see manual)")
 
@@ -287,8 +293,8 @@ def main():
     gp = subparser.add_argument_group(title="overall running control")
 
     gp.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4 ,5, 6],
-            help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->phonopy")
+            choices=[0, 1, 2, 3, 4 ,5, 6, 7],
+            help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6-neb; 7->phonopy")
 
     gp.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory to do the calculation")
@@ -343,8 +349,15 @@ def main():
 
     gp.add_argument("--xsf", type=str, default=None,
             help="The xsf structure file")
+
     gp.add_argument("--xsd", type=str, default=None,
             help="The xsd structure file")
+
+    gp.add_argument("--images", type=str, nargs="+",
+            help="the image stucture file(--images first.cif final.xsd), can only be cif, xsd, xsd, or xyz(second line is cell parameter) format")
+
+    # potential file
+    gp = subparser.add_argument_group(title="pseudopotential")
 
     gp.add_argument("--pot", type=str, default="auto",
             choices=["auto"],
@@ -539,6 +552,28 @@ def main():
     gp.add_argument("--geo-opt-rms-force", type=float, default=3.00000000E-004,
             help="Convergence criterion for the root mean square (RMS) force of the current configuration.")
 
+
+    # MOTION/BAND
+    # --------------------------------
+    gp = subparser.add_argument_group(title="MOTION/BAND")
+
+    gp.add_argument("--band-type", type=str, default="CI-NEB",
+            help="specify the type of band calculation")
+
+    gp.add_argument("--number-of-replica", type=int, default=5,
+            help="number of replicas")
+
+    gp.add_argument("--k-spring", type=float, default=2.0e-2,
+            help="value of the spring constant")
+
+    gp.add_argument("--align-frames", type=str, default="TRUE",
+            choices=["TRUE", "FALSE", "true", "false"],
+            help="Enables the alignment of the frames at the beginning of a BAND calculation. This keyword does not affect the rotation of the replicas during a BAND calculation.")
+
+    gp.add_argument("--rotate-frames", type=str, default="TRUE",
+            choices=["TRUE", "FALSE", "true", "false"],
+            help="Compute at each BAND step the RMSD and rotate the frames in order to minimize it.")
+
     #                   PHONOPY related parameters
     # ------------------------------------------------------------------
     gp = subparser.add_argument_group(title="phonopy:",
@@ -638,6 +673,12 @@ def main():
     gp.add_argument("--xsf", type=str, default=None,
             help="The xsf structure file")
 
+    gp.add_argument("--images", type=str, nargs="+",
+            help="the image stucture file(--images first.cif final.xsd), can only be cif, xsd, xsd, or xyz(second line is cell parameter) format")
+
+    # potential file
+    gp = subparser.add_argument_group(title="pseudopotential")
+
     gp.add_argument("--pot", type=str, default="./",
             help="specify the path to the dir containing all the needed pseudopotential, default behavior is find them in the current directory automatically. if you pass 'auto' to it, matflow will get the pots automatically(need simple configuration, see manual)")
 
@@ -726,6 +767,10 @@ def main():
             help="Kpoints generation scheme option for the SCF or non-SCF calculation")
 
     gp.add_argument("--kpoints-mp", type=int, nargs=6,
+            default=[1, 1, 1, 0, 0, 0],
+            help="Monkhorst-Pack kpoint grid, in format like --kpoints-mp 1 1 1 0 0 0")
+
+    gp.add_argument("--kpoints-mp-scf", type=int, nargs=6,
             default=[1, 1, 1, 0, 0, 0],
             help="Monkhorst-Pack kpoint grid, in format like --kpoints-mp 1 1 1 0 0 0")
 
@@ -831,9 +876,6 @@ def main():
 
     # neb
     gp = subparser.add_argument_group(title="neb")
-
-    gp.add_argument("--images", type=str, nargs="+",
-            help="the image xyz file(--images first.xyz imtermediate-1.xyz intermediate-2.xyz ... last.xyz)")
 
     gp.add_argument("--string-method", type=str, default="neb",
             help="string_method")
@@ -965,6 +1007,9 @@ def main():
 
     structfile.add_argument("--xsf", type=str, default=None,
             help="The xsf structure file")
+
+    # potential file
+    gp = subparser.add_argument_group(title="pseudopotential")
 
     gp.add_argument("--pot", type=str, default="./",
             help="specify the path to dir containing all the needed pseudopotential, default behavior is find them in the current directory automatically. if you pass 'auto' to it, matflow will get the pots automatically(need simple configuration, see manual)")
@@ -1176,6 +1221,12 @@ def main():
     gp.add_argument("--xsf", type=str, default=None,
             help="The xsf structure file")
 
+    gp.add_argument("--images", type=str, nargs="+",
+            help="the image stucture file(--images first.cif final.xsd), can only be cif, xsd, xsd, or xyz(second line is cell parameter) format")
+
+    # potential file
+    gp = subparser.add_argument_group(title="pseudopotential")
+
     gp.add_argument("--pot", type=str, default="./",
             help="specify the path to the POTCAR, default is ./. if you pass 'auto' to it, matflow will build the POTCAR foryou(need simple configuration, see manual)")
 
@@ -1206,6 +1257,12 @@ def main():
 
     gp.add_argument("--ediff", type=float, default=1.0e-4,
             help="EDIFF, default value: 1.0e-4")
+
+    gp.add_argument("--nelm", type=int, default=None,
+            help="NELM sets the maximum number of electronic SC (selfconsistency) steps which may be performed")
+
+    gp.add_argument("--nfree", type=int, default=None,
+            help="NFREE specifies the number of remembered steps in the history of ionic convergence runs, or the number of ionic displacements in frozen phonon calculations")
 
     gp.add_argument("--kpoints-mp", type=int, nargs="+",
             default=[1, 1, 1, 0, 0, 0],
@@ -1270,6 +1327,7 @@ def main():
             help="LMAXMIX controls up to which l-quantum number the one-center PAW charge densities are passed through the charge density mixer and written to the CHGCAR file.")
 
     # hybrid functional
+    gp = subparser.add_argument_group(title="incar->Exchange correlation")
     gp.add_argument("--lhfcalc", type=str, default=None,
             choices=["T", "F", ".TRUE.", ".FALSE."],
             help=" specifies whether Hartree-Fock/DFT hybrid functional type calculations are performed")
@@ -1367,9 +1425,6 @@ def main():
     gp.add_argument("--nimage", type=int, default=5,
             help="number of image to interpolate. total image will be nimage+2.")
 
-    gp.add_argument("--images", type=str, nargs="+",
-            help="the image xyz file(--images first.xyz final.xyz)")
-
 
     # PHONOPY parameters
     # ----------------------------------------
@@ -1432,6 +1487,19 @@ def main():
     elif args.xsf != None:
         os.sytem("structflow convert -i % -o %s.xyz" % (args.xsf, args.xsf))
         xyzfile = "%s.xyz" % args.xsf
+    else:
+        # neb caculattion with
+        images = []
+        for image in args.images:
+            if image.split(".")[-1] == "xyz":
+                images.append(image)
+            else:
+                os.system("structflow convert -i %s -o %s.xyz" % (image, image))
+                images.append("%s.xyz" % image)
+        #
+
+
+
 
     # dealing with pseudo potential file
     if args.pot == "./":
@@ -1610,6 +1678,30 @@ def main():
         params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-RANGE"] = args.properties_resp_slab_sampling_range
         params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-SURF_DIRECTION"] = args.properties_resp_slab_sampling_surf_direction
         params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST"] = args.properties_resp_slab_sampling_atom_list
+
+        params["MOTION-GEO_OPT-MAX_ITER"] = args.geo_opt_max_iter
+        params["MOTION-GEO_OPT-OPTIMIZER"] = args.geo_opt_optimizer
+        params["MOTION-GEO_OPT-TYPE"] = args.geo_opt_type
+        params["MOTION-GEO_OPT-MAX_DR"] = args.geo_opt_max_dr
+        params["MOTION-GEO_OPT-MAX_FORCE"] = args.geo_opt_max_force
+        params["MOTION-GEO_OPT-RMS_DR"] = args.geo_opt_rms_dr
+        params["MOTION-GEO_OPT-RMS_FORCE"] = args.geo_opt_rms_force
+
+        params["MOTION-CELL_OPT-MAX_ITER"] = args.cell_opt_max_iter
+        params["MOTION-CELL_OPT-OPTIMIZER"] = args.cell_opt_optimizer
+        params["MOTION-CELL_OPT-TYPE"] = args.cell_opt_type
+        params["MOTION-CELL_OPT-MAX_DR"] = args.cell_opt_max_dr
+        params["MOTION-CELL_OPT-MAX_FORCE"] = args.cell_opt_max_force
+        params["MOTION-CELL_OPT-RMS_DR"] = args.cell_opt_rms_dr
+        params["MOTION-CELL_OPT-RMS_FORCE"] = args.cell_opt_rms_force
+        params["MOTION-CELL_OPT-PRESSURE_TOLERANCE"] = args.cell_opt_pressure_tolerance
+
+        params["MOTION-BAND-BAND_TYPE"] = args.band_type
+        params["MOTION-BAND-NUMBER_OF_REPLICA"] = args.number_of_replica
+        params["MOTION-BAND-ALIGN_FRAMES"] = args.align_frames
+        params["MOTION-BAND-ROTATE-FRAMES"] = args.rotate_frames
+        params["MOTION-BAND-K_SPRING"] = args.k_spring
+
         if args.runtype == 0:
             from pymatflow.cp2k.static import static_run
             task = static_run()
@@ -1624,13 +1716,6 @@ def main():
             task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 1:
             # geo opt
-            params["MOTION-GEO_OPT-MAX_ITER"] = args.geo_opt_max_iter
-            params["MOTION-GEO_OPT-OPTIMIZER"] = args.geo_opt_optimizer
-            params["MOTION-GEO_OPT-TYPE"] = args.geo_opt_type
-            params["MOTION-GEO_OPT-MAX_DR"] = args.geo_opt_max_dr
-            params["MOTION-GEO_OPT-MAX_FORCE"] = args.geo_opt_max_force
-            params["MOTION-GEO_OPT-RMS_DR"] = args.geo_opt_rms_dr
-            params["MOTION-GEO_OPT-RMS_FORCE"] = args.geo_opt_rms_force
             from pymatflow.cp2k.opt import opt_run
             task = opt_run()
             task.get_xyz(xyzfile)
@@ -1641,14 +1726,6 @@ def main():
             task.geo_opt(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 2:
             # cell opt
-            params["MOTION-CELL_OPT-MAX_ITER"] = args.cell_opt_max_iter
-            params["MOTION-CELL_OPT-OPTIMIZER"] = args.cell_opt_optimizer
-            params["MOTION-CELL_OPT-TYPE"] = args.cell_opt_type
-            params["MOTION-CELL_OPT-MAX_DR"] = args.cell_opt_max_dr
-            params["MOTION-CELL_OPT-MAX_FORCE"] = args.cell_opt_max_force
-            params["MOTION-CELL_OPT-RMS_DR"] = args.cell_opt_rms_dr
-            params["MOTION-CELL_OPT-RMS_FORCE"] = args.cell_opt_rms_force
-            params["MOTION-CELL_OPT-PRESSURE_TOLERANCE"] = args.cell_opt_pressure_tolerance
             from pymatflow.cp2k.opt import opt_run
             task = opt_run()
             task.get_xyz(xyzfile)
@@ -1659,13 +1736,6 @@ def main():
             task.cell_opt(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 3:
             # cubic cell opt
-            params["MOTION-GEO_OPT-MAX_ITER"] = args.geo_opt_max_iter
-            params["MOTION-GEO_OPT-OPTIMIZER"] = args.geo_opt_optimizer
-            params["MOTION-GEO_OPT-TYPE"] = args.geo_opt_type
-            params["MOTION-GEO_OPT-MAX_DR"] = args.geo_opt_max_dr
-            params["MOTION-GEO_OPT-MAX_FORCE"] = args.geo_opt_max_force
-            params["MOTION-GEO_OPT-RMS_DR"] = args.geo_opt_rms_dr
-            params["MOTION-GEO_OPT-RMS_FORCE"] = args.geo_opt_rms_force
             from pymatflow.cp2k.opt import opt_run
             task = opt_run()
             task.get_xyz(xyzfile)
@@ -1676,13 +1746,6 @@ def main():
             task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.nc, stepa=args.stepa)
         elif args.runtype == 4:
             # hexagonal cell opt
-            params["MOTION-GEO_OPT-MAX_ITER"] = args.geo_opt_max_iter
-            params["MOTION-GEO_OPT-OPTIMIZER"] = args.geo_opt_optimizer
-            params["MOTION-GEO_OPT-TYPE"] = args.geo_opt_type
-            params["MOTION-GEO_OPT-MAX_DR"] = args.geo_opt_max_dr
-            params["MOTION-GEO_OPT-MAX_FORCE"] = args.geo_opt_max_force
-            params["MOTION-GEO_OPT-RMS_DR"] = args.geo_opt_rms_dr
-            params["MOTION-GEO_OPT-RMS_FORCE"] = args.geo_opt_rms_force
             from pymatflow.cp2k.opt import opt_run
             task = opt_run()
             task.get_xyz(xyzfile)
@@ -1693,13 +1756,6 @@ def main():
             task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
         elif args.runtype == 5:
             # tetragonal cell opt
-            params["MOTION-GEO_OPT-MAX_ITER"] = args.geo_opt_max_iter
-            params["MOTION-GEO_OPT-OPTIMIZER"] = args.geo_opt_optimizer
-            params["MOTION-GEO_OPT-TYPE"] = args.geo_opt_type
-            params["MOTION-GEO_OPT-MAX_DR"] = args.geo_opt_max_dr
-            params["MOTION-GEO_OPT-MAX_FORCE"] = args.geo_opt_max_force
-            params["MOTION-GEO_OPT-RMS_DR"] = args.geo_opt_rms_dr
-            params["MOTION-GEO_OPT-RMS_FORCE"] = args.geo_opt_rms_force
             from pymatflow.cp2k.opt import opt_run
             task = opt_run()
             task.get_xyz(xyzfile)
@@ -1709,6 +1765,15 @@ def main():
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
         elif args.runtype == 6:
+            # neb
+            from pymatflow.cp2k.neb import neb_run
+            task = neb_run()
+            task.get_images(images=images)
+            task.set_params(params=params)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            task.neb(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 7:
             # phonopy
             from pymatflow.cp2k.phonopy import phonopy_run
             task = phonopy_run()
@@ -1813,7 +1878,7 @@ def main():
             task.set_pp(inputpp=inputpp, plotpp=plotpp)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpath=get_kpath(args.kpath_manual, args.kpath_file))
+            task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpath=get_kpath(args.kpath_manual, args.kpath_file), kpoints_mp_scf=args.kpoints_mp_scf, kpoints_mp_nscf=args.kpoints_mp_nscf)
         elif args.runtype == 1:
             # relax
             from pymatflow.qe.opt import opt_run
@@ -1872,12 +1937,12 @@ def main():
         elif args.runtype == 6:
             from pymatflow.qe.neb import neb_run
             task = neb_run()
-            task.get_images(images=args.images)
+            task.get_images(images=images)
             task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
             task.set_path(path=path)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.neb(directory=directory, runopt=args.runopt, restart_mode=args.restart_mode, auto=args.auto)
+            task.neb(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 7:
             from pymatflow.qe.dfpt import dfpt_run
             task = dfpt_run()
@@ -2016,10 +2081,13 @@ def main():
             pass
     elif args.driver == "vasp":
         params = {}
+        params["NWRITE"] = args.nwrite
         params["PREC"] = args.prec
         params["NCORE"] = args.ncore
         params["ENCUT"] = args.encut
         params["EDIFF"] = args.ediff
+        params["NELM"] = args.nelm
+        params["NFREE"] = args.nfree
         params["ISMEAR"] = args.ismear
         params["SIGMA"] = args.sigma
         params["IVDW"] = args.ivdw
@@ -2038,9 +2106,11 @@ def main():
         params["ADDGRID"] = args.addgrid
         params["ISYM"] = args.isym
         params["LREAL"] = args.lreal
+        params["LWAVE"] = args.lwave
+        params["LCHARG"] = args.lcharg
         params["ISPIN"] = args.ispin
         params["MAGMOM"] = args.magmom # magmom can be a list that can be automatically dealt with by base.incar.to_incar()
-        params["LNONCOLLLINEAR"] = args.lnoncollinear
+        params["LNONCOLLINEAR"] = args.lnoncollinear
         params["LSORBIT"] = args.lsorbit
         params["ALGO"] = args.algo
         params["LHFCALC"] = args.lhfcalc
@@ -2059,6 +2129,8 @@ def main():
             task.set_params(params, runtype="static")
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            if params["LNONCOLLINEAR"].upper() == ".TRUE." or params["LNONCOLLINEAR"].upper() == "T":
+                task.magnetic_status = "non-collinear"
             task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpoints_mp_scf=args.kpoints_mp_scf, kpoints_mp_nscf=args.kpoints_mp_nscf, kpath=get_kpath(args.kpath_manual, args.kpath_file), kpath_intersections=args.kpath_intersections)
         elif args.runtype == 1:
             # optimization
@@ -2105,7 +2177,7 @@ def main():
             # neb
             from pymatflow.vasp.neb import neb_run
             task = neb_run()
-            task.get_images(args.images)
+            task.get_images(images)
             task.set_params(params=params, runtype="neb")
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.nimage = args.nimage

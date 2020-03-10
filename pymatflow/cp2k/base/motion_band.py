@@ -535,7 +535,7 @@ class cp2k_motion_band_replica:
         self.coord = cp2k_motion_band_replica_coord()
         self.velocity = cp2k_motion_band_replica_velocity()
         # basic setting
-        
+
     def to_input(self, fout):
         """
         fout: a file stream for writing
@@ -655,7 +655,7 @@ class cp2k_motion_band:
                 "USE_COLVARS": None,
                 }
         self.status = False
-        
+
         self.banner = cp2k_motion_band_banner()
         self.ci_neb = cp2k_motion_band_ci_neb()
         self.convergence_control = cp2k_motion_band_convergence_control()
@@ -670,7 +670,7 @@ class cp2k_motion_band:
         self.images = []
 
         self.params["BAND_TYPE"] = "CI-NEB"
-        self.params["NUMBER_OF_REPLICA"] = 10
+        self.params["NUMBER_OF_REPLICA"] = 5
         self.params["K_SPRING"] = 0.05
         self.params["ROTATE_FRAMES"] = "TRUE"
         self.params["ALIGN_FRAMES"] = "TRUE"
@@ -739,5 +739,3 @@ class cp2k_motion_band:
                 self.string_method.set_params({item: params[item]})
             else:
                 pass
-
-

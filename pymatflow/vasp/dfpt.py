@@ -70,12 +70,12 @@ class dfpt_run(vasp):
             with open(os.path.join(directory, "POSCAR"), 'w') as fout:
                 self.poscar.to_poscar(fout)
 
-            # gen yhbatch script
-            self.gen_yh(directory=directory, cmd="vasp", scriptname="dfpt.slurm")
+            # gen llhpc script
+            self.gen_llhpc(directory=directory, cmd="$PMF_VASP_STD", scriptname="dfpt.slurm")
             # gen pbs script
-            self.gen_pbs(directory=directory, cmd="vasp_std", scriptname="dfpt.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD", scriptname="dfpt.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # gen local bash script
-            self.gen_bash(directory=directory, cmd="vasp_std", scriptname="dfpt.sh")
+            self.gen_bash(directory=directory, cmd="$PMF_VASP_STD", scriptname="dfpt.sh")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

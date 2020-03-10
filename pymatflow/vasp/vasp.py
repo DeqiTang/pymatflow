@@ -48,26 +48,26 @@ class vasp:
         :param runtype: one onf 'static', 'opt', 'phonopy', 'phonon', 'neb', 'md'
         """
         static_allowed = [
-            "PREC", "NCORE", "ENCUT", "EDIFF", "ISMEAR", "SIGMA",
+            "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
             "IVDW", "LORBIT", "LOPTICS", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "LSORBIT","SAXIS", "LMAXMIX", "LHFCALC", "HFSCREEN", "LSUBROT", "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG", "LELF", ""
         ]
         opt_allowed = [
-            "PREC", "NCORE", "ENCUT", "EDIFF", "ISMEAR", "SIGMA",
+            "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
             "IVDW", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG",
             "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG",
         ]
         phonopy_allowed = [
-            "PREC", "NCORE", "ENCUT", "EDIFF", "ISMEAR", "SIGMA",
+            "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
             "IVDW", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG",
         ]
         neb_allowed = [
-            "PREC", "NCORE", "ENCUT", "EDIFF", "ISMEAR", "SIGMA",
+            "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
             "IVDW", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG",
@@ -75,14 +75,14 @@ class vasp:
             "IOPT", "LCLIMB", "SPRING", "IMAGES"
         ]
         md_allowed = [
-            "PREC", "NCORE", "ENCUT", "EDIFF", "ISMEAR", "SIGMA",
+            "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
             "IVDW", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG",
             "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG",
         ]
         phonon_allowed = [
-            "PREC", "NCORE", "ENCUT", "EDIFF", "ISMEAR", "SIGMA",
+            "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
             "IVDW", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG",
@@ -155,7 +155,7 @@ class vasp:
             fout.write("cat > KPOINTS<<EOF\n")
             self.kpoints.to_kpoints(fout)
             fout.write("EOF\n")
-            fout.write("yhrun $PMF_VASP_STD\n")
+            fout.write("yhrun %s\n" % cmd)
 
 
     def gen_yh(self, directory, scriptname="vasp.sub", cmd="vasp_std"):
@@ -235,4 +235,4 @@ class vasp:
             fout.write("cat > KPOINTS<<EOF\n")
             self.kpoints.to_kpoints(fout)
             fout.write("EOF\n")
-            fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $VASP\n")
+            fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist %s\n" % cmd)

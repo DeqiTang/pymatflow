@@ -175,10 +175,9 @@ if __name__ == "__main__":
     params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"] = args.alpha
     params["FORCE_EVAL-DFT-KPOINTS-SCHEME"] = args.kpoints_scheme
 
-    params["FORCE_EVAL-dft-xc-vdw_potential"] = args.vdw
-    params["FORCE_EVAL-dft-xc-vdw_potential-potential_type"] = args.vdw_potential_type
-    params["FORCE_EVAL-dft-xc-vdw_potential-pair_potential-type"] = args.pair_type
-    params["FORCE_EVAL-dft-xc-vdw_potential-pair-potential-r_cutoff"] = args.r_cutoff
+    params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"] = args.vdw_potential_type
+    params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-TYPE"] = args.pair_type
+    params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-R_CUTOFF"] = args.r_cutoff
 
     params["MOTION-BAND-BAND_TYPE"] = args.band_type
     params["MOTION-BAND-NUMBER_OF_REPLICA"] = args.number_of_replica

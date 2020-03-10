@@ -55,13 +55,13 @@ class berry_run(vasp):
                 self.poscar.to_poscar(fout)
 
             # gen yhbatch script
-            self.gen_yh(directory=directory, scriptname="polarization-berry.sub", cmd="vasp_std")
+            self.gen_llhpc(directory=directory, scriptname="polarization-berry.sub", cmd="$PMF_VASP_STD")
             # gen pbs script
-            self.gen_pbs(directory=directory, cmd="vasp_std", scriptname="polarization-berry.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD", scriptname="polarization-berry.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # gen local bash script
-            self.gen_bash(directory=directory, mpi=self.run_params["mpi"], cmd="vasp_std", scriptname="polarization-berry.sh")
+            self.gen_bash(directory=directory, mpi=self.run_params["mpi"], cmd="$PMF_VASP_STD", scriptname="polarization-berry.sh")
             # gen lsf_sz script
-            self.gen_lsf_sz(directory=directory, cmd="vasp_std", scriptname="polarization-berry.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
+            self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="polarization-berry.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

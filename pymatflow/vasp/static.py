@@ -19,7 +19,7 @@ class static_run(vasp):
         super().__init__()
 
         self.incar.set_runtype(runtype="static")
-
+        self.magnetic_status = "spin-unpolarized" # "spin-polarized" "non-collinear"
 
     def scf(self, directory="tmp-vasp-static", runopt="gen", auto=0):
         """
@@ -42,13 +42,13 @@ class static_run(vasp):
                 self.poscar.to_poscar(fout)
 
             # gen llhpc script
-            self.gen_llhpc(directory=directory, scriptname="static-scf.slurm", cmd="vasp_std")
+            self.gen_llhpc(directory=directory, scriptname="static-scf.slurm", cmd="$PMF_VASP_STD")
             # gen pbs script
-            self.gen_pbs(directory=directory, cmd="vasp_std", scriptname="static-scf.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-scf.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # gen local bash script
-            self.gen_bash(directory=directory, mpi=self.run_params["mpi"], cmd="vasp_std", scriptname="static-scf.sh")
+            self.gen_bash(directory=directory, mpi=self.run_params["mpi"], cmd="$PMF_VASP_STD", scriptname="static-scf.sh")
             # gen lsf_sz script
-            self.gen_lsf_sz(directory=directory, cmd="vasp_std", scriptname="static-scf.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
+            self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-scf.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -79,13 +79,13 @@ class static_run(vasp):
         if runopt == "gen" or runopt == "genrun":
 
             # gen llhpc script
-            self.gen_llhpc(directory=directory, scriptname="static-nscf.slurm", cmd="vasp_std")
+            self.gen_llhpc(directory=directory, scriptname="static-nscf.slurm", cmd="$PMF_VASP_STD")
             # gen pbs script
-            self.gen_pbs(directory=directory, cmd="vasp_std", scriptname="static-nscf.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-nscf.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # gen local bash script
-            self.gen_bash(directory=directory, mpi=self.run_params["mpi"], cmd="vasp_std", scriptname="static-nscf.sh")
+            self.gen_bash(directory=directory, mpi=self.run_params["mpi"], cmd="$PMF_VASP_STD", scriptname="static-nscf.sh")
             # gen lsf_sz script
-            self.gen_lsf_sz(directory=directory, cmd="vasp_std", scriptname="static-nscf.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
+            self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-nscf.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
 
 
         if runopt == "run" or runopt == "genrun":
@@ -119,13 +119,13 @@ class static_run(vasp):
         if runopt == "gen" or runopt == "genrun":
 
             # gen llhpc script
-            self.gen_llhpc(directory=directory, scriptname="static-bands.slurm", cmd="vasp_std")
+            self.gen_llhpc(directory=directory, scriptname="static-bands.slurm", cmd="$PMF_VASP_STD")
             # gen pbs script
-            self.gen_pbs(directory=directory, cmd="vasp_std", scriptname="static-bands.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-bands.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # gen local bash script
-            self.gen_bash(directory=directory, cmd="%s vasp_std" % self.run_params["mpi"], scriptname="static-bands.sh")
+            self.gen_bash(directory=directory, cmd="%s %PMF_VASP_STD" % self.run_params["mpi"], scriptname="static-bands.sh")
             # gen lsf_sz script
-            self.gen_lsf_sz(directory=directory, cmd="vasp_std", scriptname="static-bands.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
+            self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-bands.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -183,7 +183,7 @@ class static_run(vasp):
                 for i in range(n_test + 1):
                     encut = int(emin + i * step)
                     fout.write("cd ./encut-%d\n" % encut)
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("vasp_std"))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("$PMF_VASP_STD"))
                     fout.write("cd ../\n")
                     fout.write("\n")
             os.chdir("../")
@@ -249,7 +249,7 @@ class static_run(vasp):
                 for i in range(n_test + 1):
                     kpoints = int(kmin + i * step)
                     fout.write("cd ./kpoints-%d\n" % kpoints)
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("vasp_std"))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("$PMF_VASP_STD"))
                     fout.write("cd ../\n")
                     fout.write("\n")
             os.chdir("../")
@@ -315,7 +315,7 @@ class static_run(vasp):
                 for i in range(n_test + 1):
                     sigma = sigma_min + i * step
                     fout.write("cd ./sigma-%.6f\n" % sigma)
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("vasp_std"))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("$PMF_VASP_STD"))
                     fout.write("cd ../\n")
                     fout.write("\n")
             os.chdir("../")
@@ -400,7 +400,10 @@ class static_run(vasp):
                 #self.kpoints.to_kpoints(fout)
                 fout.write(kpoints_scf)
                 fout.write("EOF\n")
-                fout.write("yhrun $PMF_VASP_STD \n")
+                if self.magnetic_status == "non-collinear":
+                    fout.write("yhrun $PMF_VASP_NCL\n")
+                else:
+                    fout.write("yhrun $PMF_VASP_STD \n")
                 fout.write("cp OUTCAR OUTCAR.scf\n")
                 fout.write("cp vasprun.xml vasprun.xml.scf\n")
 
@@ -413,7 +416,10 @@ class static_run(vasp):
                 #self.kpoints.to_kpoints(fout)
                 fout.write(kpoints_nscf)
                 fout.write("EOF\n")
-                fout.write("yhrun $PMF_VASP_STD \n")
+                if self.magnetic_status == "non-collinear":
+                    fout.write("yhrun $PMF_VASP_NCL\n")
+                else:
+                    fout.write("yhrun $PMF_VASP_STD \n")
                 fout.write("cp OUTCAR OUTCAR.nscf\n")
                 fout.write('cp vasprun.xml vasprun.xml.nscf\n')
 
@@ -427,7 +433,10 @@ class static_run(vasp):
                 #self.kpoints.to_kpoints(fout)
                 fout.write(kpoints_bands)
                 fout.write("EOF\n")
-                fout.write("yhrun $PMF_VASP_STD \n")
+                if self.magnetic_status == "non-collinear":
+                    fout.write("yhrun $PMF_VASP_NCL\n")
+                else:
+                    fout.write("yhrun $PMF_VASP_STD \n")
                 fout.write("cp OUTCAR OUTCAR.bands\n")
                 fout.write("cp vasprun.xml vasprun.xml.bands\n")
 
@@ -451,7 +460,10 @@ class static_run(vasp):
                 #self.kpoints.to_kpoints(fout)
                 fout.write(kpoints_scf)
                 fout.write("EOF\n")
-                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_NCL \n")
+                else:
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
                 fout.write("cp OUTCAR OUTCAR.scf\n")
                 fout.write("cp vasprun.xml vasprun.xml.scf\n")
 
@@ -464,7 +476,10 @@ class static_run(vasp):
                 #self.kpoints.to_kpoints(fout)
                 fout.write(kpoints_nscf)
                 fout.write("EOF\n")
-                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_NCL \n")
+                else:
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
                 fout.write("cp OUTCAR OUTCAR.nscf\n")
                 fout.write("cp vasprun.xml vasprun.xml.nscf\n")
 
@@ -478,7 +493,10 @@ class static_run(vasp):
                 #self.kpoints.to_kpoints(fout)
                 fout.write(kpoints_bands)
                 fout.write("EOF\n")
-                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_NCL \n")
+                else:
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
                 fout.write("cp OUTCAR OUTCAR.bands\n")
                 fout.write("cp vasprun.xml vasprun.xml.bands\n")
 
@@ -497,7 +515,10 @@ class static_run(vasp):
                 #self.kpoints.to_kpoints(fout)
                 fout.write(kpoints_scf)
                 fout.write("EOF\n")
-                fout.write("%s $PMF_VASP_STD \n" % self.run_params["mpi"])
+                if self.magnetic_status == "non-collinear":
+                    fout.write("%s $PMF_VASP_NCL \n" % self.run_params["mpi"])
+                else:
+                    fout.write("%s $PMF_VASP_STD \n" % self.run_params["mpi"])
                 fout.write("cp OUTCAR OUTCAR.scf\n")
                 fout.write("cp vasprun.xml vasprun.xml.scf\n")
 
@@ -510,7 +531,10 @@ class static_run(vasp):
                 #self.kpoints.to_kpoints(fout)
                 fout.write(kpoints_nscf)
                 fout.write("EOF\n")
-                fout.write("%s $PMF_VASP_STD \n" % self.run_params["mpi"])
+                if self.magnetic_status == "non-collinear":
+                    fout.write("%s $PMF_VASP_NCL \n" % self.run_params["mpi"])
+                else:
+                    fout.write("%s $PMF_VASP_STD \n" % self.run_params["mpi"])
                 fout.write("cp OUTCAR OUTCAR.nscf\n")
                 fout.write("cp vasprun.xml vasprun.xml.nscf\n")
 
@@ -524,7 +548,10 @@ class static_run(vasp):
                 #self.kpoints.to_kpoints(fout)
                 fout.write(kpoints_bands)
                 fout.write("EOF\n")
-                fout.write("%s $PMF_VASP_STD \n" % self.run_params["mpi"])
+                if self.magnetic_status == "non-collinear":
+                    fout.write("%s $PMF_VASP_NCL \n" % self.run_params["mpi"])
+                else:
+                    fout.write("%s $PMF_VASP_STD \n" % self.run_params["mpi"])
                 fout.write("cp OUTCAR OUTCAR.bands\n")
                 fout.write("cp vasprun.xml vasprun.xml.bands\n")
 
@@ -560,7 +587,10 @@ class static_run(vasp):
                 #self.kpoints.to_kpoints(fout)
                 fout.write(kpoints_scf)
                 fout.write("EOF\n")
-                fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_NCL\n")
+                else:
+                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
                 fout.write("cp OUTCAR OUTCAR.scf\n")
                 fout.write("cp vasprun.xml vasprun.xml.scf\n")
 
@@ -573,7 +603,10 @@ class static_run(vasp):
                 #self.kpoints.to_kpoints(fout)
                 fout.write(kpoints_nscf)
                 fout.write("EOF\n")
-                fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_NCL\n")
+                else:
+                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
                 fout.write("cp OUTCAR OUTCAR.nscf\n")
                 fout.write("cp vasprun.xml vasprun.xml.nscf\n")
 
@@ -587,7 +620,10 @@ class static_run(vasp):
                 #self.kpoints.to_kpoints(fout)
                 fout.write(kpoints_bands)
                 fout.write("EOF\n")
-                fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_NCL\n")
+                else:
+                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
                 fout.write("cp OUTCAR OUTCAR.bands\n")
                 fout.write("cp vasprun.xml vasprun.xml.bands\n")
 

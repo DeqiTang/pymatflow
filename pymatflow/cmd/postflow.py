@@ -187,6 +187,26 @@ def main():
     subparser.add_argument("--kpath-file", type=str,
             help="manual input kpath in crystal_b read from the file")
 
+    subparser.add_argument("--bandrange", type=float, nargs="+",
+            default=[0, 1.0],
+            help="band range to plot. in percentage")
+
+    subparser.add_argument("--engine", type=str, default="matplotlib",
+            choices=["matplotlib", "gnuplot"],
+            help="plot engine, matplotlib or gnuplot")
+
+
+    subparser.add_argument("--plotrange", type=float, nargs="+",
+            default=[0, 1.0],
+            help="plot range (in percentage), like --plotrange 0.1 0.9")
+
+    subparser.add_argument("--atomtoproj", type=int, nargs="+",
+            default=[],
+            help="atom to projection in atom projected dos. atom number starts with 1.")
+
+    subparser.add_argument("--fontsize", type=int, default=10,
+            help="fontsize for the plot.")
+
     # structure file: either xyz or cif. they are exclusive
     # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
     # so we put them in every subsubparser
@@ -386,7 +406,16 @@ def main():
     elif args.driver == "qe":
         if args.runtype == 0:
             from pymatflow.qe.post.scf import scf_out
-            post = scf_out()
+            from pymatflow.qe.post.bands import bands_post
+            from pymatflow.qe.post.pdos import pdos_out
+            os.chdir(args.directory)
+            task = bands_post(pwxbandsin="static-bands.in", bandsxout="bands.out")
+            task.plot_band(option=args.engine, bandrange=args.bandrange)
+            os.chdir("../")
+
+            task = pdos_out()
+            task.get_data(directory=args.directory, filpdos="projwfc")
+            task.export(directory=args.directory, plotrange=args.plotrange, atomtoproj=args.atomtoproj, fontsize=args.fontsize)
 
         elif args.runtype == 1:
             pass

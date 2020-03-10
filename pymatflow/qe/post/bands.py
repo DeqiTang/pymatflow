@@ -177,9 +177,9 @@ class bands_post:
                         labels_refined.append(labels[i])
                         locs_refined.append(locs[i])
                 fout.write("set xtics(")
-                for i in range(len(labels_refined)):
+                for i in range(int(len(labels_refined)-1)):
                     fout.write("'%s' %f, " % (labels_refined[i], locs_refined[i]))
-                fout.write(")\n")
+                fout.write("'%s' %f)\n" % (labels_refined[-1], locs_refined[-1]))
 
                 print("===================================================\n")
                 print("               post-qe-bands.py\n")
@@ -297,4 +297,5 @@ class bands_post:
             #plt.legend()
             plt.tight_layout()
             plt.savefig(os.path.join("post-processing", "bandstructure-maplotlib.png"))
+            plt.close()
             #

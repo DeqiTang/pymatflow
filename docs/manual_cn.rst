@@ -1,16 +1,16 @@
-.. _header-n0:
+.. _header-n40:
 
-Pymatflow用户手册
-=================
+Pymatflow用户手册 {#header-n0}
+==============================
 
 ``Pymatflow``\ 是一个第一性原理模拟的工作流自动化管理软件，有两种工作模式。其一是终端命令行模式，目的是减少用户进行DFT模拟所需要的输入文件准备和结果后处理时间，让用户在服务器集群上通过一行命令就可以提交任务和进行结果的提取。其二是使用\ ``Pymatflow``\ 提供的\ ``API``\ 进行高通量计算，这部分的使用需要用户具有一定的编程能力。目前支持的计算程序有\ ``Abinit``\ 、\ ``Quantum ESPRESSO``\ 、\ ``CP2K``\ 、\ ``SIESTA``\ 、\ ``VASP``
 
 由于个人精力有限，本手册内容并不完善，目前主要对命令行工具\ ``matflow``\ 、\ ``postflow``\ 和\ ``structflow``\ 的使用方式进行了初步介绍，以方便用户试用。
 
-.. _header-n4:
+.. _header-n44:
 
-安装Pymatflow
--------------
+安装Pymatflow {#header-n4}
+--------------------------
 
 .. code:: shell
 
@@ -28,16 +28,16 @@ Pymatflow用户手册
 
 ``pymatflow``\ 支持本地与远程服务器交互操作，但是需要做一定配置，后续做补充。
 
-.. _header-n11:
+.. _header-n51:
 
-使用须知
-~~~~~~~~
+使用须知 {#header-n11}
+~~~~~~~~~~~~~~~~~~~~~~
 
 首先用户使用本软件需要对结果自行负责，Pymatflow不保证结果的正确性。需要用户具有一定的背景知识，能够鉴别计算任务的合理性。
 
 1. 结构文件
 
-可以通过\ ``--cif``\ 、\ ``--xsd``\ 、\ ``--xsf``\ 或者\ ``--xyz``\ 三个参数之一传递结构文件路径给\ ``matflow``\ 或者\ ``postflow``\ 。用户需要注意的是这四个参数一次只能设置一个。
+可以通过\ ``--cif``\ 、\ ``--xsd``\ 、\ ``--xsf``\ 或者\ ``--xyz``\ 三个参数之一传递结构文件路径给\ ``matflow``\ 或者\ ``postflow``\ 。用户需要注意的是这四个参数一次只能设置一个。如果是进行过渡态计算，则通过\ ``--images``\ 参数输入结构。
 
 1. 赝势文件
 
@@ -95,10 +95,10 @@ Notes:
 
 用户往往需要通过\ ``--kpath-file``\ 参数向\ ``Pymatflow``\ 的命令行工具(如\ ``matflow``\ 、\ ``postflow``\ 、\ ``structflow``)指定包含有高对称K点的文件路径。要注意这里同样坐标必须是分数坐标。注意\ ``--kpath-manual``\ 的优先级高于\ ``--kpath-file``\ 。
 
-.. _header-n50:
+.. _header-n89:
 
-``matflow``\ 简介
------------------
+``matflow``\ 简介 {#header-n50}
+-------------------------------
 
 ``matflow``\ 提供了计算任务的自动化生成和提交功能。使用方式归结为一句话就是"主命令+子命令+可选参数"。主命令当然就是\ ``matflow``\ 了，至于子命令，目前一共有5个，即:
 
@@ -116,10 +116,10 @@ Notes:
 
 另外为了减少输入，用户可以使用\ ``mflow``\ 代替\ ``matflow``\ 。
 
-.. _header-n64:
+.. _header-n104:
 
-``matflow``\ 命令工具使用示例
------------------------------
+``matflow``\ 命令工具使用示例 {#header-n64}
+-------------------------------------------
 
 这里以一个简单的优化\ ``LiH``\ 立方晶胞参数的例子，展示如何使用Pymatflow来加速计算的准备工作。
 
@@ -132,10 +132,10 @@ Notes:
 即可在指定的\ ``lih-cubic``\ 文件夹中自动生成输入文件，并提交任务到服务器中，要注意的是这里默认提交的是PBS类型的任务。目前支持的服务器只有吕梁天河二号和PBS集群，或者以单机模式运行。具体使用参见\ ``--server``\ 参数的帮助文档。至于结果的提取由\ ``postflow``\ 工具提供。目前\ ``matflow``\ 对vasp支持的计算类型包括:
 静态计算(scf、nscf、bands)、结构优化、立方晶胞参数优化、六方晶胞参数优化、四方晶胞参数优化、结合VTST进行过渡态计算、VASP自带声子谱计算、结合Phonopy进行声子谱计算。
 
-.. _header-n69:
+.. _header-n109:
 
-``postflow``\ 简介
-------------------
+``postflow``\ 简介 {#header-n69}
+--------------------------------
 
 ``postflow``\ 对Pymatflow的后处理进行了部分封装，目前还未完全成熟。可能有部分选项无法使用。这里展示一下通常的使用流程。比如对上述的\ ``LiH``\ 晶胞参数优化任务的后处理，只需要运行命令:
 
@@ -150,17 +150,17 @@ Notes:
 
 目前Pymatflow的后处理功能主要还是由API提供，但是往\ ``postflow``\ 移植的工作正在进行中，后续会完善。
 
-.. _header-n75:
+.. _header-n115:
 
-``structflow``\ 简介
---------------------
+``structflow``\ 简介 {#header-n75}
+----------------------------------
 
 ``structflow``\ 主要提供了常见的结构文件转换，以及进行固定原子结构优化等功能，其中结构文件转换得益于ASE项目的\ ``ase.io``\ 的帮助。这部分内容会在后续的文章中进行介绍
 
-.. _header-n79:
+.. _header-n117:
 
-未来
-----
+未来 {#header-n79}
+------------------
 
 首先欢迎有兴趣的朋友可以一起参与开发。也欢迎用户对程序的使用提出建议，或者提交功能需求。
 
@@ -168,98 +168,112 @@ Notes:
 
 -  文档地址: http://pymatflow.readthedocs.org/
 
-.. _header-n88:
+.. _header-n124:
 
-Pymatflow的定位
----------------
+Pymatflow的定位 {#header-n88}
+-----------------------------
 
 为了打造我自己的DFT模拟工作流，在本科毕业的那个夏天，我开始为几个DFT程序的常见任务编写成通用脚本来生成输入文件，该项目被命名为\ ``emuhelper``\ 。但是随着项目的推进我发现它有非常大的扩展空间，于是在研一开学后我利用课余时间对其进行开发和完善，并将其重新命名为\ ``Pymatflow``\ 。
 
 由于我爱好开源项目，所以对商业的VASP我并没有在Pymatflow中进行支持，不过考虑到以后可能会使用VASP工作，便另外启动了一个叫做vaspstudio的项目来针对VASP构建我的工作流。
 
-.. _header-n91:
+.. _header-n127:
 
-使用Pymatflow命令行的通式
--------------------------
+使用Pymatflow命令行的通式 {#header-n91}
+---------------------------------------
 
-.. _header-n94:
+.. _header-n128:
 
-``matflow``\ 之VASP计算器
--------------------------
+``matflow``\ 之VASP计算器 {#header-n94}
+---------------------------------------
 
-.. _header-n95:
+.. _header-n129:
 
-VASP静态计算
-~~~~~~~~~~~~
+VASP静态计算 {#header-n95}
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: shell
 
    ~$ matflow vasp -r 0 --cif YOUR_STRUCTURE.cif -d DIRECTORY --encut VALUE --ediff VALUE --kpath-file KPATH_FILE_PATH --kpoints-mp VALUE
 
+参数\ ``-r 0``\ 表示静态计算，其行为是scf、nscf、bands一起进行计算。其中需要注意\ ``-d``\ 参数不能指定为当前路径，否者命令会抛出警告并退出。后处理命令如下:
+
 .. code:: shell
 
    ~$ postflow vasp -r 0 -d DIRECOTRY --kpath-file KPATH_FILE_PATH --kpoints-mp VALUE
 
-.. _header-n100:
+.. _header-n132:
 
-VASP结构优化
-~~~~~~~~~~~~
+VASP结构优化 {#header-n100}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: shell
 
-   ~$ matflow vasp -r 1 --cif YOUR_STRUCTURE.cif -d DIRECTORY --encut VALUE --ediff VALUE --ediffg VALUE	--ibirion VALUE --isif VALUE --kpoints-mp VALUE
+   ~$ matflow vasp -r 1 --cif YOUR_STRUCTURE.cif -d DIRECTORY --encut VALUE --ediff VALUE --ediffg VALUE    --ibirion VALUE --isif VALUE --kpoints-mp VALUE
 
-.. _header-n103:
+参数\ ``-r 1``\ 表示进行结构优化。其中需要注意\ ``-d``\ 参数不能指定为当前路径，否者命令会抛出警告并退出。后处理命令如下:
 
-VASP晶胞参数优化
-~~~~~~~~~~~~~~~~
+.. _header-n172:
+
+VASP晶胞参数优化 {#header-n103}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: shell
 
    ~$ matflow vasp -r [2|3|4] --cif YOUR_STRUCTURE.cif -d DIRECTORY --encut VALUE --ediff VALUE --kpoints-mp VALUE
 
+参数\ ``-r 2``\ 是进行cubic晶胞的cell参数的优化，\ ``-r 3``\ 进行hexagonal晶胞的cell参数的优化，\ ``-r 4``\ 进行tetragonal晶胞的cell参数的优化。其中需要注意\ ``-d``\ 参数不能指定为当前路径，否者命令会抛出警告并退出。后处理命令如下:
+
 .. code:: shell
 
    ~$ postflow vasp -r [2|3|4] -d DIRECOTRY
 
-.. _header-n108:
+.. _header-n137:
 
-VASP过渡态计算(VTST)
-~~~~~~~~~~~~~~~~~~~~
+VASP过渡态计算(VTST) {#header-n108}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: shell
 
-   ~$ matflow vasp -r 5 --cif YOUR_STRUCTURE.cif -d DIRECTORY --encut VALUE --ediff VALUE --kpoints-mp VALUE
+   ~$ matflow vasp -r 5 --images INITIAL.cif FINAL.cif -d DIRECTORY --encut VALUE --ediff VALUE --kpoints-mp VALUE
 
-.. _header-n111:
+参数\ ``-r 5``\ 代表进行过渡态计算。其中\ ``--images``\ 用于指定初始和终态结构。
 
-VASP声子谱计算(内置IBRION=[5, 6, 7, 8])
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _header-n174:
+
+VASP声子谱计算(内置IBRION=[5, 6, 7, 8]) {#header-n111}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: shell
 
    ~$ matflow vasp -r 6 --cif YOUR_STRUCTURE.cif -d DIRECTORY --encut VALUE --ediff VALUE --kpoints-mp VALUE --ibirion [5|6|7|8] --supercell-n VALUE
 
-.. _header-n114:
+参数\ ``-r  6``\ 是利用vasp内置的算法进行声子谱计算，需要设置\ ``--ibrion``\ 为\ ``5|6|7|8``\ 之一。其中需要注意\ ``-d``\ 参数不能指定为当前路径，否者命令会抛出警告并退出。后处理命令如下:
 
-VASP声子谱计算(Phonopy)
-~~~~~~~~~~~~~~~~~~~~~~~
+.. code::
+
+   ~$ postflow vasp -r 6 --cif YOUR_STRUCTURE.cif -d DIRECTORY --kpath-file KPATH_FILE_PATH
+
+.. _header-n175:
+
+VASP声子谱计算(Phonopy) {#header-n114}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: shell
 
    ~$ matflow vasp -r 7 --cif YOUR_STRUCTURE.cif -d DIRECTORY --encut VALUE --ediff VALUE --kpoints-mp VALUE --supercell-n VALUE
 
-.. _header-n138:
+.. _header-n143:
 
-特定类型计算
-------------
+特定类型计算 {#header-n138}
+---------------------------
 
 ``Pymatflow``\ 提供部分特定类型计算任务，文档暂无。
 
-.. _header-n172:
+.. _header-n145:
 
-服务器交互实用工具
-------------------
+服务器交互实用工具 {#header-n172}
+---------------------------------
 
 -  ``thq.py``
 
@@ -281,17 +295,17 @@ VASP声子谱计算(Phonopy)
 
 这些工具是本地与远程服务器交互的工具，具体使用需要参数配置，后续补充。
 
-.. _header-n230:
+.. _header-n166:
 
-API
----
+API {#header-n230}
+------------------
 
 文档暂无
 
-.. _header-n232:
+.. _header-n168:
 
-问题反馈
---------
+问题反馈 {#header-n232}
+-----------------------
 
 本文档所有权归属\ ``Pymatflow``\ 项目。对项目有任何问题反馈，请发送邮件至
 

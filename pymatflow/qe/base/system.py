@@ -134,7 +134,10 @@ class qe_system:
                         fout.write("starting_magnetization(%d) = %f\n" % (i+1, self.params[item][i]))
                     continue
                 if type(self.params[item]) == str:
-                    fout.write("%s = '%s'\n" % (item, str(self.params[item])))
+                    if self.params[item] == ".true." or self.params[item] == ".false.":
+                        fout.write("%s = %s\n" % (item, str(self.params[item])))
+                    else:
+                        fout.write("%s = '%s'\n" % (item, str(self.params[item])))
                 else:
                     fout.write("%s = %s\n" % (item, str(self.params[item])))
         fout.write("/\n")

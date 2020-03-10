@@ -48,11 +48,11 @@ class phonon_run(vasp):
             #    self.incar.to_incar(fout)
 
             # gen llhpc script
-            self.gen_yh(directory=directory, cmd="vasp", scriptname="phonon.slurm")
+            self.gen_llhpc(directory=directory, cmd="$PMF_VASP_STD", scriptname="phonon.slurm")
             # gen pbs script
-            self.gen_pbs(directory=directory, cmd="vasp_std", scriptname="phonon.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD", scriptname="phonon.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # gen local bash script
-            self.gen_bash(directory=directory, cmd="vasp_std", scriptname="phonon.sh")
+            self.gen_bash(directory=directory, cmd="$PMF_VASP_STD", scriptname="phonon.sh")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

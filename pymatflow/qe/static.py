@@ -1007,7 +1007,8 @@ class static_run(pwscf):
         server_handle(auto=auto, directory=directory, jobfilebase="xspectra", server=self.run_params["server"])
     #
 
-    def run(self, directory="tmp-qe-static", runopt="gen", auto=0, kpath=None):
+    def run(self, directory="tmp-qe-static", runopt="gen", auto=0, kpath=None,
+        kpoints_mp_scf=[1, 1, 1, 0, 0, 0], kpoints_mp_nscf=[3, 3, 3, 0, 0, 0]):
         """
         directory: a place for all the generated files
 
@@ -1045,6 +1046,7 @@ class static_run(pwscf):
 
             # 1) scf
             self.control.calculation("scf")
+            self.set_kpoints(kpoints_option="automatic", kpoints_mp=kpoints_mp_scf)
             with open(os.path.join(directory, "static-scf.in"), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)
@@ -1053,6 +1055,7 @@ class static_run(pwscf):
 
             # 2) nscf
             self.control.calculation("nscf")
+            self.set_kpoints(kpoints_option="automatic", kpoints_mp=kpoints_mp_nscf)
             with open(os.path.join(directory, "static-nscf.in"), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)

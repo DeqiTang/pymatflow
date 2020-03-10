@@ -77,12 +77,12 @@ class neb_run(vasp):
             # 然后设置IOPT= 1或者2来使用VTST的优化器
             # 当设置IOPT > 0，的时候也要注意需要明确设置EDIFFG < 0
 
-            # gen yhbatch script
-            self.gen_yh(directory=directory, cmd="vasp", scriptname="neb.slurm")
+            # gen llhpc script
+            self.gen_llhpc(directory=directory, cmd="$PMF_VASP_STD_NEB", scriptname="neb.slurm")
             # gen pbs script
-            self.gen_pbs(directory=directory, cmd="vasp_std", scriptname="neb.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD_NEB", scriptname="neb.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # gen local bash script
-            self.gen_bash(directory=directory, cmd="vasp_std", scriptname="neb.sh")
+            self.gen_bash(directory=directory, cmd="$PMF_VASP_STD_NEB", scriptname="neb.sh")
 
 
         if runopt == "run" or runopt == "genrun":
@@ -90,7 +90,7 @@ class neb_run(vasp):
             # each image on one core
             os.chdir(directory)
             #os.system("%s vasp" % mpi)
-            os.system("bash vasp-neb.sh")
+            os.system("bash neb.sh")
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="neb", server=self.run_params["server"])
 

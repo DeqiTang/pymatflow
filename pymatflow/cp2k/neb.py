@@ -58,10 +58,6 @@ class neb_run(cp2k):
             input filename for the cp2k
         :param output:
             output filename for the cp2k
-        :param force_eval:
-            allowing control of FORCE_EVAL/... parameters by user
-        :param motion:
-            allowing control of MOTION/... parameters by user
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):

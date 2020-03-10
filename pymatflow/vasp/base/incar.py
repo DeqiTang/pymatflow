@@ -14,7 +14,7 @@ neb_incharge =  ["IOPT", "SPRING", "IMAGES", "LCLIMB"]
 """
 in misc now, waiting for further classification:
     ISPIN, MAGMOM, LNONCOLLINEAR, LSORBIT,
-    ALGO, LHFCALC, HFSCREEN
+    ALGO,
 """
 
 class vasp_incar:
@@ -55,7 +55,7 @@ class vasp_incar:
         ions = "# =============================\n# Ions related parameters\n# =============================\n"
         write = "# =============================\n# Write flags\n# =============================\n"
         dipolecorrection = "# =============================\n# Dipole correction related parameters\n# =============================\n"
-        xc = "# =============================\n# Ions related parameters\n# =============================\n"
+        xc = "# =============================\n# Exchange correlation related parameters\n# =============================\n"
         lr = "# =============================\n# Linear response parameters\n# =============================\n"
         orbitalmagnet = "# =============================\n# Orbitalmagnet related parameters\n# =============================\n"
         misc ="# =============================\n# Miscellaneous parameters\n# =============================\n"
@@ -89,7 +89,7 @@ class vasp_incar:
             fout.write(start)
             fout.write(electrons)
             fout.write(ions)
-
+        fout.write(xc)
         fout.write(write)
         fout.write(misc)
 
@@ -115,7 +115,7 @@ class vasp_incar:
         ions = "# =============================\n# Ions related parameters\n# =============================\n"
         write = "# =============================\n# Write flags\n# =============================\n"
         dipolecorrection = "# =============================\n# Dipole correction related parameters\n# =============================\n"
-        xc = "# =============================\n# Ions related parameters\n# =============================\n"
+        xc = "# =============================\n# Exchange correlation related parameters\n# =============================\n"
         lr = "# =============================\n# Linear response parameters\n# =============================\n"
         orbitalmagnet = "# =============================\n# Orbitalmagnet related parameters\n# =============================\n"
         misc ="# =============================\n# Miscellaneous parameters\n# =============================\n"
@@ -150,6 +150,7 @@ class vasp_incar:
             incar_out += electrons
             incar_out += ions
 
+        incar_out += xc
         incar_out += write
         incar_out += misc
 
