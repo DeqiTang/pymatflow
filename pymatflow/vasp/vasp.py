@@ -227,7 +227,7 @@ class vasp:
             fout.write("do\n")
             fout.write("  echo \"$i\" >> $CURDIR/nodelist \n")
             fout.write("done\n")
-            fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\n\' \',\')\n")
+            fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\\n\' \',\')\n")
 
             fout.write("cat > INCAR<<EOF\n")
             self.incar.to_incar(fout)
