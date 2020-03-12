@@ -219,6 +219,8 @@ setup(
             'pflow = pymatflow.cmd.postflow:main',
             'structflow = pymatflow.cmd.structflow:main',
             'sflow = pymatflow.cmd.structflow:main',
+            'lmpflow = pymatflow.cmd.lmpflow:main',
+            'lflow = pymatflow.cmd.lmpflow:main'
         ]
     },
 
