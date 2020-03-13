@@ -1241,7 +1241,7 @@ def main():
     gp.add_argument("--nwrite", type=int, default=None,
             help=" This flag determines how much will be written to the file OUTCAR (verbosity flag)")
 
-    gp.add_argument("--prec", type=str, default="Normal",
+    gp.add_argument("--prec", type=str, default=None,
             choices=["Normal", "Accurate", "A", "N"],
             help="PREC, default value: Normal")
 
@@ -1252,10 +1252,10 @@ def main():
     gp = subparser.add_argument_group(title="incar->electron",
             description="electrons calculation related parameters")
 
-    gp.add_argument("--encut", type=int, default=300,
+    gp.add_argument("--encut", type=int, default=None,
             help="ENCUT, default value: 300 eV")
 
-    gp.add_argument("--ediff", type=float, default=1.0e-4,
+    gp.add_argument("--ediff", type=float, default=None,
             help="EDIFF, default value: 1.0e-4")
 
     gp.add_argument("--nelm", type=int, default=None,
@@ -1285,10 +1285,10 @@ def main():
     gp.add_argument("--kpath-intersections", type=int, default=15,
             help="intersection of the line mode kpoint for band calculation")
 
-    gp.add_argument("--ismear", type=int, default=0,
+    gp.add_argument("--ismear", type=int, default=None,
             help="smearing type(methfessel-paxton(>0), gaussian(0), fermi-dirac(-1), tetra(-4), tetra-bloch-dorrected(-5)), default: 0")
 
-    gp.add_argument("--sigma", type=float, default=0.01,
+    gp.add_argument("--sigma", type=float, default=None,
             help="determines the width of the smearing in eV.")
 
     gp.add_argument("--ivdw", type=int, default=None,
@@ -1300,7 +1300,7 @@ def main():
             choices=[0, 1, 2, 5, 10, 11, 12],
             help="together with an appropriate RWIGS, determines whether the PROCAR or PROOUT files are written")
 
-    gp.add_argument("--loptics", type=str, default="FALSE",
+    gp.add_argument("--loptics", type=str, default=None,
             choices=["TRUE", "FALSE"],
             help="calculates the frequency dependent dielectric matrix after the electronic ground state has been determined.")
 
@@ -1349,7 +1349,7 @@ def main():
     gp = subparser.add_argument_group(title="incar->ions",
             description="setting ions related parameters")
 
-    gp.add_argument("--ibrion", type=int, default=2,
+    gp.add_argument("--ibrion", type=int, default=None,
             choices=[-1, 0, 1, 2, 3, 5, 6, 7, 8, 44],
             help="IBRION = refer to https://cms.mpi.univie.ac.at/wiki/index.php/IBRION for how to set the algorithm of optimization you need!")
 
@@ -1411,18 +1411,18 @@ def main():
     gp = subparser.add_argument_group(title="incar->neb",
             description="nudged elastic band related setting")
 
-    gp.add_argument("--iopt", type=int, default=1,
+    gp.add_argument("--iopt", type=int, default=None,
             choices=[0, 1, 2],
             help="chioce for optimizer: 0->vasp, 1, 2->vtst")
 
-    gp.add_argument("--lclimb", type=str, default="T",
+    gp.add_argument("--lclimb", type=str, default=None,
             choices=["T", "F"],
             help="whether use climbing image")
 
-    gp.add_argument("--spring", type=int, default=-5,
+    gp.add_argument("--spring", type=int, default=None,
             help="gives the spring constant between the images as used in the elastic band method")
 
-    gp.add_argument("--nimage", type=int, default=5,
+    gp.add_argument("--nimage", type=int, default=None,
             help="number of image to interpolate. total image will be nimage+2.")
 
 
@@ -1452,6 +1452,12 @@ def main():
 
     gp.add_argument("--stepc", type=float, default=0.05,
             help="step of c in unit of Angstrom")
+
+    gp = subparser.add_argument_group(title="template", 
+            description="read in INCAR template")
+
+    gp.add_argument("--incar", type=str, default=None,
+            help="specify incar template to set parameters")
 
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
@@ -2081,45 +2087,72 @@ def main():
             pass
     elif args.driver == "vasp":
         params = {}
-        params["NWRITE"] = args.nwrite
-        params["PREC"] = args.prec
-        params["NCORE"] = args.ncore
-        params["ENCUT"] = args.encut
-        params["EDIFF"] = args.ediff
-        params["NELM"] = args.nelm
-        params["NFREE"] = args.nfree
-        params["ISMEAR"] = args.ismear
-        params["SIGMA"] = args.sigma
-        params["IVDW"] = args.ivdw
-        params["EDIFFG"] = args.ediffg
-        params["NSW"] = args.nsw
-        params["IBRION"] = args.ibrion
-        params["ISIF"] = args.isif
-        params["POTIM"] = args.potim
-        params["LORBIT"] = args.lorbit
-        params["LOPTICS"] = args.loptics
-        params["LSUBROT"] = args.lsubrot
-        params["SAXIS"] = args.saxis
-        params["LMAXMIX"] = args.lmaxmix
-        params["ALGO"] = args.algo
-        params["IALGO"] = args.ialgo
-        params["ADDGRID"] = args.addgrid
-        params["ISYM"] = args.isym
-        params["LREAL"] = args.lreal
-        params["LWAVE"] = args.lwave
-        params["LCHARG"] = args.lcharg
-        params["ISPIN"] = args.ispin
-        params["MAGMOM"] = args.magmom # magmom can be a list that can be automatically dealt with by base.incar.to_incar()
-        params["LNONCOLLINEAR"] = args.lnoncollinear
-        params["LSORBIT"] = args.lsorbit
-        params["ALGO"] = args.algo
-        params["LHFCALC"] = args.lhfcalc
-        params["HFSCREEN"] = args.hfscreen
-        params["LELF"] = args.lelf
-        params["IOPT"] = args.iopt
-        params["LCLIMB"] = args.lclimb
-        params["SPRING"] = args.spring
-        params["IMAGES"] = args.nimage
+        # deal with INCAR template specified by --incar
+        if args.incar == None:
+            pass
+        else:
+            if not os.path.exists(args.incar):
+                print("====================================================\n")
+                print("                  Warning !!!!\n")
+                print("----------------------------------------------------\n")
+                print("matflow vasp:\n")
+                print("the specified incar file by --incar doesn't exist\n")
+                print("go and check it\n")
+                sys.exit(1)
+            with open(args.incar, 'r') as fin:
+                incar = fin.readlines()
+            for line in incar:
+                if len(line.split()) == 0:
+                    continue
+                if line[0] == "#":
+                    continue
+                if len(line.split("\n")[0].split("#")[0].split("=")) == 2:
+                    # in case of single value INCAR variable
+                    params[line.split("=")[0].split()[0].upper()] = line.split("\n")[0].split("#")[0].split("=")[1].split()[0]
+                else:
+                    params[line.split("=")[0].split()[0].upper()] = line.split("\n")[0].split("#")[0].split("=")[1].split()
+        #
+        # if xxx is alraedy in params(set from --incar) and args.xxx is None
+        # params[xxx] will not be control by args.xxx
+        params["NWRITE"] = args.nwrite if "NWRITE" not in params or args.nwrite != None else params["NWRITE"]
+        params["PREC"] = args.prec if "PREC" not in params or args.prec != None else params["PREC"]
+        params["NCORE"] = args.ncore if "NCORE" not in params or args.ncore != None else params["NCORE"]
+        params["ENCUT"] = args.encut if "ENCUT" not in params or args.encut != None else params["ENCUT"]
+        params["EDIFF"] = args.ediff if "EDIFF" not in params or args.ediff != None else params["EDIFF"]
+        params["NELM"] = args.nelm if "NELM" not in params or args.nelm != None else params["NELM"]
+        params["NFREE"] = args.nfree if "NFREE" not in params or args.nfree != None else params["NFREE"]
+        params["ISMEAR"] = args.ismear if "ISMEAR" not in params or args.ismear != None else params["ISMEAR"]
+        params["SIGMA"] = args.sigma if "SIGMA" not in params or args.sigma != None else params["SIGMA"]
+        params["IVDW"] = args.ivdw if "IVDW" not in params or args.ivdw != None else params["IVDW"]
+        params["EDIFFG"] = args.ediffg if "EDIFFG" not in params or args.ediffg != None else params["EDIFFG"]
+        params["NSW"] = args.nsw if "NSW" not in params or args.nsw != None else params["NSW"]
+        params["IBRION"] = args.ibrion if "IBRION" not in params or args.ibrion != None else params["IBRION"]
+        params["ISIF"] = args.isif if "ISIF" not in params or args.isif != None else params["ISIF"]
+        params["POTIM"] = args.potim if "POTIM" not in params or args.potim != None else params["POTIM"]
+        params["LORBIT"] = args.lorbit if "LORBIT" not in params or args.potim != None else params["LORBIT"]
+        params["LOPTICS"] = args.loptics if "LOPTICS" not in params or args.loptics != None else params["LOPTICS"]
+        params["LSUBROT"] = args.lsubrot if "LSUBROT" not in params or args.lsubrot != None else params["LSUBROT"]
+        params["SAXIS"] = args.saxis if "SAXIS" not in params or args.saxis != None else params["SAXIS"]
+        params["LMAXMIX"] = args.lmaxmix if "LMAXMIX" not in params or args.lmaxmix != None else params["LMAXMIX"]
+        params["ALGO"] = args.algo if "ALGO" not in params or args.algo != None else params["ALGO"]
+        params["IALGO"] = args.ialgo if "IALGO" not in params or args.ialgo != None else params["IALGO"]
+        params["ADDGRID"] = args.addgrid if "ADDGRID" not in params or args.addgrid != None else params["ADDGRID"]
+        params["ISYM"] = args.isym if "ISYM" not in params or args.isym != None else params["ISYM"]
+        params["LREAL"] = args.lreal if "LREAL" not in params or args.lreal != None else params["LREAL"]
+        params["LWAVE"] = args.lwave if "LWAVE" not in params or args.lwave != None else params["LWAVE"]
+        params["LCHARG"] = args.lcharg if "LCHARG" not in params or args.lcharg != None else params["LCHARG"]
+        params["ISPIN"] = args.ispin if "ISPIN" not in params or args.ispin != None else params["ISPIN"]
+        params["MAGMOM"] = args.magmom if "MAGMOM" not in params or args.magmom != None else params["MAGMOM"] # magmom can be a list that can be automatically dealt with by base.incar.to_incar()
+        params["LNONCOLLINEAR"] = args.lnoncollinear if "LNONCOLLINEAR" not in params or args.lnoncollinear != None else params["LNONCOLLINEAR"]
+        params["LSORBIT"] = args.lsorbit if "LSORBIT" not in params or args.lsorbit != None else params["LSORBIT"]
+        params["ALGO"] = args.algo if "ALGO" not in params or args.algo != None else params["ALGO"]
+        params["LHFCALC"] = args.lhfcalc if "LHFCALC" not in params or args.lhfcalc != None else params["LHFCALC"]
+        params["HFSCREEN"] = args.hfscreen if "HFSCREEN" not in params or args.hfscreen != None else params["HFSCREEN"]
+        params["LELF"] = args.lelf if "LELF" not in params or args.lelf != None else params["LELF"]
+        params["IOPT"] = args.iopt if "IOPT" not in params or args.iopt != None else params["IOPT"]
+        params["LCLIMB"] = args.lclimb if "LCLIMB" not in params or args.lclimb != None else params["LCLIMB"]
+        params["SPRING"] = args.spring if "SPRING" not in params or args.spring != None else params["SPRING"]
+        params["IMAGES"] = args.nimage if "IMAGES" not in params or args.images != None else params["IMAGES"]
 
         if args.runtype == 0:
             # static
@@ -2129,8 +2162,9 @@ def main():
             task.set_params(params, runtype="static")
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            if params["LNONCOLLINEAR"].upper() == ".TRUE." or params["LNONCOLLINEAR"].upper() == "T":
-                task.magnetic_status = "non-collinear"
+            if params["LNONCOLLINEAR"] != None:
+                if params["LNONCOLLINEAR"].upper() == ".TRUE." or params["LNONCOLLINEAR"].upper() == "T":
+                    task.magnetic_status = "non-collinear"
             task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpoints_mp_scf=args.kpoints_mp_scf, kpoints_mp_nscf=args.kpoints_mp_nscf, kpath=get_kpath(args.kpath_manual, args.kpath_file), kpath_intersections=args.kpath_intersections)
         elif args.runtype == 1:
             # optimization
