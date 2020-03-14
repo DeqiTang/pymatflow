@@ -3,10 +3,13 @@
 
 import os
 import sys
+import copy
+import json
 import datetime
 import subprocess
 import matplotlib.pyplot as plt
 
+from pymatflow.base.xyz import base_xyz
 from pymatflow.base.atom import Atom
 
 
@@ -30,7 +33,7 @@ class opt_out:
 
     def get_info(self, file):
         """
-        get the general information of scf run from scf run output file
+        get the general information from relax or vc-relax run output file
         which is now stored in self.lines
         """
         self.clean()
@@ -154,12 +157,26 @@ class opt_out:
         # get information output each ion step
         self._get_info_for_each_ions_step()
 
-    def _get_infro_for_each_ions_step(self):
+    def _get_info_for_each_ions_step(self):
+        self.run_info["total_energy_each_ion_step"] = []
+        self.run_info["fermi_energy_each_ion_step"] = []
+        self.run_info["total_force_each_ion_step"] = []
+        self.run_info["total_force_scf_correction_each_ion_step"] = []
+        self.run_info["scf_iterations_each_ion_step"] = []
         for i in range(len(self.lines)):
             # if it is an empty line continue to next line
             if len(self.lines[i].split()) == 0:
                 continue
-            #if
+            if self.lines[i].split()[0] == "!" and self.lines[i].split()[1] == "total" and self.lines[i].split()[2] == "energy":
+                self.run_info["total_energy_each_ion_step"].append(float(self.lines[i].split()[4])) # in unit of Ry
+            if self.lines[i].split()[0] == "the" and self.lines[i].split()[1] == "Fermi":
+                self.run_info["fermi_energy_each_ion_step"].append(float(self.lines[i].split()[4])) # in unit of eV
+            if self.lines[i].split()[0] == "Total" and self.lines[i].split()[1] == "force" and self.lines[i].split()[2] == "=":
+                self.run_info["total_force_each_ion_step"].append(float(self.lines[i].split()[3])) # in unit of Ry/au
+                self.run_info["total_force_scf_correction_each_ion_step"].append(self.lines[i].split()[8]) # in unit of Ry/au
+            if self.lines[i] .split()[0] == "convergence" and self.lines[i].split()[1] == "has":
+                self.run_info["scf_iterations_each_ion_step"].append(int(self.lines[i].split()[5]))
+            
 
     def get_trajectory(self):
         """
@@ -187,10 +204,12 @@ class opt_out:
             while self.lines[end_final_coord_line] != "End final coordinates\n":
                 end_final_coord_line += 1
             # get the optimized cell
-            self.cell = []
+            self.final_cell = []
             for i in range(begin_final_coord_line+5, begin_final_coord_line+8):
+                vec = []
                 for j in range(3):
-                    self.cell.append(float(self.lines[i].split()[j]))
+                    vec.append(float(self.lines[i].split()[j]))
+                self.final_cell.append(vec)
         #
     def print_final_structure(self, xyz="optimized.xyz"):
         if self.relaxed == False:
@@ -201,13 +220,14 @@ class opt_out:
                     fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
             return
         # printout relaxed structure
-        cell = self.cell
         with open(xyz, 'w') as fout:
             fout.write("%d\n" % len(self.trajectory[-1]))
             if self.run_type == "vc-relax":
-                fout.write("cell: %.9f %.9f %.9f | %.9f %.9f %.9f | %.9f %.9f %.9f\n" % (cell[0], cell[1], cell[2], cell[3], cell[4], cell[5], cell[6], cell[7], cell[8]))
+                cell = self.final_cell
+                fout.write("cell: %.9f %.9f %.9f | %.9f %.9f %.9f | %.9f %.9f %.9f\n" % (cell[0][0], cell[0][1], cell[0][2], cell[1][0], cell[1][1], cell[1][2], cell[2][0], cell[2][1], cell[2][2]))
             else:
-                fout.write("type of opt run: relax -> the cell is not changed, so go and find the original cell\n")
+                cell = self.xyz.cell
+                fout.write("cell: %.9f %.9f %.9f | %.9f %.9f %.9f | %.9f %.9f %.9f\n" % (cell[0][0], cell[0][1], cell[0][2], cell[1][0], cell[1][1], cell[1][2], cell[2][0], cell[2][1], cell[2][2]))
             for atom in self.trajectory[-1]:
                 fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
 
@@ -219,6 +239,154 @@ class opt_out:
                 for atom in self.trajectory[i]:
                     fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
 
+
+    def plot_run_info(self):
+        """
+        """
+        plt.plot(self.run_info["scf_iterations_each_ion_step"])
+        plt.title("Iterations each ion step")
+        plt.xlabel("Ion step")
+        plt.ylabel("Scf iterations")
+        plt.tight_layout()
+        plt.savefig("scf-iterations-each-ion-step.png")
+        plt.close()
+
+        plt.plot(self.run_info["total_energy_each_ion_step"])
+        plt.title("Total energies each ion step")
+        plt.xlabel("Ion step")
+        plt.ylabel("Total Energy (Ry)")
+        plt.tight_layout()
+        plt.savefig("total-energy-each-ion-step.png")
+        plt.close()
+
+        plt.plot(self.run_info["fermi_energy_each_ion_step"])
+        plt.title("Fermi energies each ion step")
+        plt.xlabel("Ion step")
+        plt.ylabel("Fermi energiy (eV)")
+        plt.tight_layout()
+        plt.savefig("fermi-energy-each-ion-step.png")
+        plt.close()
+
+        plt.plot(self.run_info["total_force_each_ion_step"])
+        plt.title("Total force each ion step")
+        plt.xlabel("Ion step")
+        plt.ylabel("Total forces (Ry/au)")
+        plt.tight_layout()
+        plt.savefig("total-force-each-ion-step.png")
+        plt.close()
+
+    def markdown_report(self, md="opt-info.md"):
+        """
+        when writing Chinese to a file you must specify
+        encoding='utf-8' when open the file for writing
+        """
+        with open(md, 'w', encoding='utf-8') as fout:
+            fout.write("# 几何优化实验统计\n")
+            fout.write("几何优化类型: %s\n" % self.run_type)
+            fout.write("几何优化任务是否结束:%s\n" % str(self.job_done))
+            if self.job_done == True:
+                fout.write("是否成功优化: %s\n" % str(self.relaxed))
+            else:
+                fout.write("是否成功优化: %s\n" % ("运行未结束, 结果未知"))
+            fout.write("## 优化参数\n")
+            for item in self.opt_params:
+                fout.write("- %s: %s\n" % (item, str(self.opt_params[item])))
+            fout.write("## 运行信息\n")
+            # calculate the running time and print it out
+            # Importante: the length of the time string might be different, depending
+            # on the value of hours and minutes and seconds. if they are two digits
+            # number, they will be divided like: '11: 6: 2', only when they all are
+            # two digtis number, they will not be divided '11:16:12'
+            # so we have to preprocess it to build the right time string to pass into
+            # datetime.datetime.strptime()
+            if len(self.run_info["start_time"].split()) == 8:
+                start_str = self.run_info["start_time"].split()[5]+"-"+self.run_info["start_time"].split()[7]
+            elif len(self.run_info["start_time"].split()) == 9:
+                start_str = self.run_info["start_time"].split()[5]+"-"+self.run_info["start_time"].split()[7]+self.run_info["start_time"].split()[8]
+            elif len(self.run_info["start_time"].split()) == 10:
+                start_str = self.run_info["start_time"].split()[5]+"-"+self.run_info["start_time"].split()[7]+self.run_info["start_time"].split()[8]+self.run_info["start_time"].split()[9]
+            else:
+                print("===============================================\n")
+                print("                  Warning !!!\n")
+                print("===============================================\n")
+                print("qe.post.opt.markdown_report:\n")
+                print("failed to parse start_time string\n")
+                sys.exit(1)
+            if self.job_done == True:
+                if len(self.run_info["stop_time"].split()) == 7:
+                    stop_str = self.run_info["stop_time"].split()[6]+"-"+self.run_info["stop_time"].split()[5]
+                elif len(self.run_info["stop_time"].split()) == 8:
+                    stop_str = self.run_info["stop_time"].split()[7]+"-"+self.run_info["stop_time"].split()[5]+self.run_info["stop_time"].split()[6]
+                elif len(self.run_info["stop_time"].split()) == 9:
+                    stop_str = self.run_info["stop_time"].split()[8]+"-"+self.run_info["stop_time"].split()[5]+self.run_info["stop_time"].split()[6]+self.run_info["stop_time"].split()[7]
+                else:
+                    print("===============================================\n")
+                    print("                  Warning !!!\n")
+                    print("===============================================\n")
+                    print("qe.post.opt.markdown_report:\n")
+                    print("failed to parse stop_time string\n")
+                    sys.exit(1)
+
+            start = datetime.datetime.strptime(start_str, "%d%b%Y-%H:%M:%S")
+            if self.job_done == True:
+                stop = datetime.datetime.strptime(stop_str, "%d%b%Y-%H:%M:%S")
+                delta_t = stop -start
+            fout.write("- Time consuming:\n")
+            if self.job_done == True:
+                fout.write("  - totally %.1f seconds, or %.3f minutes or %.5f hours\n" % (delta_t.total_seconds(), delta_t.total_seconds()/60, delta_t.total_seconds()/3600))
+            else:
+                fout.write("  - job is not finished yet, but it starts at %s\n" % start)
+            # end the time information
+            for item in self.run_info:
+                fout.write("- %s: %s\n" % (item, str(self.run_info[item])))
+
+            fout.write("## 运行信息图示\n")
+            fout.write("Iterations per SCF\n")
+            fout.write("![Iterations per SCF](scf-iterations-each-ion-step.png)\n")
+
+            fout.write("Total energies per SCF\n")
+            fout.write("![Total energies per SCF](total-energy-each-ion-step.png)\n")
+
+            fout.write("Fermi energies per SCF\n")
+            fout.write("![Fermi energies per SCF](fermi-energy-each-ion-step.png)\n")
+
+            fout.write("Total forces per SCF\n")
+            fout.write("![Total forces per SCF](total-force-each-ion-step.png)\n")
+
+    def to_json_string(self):
+        """
+        Note:
+            self.run_info is a dict, but it cannot be dumped to json directory by json.dumps
+            because there are objects inside self.run_info, like datetime and Atom() that cannot
+            be serialized by json.dumps()
+        :return out: json string processed by json.dumps()
+        """
+        run_info = copy.deepcopy(self.run_info)
+        opt_params = copy.deepcopy(self.opt_params)
+        # convert datetime to str
+        run_info["start_time"] = str(run_info["start_time"])
+        # merge opt_params and run_info and output to json and return
+        out = opt_params
+        out.update(run_info)
+        return json.dumps(out, indent=4)
+
+
+    def export(self, directory):
+        """
+        Note:
+            * will only printout the final structure if the job is done
+        """
+        os.chdir(directory)
+        os.system("mkdir -p post-processing")
+        os.chdir("post-processing")
+        if self.job_done == True:
+            self.print_final_structure()
+        self.print_trajectory()
+        self.plot_run_info()
+        self.markdown_report("opt-info.md")
+        with open("opt.json", 'w') as fout:
+            fout.write(self.to_json_string())
+        os.system("cd ../../")
 
 
 class opt_post:

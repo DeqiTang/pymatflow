@@ -293,8 +293,8 @@ def main():
     gp = subparser.add_argument_group(title="overall running control")
 
     gp.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4 ,5, 6, 7],
-            help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6-neb; 7->phonopy")
+            choices=[0, 1, 2, 3, 4 ,5, 6, 7, 8],
+            help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6-neb; 7->phonopy; 8->vibrational_analysis")
 
     gp.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory to do the calculation")
@@ -573,6 +573,31 @@ def main():
     gp.add_argument("--rotate-frames", type=str, default="TRUE",
             choices=["TRUE", "FALSE", "true", "false"],
             help="Compute at each BAND step the RMSD and rotate the frames in order to minimize it.")
+
+    #             vibrational_analysis related parameters
+    # ---------------------------------------------------------------
+    gp = subparser.add_argument_group(title="VIBRATIONAL_ANALYSIS")
+
+    gp.add_argument("--dx", type=float, default=1.0e-2,
+            help="specify the increment to be used to construct the HESSIAN with finite difference method")
+
+    gp.add_argument("--fully-periodic", type=str, default="FALSE",
+            choices=["TRUE", "FALSE", "true", "false"],
+            help="avoids to clean rotations from the Hessian matrix")
+
+    gp.add_argument("--intensities", type=str, default="FALSE",
+            choices=["TRUE", "FALSE", "true", "false"],
+            help="Calculation of the IR-Intensities. Calculation of dipoles has to be specified explicitly"
+            )
+
+    gp.add_argument("--tc-pressure", type=float, default=1.01325000E+005,
+            help="Pressure for the calculation of the thermochemical data in unit of [Pa]")
+
+    gp.add_argument("--tc-temperature", type=float, default=2.73150000E+002,
+            help="Temperature for the calculation of the thermochemical data in unit of [K]")
+
+    gp.add_argument("--thermochemistry", type=str, default="FALSE",
+            help="Calculation of the thermochemical data. Valid for molecules in the gas phase.")
 
     #                   PHONOPY related parameters
     # ------------------------------------------------------------------
@@ -1515,7 +1540,10 @@ def main():
         if args.driver == "abinit":
             os.system("pot-from-xyz-modified.py -i %s -d ./ -p abinit --abinit-type=ncpp" % xyzfile)
         elif args.driver == "qe":
-            os.system("pot-from-xyz-modified.py -i %s -d ./ -p qe --qe-type=PAW_PBE" % xyzfile)
+            if args.runtype == 6:
+                os.system("pot-from-xyz-modified.py -i %s -d ./ -p qe --qe-type=PAW_PBE" % images[0])
+            else:
+                os.system("pot-from-xyz-modified.py -i %s -d ./ -p qe --qe-type=PAW_PBE" % xyzfile)
         elif args.driver == "siesta":
             print("=============================================================\n")
             print("                     WARNING\n")
@@ -1708,6 +1736,13 @@ def main():
         params["MOTION-BAND-ROTATE-FRAMES"] = args.rotate_frames
         params["MOTION-BAND-K_SPRING"] = args.k_spring
 
+        params["VIBRATIONAL_ANALYSIS-DX"] = args.dx
+        params["VIBRATIONAL_ANALYSIS-FULLY_PERIODIC"] = args.fully_periodic
+        params["VIBRATIONAL_ANALYSIS-INTENSITIES"] = args.intensities
+        params["VIBRATIONAL_ANALYSIS-TC_PRESSURE"] = args.tc_pressure
+        params["VIBRATIONAL_ANALYSIS-TC_TEMPERATURE"] = args.tc_temperature
+        params["VIBRATIONAL_ANALYSIS-THERMOCHEMISTRY"] = args.thermochemistry
+
         if args.runtype == 0:
             from pymatflow.cp2k.static import static_run
             task = static_run()
@@ -1789,6 +1824,15 @@ def main():
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 8:
+            # vibrational analysis
+            from pymatflow.cp2k.vib import vib_run
+            task = vib_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            task.vib(directory=args.directory, runopt=args.runopt, auto=args.auto)
         else:
             pass
 # ==============================================================================
@@ -2180,6 +2224,12 @@ def main():
         elif args.runtype == 2:
             # cubic cell
             from pymatflow.vasp.opt import opt_run
+            # some must set parameters 
+            if params["IBRION"] == None:
+                params["IBRION"] = 2
+            params["ISIF"] = 2
+            if params["NSW"] == None:
+                params["NSW"] = 100
             task = opt_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params, runtype="opt")

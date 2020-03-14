@@ -418,16 +418,33 @@ def main():
             task.export(directory=args.directory, plotrange=args.plotrange, atomtoproj=args.atomtoproj, fontsize=args.fontsize)
 
         elif args.runtype == 1:
-            pass
+            # relax
+            from pymatflow.qe.post.opt import opt_out
+            task = opt_out()
+            task.get_info(os.path.join(args.directory, "relax.out"))
+            task.export(args.directory)
         elif args.runtype == 2:
-            pass
+            # vc-relax
+            from pymatflow.qe.post.opt import opt_out
+            task = opt_out()
+            task.get_info(os.path.join(args.directory, "vc-relax.out"))
+            task.export(args.directory)
         elif args.runtype == 3:
+            # cubic cell
+            pass
+        elif args.runtype == 4:
+            # hexagonal cell
+            pass
+        elif args.runtype == 5:
+            # tetragonal cell
+            pass
+        elif args.runtype == 6:
+            # nudged elastic band
             from pymatflow.qe.neb import neb_post
             os.chdir(args.directory)
             task = neb_post(nebout=args.nebout)
             os.chdir("../")
             task.export(directory=args.directory, nebint=args.nebint, nebdat=args.nebdat, md=args.md)
-
         elif args.runtype == 7:
             # dfpt phonon
             os.system("post-qe-matdyn.py -d %s --option gnuplot --freq 0 0.1" % args.directory)

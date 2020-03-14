@@ -39,8 +39,6 @@ class opt:
         self.info["acells"] = None #
         self.info["rprimds"] = None #
         self.trajectory = None
-        self.info = {}
-        self.info = {}
 
 
     def parse(self, file):
