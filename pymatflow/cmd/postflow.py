@@ -394,6 +394,20 @@ def main():
 # ==============================================================================
     elif args.driver == "cp2k":
         if args.runtype == 0:
+            # static
+            from pymatflow.cp2k.post.scf import scf_out
+            task = scf_out()
+            task.get_info(os.path.join(args.directory, "static-scf.out"))
+            task.export(args.directory)
+        elif args.runtype == 1:
+            pass
+        elif args.runtpye == 2:
+            pass
+        elif args.runtype == 3:
+            pass 
+        elif args.runtype == 4:
+            pass
+        elif args.runtype == 5:
             pass
         elif args.runtype == 6 :
             # phonopy

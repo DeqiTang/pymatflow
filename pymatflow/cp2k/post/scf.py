@@ -1,4 +1,8 @@
 # ==============================================================================
+import os
+import copy
+import sys
+import json
 import datetime
 import matplotlib.pyplot as plt
 
@@ -112,6 +116,63 @@ class scf_out:
         # in the output file
         # ----------------------------------------------------------------------
 
-    # def
-    #
+    def plot_info(self):
+        # now output the scf information in the current directory(post-processing)
+        plt.plot(self.run_info["scf_energies"], marker="o")
+        plt.title("Total energy per scf step")
+        plt.xlabel("Scf step")
+        plt.ylabel("Total energy(a.u.")
+        plt.tight_layout()
+        plt.savefig("total-energy-per-scf-step.png")
+        plt.close()
+
+    def markdown_report(self, md="scf-info.md"):
+        with open(md, 'w', encoding='utf-8') as fout:
+            fout.write("# SCF实验统计\n")
+            fout.write("## SCF参数\n")
+            for item in self.scf_params:
+                fout.write("- %s: %s\n" % (item, str(self.scf_params[item])))
+            fout.write("## 运行信息\n")
+            # calculate the running time and print it out
+            # note that the accuracy for the seconds is not fully guranteed
+            # e.g. 2019-11-26 12:09:36.487 is read as 2019-11-26 12:09:36
+            start = datetime.datetime.strptime(self.run_info["start_time"].split()[7]+"-"+self.run_info["start_time"].split()[8].split(".")[0], "%Y-%m-%d-%H:%M:%S")
+            stop = datetime.datetime.strptime(self.run_info["stop_time"].split()[7]+"-"+self.run_info["stop_time"].split()[8].split(".")[0], "%Y-%m-%d-%H:%M:%S")
+            delta_t = stop -start
+            fout.write("- Time consuming:\n")
+            fout.write("  - totally %.1f seconds, or %.3f minutes or %.5f hours\n" % (delta_t.total_seconds(), delta_t.total_seconds()/60, delta_t.total_seconds()/3600))
+            # end the time information
+            for item in self.run_info:
+                fout.write("- %s: %s\n" % (item, str(self.run_info[item])))
+
+            fout.write("## 运行信息图示\n")
+            fout.write("![dft-energy-per-scf](total-energy-per-scf-step.png)")
     
+    def to_json_string(self):
+        """
+        Note:
+            self.run_info is a dict, but it cannot be dumped to json directory by json.dumps
+            because there are objects inside self.run_info, like datetime that cannot
+            be serialized by json.dumps()
+        :return out: json string processed by json.dumps()
+        """
+        run_info = copy.deepcopy(self.run_info)
+        scf_params = copy.deepcopy(self.scf_params)
+        # convert datetime to str
+        run_info["start_time"] = str(run_info["start_time"])
+        # merge opt_params and run_info and output to json and return
+        out = scf_params
+        out.update(run_info)
+        return json.dumps(out, indent=4)
+
+    def export(self, directory):
+        """
+        """
+        os.chdir(directory)
+        os.system("mkdir -p post-processing")
+        os.chdir("post-processing")
+        self.plot_info()
+        self.markdown_report()
+        with open("scf.json", 'w') as fout:
+            fout.write(self.to_json_string())
+        os.chdir("../../")
