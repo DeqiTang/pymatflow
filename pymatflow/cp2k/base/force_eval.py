@@ -92,6 +92,8 @@ class cp2k_force_eval:
         for item in params:
             if len(item.split("-")) == 1:
                 self.params[item.split("-")[-1]] = params[item]
+            elif item.split("-")[0] == "SUBSYS":
+                self.subsys.set_params({item: params[item]})
             elif item.split("-")[0] == "DFT":
                 self.dft.set_params({item: params[item]})
             elif item.split("-")[0] == "PROPERTIES":

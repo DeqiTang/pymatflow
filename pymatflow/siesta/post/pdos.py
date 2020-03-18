@@ -24,12 +24,11 @@ class orbital:
 class pdos:
     """
     """
-    def __init__(self, pdos_f):
+    def __init__(self):
+        self.file = None
+        
+    def get_info(self, pdos_f):
         self.file = pdos_f
-
-        self.get_info()
-
-    def get_info(self):
         tree = xml.etree.ElementTree.parse(self.file)
         root = tree.getroot()
         
@@ -59,3 +58,8 @@ class pdos:
         plt.legend()
         plt.show()
 
+    def export(self, directory):
+        os.chdir(directory)
+        os.system("mkdir -p post-processing")
+        self.projected_to_element()
+        os.chdir("../../")

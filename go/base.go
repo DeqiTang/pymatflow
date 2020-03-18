@@ -2,6 +2,8 @@ package main
 
 import "fmt"
 
+// TODO
+
 type Atom struct {
 	name string
 	x    float64

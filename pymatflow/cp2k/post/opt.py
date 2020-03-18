@@ -1,9 +1,168 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
+import os
+import copy
+import json
 import datetime
 import subprocess
 import matplotlib.pyplot as plt
+
+
+class opt_out:
+    """
+    """
+    def __init__(self):
+        """
+        output is the output file of scf run
+        """
+        self.file = None
+        self.params = {}
+        self.run_info = {}
+        self.run_type = None # GEO_OPT / CELL_OPT
+
+    def get_info(self, file):
+        """
+        get the general information of running from opt run output file
+        which is now stored in self.lines
+        """
+        self.clean()
+
+        self.file = file
+        with open(self.file, 'r') as fout:
+            self.lines = fout.readlines()
+        self.get_params_and_run_info()
+
+
+    def clean(self):
+        self.file = None
+        self.params = {}
+        self.run_info = {}
+
+    #
+    def get_params_and_run_info(self):
+        """
+        self.run_info[]
+            start_time: the task start time
+            stop_time: the task stop time
+            scf_energies: all the energies during the scf procedure
+            #fermi_energy: fermi energy of the system (if output)
+
+        """
+        self.run_info["total_energy_each_ion_step"] = []
+
+        for i in range(len(self.lines)):
+            # if it is an empty line continue to next line
+            if len(self.lines[i].split()) == 0:
+                continue
+            if self.lines[i].split()[0] == "****" and self.lines[i].split()[1] == "****" and self.lines[i].split()[5] == "STARTED":
+                self.run_info["start_time"] = self.lines[i].split("\n")[0]
+            elif self.lines[i].split()[0] == "****" and self.lines[i].split()[1] == "****" and self.lines[i].split()[5] == "ENDED":
+                self.run_info["stop_time"] = self.lines[i].split("\n")[0]
+            elif self.lines[i].split()[0] == "GLOBAL|" and self.lines[i].split()[1] == "Basis":
+                self.params["BASIS_SET_FILE_NAME"] = self.lines[i].split()[-1].split("\n")[0]
+                self.params["POTENTIAL_FILE_NAME"] = self.lines[i+1].split()[-1].split("\n")[0]
+            elif self.lines[i].split()[0] == "GLOBAL|" and self.lines[i].split()[1] == "Project":
+                self.params["PROJECT_NAME"] = self.lines[i].split()[-1].split("\n")[0]
+            elif self.lines[i].split()[0] == "GLOBAL|" and self.lines[i].split()[1] == "Run":
+                self.params["RUN_TYPE"] = self.lines[i].split()[-1].split("\n")[0]
+            elif self.lines[i].split()[0] == "GLOBAL|" and self.lines[i].split()[1] == "Global":
+                self.params["PRINT_LEVEL"] = self.lines[i].split()[-1].split("\n")[0]
+            elif self.lines[i].split()[0] == "GLOBAL|" and self.lines[i].split()[1] == "Total" and self.lines[i].split()[2] == "number":
+                self.run_info["mpi_processes"] = int(self.lines[i].split()[-1].split("\n")[0])
+                self.run_info["cpu_model"] = self.lines[i+3].split("name")[1].split("\n")[0]
+            elif self.lines[i].split()[0] == "-" and self.lines[i].split()[1] == "Atoms:":
+                self.run_info["n_atom"] = int(self.lines[i].split()[-1].split("\n")[0])
+                self.run_info["n_shell"] = int(self.lines[i+2].split()[-1].split("\n")[0])
+            elif self.lines[i].split()[0] == "max_scf:":
+                self.params["MAX_SCF"] = int(self.lines[i].split()[-1].split("\n")[0])
+                self.params["MAX_SCF_HISTORY"] = int(self.lines[i+1].split()[-1].split("\n")[0])
+                self.params["MAX_DIIS"] = int(self.lines[i+2].split()[-1].split("\n")[0])
+            elif self.lines[i].split()[0] == "eps_scf:":
+                self.params["EPS_SCF"] = float(self.lines[i].split()[1])
+                self.params["EPS_SCF_HISTORY"] = float(self.lines[i+1].split()[1])
+                self.params["EPS_DIIS"] = float(self.lines[i+2].split()[1])
+            elif self.lines[i].split()[0] == "Mixing" and self.lines[i].split()[1] == 'method:':
+                self.params["MIXING"] = self.lines[i].split()[2]
+            elif self.lines[i].split()[0] == "added" and self.lines[i].split()[1] == "MOs":
+                self.params["ADDED_MOS"] = int(self.lines[i].split()[2])
+            elif self.lines[i].split()[0] == "Number" and self.lines[i].split()[1] == "of" and self.lines[i].split()[2] == "electrons:":
+                self.run_info["n_electrons"] = int(self.lines[i].split()[3])
+                self.run_info["n_occcupied_orbital"] = int(self.lines[i+1].split()[4])
+                self.run_info["n_molecular_orbital"] = int(self.lines[i+2].split()[4])
+                self.run_info["n_orbital_function"] = int(self.lines[i+4].split()[4])
+            elif self.lines[i].split()[0] == "ENERGY|" and self.lines[i].split()[4] == "QS":
+                self.run_info["total_energy_each_ion_step"].append(float(self.lines[i].split()[8])) # in unit of a.u.
+            else:
+                pass
+        # ----------------------------------------------------------------------
+        # get the xyz structure from information extracted above:
+        # WARNING: in low level print of cp2k, there is no structure coordinates
+        # in the output file
+        # ----------------------------------------------------------------------
+        #
+    def plot_info(self):
+        # now output the scf information in the current directory(post-processing)
+        plt.plot(self.run_info["total_energy_each_ion_step"], marker="o")
+        plt.title("Total energy each ion step")
+        plt.xlabel("Ion step")
+        plt.ylabel("Total energy(a.u.")
+        plt.tight_layout()
+        plt.savefig("total-energy-each-ion-step.png")
+        plt.close()
+
+    def markdown_report(self, md="opt-info.md"):
+        with open(md, 'w', encoding='utf-8') as fout:
+            fout.write("# Optimization实验统计\n")
+            fout.write("集合优化类型:%s\n" % self.params["RUN_TYPE"])
+            fout.write("## 模拟参数\n")
+            for item in self.params:
+                fout.write("- %s: %s\n" % (item, str(self.params[item])))
+            fout.write("## 运行信息\n")
+            # calculate the running time and print it out
+            # note that the accuracy for the seconds is not fully guranteed
+            # e.g. 2019-11-26 12:09:36.487 is read as 2019-11-26 12:09:36
+            start = datetime.datetime.strptime(self.run_info["start_time"].split()[7]+"-"+self.run_info["start_time"].split()[8].split(".")[0], "%Y-%m-%d-%H:%M:%S")
+            stop = datetime.datetime.strptime(self.run_info["stop_time"].split()[7]+"-"+self.run_info["stop_time"].split()[8].split(".")[0], "%Y-%m-%d-%H:%M:%S")
+            delta_t = stop -start
+            fout.write("- Time consuming:\n")
+            fout.write("  - totally %.1f seconds, or %.3f minutes or %.5f hours\n" % (delta_t.total_seconds(), delta_t.total_seconds()/60, delta_t.total_seconds()/3600))
+            # end the time information
+            for item in self.run_info:
+                fout.write("- %s: %s\n" % (item, str(self.run_info[item])))
+
+            fout.write("## 运行信息图示\n")
+            fout.write("![total-energy-each-ion-step](total-energy-each-ion-step.png)")
+    
+    def to_json_string(self):
+        """
+        Note:
+            self.run_info is a dict, but it cannot be dumped to json directory by json.dumps
+            because there are objects inside self.run_info, like datetime that cannot
+            be serialized by json.dumps()
+        :return out: json string processed by json.dumps()
+        """
+        run_info = copy.deepcopy(self.run_info)
+        params = copy.deepcopy(self.params)
+        # convert datetime to str
+        run_info["start_time"] = str(run_info["start_time"])
+        # merge opt_params and run_info and output to json and return
+        out = params
+        out.update(run_info)
+        return json.dumps(out, indent=4)
+
+    def export(self, directory):
+        """
+        """
+        os.chdir(directory)
+        os.system("mkdir -p post-processing")
+        os.chdir("post-processing")
+        self.plot_info()
+        self.markdown_report()
+        with open("opt.json", 'w') as fout:
+            fout.write(self.to_json_string())
+        os.chdir("../../")
+
 
 class opt_post:
     """

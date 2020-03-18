@@ -99,11 +99,8 @@ def main():
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory to do the calculation")
 
-    # structure file: either xyz or cif. they are exclusive
-    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
-    # so we put them in every subsubparser
-    structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
-    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
+    # structure file
+    structfile = subparser.add_mutually_exclusive_group() # only one of them can be provided
     structfile.add_argument("--xyz", type=str, default=None,
             help="The xyz structure file with the second line specifying the cell parameter")
 
@@ -150,11 +147,8 @@ def main():
             help="file to read the kpath for band structure calculation")
 
 
-    # structure file: either xyz or cif. they are exclusive
-    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
-    # so we put them in every subsubparser
-    structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
-    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
+    # structure file
+    structfile = subparser.add_mutually_exclusive_group() # only one of them can be provided
     structfile.add_argument("--xyz", type=str, default=None,
             help="The xyz structure file with the second line specifying the cell parameter")
 
@@ -166,6 +160,7 @@ def main():
 
     structfile.add_argument("--xsf", type=str, default=None,
             help="The xsf structure file")
+
 
 
     # --------------------------------------------------------------------------
@@ -207,11 +202,8 @@ def main():
     subparser.add_argument("--fontsize", type=int, default=10,
             help="fontsize for the plot.")
 
-    # structure file: either xyz or cif. they are exclusive
-    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
-    # so we put them in every subsubparser
-    structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
-    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
+    # structure file
+    structfile = subparser.add_mutually_exclusive_group() # only one of them can be provided
     structfile.add_argument("--xyz", type=str, default=None,
             help="The xyz structure file with the second line specifying the cell parameter")
 
@@ -260,11 +252,9 @@ def main():
     subparser.add_argument("--kpath-file", type=str,
             help="manual input kpath read from the file")
 
-    # structure file: either xyz or cif. they are exclusive
-    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
-    # so we put them in every subsubparser
-    structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
-    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
+
+    # structure file
+    structfile = subparser.add_mutually_exclusive_group() # only one of them can be provided
     structfile.add_argument("--xyz", type=str, default=None,
             help="The xyz structure file with the second line specifying the cell parameter")
 
@@ -276,6 +266,7 @@ def main():
 
     structfile.add_argument("--xsf", type=str, default=None,
             help="The xsf structure file")
+
 
 
     # --------------------------------------------------------------------------
@@ -297,11 +288,8 @@ def main():
     subparser.add_argument("--kpath-file", type=str,
             help="manual input kpath read from the file")
 
-    # structure file: either xyz or cif. they are exclusive
-    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
-    # so we put them in every subsubparser
-    structfile = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
-    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
+    # structure file
+    structfile = subparser.add_mutually_exclusive_group() # only one of them can be provided
     structfile.add_argument("--xyz", type=str, default=None,
             help="The xyz structure file with the second line specifying the cell parameter")
 
@@ -313,6 +301,8 @@ def main():
 
     structfile.add_argument("--xsf", type=str, default=None,
             help="The xsf structure file")
+
+
 
     subparser.add_argument("--plotrange", type=float, nargs="+",
             default=[0, 1.0],
@@ -375,6 +365,15 @@ def main():
             post = opt()
             post.parse(os.path.join(args.directory, "optimization.out"))
             post.export(directory=args.directory)
+        elif args.runtype == 2:
+            # cubic cell
+            os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
+        elif args.runtype == 3:
+            # hexagonal cell
+            os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
+        elif args.runtype == 4:
+            # tetragonal cell
+            os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
         elif args.runtype == 5:
             # dfpt-elastic-piezo-dielec
             #from pymatflow.abinit.post.dfpt import dfpt_elastic_piezo_dielec_anaddb_out
@@ -400,23 +399,38 @@ def main():
             task.get_info(os.path.join(args.directory, "static-scf.out"))
             task.export(args.directory)
         elif args.runtype == 1:
-            pass
-        elif args.runtpye == 2:
-            pass
+            from pymatflow.cp2k.post.opt import opt_out 
+            task = opt_out()
+            task.get_info(os.path.join(args.directory, "geo-opt.out"))
+            task.export(args.directory)
+        elif args.runtype == 2:
+            from pymatflow.cp2k.post.opt import opt_out 
+            task = opt_out()
+            task.get_info(os.path.join(args.directory, "cell-opt.out"))
+            task.export(args.directory)
         elif args.runtype == 3:
-            pass 
+            # cubic cell
+            os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
         elif args.runtype == 4:
-            pass
+            # hexagonal cell
+            os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
         elif args.runtype == 5:
+            # tetragonal cell
+            os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
+        elif args.runtype == 6:
+            # neb 
             pass
-        elif args.runtype == 6 :
+        elif args.runtype == 7:
             # phonopy
             os.system("post-cp2k-phonopy.py -d %s -f %s --qpath-file %s --supercell-n %d %d %d" % (args.directory, args.xyz, args.kpath_file, args.supercell_n[0], args.supercell_n[1], args.supercell_n[2]))
+        elif args.runtype == 8:
+            # vibrational analysis
+            pass
         else:
             pass
-# ==============================================================================
+# ====================================================================================
 # Quantum ESPRESSO Qautnum ESPRESSO Quantum ESPRESSO Quantum ESPRESSO Quantum ESPRESSO
-# ==============================================================================
+# ====================================================================================
     elif args.driver == "qe":
         if args.runtype == 0:
             from pymatflow.qe.post.scf import scf_out
@@ -445,13 +459,13 @@ def main():
             task.export(args.directory)
         elif args.runtype == 3:
             # cubic cell
-            pass
+            os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))    
         elif args.runtype == 4:
             # hexagonal cell
-            pass
+            os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
         elif args.runtype == 5:
             # tetragonal cell
-            pass
+            os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
         elif args.runtype == 6:
             # nudged elastic band
             from pymatflow.qe.neb import neb_post
@@ -472,10 +486,35 @@ def main():
 # ==============================================================================
     elif args.driver == "siesta":
         if args.runtype == 0:
-            pass
+            # static
+            from pymatflow.post.pdos import pdos
+            task = pdos()
+            task.get_info(os.path.join(args.directory, "siesta.PDOS.xml"))
+            task.export(directory=args.directory)
+            from pymatflow.post.bands import bands_post
+            task = bands_post()
+            task.process(os.path.join(args.directory, "siesta.bands"))
+            task.export(directory=args.directory, option=args.engine)
+        elif args.runtype == 1:
+            # optimization
+            from pymatflow.siesta.pots.opt import opt_out
+            task = opt_out()
+            task.get_info(os.path.join(args.directory, "geometric-optimization.out"))
+            task.export(directory=args.directory)
+        elif args.runtype == 2:
+            # cubic cell
+            os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
+        elif args.runtype == 3:
+            # hexagonal cell
+            os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
+        elif args.runtype == 4:
+            # tetragonal
+            os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
         elif args.runtype == 5:
             # phonopy
             os.system("post-siesta-phonopy.py -d %s -f %s --qpath-file %s --supercell-n %d %d %d" % (args.directory, args.xyz, args.kpath_file, args.supercell_n[0], args.supercell_n[1], args.supercell_n[2]))
+        else:
+            pass
 
 # ==============================================================================
 # VASP

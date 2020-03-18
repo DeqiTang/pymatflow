@@ -187,9 +187,13 @@ def main():
             choices=[1],
             help="Kpoints Generation scheme option: 0, 1, 2, 3, 4 or a negative value. for more information, refer to https://docs.abinit.org/variables/basic/#kptopt")
 
-    gp.add_argument("--ngkpt", nargs="+", type=int,
+    gp.add_argument("--ngkpt", nargs=3, type=int,
             default=[1, 1, 1],
             help="number of grid points for kpoints generation. for more information, refer to https://docs.abinit.org/variables/basic/#ngkpt")
+
+    #gp.add_argument("--kpoints-mp", type=int, nargs=6,
+            default=[1, 1, 1, 0, 0, 0],
+            help="monkhorst-pack type k mesh generation using ngkpt.")
 
     # electron occupation
     gp = subparser.add_argument_group(title="electronic structure: occupation",
@@ -363,6 +367,12 @@ def main():
             choices=["auto"],
             help="setting pseudopotential file, in cp2k can only be auto(no need to set)")
 
+    # FORCE_EVAL/SUBSYS
+    gp = subparser.add_argument_group(title="FORCE_EVAL/SUBSYS")
+
+    gp.add_argument("--cell-symmetry", type=str, default=None,
+            help="Imposes an initial cell symmetry. must be set when you do KEEP_SYMMETRY cell_opt")
+
     # FORCE_EVAL/DFT
     gp = subparser.add_argument_group(title="FORCE_EVAL/DFT")
 
@@ -523,6 +533,12 @@ def main():
 
     gp.add_argument("--cell-opt-pressure-tolerance", type=float, default=1.00000000E+002,
             help="Specifies the Pressure tolerance (compared to the external pressure) to achieve during the cell optimization, default is 1.0e2")
+        
+    gp.add_argument("--cell-opt-keep-angles", type=str, default=None,
+            help="Keep angles between the cell vectors constant, but allow the lenghts of the cell vectors to change independently.")
+
+    gp.add_argument("--cell-opt-keep-symmetry", type=str, default=None,
+            help="Keep the requested initial cell symmetry (e.g. during a cell optimisation). The initial symmetry must be specified in the &CELL section.")
 
 
     # MOTION/GEO_OPT related parameters
@@ -1688,6 +1704,8 @@ def main():
     elif args.driver == "cp2k":
         params = {}
 
+        params["FORCE_EVAL-SUBSYS-CELL-SYMMETRY"] = args.cell_symmetry
+
         params["FORCE_EVAL-DFT-LS_SCF"] = args.ls_scf
         params["FORCE_EVAL-DFT-QS-METHOD"] = args.qs_method
         params["FORCE_EVAL-DFT-MGRID-CUTOFF"] = args.cutoff
@@ -1729,6 +1747,8 @@ def main():
         params["MOTION-CELL_OPT-RMS_DR"] = args.cell_opt_rms_dr
         params["MOTION-CELL_OPT-RMS_FORCE"] = args.cell_opt_rms_force
         params["MOTION-CELL_OPT-PRESSURE_TOLERANCE"] = args.cell_opt_pressure_tolerance
+        params["MOTION-CELL_OPT-KEEP_ANGLES"] = args.cell_opt_keep_angles
+        params["MOTION-CELL_OPT-KEEP_SYMMETRY"] = args.cell_opt_keep_symmetry
 
         params["MOTION-BAND-BAND_TYPE"] = args.band_type
         params["MOTION-BAND-NUMBER_OF_REPLICA"] = args.number_of_replica
@@ -1743,6 +1763,19 @@ def main():
         params["VIBRATIONAL_ANALYSIS-TC_TEMPERATURE"] = args.tc_temperature
         params["VIBRATIONAL_ANALYSIS-THERMOCHEMISTRY"] = args.thermochemistry
 
+        # do some check
+        if params["MOTION-CELL_OPT-KEEP_SYMMETRY"] == None:
+            pass
+        elif params["MOTION-CELL_OPT-KEEP_SYMMETRY"].upper() == ".TRUE." or params["MOTION-CELL_OPT-KEEP_SYMMETRY"].upper() == "TURE":
+            if params["FORCE_EVAL-SUBSYS-CELL-SYMMETRY"] == None:
+                print("==============================================================\n")
+                print("                    WARNING!!!\n")
+                print("--------------------------------------------------------------")
+                print("you are trying to use KEEP_SYMMETRY in CELL_OPT\n")
+                print("in which case you must set an initial symmetry in &CELL\n")
+                print("go and check it\n")
+                sys.exit(1)
+                
         if args.runtype == 0:
             from pymatflow.cp2k.static import static_run
             task = static_run()

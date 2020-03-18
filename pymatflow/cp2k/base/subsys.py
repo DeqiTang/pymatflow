@@ -36,7 +36,20 @@ class cp2k_subsys_cell:
         fout.write("\t\t\tB %.9f %.9f %.9f\n" % (xyz.cell[1][0], xyz.cell[1][1], xyz.cell[1][2]))
         fout.write("\t\t\tC %.9f %.9f %.9f\n" % (xyz.cell[2][0], xyz.cell[2][1], xyz.cell[2][2]))
         fout.write("\t\t\tPERIODIC XYZ\n")
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("\t\t\t%s %s\n" % (item, self.params[item]))
         fout.write("\t\t&END CELL\n")
+    
+    def set_params(self, params):
+        """
+        """
+        for item in params:
+            if len(item.split("-")) == 3:
+                self.params[item.split("-")[-1]] = params[item]
+            else:
+                pass
+
 
 
 class cp2k_subsys_colvar:
@@ -187,3 +200,15 @@ class cp2k_subsys:
         if self.topology.status == True:
             self.topology.to_input(fout, self.xyz)
         fout.write("\t&END SUBSYS\n")
+
+    def set_params(self, params):
+        """
+            Note: parameters for sub section(like md), are handled over to sub section controllers.
+        """
+        for item in params:
+            if len(item.split("-")) == 2:
+                self.params[item.split("-")[-1]] = params[item]
+            elif item.split("-")[1] == "CELL":
+                self.cell.set_params({item: params[item]})
+            else:
+                pass
