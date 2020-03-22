@@ -81,7 +81,7 @@ class opt_out:
         plt.close()
 
 
-    def markdown_report(self, md="opt-info.md")
+    def markdown_report(self, md="opt-info.md"):
         """
         when writing Chinese to a file you must specify
         encoding='utf-8' when open the file for writing

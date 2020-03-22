@@ -126,14 +126,18 @@ def main():
             choices=["matplotlib", "gnuplot"],
             help="plot engine, matplotlib or gnuplot")
 
+    subparser.add_argument("--supercell-n", type=int, nargs="+",
+            default=[1, 1, 1],
+            help="supercell for phonopy, like [2, 2, 2]")
+
     # --------------------------------------------------------------------------
     # CP2K
     # --------------------------------------------------------------------------
     subparser = subparsers.add_parser("cp2k", help="using cp2k as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default="static",
-            choices=[0, 1, 2, 3, 4 ,5, 6],
-            help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->phonopy")
+            choices=[0, 1, 2, 3, 4 ,5, 6, 7, 8, 9, 10],
+            help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->neb; 7->phonopy; 8->vibrational_analysis; 9:converge test; 10->aimd")
 
 
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
@@ -145,7 +149,6 @@ def main():
 
     subparser.add_argument("--kpath-file", type=str,
             help="file to read the kpath for band structure calculation")
-
 
     # structure file
     structfile = subparser.add_mutually_exclusive_group() # only one of them can be provided
@@ -161,6 +164,16 @@ def main():
     structfile.add_argument("--xsf", type=str, default=None,
             help="The xsf structure file")
 
+    subparser.add_argument("--converge", type=str, default="cutoff",
+            choices=["cutoff", "rel_cutoff", "kpoints_auto", "kpoints_manual"],
+            help="choose type of converge test")
+
+    subparser.add_argument("--criteria", type=float, default=7.35e-4,
+            help="converge criteria for cutoff or rel_cutoff or kpoints in unit of Ry")
+
+    subparser.add_argument("--supercell-n", type=int, nargs="+",
+            default=[1, 1, 1],
+            help="supercell for phonopy, like [2, 2, 2]")
 
 
     # --------------------------------------------------------------------------
@@ -232,7 +245,9 @@ def main():
     subparser.add_argument("--nebout", type=str, default="neb.out",
             help="output file of neb calculation")
 
-
+    subparser.add_argument("--supercell-n", type=int, nargs="+",
+            default=[1, 1, 1],
+            help="supercell for phonopy, like [2, 2, 2]")
 
     # --------------------------------------------------------------------------
     # SIESTA
@@ -267,7 +282,9 @@ def main():
     structfile.add_argument("--xsf", type=str, default=None,
             help="The xsf structure file")
 
-
+    subparser.add_argument("--supercell-n", type=int, nargs="+",
+            default=[1, 1, 1],
+            help="supercell for phonopy, like [2, 2, 2]")
 
     # --------------------------------------------------------------------------
     # VASP
@@ -316,7 +333,10 @@ def main():
             choices=["matplotlib", "gnuplot"],
             help="plot engine, matplotlib or gnuplot")
 
-
+    subparser.add_argument("--supercell-n", type=int, nargs="+",
+            default=[1, 1, 1],
+            help="supercell for phonopy, like [2, 2, 2]")
+            
 
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
@@ -367,13 +387,16 @@ def main():
             post.export(directory=args.directory)
         elif args.runtype == 2:
             # cubic cell
-            os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
+            #os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
+            os.system("cd %s; bash get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
         elif args.runtype == 3:
             # hexagonal cell
-            os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
+            #os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
+            os.system("cd %s; bash get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
         elif args.runtype == 4:
             # tetragonal cell
-            os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
+            #os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
+            os.system("cd %s; bash get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
         elif args.runtype == 5:
             # dfpt-elastic-piezo-dielec
             #from pymatflow.abinit.post.dfpt import dfpt_elastic_piezo_dielec_anaddb_out
@@ -426,6 +449,19 @@ def main():
         elif args.runtype == 8:
             # vibrational analysis
             pass
+        elif args.runtype == 9:
+            # converge test
+            from pymatflow.cp2k.post.converge import converge_post
+            task = converge_post()
+            task.criteria_for_cutoff = args.criteria
+            task.criteria_for_rel_cutoff = args.criteria
+            task.criteria_for_kpoints = args.criteria
+            task.postprocess(directory=args.directory, converge=args.converge)
+        elif args.runtype == 10:
+            # aimd
+            from pymatflow.cp2k.post.md import md_post
+            task = md_post(output=os.path.join(args.directory, "aimd.out"), run_type='MD')
+            task.export(args.directory)
         else:
             pass
 # ====================================================================================

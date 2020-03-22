@@ -21,15 +21,13 @@ class qe_pseudo:
 
     def to_in(self, fout, xyz):
         fout.write("ATOMIC_SPECIES\n")
-        upf_all = [s for s in os.listdir(self.dir) if s.split(".")[-1] == "UPF"]
+        all_file = os.listdir(self.dir)
         for element in xyz.specie_labels:
-            for upf in upf_all:
-                if upf.split(".")[0] == element:
-                    pseudo_file =upf
+            for item in all_file:
+                if re.match("(%s)(.*)(upf)" % (element), item, re.IGNORECASE):
+                    fout.write("%s %f %s\n" % (element, base.element[element].mass, item))
                     break
-            fout.write("%s %f %s\n" % (element, base.element[element].mass, pseudo_file))
-            pseudo_file = None
-            # after pseudo_file used, set it to None to avoid it will be used in the next element
+
 
 class qe_arts:
     """

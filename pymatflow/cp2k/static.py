@@ -70,7 +70,7 @@ class static_run(cp2k):
 
         server_handle(auto=auto, directory=directory, jobfilebase="static-scf", server=self.run_params["server"])
 
-    def converge_cutoff(self, emin, emax, step, rel_cutoff, directory="tmp-cp2k-cutoff", runopt="gen", auto=0):
+    def converge_cutoff(self, emin, emax, step, directory="tmp-cp2k-cutoff", runopt="gen", auto=0):
         """
         Note:
             this function is used to do the converge test for CUTOFF.
@@ -101,7 +101,7 @@ class static_run(cp2k):
                 cutoff = int(emin + i * step)
                 inpname = "cutoff-%d.inp" % cutoff
                 self.force_eval.dft.mgrid.params["CUTOFF"] = cutoff
-                self.force_eval.dft.mgrid.params["REL_CUTOFF"] = rel_cutoff
+                #self.force_eval.dft.mgrid.params["REL_CUTOFF"] = rel_cutoff
 
                 with open(os.path.join(directory, inpname), 'w') as fout:
                     self.glob.to_input(fout)
@@ -147,7 +147,7 @@ class static_run(cp2k):
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="converge-cutoff", server=self.run_params["server"])
 
-    def converge_rel_cutoff(self, emin, emax, step, cutoff, directory="tmp-cp2k-rel-cutoff", runopt="gen", auto=0):
+    def converge_rel_cutoff(self, emin, emax, step, directory="tmp-cp2k-rel-cutoff", runopt="gen", auto=0):
         """
         Note:
             this function is used to do the converge test of REL_CUTOFF.
@@ -172,7 +172,7 @@ class static_run(cp2k):
             for i in range(n_test + 1):
                 rel_cutoff = int(emin + i * step)
                 inpname = "rel-cutoff-%d.inp" % rel_cutoff
-                self.force_eval.dft.mgrid.params["CUTOFF"] = cutoff
+                #self.force_eval.dft.mgrid.params["CUTOFF"] = cutoff
                 self.force_eval.dft.mgrid.params["REL_CUTOFF"] = rel_cutoff
 
                 with open(os.path.join(directory, inpname), 'w') as fout:

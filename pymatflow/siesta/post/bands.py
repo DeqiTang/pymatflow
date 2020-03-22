@@ -100,5 +100,5 @@ class bands_post:
         os.chdir(directory)
         os.system("mkdir -p post-processing")
         os.chdir("post-processing")
-        self..plot_bands(bandsfile="../siesta.bands", option=option)
+        self.plot_bands(bandsfile="../siesta.bands", option=option)
         os.chdir("../../")

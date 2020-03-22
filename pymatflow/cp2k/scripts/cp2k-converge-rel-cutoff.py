@@ -128,4 +128,4 @@ if __name__ == "__main__":
     task.get_xyz(args.file)
     task.set_params(params=params)
     task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
-    task.converge_rel_cutoff(emin=args.range[0], emax=args.range[1], step=args.range[2], directory=args.directory, cutoff=args.cutoff, runopt=args.runopt, auto=args.auto)
+    task.converge_rel_cutoff(emin=args.range[0], emax=args.range[1], step=args.range[2], directory=args.directory, runopt=args.runopt, auto=args.auto)

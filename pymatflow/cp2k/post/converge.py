@@ -13,6 +13,37 @@ class converge_post:
         self.criteria_for_rel_cutoff = 7.35e-4
         self.criteria_for_kpoints = 7.35e-4
 
+
+    def judge(self, energies, criteria):
+        #
+        # return the index of the recommended value
+        # if criteria not reached return -1 which
+        # means the last params
+        for i in range(1, len(energies)):
+            deltae = energies[i] - energies[i-1]
+            if abs(deltae) < criteria:
+                return i
+        # didn't satisfy the criteria return the last index
+        return -1
+
+    def md_report(self, converge, suggested):
+        with open("%s-test-report.md" % converge.lower(), 'w') as fout:
+            fout.write("## %s 收敛测试\n" % converge.upper())
+            fout.write("推荐值:\n")
+            fout.write("```\n")
+            fout.write("%s: %s\n" % (converge.upper(), str(suggested)))
+            fout.write("```\n")
+            fout.write("注意:\n")
+            fout.write("- 这个推荐值是你的测试范围内的推荐值\n")
+            fout.write("- 如果该值是测试范围的最后一个值, 可能意味着没有达到收敛判剧\n")
+            if converge.upper() == "CUTOFF":
+                fout.write("- 推荐值的依据为%s前后两值能量差小于%f[Ry]=%f[eV]\n" % (converge.upper(), self.criteria_for_cutoff, self.criteria_for_cutoff*13.6056923))
+            if converge.upper() == "REL_CUTOFF":
+                fout.write("- 推荐值的依据为%s前后两值能量差小于%f[Ry]=%f[eV]\n" % (converge.upper(), self.criteria_for_rel_cutoff, self.criteria_for_rel_cutoff*13.6056923))
+            fout.write("### 能量变化趋势图\n")
+            fout.write("![energy-x](energy-%s.png)\n" % converge.lower())
+
+
     def postprocess(self, directory, converge):
         """
         directory:
@@ -57,7 +88,7 @@ class converge_post:
             for x in x_all:
                 outfiles.append("rel-cutoff-%d.out" % x)        
 
-        elif converge.upper() == "KPOINTS-AUTO":
+        elif converge.upper() == "KPOINTS_AUTO":
             x_all = []
             for f in os.listdir():
                 if f.split(".")[-1] == "out" and f[0:8] == "kpoints-":
@@ -69,7 +100,7 @@ class converge_post:
             for x in x_all:
                 outfiles.append("kpoints-%d.out" % x)
 
-        elif converge.upper() == "KPOINTS-MANUAL":
+        elif converge.upper() == "KPOINTS_MANUAL":
             x_all = []
             for f in os.listdir():
                 if f.split(".")[-1] == "out" and f[0:8] == "kpoints-":
@@ -80,16 +111,18 @@ class converge_post:
 
         else:
             print("cp2k.post.converge.converge_post class can only deal with\n")
-            print("CUTOFF, REL_CUTOFF, KPONITS-AUTO KPOINTS-MANUAL now\n")
+            print("CUTOFF, REL_CUTOFF, KPONITS_AUTO KPOINTS_MANUAL now\n")
             sys.exit(1)
 
-        
+        # 
+        os.system("mkdir -p post-processing")
+        os.chdir("post-processing")
         if os.path.exists("energy-x.data"):
             # there exists and old energy-x.data, remove it and generate the new one
             os.system("rm energy-x.data")
 
         for f in outfiles:
-            os.system("cat %s | grep 'Total energy:' >> energy-x.data" % f)
+            os.system("cat %s | grep 'Total energy:' >> energy-x.data" % os.path.join("../", f))
 
         energy_all = []
         with open("energy-x.data", 'r') as fin:
@@ -139,35 +172,6 @@ class converge_post:
             sys.exit(1)
         
         plt.show()
-        os.chdir("../")
+        os.chdir("../../")
 
     #
-
-    def judge(self, energies, criteria):
-        #
-        # return the index of the recommended value
-        # if criteria not reached return -1 which
-        # means the last params
-        for i in range(1, len(energies)):
-            deltae = energies[i] - energies[i-1]
-            if abs(deltae) < criteria:
-                return i
-        # didn't satisfy the criteria return the last index
-        return -1
-
-    def md_report(self, converge, suggested):
-        with open("%s-test-report.md" % converge.lower(), 'w') as fout:
-            fout.write("## %s 收敛测试\n" % converge.upper())
-            fout.write("推荐值:\n")
-            fout.write("```\n")
-            fout.write("%s: %s\n" % (converge.upper(), str(suggested)))
-            fout.write("```\n")
-            fout.write("注意:\n")
-            fout.write("- 这个推荐值是你的测试范围内的推荐值\n")
-            fout.write("- 如果该值是测试范围的最后一个值, 可能意味着没有达到收敛判剧\n")
-            if converge.upper() == "CUTOFF":
-                fout.write("- 推荐值的依据为%s前后两值能量差小于%f[Ry]=%f[eV]\n" % (converge.upper(), self.criteria_for_cutoff, self.criteria_for_cutoff*13.6056923))
-            if converge.upper() == "REL_CUTOFF":
-                fout.write("- 推荐值的依据为%s前后两值能量差小于%f[Ry]=%f[eV]\n" % (converge.upper(), self.criteria_for_rel_cutoff, self.criteria_for_rel_cutoff*13.6056923))
-            fout.write("### 能量变化趋势图\n")
-            fout.write("![energy-x](energy-%s.png)\n" % converge.lower())

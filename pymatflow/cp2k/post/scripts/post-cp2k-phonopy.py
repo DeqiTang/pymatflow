@@ -166,6 +166,7 @@ if __name__ == "__main__":
     with open("post-processing/phonopy-analysis.sh", 'w') as fout:
         inp_name = "phonon.inp"
         fout.write("#!/bin/bash\n\n")
+        fout.write("cp ../phonopy_disp.yaml ./\n")
         fout.write("# get the FORCE_SETS\n")
         base_project_name = "ab-initio"
         fout.write("phonopy --cp2k -f ../%s-supercell-{001..%s}-forces-1_0.xyz\n" % (base_project_name, disps[-1]))

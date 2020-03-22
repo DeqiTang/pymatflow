@@ -2,6 +2,7 @@
 Molecular Dynamics calc
 """
 import os
+import re
 import shutil
 
 
@@ -32,11 +33,12 @@ class md_run(pwscf):
             # so we do not copy all UPF files in the directory but just copy
             # those used in the calculation.
             shutil.copyfile(self.arts.xyz.file, os.path.join(directory, os.path.basename(self.arts.xyz.file)))
-            all_upfs = [s for s in os.listdir() if s.split(".")[-1] == "UPF"]
+            #all_upfs = [s for s in os.listdir() if s.split(".")[-1] == "UPF"]
+            all_file = os.listdir()
             for element in self.arts.xyz.specie_labels:
-                for upf in all_upfs:
-                    if upf.split(".")[0] == element:
-                        shutil.copyfile(upf, os.path.join(directory, upf))
+                for item in all_file:
+                    if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                        shutil.copyfile(item, os.path.join(directory, item))
                         break
             self.arts.pseudo.dir = os.path.abspath(directory)
             self.control.pseudo_dir = os.path.abspath(directory)

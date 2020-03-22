@@ -192,8 +192,8 @@ def main():
             help="number of grid points for kpoints generation. for more information, refer to https://docs.abinit.org/variables/basic/#ngkpt")
 
     #gp.add_argument("--kpoints-mp", type=int, nargs=6,
-            default=[1, 1, 1, 0, 0, 0],
-            help="monkhorst-pack type k mesh generation using ngkpt.")
+    #        default=[1, 1, 1, 0, 0, 0],
+    #        help="monkhorst-pack type k mesh generation using ngkpt.")
 
     # electron occupation
     gp = subparser.add_argument_group(title="electronic structure: occupation",
@@ -297,8 +297,8 @@ def main():
     gp = subparser.add_argument_group(title="overall running control")
 
     gp.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4 ,5, 6, 7, 8],
-            help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6-neb; 7->phonopy; 8->vibrational_analysis")
+            choices=[0, 1, 2, 3, 4 ,5, 6, 7, 8, 9, 10],
+            help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6-neb; 7->phonopy; 8->vibrational_analysis; 9->converge test; 10->aimd")
 
     gp.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory to do the calculation")
@@ -366,6 +366,13 @@ def main():
     gp.add_argument("--pot", type=str, default="auto",
             choices=["auto"],
             help="setting pseudopotential file, in cp2k can only be auto(no need to set)")
+
+    # GLOBAL
+    gp = subparser.add_argument_group(title="GLOBAL")
+
+    gp.add_argument("--print-level", type=str, default=None,
+            choices=["DEBUG", "HIGH", "LOW", "MEDIUM", "SILENT", "debug", "high", "low", "medium", "silent"],
+            help="How much output is written out.")
 
     # FORCE_EVAL/SUBSYS
     gp = subparser.add_argument_group(title="FORCE_EVAL/SUBSYS")
@@ -568,6 +575,28 @@ def main():
     gp.add_argument("--geo-opt-rms-force", type=float, default=3.00000000E-004,
             help="Convergence criterion for the root mean square (RMS) force of the current configuration.")
 
+    # MOTION/MD 
+    # --------------------------------------------------------------------------
+    gp = subparser.add_argument_group(title="MOTION/MD")
+
+    gp.add_argument("--md-steps", type=int, default=1000,
+            help="The number of MD steps to perform")
+
+    gp.add_argument("--timestep", type=float, default=5.0e-1,
+            help="The length of an integration step (in case RESPA the large TIMESTEP), default and also recommended is 0.5 fs.")
+
+    gp.add_argument("--ensemble", type=str, default="NVE",
+            choices=["NVE",  "NVT","HYDROSTATICSHOCK", "ISOKIN", "LANGEVIN", "MSST", "MSST_DAMPED"],
+            help="The ensemble/integrator that you want to use for MD propagation")
+
+    gp.add_argument("--temperature", type=str, default=300,
+            help="The temperature in K used to initialize the velocities with init and pos restart, and in the NPT/NVT simulations")
+
+    gp.add_argument("--temp-tol", type=float, default=0.0,
+            help="The maximum accepted deviation of the (global) temperaturefrom the desired target temperature before a rescaling of the velocites is performed. If it is 0 no rescaling is performed. NOTE: This keyword is obsolescent; Using a CSVR thermostat with a short timeconstant is recommended as a better alternative")
+
+    gp.add_argument("--traj-format", type=str, default="XMOL",
+            help="type of output trajectory for MOTION, note: DCD format can be visualized by vmd")
 
     # MOTION/BAND
     # --------------------------------
@@ -640,6 +669,25 @@ def main():
     gp.add_argument("--stepc", type=float, default=0.05,
             help="c step")
 
+    # converge test
+    gp = subparser.add_argument_group(title="converge test",
+            description="setting of parameters needed in converge test")
+
+    gp.add_argument("--converge", type=str, default="cutoff",
+            choices=["cutoff", "rel_cutoff", "kpoints_auto", "kpoints_manual"],
+            help="choose type of converge test")
+
+    gp.add_argument("--cutoff-range", type=int, nargs=3,
+            help="cutoff converge test range: emin emax step")
+
+    gp.add_argument("--rel-cutoff-range", type=int, nargs=3,
+            help="rel_cutoff converge test range: emin emax step")
+
+    gp.add_argument("--krange", type=int, nargs=3,
+            help="kpoints(auto) converge test range: kmin kmax step")
+
+    gp.add_argument("--klist", type=int, nargs="+",
+            help="kpoints(manual) converge test, list of kpoints")
 
     # --------------------------------------------------------------------------
     # Quantum ESPRESSO
@@ -722,6 +770,9 @@ def main():
 
     gp.add_argument("--pot", type=str, default="./",
             help="specify the path to the dir containing all the needed pseudopotential, default behavior is find them in the current directory automatically. if you pass 'auto' to it, matflow will get the pots automatically(need simple configuration, see manual)")
+
+    gp.add_argument("--pot-type", type=str, default="sssp_efficiency",
+            help="specify type of pseudo potentials to prepare, when --pot auto")
 
     # -------------------------------------------------------------------
     #                       scf related parameters
@@ -1202,12 +1253,16 @@ def main():
     # -----------------------------------------------------------------
     gp = subparser.add_argument_group(title="overall running control", description="control the task running parameters")
 
+    gp.add_argument("-d", "--directory", type=str, default="matflow-running",
+            help="directory to generate all the files, do not specify the current directory")
+
     gp.add_argument("-r", "--runtype", type=int, default=0,
             choices=[0, 1, 2, 3, 4, 5, 6, 7],
             help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->neb; 6->vasp-phonon; 7->phonopy")
 
-    gp.add_argument("-d", "--directory", type=str, default="matflow-running",
-            help="directory to generate all the files, do not specify the current directory")
+    gp.add_argument("--static", type=str, default="all",
+            choices=["all", "scf"],
+            help="in case of all(default), run scf, nscf, bands in a single run; in case of scf, run scf only")
 
     # run option
     gp.add_argument("--runopt", type=str, default="gen",
@@ -1557,9 +1612,9 @@ def main():
             os.system("pot-from-xyz-modified.py -i %s -d ./ -p abinit --abinit-type=ncpp" % xyzfile)
         elif args.driver == "qe":
             if args.runtype == 6:
-                os.system("pot-from-xyz-modified.py -i %s -d ./ -p qe --qe-type=PAW_PBE" % images[0])
+                os.system("pot-from-xyz-modified.py -i %s -d ./ -p qe --qe-type=%s" % (images[0]), args.pot_type)
             else:
-                os.system("pot-from-xyz-modified.py -i %s -d ./ -p qe --qe-type=PAW_PBE" % xyzfile)
+                os.system("pot-from-xyz-modified.py -i %s -d ./ -p qe --qe-type=%s" % (xyzfile, args.pot_type))
         elif args.driver == "siesta":
             print("=============================================================\n")
             print("                     WARNING\n")
@@ -1704,6 +1759,8 @@ def main():
     elif args.driver == "cp2k":
         params = {}
 
+        params["GLOBAL-PRINT_LEVEL"] = args.print_level
+
         params["FORCE_EVAL-SUBSYS-CELL-SYMMETRY"] = args.cell_symmetry
 
         params["FORCE_EVAL-DFT-LS_SCF"] = args.ls_scf
@@ -1755,6 +1812,13 @@ def main():
         params["MOTION-BAND-ALIGN_FRAMES"] = args.align_frames
         params["MOTION-BAND-ROTATE-FRAMES"] = args.rotate_frames
         params["MOTION-BAND-K_SPRING"] = args.k_spring
+
+        params["MOTION-MD-STEPS"] = args.md_steps
+        params["MOTION-MD-TIMESTEP"] = args.timestep
+        params["MOTION-MD-ENSEMBLE"] = args.ensemble
+        params["MOTION-MD-TEMPERATURE"] = args.temperature
+        params["MOTION-MD-TEMP_TOL"] = args.temp_tol
+        params["MOTION-PRINT-TRAJECTORY-FORMAT"] = args.traj_format
 
         params["VIBRATIONAL_ANALYSIS-DX"] = args.dx
         params["VIBRATIONAL_ANALYSIS-FULLY_PERIODIC"] = args.fully_periodic
@@ -1866,6 +1930,36 @@ def main():
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.vib(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 9:
+            # converge test
+            from pymatflow.cp2k.static import static_run
+            task = static_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            if args.converge.lower() == "cutoff":
+                task.converge_cutoff(directory=args.directory, runopt=args.runopt, auto=args.auto, emin=args.cutoff_range[0], emax=args.cutoff_range[1], step=args.cutoff_range[2])
+            elif args.converge.lower() == "rel_cutoff":
+                task.converge_rel_cutoff(directory=args.directory, runopt=args.runopt, auto=args.auto, emin=args.rel_cutoff_range[0], emax=args.rel_cutoff_range[1], step=args.rel_cutoff_range[2])
+            elif args.converge.lower() == "kpoints_auto":
+                task.converge_kpoints_auto(directory=args.directory, runopt=args.runopt, auto=args.auto, kmin=args.krange[0], kmax=args.krange[1], step=args.krange[2])
+            elif args.converge.lower() == "kpoints_manual":
+                kpoints = []
+                i = 0
+                while i + 2 <= len(args.klist) - 1:
+                        kpoints.append([args.klist[i], args.klist[i+1], args.klist[i+2]])
+                        i = i + 3
+                task.converge_kpoints_manual(directory=args.directory, runopt=args.runopt, auto=args.auto, kpoints_list=kpoints)
+        elif args.runtype == 10:
+            # aimd
+            from pymatflow.cp2k.md import md_run
+            task = md_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            task.aimd(directory=args.directory, runopt=args.runopt, auto=args.auto)
         else:
             pass
 # ==============================================================================
@@ -2242,7 +2336,10 @@ def main():
             if params["LNONCOLLINEAR"] != None:
                 if params["LNONCOLLINEAR"].upper() == ".TRUE." or params["LNONCOLLINEAR"].upper() == "T":
                     task.magnetic_status = "non-collinear"
-            task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpoints_mp_scf=args.kpoints_mp_scf, kpoints_mp_nscf=args.kpoints_mp_nscf, kpath=get_kpath(args.kpath_manual, args.kpath_file), kpath_intersections=args.kpath_intersections)
+            if args.static == "all":
+                task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpoints_mp_scf=args.kpoints_mp_scf, kpoints_mp_nscf=args.kpoints_mp_nscf, kpath=get_kpath(args.kpath_manual, args.kpath_file), kpath_intersections=args.kpath_intersections)
+            elif args.static == "scf":
+                task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 1:
             # optimization
             from pymatflow.vasp.opt import opt_run

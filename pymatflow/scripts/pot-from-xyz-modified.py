@@ -2,6 +2,7 @@
 # _*_ coding: utf-8 _*_
 
 import os
+import re
 import shutil
 import argparse
 from pymatflow.base.xyz import base_xyz
@@ -41,7 +42,7 @@ if __name__ == "__main__":
             help="directory to put the pseudopotential files")
 
     parser.add_argument("--qe-type", type=str, default="paw_pbe",
-            choices=["paw_pbe", "PAW_PBE", "sssp_efficiency", "SSP_EFFICIENCY", "sssp_precision", "SSSP_PRECISION"],
+            choices=["paw_pbe", "PAW_PBE", "sssp_efficiency", "SSSP_EFFICIENCY", "sssp_precision", "SSSP_PRECISION"],
             help="type of qe pseudopotential")
 
     parser.add_argument("--abinit-type", type=str, default="paw_pbe",
@@ -79,20 +80,32 @@ if __name__ == "__main__":
     # deal with program --------> Quantum ESPRESSO
     # --------------------------------------------------------------------------
     if args.program.lower() == "qe":
-        if args.element.lower() == "paw_pbe":
+        if args.qe_type.lower() == "paw_pbe":
             pass
-        elif args.element.lower() == "sssp_efficiency":
+        elif args.qe_type.lower() == "sssp_efficiency":
             # use SSSP
             # https://www.materialscloud.org/discover/sssp/table/efficiency
+            all_pseudos = os.listdir(os.path.join(args.qe_pot_dir, "SSSP_efficiency_pseudos"))
             cmd = "cp "
             for element in xyz.specie_labels:
-                cmd = cmd + "%s/SSSP_efficiency_pseudos/%s*"
-        elif args.element.lower() == "sssp_precision":
+                for pseudo in all_pseudos:
+                    if re.match(element, pseudo, re.IGNORECASE):
+                        cmd = cmd + "%s " % (os.path.join(args.qe_pot_dir, "SSSP_efficiency_pseudos/%s" % pseudo))
+                        break
+            cmd = cmd + " %s" % args.directory
+            os.system(cmd)
+        elif args.qe_type.lower() == "sssp_precision":
             # use SSSP
             # https://www.materialscloud.org/discover/sssp/table/precision
+            all_pseudos = os.listdir(os.path.join(args.qe_pot_dir, "SSSP_precision_pseudos"))
             cmd = "cp "
             for element in xyz.specie_labels:
-                cmd = cmd + "%s/SSSP_precision_pseudos/%s*"
+                for pseudo in all_pseudos:
+                    if re.match(element, pseudo, re.IGNORECASE):
+                        cmd = cmd + "%s " % (os.path.join(args.qe_pot_dir, "SSSP_precision_pseudos/%s" % pseudo))
+                        break
+            cmd = cmd + " %s" % args.directory
+            os.system(cmd)
 
     # --------------------------------------------------------------------------
     # deal with program --------> Abinit

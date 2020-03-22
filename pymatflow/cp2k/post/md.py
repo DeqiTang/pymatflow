@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
+import os
 import datetime
 import subprocess
 import matplotlib.pyplot as plt
@@ -142,7 +143,11 @@ class md_post:
             fout.write("![Total energies per SCF](total-energies-per-scf.png)\n")
 
 
-    def export(self):
+    def export(self, directory):
+        os.chdir(directory)
+        os.system("mkdir -p post-processing")
+        os.chdir("post-processing")
         self.plot_run_info()
-        self.markdown_report("MolecularDynamicsReport.md")
+        self.markdown_report("md-report.md")
+        os.chdir("../../")
 
