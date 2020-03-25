@@ -697,8 +697,8 @@ def main():
     gp = subparser.add_argument_group(title="overall running control")
 
     gp.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8],
-            help="choices of runtype. 0->static_run; 1->relax; 2->vc-relax; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->neb; 7->dfpt; 8->phonopy")
+            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            help="choices of runtype. 0->static_run; 1->relax; 2->vc-relax; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->neb; 7->dfpt; 8->phonopy; 9->pp.x")
 
     gp.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory for the running.")
@@ -916,38 +916,6 @@ def main():
             choices=[".true.", ".false."],
             help="set lsym variable in bands.x input.")
 
-    gp.add_argument("--plot-num", type=int, nargs="+", default=[0],
-            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 17, 18, 19, 20, 21],
-            help="""
-                type of analysis stored in the filplot file for later plot, 0: electron-pseudo-charge-density,
-                    1: total-potential,
-                    2: local-ionic-potential,
-                    3: ldos,
-                    4: local-density-of-electronic-entropy,
-                    5: stm,
-                    6: spin-polar,
-                    7: molecular-orbitals,
-                    8: electron-local-function,
-                    9: charge-density-minus-superposition-of-atomic-densities,
-                    10: ILDOS,
-                    11: v_bare+v_H-potential,
-                    12: sawtooth-electric-field-potential,
-                    13: nocollinear-magnetization,
-                    17: all-electron-charge-density-paw-only,
-                    18: exchage-correlation-magnetic-field-noncollinear-case,
-                    19: reduced-density-gradient,
-                    20: product-of-charge-density-with-hessian,
-                    21: all-electron-density-paw-only,""")
-
-    gp.add_argument("--iflag", type=int,
-            default=3,
-            choices=[0, 1, 2, 3, 4],
-            help="dimension of the plot. 0: 1D plot of the spherical average, 1: 1D plot, 2: 2D plot, 3: 3D plot, 4: 2D polar plot on a sphere")
-
-    gp.add_argument("--output-format", type=int, default=5,
-            choices=[0, 1, 2, 3, 4, 5, 6, 7],
-            help="output file format for visualization. 0: gnuplot(1D), 1: no longer supported, 2: plotrho(2D), 3: XCRYSDEN(2d), 4: no longer supported, 5: XCRYSDEN(3D), 6: gaussian cube(3D), 7: gnuplot(2D)")
-
 
     # na nc stepa stepc
     # -----------------------------------------
@@ -1027,7 +995,40 @@ def main():
             default=[1, 1, 1],
             help="supercell build for Phonopy.")
 
+    gp = subparser.add_argument_group(title="pp.x")
 
+    # pp.x
+    gp.add_argument("--plot-num", type=int, nargs="+", default=[0],
+            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 17, 18, 19, 20, 21],
+            help="""
+                type of analysis stored in the filplot file for later plot, 0: electron-pseudo-charge-density,
+                    1: total-potential,
+                    2: local-ionic-potential,
+                    3: ldos,
+                    4: local-density-of-electronic-entropy,
+                    5: stm,
+                    6: spin-polar,
+                    7: molecular-orbitals,
+                    8: electron-local-function,
+                    9: charge-density-minus-superposition-of-atomic-densities,
+                    10: ILDOS,
+                    11: v_bare+v_H-potential,
+                    12: sawtooth-electric-field-potential,
+                    13: nocollinear-magnetization,
+                    17: all-electron-charge-density-paw-only,
+                    18: exchage-correlation-magnetic-field-noncollinear-case,
+                    19: reduced-density-gradient,
+                    20: product-of-charge-density-with-hessian,
+                    21: all-electron-density-paw-only,""")
+
+    gp.add_argument("--iflag", type=int,
+            default=3,
+            choices=[0, 1, 2, 3, 4],
+            help="dimension of the plot. 0: 1D plot of the spherical average, 1: 1D plot, 2: 2D plot, 3: 3D plot, 4: 2D polar plot on a sphere")
+
+    gp.add_argument("--output-format", type=int, default=5,
+            choices=[0, 1, 2, 3, 4, 5, 6, 7],
+            help="output file format for visualization. 0: gnuplot(1D), 1: no longer supported, 2: plotrho(2D), 3: XCRYSDEN(2d), 4: no longer supported, 5: XCRYSDEN(3D), 6: gaussian cube(3D), 7: gnuplot(2D)")
 
     # --------------------------------------------------------------------------
     # SIESTA
@@ -2139,6 +2140,24 @@ def main():
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 9:
+            # pp.x
+            from pymatflow.qe.static import static_run
+
+            inputpp = {}
+            plotpp = {}
+            
+            inputpp["plot_num"] = args.plot_num
+            plotpp["iflag"] = args.iflag
+            plotpp["output_format"] = args.output_format
+
+            task = static_run()
+            task.get_xyz(xyzfile)
+            task.set_pp(inputpp=inputpp, plotpp=plotpp)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            task.pp(directory=args.directory, runopt=args.runopt, auto=args.auto)
+
         else:
             pass
 
@@ -2339,6 +2358,7 @@ def main():
             if args.static == "all":
                 task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpoints_mp_scf=args.kpoints_mp_scf, kpoints_mp_nscf=args.kpoints_mp_nscf, kpath=get_kpath(args.kpath_manual, args.kpath_file), kpath_intersections=args.kpath_intersections)
             elif args.static == "scf":
+                task.set_kpoints(kpoints_mp=args.kpoints_mp)
                 task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 1:
             # optimization
