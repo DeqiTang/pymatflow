@@ -336,8 +336,7 @@ class static_run(vasp):
     def set_scf(self, params):
         pass
 
-    def run(self, directory="tmp-vasp-static", runopt="gen", auto=0,
-        kpoints_mp_scf=[1, 1, 1, 0, 0, 0], kpoints_mp_nscf=[3, 3, 3, 0, 0, 0], kpath=None, kpath_intersections=15):
+    def run(self, directory="tmp-vasp-static", runopt="gen", auto=0, kpath=None, kpath_intersections=15):
         """
         directory: a place for all the generated files
 
@@ -345,7 +344,7 @@ class static_run(vasp):
             gen    -> generate a new calculation but do not run
             run    -> run a calculation on the previously generated files
             genrun -> generate a calculation and run it
-        Note: scf nscf(pdos) bands in a single run
+        Note: scf nscf(pdos, bands) in a single run
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
@@ -358,26 +357,19 @@ class static_run(vasp):
                 "IBRION": -1,
             })
             # scf
-            self.set_kpoints(option="automatic", kpoints_mp=kpoints_mp_scf)
+            #self.set_kpoints(option="automatic", kpoints_mp=kpoints_mp_scf)
             incar_scf = self.incar.to_string()
             kpoints_scf = self.kpoints.to_string()
 
-            # nscf
-            self.set_kpoints(option="automatic", kpoints_mp=kpoints_mp_nscf)
-
-            incar_nscf = self.incar.to_string()
-            kpoints_nscf = self.kpoints.to_string()
-
-            # band structure
+            # nscf: pdos + bands
             self.incar.set_params({
                 "ICHARG": 11,
                 "LORBIT": 11,
-                })
+                })            
+
+            incar_nscf = self.incar.to_string()
             self.set_kpoints(option="bands", kpath=kpath, kpath_intersections=kpath_intersections)
-            incar_bands = self.incar.to_string()
-            kpoints_bands = self.kpoints.to_string()
-
-
+            kpoints_nscf = self.kpoints.to_string()
 
             # gen llhpc script
             with open(os.path.join(directory, "static.slurm"), 'w') as fout:
@@ -393,13 +385,13 @@ class static_run(vasp):
                 fout.write("EOF\n")
                 fout.write("# scf\n")
                 fout.write("cat > INCAR<<EOF\n")
-                #self.incar.to_incar(fout)
                 fout.write(incar_scf)
                 fout.write("EOF\n")
-                fout.write("cat > KPOINTS<<EOF\n")
+                fout.write("cat >KPOINTS<<EOF\n")
                 #self.kpoints.to_kpoints(fout)
                 fout.write(kpoints_scf)
                 fout.write("EOF\n")
+
                 if self.magnetic_status == "non-collinear":
                     fout.write("yhrun $PMF_VASP_NCL\n")
                 else:
@@ -412,10 +404,38 @@ class static_run(vasp):
                 #self.incar.to_incar(fout)
                 fout.write(incar_nscf)
                 fout.write("EOF\n")
-                fout.write("cat >KPOINTS<<EOF\n")
-                #self.kpoints.to_kpoints(fout)
-                fout.write(kpoints_nscf)
-                fout.write("EOF\n")
+                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and self.incar.params["HFSCREEN"] == 0.2:
+                    fout.write("nk=`cat IBZKPT | head -n 2 | tail -n -1`\n")
+                    nkpoint = 0
+                    for i in range(len(kpath)-1):
+                        if kpath[i][4] != "|":
+                            nkpoint += kpath[i][4]
+                    fout.write("nk=`echo \"${nk}+%d\" | bc`\n" % nkpoint)
+                    fout.write("cat >KPOINTS<<EOF\n")
+                    fout.write("Kpoint for HSE band structure\n")
+                    fout.write("${nk}\n")
+                    fout.write("EOF\n")
+                    fout.write("cat IBZKPT | tail -n +3 >> KPOINTS\n")
+                    fout.write("cat >> KPOINTS<<EOF\n")
+                    #for kpoint in kpath:
+                    #    fout.write("%f %f %f 0.0 !%s\n" % (kpoint[0], kpoint[1], kpoint[2], kpoint[3]))
+                    for i in range(len(kpath)-1):
+                        if kpath[i][4] != "|":
+                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i][0], kpath[i][1], kpath[i][2], kpath[i][3]))
+                            for j in range(kpath[i][4]-2):
+                                x = (kpath[i+1][0] - kpath[i][0]) / (kpath[i][4]-1) * (j+1) + kpath[i][0]
+                                y = (kpath[i+1][1] - kpath[i][1]) / (kpath[i][4]-1) * (j+1) + kpath[i][1]
+                                z = (kpath[i+1][2] - kpath[i][2]) / (kpath[i][4]-1) * (j+1) + kpath[i][2]
+                                fout.write("%f %f %f 0.0\n" % (x, y, z))
+                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i+1][0], kpath[i+1][1], kpath[i+1][2], kpath[i+1][3]))
+                        else:
+                            continue
+                    fout.write("EOF\n")
+                else:
+                    fout.write("cat >KPOINTS<<EOF\n")
+                    fout.write(kpoints_nscf)
+                    fout.write("EOF\n")
+                
                 if self.magnetic_status == "non-collinear":
                     fout.write("yhrun $PMF_VASP_NCL\n")
                 else:
@@ -423,22 +443,6 @@ class static_run(vasp):
                 fout.write("cp OUTCAR OUTCAR.nscf\n")
                 fout.write('cp vasprun.xml vasprun.xml.nscf\n')
 
-
-                fout.write("# band structure\n")
-                fout.write("cat > INCAR<<EOF\n")
-                #self.incar.to_incar(fout)
-                fout.write(incar_bands)
-                fout.write("EOF\n")
-                fout.write("cat >KPOINTS<<EOF\n")
-                #self.kpoints.to_kpoints(fout)
-                fout.write(kpoints_bands)
-                fout.write("EOF\n")
-                if self.magnetic_status == "non-collinear":
-                    fout.write("yhrun $PMF_VASP_NCL\n")
-                else:
-                    fout.write("yhrun $PMF_VASP_STD \n")
-                fout.write("cp OUTCAR OUTCAR.bands\n")
-                fout.write("cp vasprun.xml vasprun.xml.bands\n")
 
             # gen pbs script
             with open(os.path.join(directory, "static.pbs"), 'w') as fout:
@@ -472,10 +476,38 @@ class static_run(vasp):
                 #self.incar.to_incar(fout)
                 fout.write(incar_nscf)
                 fout.write("EOF\n")
-                fout.write("cat >KPOINTS<<EOF\n")
-                #self.kpoints.to_kpoints(fout)
-                fout.write(kpoints_nscf)
-                fout.write("EOF\n")
+                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and self.incar.params["HFSCREEN"] == 0.2:
+                    fout.write("nk=`cat IBZKPT | head -n 2 | tail -n -1`\n")
+                    nkpoint = 0
+                    for i in range(len(kpath)-1):
+                        if kpath[i][4] != "|":
+                            nkpoint += kpath[i][4]
+                    fout.write("nk=`echo \"${nk}+%d\" | bc`\n" % nkpoint)
+                    fout.write("cat >KPOINTS<<EOF\n")
+                    fout.write("Kpoint for HSE band structure\n")
+                    fout.write("${nk}\n")
+                    fout.write("EOF\n")
+                    fout.write("cat IBZKPT | tail -n +3 >> KPOINTS\n")
+                    fout.write("cat >> KPOINTS<<EOF\n")
+                    #for kpoint in kpath:
+                    #    fout.write("%f %f %f 0.0 !%s\n" % (kpoint[0], kpoint[1], kpoint[2], kpoint[3]))
+                    for i in range(len(kpath)-1):
+                        if kpath[i][4] != "|":
+                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i][0], kpath[i][1], kpath[i][2], kpath[i][3]))                            
+                            for j in range(kpath[i][4]-2):
+                                x = (kpath[i+1][0] - kpath[i][0]) / (kpath[i][4]-1) * (j+1) + kpath[i][0]
+                                y = (kpath[i+1][1] - kpath[i][1]) / (kpath[i][4]-1) * (j+1) + kpath[i][1]
+                                z = (kpath[i+1][2] - kpath[i][2]) / (kpath[i][4]-1) * (j+1) + kpath[i][2]
+                                fout.write("%f %f %f 0.0\n" % (x, y, z))
+                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i+1][0], kpath[i+1][1], kpath[i+1][2], kpath[i+1][3]))
+                        else:
+                            continue
+                    fout.write("EOF\n")          
+                else:
+                    fout.write("cat >KPOINTS<<EOF\n")
+                    fout.write(kpoints_nscf)
+                    fout.write("EOF\n")
+
                 if self.magnetic_status == "non-collinear":
                     fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_NCL \n")
                 else:
@@ -483,22 +515,6 @@ class static_run(vasp):
                 fout.write("cp OUTCAR OUTCAR.nscf\n")
                 fout.write("cp vasprun.xml vasprun.xml.nscf\n")
 
-
-                fout.write("# band structure\n")
-                fout.write("cat > INCAR<<EOF\n")
-                #self.incar.to_incar(fout)
-                fout.write(incar_bands)
-                fout.write("EOF\n")
-                fout.write("cat >KPOINTS<<EOF\n")
-                #self.kpoints.to_kpoints(fout)
-                fout.write(kpoints_bands)
-                fout.write("EOF\n")
-                if self.magnetic_status == "non-collinear":
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_NCL \n")
-                else:
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
-                fout.write("cp OUTCAR OUTCAR.bands\n")
-                fout.write("cp vasprun.xml vasprun.xml.bands\n")
 
             # gen local bash script
             with open(os.path.join(directory, "static.sh"), 'w') as fout:
@@ -527,10 +543,38 @@ class static_run(vasp):
                 #self.incar.to_incar(fout)
                 fout.write(incar_nscf)
                 fout.write("EOF\n")
-                fout.write("cat >KPOINTS<<EOF\n")
-                #self.kpoints.to_kpoints(fout)
-                fout.write(kpoints_nscf)
-                fout.write("EOF\n")
+                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and self.incar.params["HFSCREEN"] == 0.2:
+                    fout.write("nk=`cat IBZKPT | head -n 2 | tail -n -1`\n")
+                    nkpoint = 0
+                    for i in range(len(kpath)-1):
+                        if kpath[i][4] != "|":
+                            nkpoint += kpath[i][4]
+                    fout.write("nk=`echo \"${nk}+%d\" | bc`\n" % nkpoint)
+                    fout.write("cat >KPOINTS<<EOF\n")
+                    fout.write("Kpoint for HSE band structure\n")
+                    fout.write("${nk}\n")
+                    fout.write("EOF\n")
+                    fout.write("cat IBZKPT | tail -n +3 >> KPOINTS\n")
+                    fout.write("cat >> KPOINTS<<EOF\n")
+                    #for kpoint in kpath:
+                    #    fout.write("%f %f %f 0.0 !%s\n" % (kpoint[0], kpoint[1], kpoint[2], kpoint[3]))
+                    for i in range(len(kpath)-1):
+                        if kpath[i][4] != "|":
+                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i][0], kpath[i][1], kpath[i][2], kpath[i][3]))                            
+                            for j in range(kpath[i][4]-2):
+                                x = (kpath[i+1][0] - kpath[i][0]) / (kpath[i][4]-1) * (j+1) + kpath[i][0]
+                                y = (kpath[i+1][1] - kpath[i][1]) / (kpath[i][4]-1) * (j+1) + kpath[i][1]
+                                z = (kpath[i+1][2] - kpath[i][2]) / (kpath[i][4]-1) * (j+1) + kpath[i][2]
+                                fout.write("%f %f %f 0.0\n" % (x, y, z))
+                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i+1][0], kpath[i+1][1], kpath[i+1][2], kpath[i+1][3]))
+                        else:
+                            continue
+                    fout.write("EOF\n")        
+                else:
+                    fout.write("cat >KPOINTS<<EOF\n")
+                    fout.write(kpoints_nscf)
+                    fout.write("EOF\n")
+
                 if self.magnetic_status == "non-collinear":
                     fout.write("%s $PMF_VASP_NCL \n" % self.run_params["mpi"])
                 else:
@@ -538,22 +582,6 @@ class static_run(vasp):
                 fout.write("cp OUTCAR OUTCAR.nscf\n")
                 fout.write("cp vasprun.xml vasprun.xml.nscf\n")
 
-
-                fout.write("# band structure\n")
-                fout.write("cat > INCAR<<EOF\n")
-                #self.incar.to_incar(fout)
-                fout.write(incar_bands)
-                fout.write("EOF\n")
-                fout.write("cat >KPOINTS<<EOF\n")
-                #self.kpoints.to_kpoints(fout)
-                fout.write(kpoints_bands)
-                fout.write("EOF\n")
-                if self.magnetic_status == "non-collinear":
-                    fout.write("%s $PMF_VASP_NCL \n" % self.run_params["mpi"])
-                else:
-                    fout.write("%s $PMF_VASP_STD \n" % self.run_params["mpi"])
-                fout.write("cp OUTCAR OUTCAR.bands\n")
-                fout.write("cp vasprun.xml vasprun.xml.bands\n")
 
             # gen lsf_sz script
             with open(os.path.join(directory, "static.lsf_sz"), 'w') as fout:
@@ -593,39 +621,49 @@ class static_run(vasp):
                     fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
                 fout.write("cp OUTCAR OUTCAR.scf\n")
                 fout.write("cp vasprun.xml vasprun.xml.scf\n")
-
                 fout.write("# nscf\n")
                 fout.write("cat > INCAR<<EOF\n")
                 #self.incar.to_incar(fout)
                 fout.write(incar_nscf)
                 fout.write("EOF\n")
-                fout.write("cat >KPOINTS<<EOF\n")
-                #self.kpoints.to_kpoints(fout)
-                fout.write(kpoints_nscf)
-                fout.write("EOF\n")
+                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and self.incar.params["HFSCREEN"] == 0.2:
+                    fout.write("nk=`cat IBZKPT | head -n 2 | tail -n -1`\n")
+                    nkpoint = 0
+                    for i in range(len(kpath)-1):
+                        if kpath[i][4] != "|":
+                            nkpoint += kpath[i][4]
+                    fout.write("nk=`echo \"${nk}+%d\" | bc`\n" % nkpoint)
+                    fout.write("cat >KPOINTS<<EOF\n")
+                    fout.write("Kpoint for HSE band structure\n")
+                    fout.write("${nk}\n")
+                    fout.write("EOF\n")
+                    fout.write("cat IBZKPT | tail -n +3 >> KPOINTS\n")
+                    fout.write("cat >> KPOINTS<<EOF\n")
+                    #for kpoint in kpath:
+                    #    fout.write("%f %f %f 0.0 !%s\n" % (kpoint[0], kpoint[1], kpoint[2], kpoint[3]))
+                    for i in range(len(kpath)-1):
+                        if kpath[i][4] != "|":
+                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i][0], kpath[i][1], kpath[i][2], kpath[i][3]))                            
+                            for j in range(kpath[i][4]-2):
+                                x = (kpath[i+1][0] - kpath[i][0]) / (kpath[i][4]-1) * (j+1) + kpath[i][0]
+                                y = (kpath[i+1][1] - kpath[i][1]) / (kpath[i][4]-1) * (j+1) + kpath[i][1]
+                                z = (kpath[i+1][2] - kpath[i][2]) / (kpath[i][4]-1) * (j+1) + kpath[i][2]
+                                fout.write("%f %f %f 0.0\n" % (x, y, z))
+                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i+1][0], kpath[i+1][1], kpath[i+1][2], kpath[i+1][3]))
+                        else:
+                            continue
+                    fout.write("EOF\n")           
+                else:
+                    fout.write("cat >KPOINTS<<EOF\n")
+                    fout.write(kpoints_nscf)
+                    fout.write("EOF\n")
+
                 if self.magnetic_status == "non-collinear":
                     fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_NCL\n")
                 else:
                     fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
                 fout.write("cp OUTCAR OUTCAR.nscf\n")
                 fout.write("cp vasprun.xml vasprun.xml.nscf\n")
-
-
-                fout.write("# band structure\n")
-                fout.write("cat > INCAR<<EOF\n")
-                #self.incar.to_incar(fout)
-                fout.write(incar_bands)
-                fout.write("EOF\n")
-                fout.write("cat >KPOINTS<<EOF\n")
-                #self.kpoints.to_kpoints(fout)
-                fout.write(kpoints_bands)
-                fout.write("EOF\n")
-                if self.magnetic_status == "non-collinear":
-                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_NCL\n")
-                else:
-                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
-                fout.write("cp OUTCAR OUTCAR.bands\n")
-                fout.write("cp vasprun.xml vasprun.xml.bands\n")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

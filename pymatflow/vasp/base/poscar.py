@@ -38,7 +38,7 @@ class vasp_poscar:
         fout.write("general comment\n")
         fout.write("1.0\n") # universal scaling parameters
         for vec in cell:
-            fout.write("%f %f %f\n" % (vec[0], vec[1], vec[2])) # lattice vector a(3)
+            fout.write("%.9f\t%.9f\t%.9f\n" % (vec[0], vec[1], vec[2])) # lattice vector a(3)
         for element in self.xyz.specie_labels:
             fout.write("%s " % element)
         fout.write("\n")
@@ -59,7 +59,7 @@ class vasp_poscar:
                 for element in self.xyz.specie_labels:
                     for atom in self.xyz.atoms:
                         if atom.name == element:
-                            fout.write("%f %f %f" % (atom.x, atom.y, atom.z))
+                            fout.write("%.9f\t%.9f\t%.9f" % (atom.x, atom.y, atom.z))
                             for fix in atom.fix:
                                 if fix == True:
                                     fout.write("\tF")
@@ -94,7 +94,7 @@ class vasp_poscar:
                 for element in self.xyz.specie_labels:
                     for atom in self.xyz.atoms:
                         if atom.name == element:
-                            fout.write("%f %f %f\n" % (atom.x, atom.y, atom.z))
+                            fout.write("%.9f\t%.9f\t%.9f\n" % (atom.x, atom.y, atom.z))
             elif coordtype.lower() == "direct":
                 fout.write("Direct\n")
                 # crystal namely fractional coordinate can be convert from cartesian coordinates

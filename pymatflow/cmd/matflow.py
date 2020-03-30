@@ -1369,9 +1369,9 @@ def main():
             default=[1, 1, 1, 0, 0, 0],
             help="set kpoints like -k 1 1 1 0 0 0")
 
-    gp.add_argument("--kpoints-mp-nscf", type=int, nargs="+",
-            default=[3, 3, 3, 0, 0, 0],
-            help="set kpoints like -k 1 1 1 0 0 0")
+    #gp.add_argument("--kpoints-mp-nscf", type=int, nargs="+",
+    #        default=[3, 3, 3, 0, 0, 0],
+    #        help="set kpoints like -k 1 1 1 0 0 0")
 
     gp.add_argument("--kpath-manual", type=str, nargs="+", default=None,
             help="set kpoints for band structure calculation manually")
@@ -2350,13 +2350,14 @@ def main():
             task = static_run()
             task.get_xyz(xyzfile)
             task.set_params(params, runtype="static")
+            task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             if params["LNONCOLLINEAR"] != None:
                 if params["LNONCOLLINEAR"].upper() == ".TRUE." or params["LNONCOLLINEAR"].upper() == "T":
                     task.magnetic_status = "non-collinear"
             if args.static == "all":
-                task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpoints_mp_scf=args.kpoints_mp_scf, kpoints_mp_nscf=args.kpoints_mp_nscf, kpath=get_kpath(args.kpath_manual, args.kpath_file), kpath_intersections=args.kpath_intersections)
+                task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpath=get_kpath(args.kpath_manual, args.kpath_file), kpath_intersections=args.kpath_intersections)
             elif args.static == "scf":
                 task.set_kpoints(kpoints_mp=args.kpoints_mp)
                 task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto)

@@ -124,7 +124,7 @@ class vasp:
         :param mpi: you can specify the mpi command here, it only has effect on native running
         """
         self.run_params["server"] = server
-        self.run_params["mpi"] = ""
+        self.run_params["mpi"] = mpi
         self.run_params["jobname"] = jobname
         self.run_params["nodes"] = nodes
         self.run_params["ppn"] = ppn
