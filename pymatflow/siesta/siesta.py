@@ -40,6 +40,8 @@ class siesta:
                 self.electrons.set_params({item: params[item]})
             elif item in self.ions.incharge:
                 self.ions.set_params({item: params[item]})
+            elif item in self.system.incharge:
+                self.system.set_params({item: params[item]})
             else:
                 continue
 

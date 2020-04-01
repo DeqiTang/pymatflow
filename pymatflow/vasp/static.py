@@ -404,7 +404,7 @@ class static_run(vasp):
                 #self.incar.to_incar(fout)
                 fout.write(incar_nscf)
                 fout.write("EOF\n")
-                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and self.incar.params["HFSCREEN"] == 0.2:
+                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and float(self.incar.params["HFSCREEN"]) == 0.2:
                     fout.write("nk=`cat IBZKPT | head -n 2 | tail -n -1`\n")
                     nkpoint = 0
                     for i in range(len(kpath)-1):
@@ -476,7 +476,7 @@ class static_run(vasp):
                 #self.incar.to_incar(fout)
                 fout.write(incar_nscf)
                 fout.write("EOF\n")
-                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and self.incar.params["HFSCREEN"] == 0.2:
+                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and float(self.incar.params["HFSCREEN"]) == 0.2:
                     fout.write("nk=`cat IBZKPT | head -n 2 | tail -n -1`\n")
                     nkpoint = 0
                     for i in range(len(kpath)-1):
@@ -543,7 +543,7 @@ class static_run(vasp):
                 #self.incar.to_incar(fout)
                 fout.write(incar_nscf)
                 fout.write("EOF\n")
-                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and self.incar.params["HFSCREEN"] == 0.2:
+                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and float(self.incar.params["HFSCREEN"]) == 0.2:
                     fout.write("nk=`cat IBZKPT | head -n 2 | tail -n -1`\n")
                     nkpoint = 0
                     for i in range(len(kpath)-1):
@@ -626,7 +626,7 @@ class static_run(vasp):
                 #self.incar.to_incar(fout)
                 fout.write(incar_nscf)
                 fout.write("EOF\n")
-                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and self.incar.params["HFSCREEN"] == 0.2:
+                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and float(self.incar.params["HFSCREEN"]) == 0.2:
                     fout.write("nk=`cat IBZKPT | head -n 2 | tail -n -1`\n")
                     nkpoint = 0
                     for i in range(len(kpath)-1):

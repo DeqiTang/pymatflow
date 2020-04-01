@@ -25,6 +25,11 @@ class siesta_system:
         self.name = name
         self.label = label
 
+        self.incharge = [
+                "PAO.FixSplitTable",
+                ]        
+        self.params = {}
+
     def to_fdf(self, fout):
         fout.write("SystemName %s\n" % self.name)
         fout.write("SystemLabel %s\n" % self.label)
@@ -32,6 +37,10 @@ class siesta_system:
         fout.write("NumberOfAtoms %s\n" % self.xyz.natom)
 
         cell = self.xyz.cell
+
+        for item in self.params:
+            if self.params[item] is not None:
+                fout.write("%s %s\n" % (item, self.params[item]))
 
         fout.write("%block ChemicalSpeciesLabel\n")
         for element in self.xyz.specie_labels:
@@ -81,3 +90,8 @@ class siesta_system:
         self.name = name
         self.label = label
     #
+
+    def set_params(self, params):
+        for item in params:
+            self.params[item] = params[item]
+        #

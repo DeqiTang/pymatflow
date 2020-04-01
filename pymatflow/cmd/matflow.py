@@ -1150,6 +1150,9 @@ def main():
     gp.add_argument("--electronic-temperature", type=int, default=300,
             help="Electronic Temperature")
 
+    gp.add_argument("--pao-fix-split-table", type=str, default=None,
+            choices=["T", "F"],
+            help="can fix problem with small split_norm WARNING")
     # properties related parameter
     # ------------------------------
     gp = subparser.add_argument_group(title="properties")
@@ -2177,6 +2180,8 @@ def main():
         params["OccupationFunction"] = args.occupation
         params["ElectronicTemperature"] = args.electronic_temperature
 
+        params["PAO.FixSplitTable"] = args.pao_fix_split_table
+        
         if args.runtype == 0:
             # static
             from pymatflow.siesta.static import static_run
