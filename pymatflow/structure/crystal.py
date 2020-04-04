@@ -185,13 +185,16 @@ class crystal():
         :param number: an integer specifying the atom to remove
         """
         del self.atoms[number]
+        self.natom = len(self.atoms)
 
     def remove_atoms(self, number):
         """ remove several atoms from self.atoms
         :param number: a list of integer specifying atoms to remove
+            index start with 0
         """
         for i in number:
             self.atoms[i] = None
-        for atom in self.atoms:
-            if atom == None:
-                self.atoms.remove(atom)
+        while None in self.atoms:
+            self.atoms.remove(None)
+        
+        self.natom = len(self.atoms)

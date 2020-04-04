@@ -297,6 +297,15 @@ API
 
 .. _header-n130:
 
+
+官方微信公众平台
+----------------
+Pymatflow官方微信公众号"开源科学计算"目前已经开始试运营。欢迎订阅查看更多关于Pymatflow的最新
+信息和使用教程。
+
+.. image:: /_images/qrcode_for_open_source_scientific_computation.jpg
+
+
 未来
 ----
 

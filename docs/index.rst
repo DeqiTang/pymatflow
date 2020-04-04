@@ -49,10 +49,10 @@ Manuals
 
 For Chinese User
 ----------------
-Pymatflow官方微信公众号"生材有道"目前已经开始试运营。欢迎订阅查看更多关于Pymatflow的最新
+Pymatflow官方微信公众号"开源科学计算"目前已经开始试运营。欢迎订阅查看更多关于Pymatflow的最新
 信息和使用教程。
 
-.. image:: /_images/qrcode_for_shengcaiyoudao_1.jpg
+.. image:: /_images/qrcode_for_open_source_scientific_computation.jpg
 
 往期公众号文章
 

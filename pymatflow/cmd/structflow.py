@@ -82,6 +82,37 @@ def main():
     subparser.add_argument("--disp", type=float,
             help="displacement along the moving direction, in unit of Anstrom")
 
+    # ---------------------------------------------------------------------------------
+    # remove atoms
+    # ---------------------------------------------------------------------------------
+    subparser = subparsers.add_parser("remove", help="remove specified atoms")
+
+    subparser.add_argument("-i", "--input", type=str,
+            help="input structure file")
+
+    subparser.add_argument("-o", "--output", type=str,
+            help="output structure file")
+
+    subparser.add_argument("--atoms", type=int, nargs="+",
+            help="atoms to move, index start from 1")
+
+    # ---------------------------------------------------------------------------------
+    # vacuum layer
+    # ---------------------------------------------------------------------------------
+    subparser = subparsers.add_parser("vacuum", help="add vacuum layer")
+
+    subparser.add_argument("-i", "--input", type=str,
+            help="input structure file")
+
+    subparser.add_argument("-o", "--output", type=str,
+            help="output structure file")
+
+    subparser.add_argument("--plane", type=int, default=1,
+            help="on which plane to add vacuum layer. 1: ab, 2: ac, 3: bc")
+
+    subparser.add_argument("--thick", type=float,
+            help="thickness of the vacuum layer, in unit of Angstrom")
+
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
     # ==========================================================
@@ -196,7 +227,20 @@ def main():
             import pymatflow.third.aseio as aseio
             a = crystal()
             a.cell, a.atoms = aseio.read_poscar(args.input)
-        move_along(a, atom_to_move=[i-1 for i in args.atoms], direc=args.direction, disp=args.disp)
+        # move atoms
+        print("=========================================================\n")
+        print("                   structflow\n")
+        print("----------------------------------------------------------\n")
+        print("you are trying to move atoms:\n")
+        print(args.atoms)
+        for i in args.atoms:
+            print("%d -> %s\n" % (i, a.atoms[i].name))
+        print("\n")
+        print("along direction:\n")
+        print(args.direction)
+        print("\n")
+        print("by length of -> %f, in unit of Angstrom\n" % args.disp)
+        move_along(a, atoms_to_move=[i-1 for i in args.atoms], direc=args.direction, disp=args.disp)
         
         # output structure
         if args.output.split(".")[-1] == "xyz":
@@ -215,6 +259,126 @@ def main():
             aseio.write_cube(cell=a.cell, atoms=a.atoms, filepath=args.output)
         else:
             pass        
+    elif args.driver == "remove":
+        from pymatflow.structure.tools import remove_atoms
+        # input structure
+        if args.input.split(".")[-1] == "xyz":
+            from pymatflow.structure.crystal import crystal
+            a = crystal()
+            a.from_xyz_file(args.input)
+        elif args.input.split(".")[-1] == "cif":
+            from pymatflow.structure.crystal import crystal
+            import pymatflow.third.aseio as aseio
+            a = crystal()
+            a.cell, a.atoms = aseio.read_cif(args.input)
+        elif args.input.split(".")[-1] == "xsd":
+            from pymatflow.structure.crystal import crystal
+            import pymatflow.third.aseio as aseio
+            a = crystal()
+            a.cell, a.atoms = aseio.read_xsd(args.input)
+        elif args.input.split(".")[-1] == "xsf":
+            from pymatflow.structure.crystal import crystal
+            import pymatflow.third.aseio as aseio
+            a = crystal()
+            a.cell, a.atoms = aseio.read_xsf(args.input)
+        elif os.path.basename(args.input) == "POSCAR" or os.path.basename(args.input) == "CONTCAR":
+            from pymatflow.structure.crystal import crystal
+            import pymatflow.third.aseio as aseio
+            a = crystal()
+            a.cell, a.atoms = aseio.read_poscar(args.input)
+        
+        # remove atoms
+        print("=======================================================================\n")
+        print("                       structflow\n")
+        print("-----------------------------------------------------------------------\n")
+        print("you are trying to remove from %s the following list of atoms:\n" % args.input)
+        print(args.atoms)
+        for i in args.atoms:
+            print("%d -> %s\n" % (i, a.atoms[i].name))
+        print("\n")
+        print("the output structure file is -> %s\n" % args.output)
+
+        remove_atoms(a, atoms_to_remove=[i-1 for i in args.atoms])
+        
+        # output structure
+        if args.output.split(".")[-1] == "xyz":
+            a.write_xyz(filepath=args.output)
+        elif args.output.split(".")[-1] == "cif":
+            import pymatflow.third.aseio as aseio
+            aseio.write_cif(cell=a.cell, atoms=a.atoms, filepath=args.output)
+        elif args.output.split(".")[-1] == "xsd":
+            import pymatflow.third.aseio as aseio
+            aseio.write_xsd(cell=a.cell, atoms=a.atoms, filepath=args.output)
+        elif args.output.split(".")[-1] == "xsf":
+            import pymatflow.third.aseio as aseio
+            aseio.write_xsf(cell=a.cell, atoms=a.atoms, filepath=args.output)
+        elif args.output.split(".")[-1] == "cube":
+            import pymatflow.third.aseio as aseio
+            aseio.write_cube(cell=a.cell, atoms=a.atoms, filepath=args.output)
+        else:
+            pass      
+    elif args.driver == "vacuum":
+        from pymatflow.structure.tools import vacuum_layer
+        # input structure
+        if args.input.split(".")[-1] == "xyz":
+            from pymatflow.structure.crystal import crystal
+            a = crystal()
+            a.from_xyz_file(args.input)
+        elif args.input.split(".")[-1] == "cif":
+            from pymatflow.structure.crystal import crystal
+            import pymatflow.third.aseio as aseio
+            a = crystal()
+            a.cell, a.atoms = aseio.read_cif(args.input)
+        elif args.input.split(".")[-1] == "xsd":
+            from pymatflow.structure.crystal import crystal
+            import pymatflow.third.aseio as aseio
+            a = crystal()
+            a.cell, a.atoms = aseio.read_xsd(args.input)
+        elif args.input.split(".")[-1] == "xsf":
+            from pymatflow.structure.crystal import crystal
+            import pymatflow.third.aseio as aseio
+            a = crystal()
+            a.cell, a.atoms = aseio.read_xsf(args.input)
+        elif os.path.basename(args.input) == "POSCAR" or os.path.basename(args.input) == "CONTCAR":
+            from pymatflow.structure.crystal import crystal
+            import pymatflow.third.aseio as aseio
+            a = crystal()
+            a.cell, a.atoms = aseio.read_poscar(args.input)
+        
+        # remove atoms
+        print("=======================================================================\n")
+        print("                       structflow\n")
+        print("-----------------------------------------------------------------------\n")
+        if args.plane == 1:
+            plane = "ab"
+        elif args.plane == 2:
+            plane = "ac"
+        elif args.plane == 3:
+            plane = "bc"
+        print("you are trying to add vacuum layer of %f Angstrom on %s plane\n" % (args.thick, plane))
+        print("from %s\n" % args.input)
+        print("\n")
+        print("the output structure file is -> %s\n" % args.output)
+
+        vacuum_layer(a, plane=args.plane, thickness=args.thick)
+        
+        # output structure
+        if args.output.split(".")[-1] == "xyz":
+            a.write_xyz(filepath=args.output)
+        elif args.output.split(".")[-1] == "cif":
+            import pymatflow.third.aseio as aseio
+            aseio.write_cif(cell=a.cell, atoms=a.atoms, filepath=args.output)
+        elif args.output.split(".")[-1] == "xsd":
+            import pymatflow.third.aseio as aseio
+            aseio.write_xsd(cell=a.cell, atoms=a.atoms, filepath=args.output)
+        elif args.output.split(".")[-1] == "xsf":
+            import pymatflow.third.aseio as aseio
+            aseio.write_xsf(cell=a.cell, atoms=a.atoms, filepath=args.output)
+        elif args.output.split(".")[-1] == "cube":
+            import pymatflow.third.aseio as aseio
+            aseio.write_cube(cell=a.cell, atoms=a.atoms, filepath=args.output)
+        else:
+            pass                        
     # --------------------------------------------------------------------------
 
 
