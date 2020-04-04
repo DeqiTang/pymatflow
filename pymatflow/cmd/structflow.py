@@ -62,7 +62,25 @@ def main():
             help="the output kpoints file")
 
 
+    # ---------------------------------------------------------------------------------
+    # move atoms along one direction
+    # ---------------------------------------------------------------------------------
+    subparser = subparsers.add_parser("move", help="move atoms along one direction")
 
+    subparser.add_argument("-i", "--input", type=str,
+            help="input structure file")
+
+    subparser.add_argument("-o", "--output", type=str,
+            help="output structure file")
+
+    subparser.add_argument("--atoms", type=int, nargs="+",
+            help="atoms to move, index start from 1")
+
+    subparser.add_argument("--direction", type=float, nargs=3,
+            help="direction to move the atoms, in format of crystal orientation index")
+
+    subparser.add_argument("--disp", type=float,
+            help="displacement along the moving direction, in unit of Anstrom")
 
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
@@ -151,6 +169,52 @@ def main():
             os.system("kpath-xyz-seekpath.py -i %s -o %s" % (args.input, args.output))
         else:
             pass
+    elif args.driver == "move":
+        from pymatflow.structure.tools import move_along
+        # input structure
+        if args.input.split(".")[-1] == "xyz":
+            from pymatflow.structure.crystal import crystal
+            a = crystal()
+            a.from_xyz_file(args.input)
+        elif args.input.split(".")[-1] == "cif":
+            from pymatflow.structure.crystal import crystal
+            import pymatflow.third.aseio as aseio
+            a = crystal()
+            a.cell, a.atoms = aseio.read_cif(args.input)
+        elif args.input.split(".")[-1] == "xsd":
+            from pymatflow.structure.crystal import crystal
+            import pymatflow.third.aseio as aseio
+            a = crystal()
+            a.cell, a.atoms = aseio.read_xsd(args.input)
+        elif args.input.split(".")[-1] == "xsf":
+            from pymatflow.structure.crystal import crystal
+            import pymatflow.third.aseio as aseio
+            a = crystal()
+            a.cell, a.atoms = aseio.read_xsf(args.input)
+        elif os.path.basename(args.input) == "POSCAR" or os.path.basename(args.input) == "CONTCAR":
+            from pymatflow.structure.crystal import crystal
+            import pymatflow.third.aseio as aseio
+            a = crystal()
+            a.cell, a.atoms = aseio.read_poscar(args.input)
+        move_along(a, atom_to_move=[i-1 for i in args.atoms], direc=args.direction, disp=args.disp)
+        
+        # output structure
+        if args.output.split(".")[-1] == "xyz":
+            a.write_xyz(filepath=args.output)
+        elif args.output.split(".")[-1] == "cif":
+            import pymatflow.third.aseio as aseio
+            aseio.write_cif(cell=a.cell, atoms=a.atoms, filepath=args.output)
+        elif args.output.split(".")[-1] == "xsd":
+            import pymatflow.third.aseio as aseio
+            aseio.write_xsd(cell=a.cell, atoms=a.atoms, filepath=args.output)
+        elif args.output.split(".")[-1] == "xsf":
+            import pymatflow.third.aseio as aseio
+            aseio.write_xsf(cell=a.cell, atoms=a.atoms, filepath=args.output)
+        elif args.output.split(".")[-1] == "cube":
+            import pymatflow.third.aseio as aseio
+            aseio.write_cube(cell=a.cell, atoms=a.atoms, filepath=args.output)
+        else:
+            pass        
     # --------------------------------------------------------------------------
 
 
