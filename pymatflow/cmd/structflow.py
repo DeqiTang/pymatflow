@@ -130,14 +130,60 @@ def main():
     if args.driver == "supercell":
         from pymatflow.base.xyz import base_xyz
         from pymatflow.structure.crystal import crystal
-        xyz = base_xyz()
-        xyz.get_xyz(args.input)
-        structure = crystal()
+
+        # input structure
+        if args.input.split(".")[-1] == "xyz":
+            from pymatflow.structure.crystal import crystal
+            a = crystal()
+            a.from_xyz_file(args.input)
+        elif args.input.split(".")[-1] == "cif":
+            from pymatflow.structure.crystal import crystal
+            import pymatflow.third.aseio as aseio
+            a = crystal()
+            a.cell, a.atoms = aseio.read_cif(args.input)
+        elif args.input.split(".")[-1] == "xsd":
+            from pymatflow.structure.crystal import crystal
+            import pymatflow.third.aseio as aseio
+            a = crystal()
+            a.cell, a.atoms = aseio.read_xsd(args.input)
+        elif args.input.split(".")[-1] == "xsf":
+            from pymatflow.structure.crystal import crystal
+            import pymatflow.third.aseio as aseio
+            a = crystal()
+            a.cell, a.atoms = aseio.read_xsf(args.input)
+        elif os.path.basename(args.input) == "POSCAR" or os.path.basename(args.input) == "CONTCAR":
+            from pymatflow.structure.crystal import crystal
+            import pymatflow.third.aseio as aseio
+            a = crystal()
+            a.cell, a.atoms = aseio.read_poscar(args.input)
+
+        supercell = a.build_supercell(args.supern)
         new_structure = crystal()
-        structure.from_base_xyz(xyz)
-        supercell = structure.build_supercell(args.supern)
         new_structure.get_cell_atoms(cell=supercell["cell"], atoms=supercell["atoms"])
-        new_structure.to_base_xyz().to_xyz_file(args.output)
+        a = new_structure
+        
+        # output structure
+        if args.output.split(".")[-1] == "xyz":
+            a.write_xyz(filepath=args.output)
+        elif args.output.split(".")[-1] == "cif":
+            import pymatflow.third.aseio as aseio
+            aseio.write_cif(cell=a.cell, atoms=a.atoms, filepath=args.output)
+        elif args.output.split(".")[-1] == "xsd":
+            import pymatflow.third.aseio as aseio
+            aseio.write_xsd(cell=a.cell, atoms=a.atoms, filepath=args.output)
+        elif args.output.split(".")[-1] == "xsf":
+            import pymatflow.third.aseio as aseio
+            aseio.write_xsf(cell=a.cell, atoms=a.atoms, filepath=args.output)
+        elif args.output.split(".")[-1] == "cube":
+            import pymatflow.third.aseio as aseio
+            aseio.write_cube(cell=a.cell, atoms=a.atoms, filepath=args.output)
+        else:
+            pass
+        print("=========================================================\n")
+        print("              structflow supercell builder\n")
+        print("---------------------------------------------------------\n")
+        print("you are trying to bulid supercell from %s\n" % args.input)
+        print("the output structure file is -> %s\n" % args.output)
     elif args.driver == "fix":
         fix_str = ""
         for i in args.fix:
@@ -234,7 +280,7 @@ def main():
         print("you are trying to move atoms:\n")
         print(args.atoms)
         for i in args.atoms:
-            print("%d -> %s\n" % (i, a.atoms[i].name))
+            print("%d -> %s\n" % (i, a.atoms[i-1].name))
         print("\n")
         print("along direction:\n")
         print(args.direction)
@@ -294,7 +340,7 @@ def main():
         print("you are trying to remove from %s the following list of atoms:\n" % args.input)
         print(args.atoms)
         for i in args.atoms:
-            print("%d -> %s\n" % (i, a.atoms[i].name))
+            print("%d -> %s\n" % (i, a.atoms[i-1].name))
         print("\n")
         print("the output structure file is -> %s\n" % args.output)
 
@@ -345,7 +391,7 @@ def main():
             a = crystal()
             a.cell, a.atoms = aseio.read_poscar(args.input)
         
-        # remove atoms
+        # add vacuum layer
         print("=======================================================================\n")
         print("                       structflow\n")
         print("-----------------------------------------------------------------------\n")
