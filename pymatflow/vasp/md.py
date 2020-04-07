@@ -45,7 +45,7 @@ class md_run(vasp):
             # gen llhpc script
             self.gen_llhpc(directory=directory, cmd="$PMF_VASP_STD", scriptname="md.slurm")
             # gen pbs script
-            self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD", scriptname="md.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD", scriptname="md.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
             # gen local bash script
             self.gen_bash(directory=directory, cmd="$PMF_VASP_STD", scriptname="md.sh")
             # gen lsf_sz script

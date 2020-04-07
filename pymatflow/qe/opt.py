@@ -60,7 +60,7 @@ class opt_run(pwscf):
             # gen yhbatch script
             self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -107,7 +107,7 @@ class opt_run(pwscf):
             # gen yhbatch script
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, cmd="$PMF_PWX", output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, cmd="$PMF_PWX", output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -263,6 +263,8 @@ class opt_run(pwscf):
             fout.write("#!/bin/bash\n")
             fout.write("#PBS -N %s\n" % self.run_params["jobname"])
             fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+            if "queue" in self.run_params and self.run_params["queue"] != None:
+                fout.write("#PBS -q %s\n" %self.run_params["queue"])            
             fout.write("\n")
             fout.write("cd $PBS_O_WORKDIR\n")
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
@@ -517,6 +519,8 @@ class opt_run(pwscf):
             fout.write("#!/bin/bash\n")
             fout.write("#PBS -N %s\n" % self.run_params["jobname"])
             fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+            if "queue" in self.run_params and self.run_params["queue"] != None:
+                fout.write("#PBS -q %s\n" %self.run_params["queue"])            
             fout.write("\n")
             fout.write("cd $PBS_O_WORKDIR\n")
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
@@ -927,6 +931,8 @@ class opt_run(pwscf):
             fout.write("#!/bin/bash\n")
             fout.write("#PBS -N %s\n" % self.run_params["jobname"])
             fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+            if "queue" in self.run_params and self.run_params["queue"] != None:
+                fout.write("#PBS -q %s\n" %self.run_params["queue"])            
             fout.write("\n")
             fout.write("cd $PBS_O_WORKDIR\n")
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")

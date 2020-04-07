@@ -22,7 +22,7 @@ class tddfpt_run():
         self.run_params = {}
         self.set_run()
 
-    def set_run(self, mpi="", server="pbs", jobname="qe", nodes=1, ppn=32):
+    def set_run(self, mpi="", server="pbs", jobname="qe", nodes=1, ppn=32, queue=None):
         """ used to set  the parameters controlling the running of the task
         :param mpi: you can specify the mpi command here, it only has effect on native running
 
@@ -32,6 +32,7 @@ class tddfpt_run():
         self.run_params["jobname"] = jobname
         self.run_params["nodes"] = nodes
         self.run_params["ppn"] = ppn
+        self.run_params["queue"] = queue
 
     def set_epsilon(self, inputpp={}, energy_grid={}):
         self.inputpp_epsilon = {
@@ -222,6 +223,8 @@ class tddfpt_run():
                 fout.write("#!/bin/bash\n")
                 fout.write("#PBS -N %s\n" % self.run_params["jobname"])
                 fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+                if "queue" in self.run_params and self.run_params["queue"] != None:
+                    fout.write("#PBS -q %s\n" %self.run_params["queue"])                
                 fout.write("\n")
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
@@ -345,6 +348,8 @@ class tddfpt_run():
                 fout.write("#!/bin/bash\n")
                 fout.write("#PBS -N %s\n" % self.run_params["jobname"])
                 fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+                if "queue" in self.run_params and self.run_params["queue"] != None:
+                    fout.write("#PBS -q %s\n" %self.run_params["queue"])                
                 fout.write("\n")
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")

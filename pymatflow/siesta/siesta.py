@@ -51,7 +51,7 @@ class siesta:
     def set_spin(self, spin="non-polarized"):
         self.electrons.set_spin(spin)
 
-    def set_run(self, mpi="", server="pbs", jobname="siesta", nodes=1, ppn=32):
+    def set_run(self, mpi="", server="pbs", jobname="siesta", nodes=1, ppn=32, queue=None):
         """ used to set  the parameters controlling the running of the task
         :param mpi: you can specify the mpi command here, it only has effect on native running
 
@@ -61,6 +61,7 @@ class siesta:
         self.run_params["jobname"] = jobname
         self.run_params["nodes"] = nodes
         self.run_params["ppn"] = ppn
+        self.run_params["queue"] = queue
 
     def set_llhpc(self, partition="free", nodes=1, ntask=24, jobname="matflow_job", stdout="slurm.out", stderr="slurm.err"):
         self.run_params["partition"] = partition
@@ -93,7 +94,7 @@ class siesta:
             fout.write("#!/bin/bash\n")
             fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % (cmd, inpname, output))
 
-    def gen_pbs(self, inpname, output, directory, cmd="siesta", jobname="siesta", nodes=1, ppn=32):
+    def gen_pbs(self, inpname, output, directory, cmd="siesta", jobname="siesta", nodes=1, ppn=32, queue=None):
         """
         generating pbs job script for calculation
         """
@@ -101,6 +102,8 @@ class siesta:
             fout.write("#!/bin/bash\n")
             fout.write("#PBS -N %s\n" % jobname)
             fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+            if queue != None:
+                fout.write("#PBS -q %s\n" % queue)            
             fout.write("\n")
             fout.write("cd $PBS_O_WORKDIR\n")
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")

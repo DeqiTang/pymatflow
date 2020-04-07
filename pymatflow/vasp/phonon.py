@@ -50,7 +50,7 @@ class phonon_run(vasp):
             # gen llhpc script
             self.gen_llhpc(directory=directory, cmd="$PMF_VASP_STD", scriptname="phonon.slurm")
             # gen pbs script
-            self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD", scriptname="phonon.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD", scriptname="phonon.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
             # gen local bash script
             self.gen_bash(directory=directory, cmd="$PMF_VASP_STD", scriptname="phonon.sh")
             # gen lsf_sz script

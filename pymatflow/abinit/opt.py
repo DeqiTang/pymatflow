@@ -43,7 +43,7 @@ class opt_run(abinit):
             self.gen_llhpc(directory=directory, script="optimization.slurm", cmd="$PMF_ABINIT")
 
             # generate pbs job submit script
-            self.gen_pbs(directory=directory, script="optimization.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, script="optimization.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
             # generate local bash job run script
             self.gen_bash(directory=directory, script="optimization.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])
 
@@ -79,7 +79,7 @@ class opt_run(abinit):
             # generate llhpc job submit script
             self.gen_llhpc(directory=directory, script="optimization.slurm", cmd="$PMF_ABINIT")
             # generate pbs job submit script
-            self.gen_pbs(directory=directory, script="optimization.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, script="optimization.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
             # generate local bash job run script
             self.gen_bash(directory=directory, script="optimization.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])
 

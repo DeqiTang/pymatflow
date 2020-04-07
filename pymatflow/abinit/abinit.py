@@ -63,12 +63,13 @@ class abinit:
         # only set the parameters for default dataset 0
         self.dataset[0].electrons.dft_plus_u()
 
-    def set_run(self, mpi="", server="pbs", jobname="abinit", nodes=1, ppn=32):
+    def set_run(self, mpi="", server="pbs", jobname="abinit", nodes=1, ppn=32, queue=None):
         self.run_params["mpi"] = mpi
         self.run_params["server"] = server
         self.run_params["jobname"] = jobname
         self.run_params["nodes"] = nodes
         self.run_params["ppn"] = ppn
+        self.run_params["queue"] = queue
 
     def to_string(self):
         """
@@ -166,7 +167,7 @@ class abinit:
             fout.write("#!/bin/bash\n")
             fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % (cmd, inpname, output))
 
-    def gen_pbs(self, directory, script="abinit.pbs", cmd="abinit", jobname="abinit", nodes=1, ppn=32):
+    def gen_pbs(self, directory, script="abinit.pbs", cmd="abinit", jobname="abinit", nodes=1, ppn=32, queue=None):
         """
         generating pbs job script for calculation
         """
@@ -174,6 +175,8 @@ class abinit:
             fout.write("#!/bin/bash\n")
             fout.write("#PBS -N %s\n" % jobname)
             fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+            if queue != None:
+                fout.write("#PBS -q %s\n" % queue)
             fout.write("\n")
             fout.write("cd $PBS_O_WORKDIR\n")
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")

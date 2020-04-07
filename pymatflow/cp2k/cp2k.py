@@ -174,7 +174,7 @@ class cp2k:
         if 13 in option:
             self.force_eval.properties.resp.status = True
 
-    def set_run(self, mpi="", server="pbs", jobname="cp2k", nodes=1, ppn=32):
+    def set_run(self, mpi="", server="pbs", jobname="cp2k", nodes=1, ppn=32, queue=None):
         """ used to set  the parameters controlling the running of the task
         :param mpi: you can specify the mpi command here, it only has effect on native running
 
@@ -184,6 +184,7 @@ class cp2k:
         self.run_params["jobname"] = jobname
         self.run_params["nodes"] = nodes
         self.run_params["ppn"] = ppn
+        self.run_params["queue"] = queue
         #self.run_params["inpname"] = inpname
         #self.run_params["output"] = output
 
@@ -222,7 +223,7 @@ class cp2k:
             fout.write("yhrun -N 1 -n 24 %s -in %s | tee %s\n" % (cmd, inpname, output))
 
 
-    def gen_pbs(self, inpname, output, directory, cmd="cp2k.popt", jobname="cp2k", nodes=1, ppn=32):
+    def gen_pbs(self, inpname, output, directory, cmd="cp2k.popt", jobname="cp2k", nodes=1, ppn=32, queue=None):
         """
         generating pbs job script for calculation
         """
@@ -230,6 +231,8 @@ class cp2k:
             fout.write("#!/bin/bash\n")
             fout.write("#PBS -N %s\n" % jobname)
             fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+            if queue != None:
+                fout.write("#PBS -q %s\n" % queue)
             fout.write("\n")
             fout.write("cd $PBS_O_WORKDIR\n")
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")

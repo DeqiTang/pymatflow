@@ -41,7 +41,7 @@ class static_run(abinit):
             # generate llhpc submit script
             self.gen_llhpc(directory=directory, script="static-scf.slurm", cmd="$PMF_ABINIT")
             # generate pbs job submit script
-            self.gen_pbs(directory=directory, script="static-scf.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, script="static-scf.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
 
             # generate local bash job run script
             self.gen_bash(directory=directory, script="static-scf.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])
@@ -81,7 +81,7 @@ class static_run(abinit):
             # generate llhpc submit script
             self.gen_llhpc(directory=directory, script="static-nscf.slurm", cmd="$PMF_ABINIT")
             # generate pbs job submit script
-            self.gen_pbs(directory=directory, script="static-nscf.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, script="static-nscf.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
 
             # generate local bash job run script
             self.gen_bash(directory=directory, script="static-nscf.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])
@@ -124,7 +124,7 @@ class static_run(abinit):
             # generate llhpc submit script
             self.gen_llhpc(directory=directory, script="static-bands.slurm", cmd="$PMF_ABINIT")
             # generate pbs job submit script
-            self.gen_pbs(directory=directory, script="static-bands.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, script="static-bands.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
 
             # generate local bash job run script
             self.gen_bash(directory=directory, script="static-bands.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])
@@ -168,7 +168,7 @@ class static_run(abinit):
             # generate llhpc submit script
             self.gen_llhpc(directory=directory, script="static-scf-nscf-dos-bands.slurm", cmd="$PMF_ABINIT")
             # generate pbs job submit script
-            self.gen_pbs(directory=directory, script="static-scf-nscf-dos-bands.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, script="static-scf-nscf-dos-bands.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
 
             # generate local bash job run script
             self.gen_bash(directory=directory, script="static-scf-nscf-dos-bands.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])
@@ -235,6 +235,8 @@ class static_run(abinit):
                 fout.write("#!/bin/bash\n")
                 fout.write("#PBS -N %s\n" % self.run_params["jobname"])
                 fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+                if "queue" in self.run_params and self.run_params["queue"] != None:
+                    fout.write("#PBS -q %s\n" %self.run_params["queue"])                
                 fout.write("\n")
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
@@ -325,7 +327,7 @@ class static_run(abinit):
             self.gen_llhpc(directory=directory, script="static.slurm", cmd="$PMF_ABINIT")
 
             # generate pbs job submit script
-            self.gen_pbs(directory=directory, script="static.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, script="static.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
 
             # generate local bash job run script
             self.gen_bash(directory=directory, script="static.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])

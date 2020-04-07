@@ -66,7 +66,7 @@ class pwscf:
         # see corresponding comment for function self.arts.set_kpoints()
         self.arts.set_kpoints(option=kpoints_option, kpoints_mp=kpoints_mp, crystal_b=crystal_b)
 
-    def set_run(self, mpi="", server="pbs", jobname="qe", nodes=1, ppn=32):
+    def set_run(self, mpi="", server="pbs", jobname="qe", nodes=1, ppn=32, queue=None):
         """ used to set  the parameters controlling the running of the task
         :param mpi: you can specify the mpi command here, it only has effect on native running
 
@@ -76,6 +76,7 @@ class pwscf:
         self.run_params["jobname"] = jobname
         self.run_params["nodes"] = nodes
         self.run_params["ppn"] = ppn
+        self.run_params["queue"] = queue
 
 
     def set_atomic_forces(self, pressure=None, pressuredir=None):
@@ -151,7 +152,7 @@ class pwscf:
             fout.write("#!/bin/bash\n")
             fout.write("yhrun -N 1 -n 24 %s < %s > %s\n" % (cmd, inpname, output))
 
-    def gen_pbs(self, inpname, output, directory, cmd="pw.x", jobname="pwscf", nodes=1, ppn=32):
+    def gen_pbs(self, inpname, output, directory, cmd="pw.x", jobname="pwscf", nodes=1, ppn=32, queue=None):
         """
         generating pbs job script for calculation
         """
@@ -159,6 +160,8 @@ class pwscf:
             fout.write("#!/bin/bash\n")
             fout.write("#PBS -N %s\n" % jobname)
             fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+            if queue != None:
+                fout.write("#PBS -q %s\n" % queue)            
             fout.write("\n")
             fout.write("cd $PBS_O_WORKDIR\n")
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")

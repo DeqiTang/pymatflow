@@ -66,7 +66,7 @@ class static_mp2_run(cp2k):
             # gen server job comit file
             self.gen_yh(directory=directory, cmd="$PMF_CP2K", inpname=inpname, output=output)
             # gen pbs server job comit file
-            self.gen_pbs(directory=directory, cmd="$PMF_CP2K", inpname=inpname, output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, cmd="$PMF_CP2K", inpname=inpname, output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
 
         if runopt == "run" or runopt == "genrun":
            os.chdir(directory)

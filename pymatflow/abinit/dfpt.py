@@ -378,7 +378,7 @@ class dfpt_phonon(abinit):
                         pass
             #
             # generate pbs job submit script
-            #self.gen_pbs(directory=directory, script="dfpt-phonon.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            #self.gen_pbs(directory=directory, script="dfpt-phonon.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
             # generate local bash job run script
             #self.gen_bash(directory=directory, script="dfpt-phonon.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])
 

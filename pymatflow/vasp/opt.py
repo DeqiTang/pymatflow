@@ -40,7 +40,7 @@ class opt_run(vasp):
             # gen slurm script
             self.gen_llhpc(directory=directory, cmd="$PMF_VASP_STD", scriptname="optimization.slurm")
             # gen pbs script
-            self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD", scriptname="optimization.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD", scriptname="optimization.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
             # gen local bash script
             self.gen_bash(directory=directory, cmd="$PMF_VASP_STD", scriptname="optimization.sh")
             # gen lsf_sz script
@@ -121,6 +121,8 @@ class opt_run(vasp):
             fout.write("#!/bin/bash\n")
             fout.write("#PBS -N %s\n" % self.run_params["jobname"])
             fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+            if "queue" in self.run_params and self.run_params["queue"] != None:
+                fout.write("#PBS -q %s\n" %self.run_params["queue"])            
             fout.write("\n")
             fout.write("cd $PBS_O_WORKDIR\n")
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
@@ -399,6 +401,8 @@ class opt_run(vasp):
             fout.write("#!/bin/bash\n")
             fout.write("#PBS -N %s\n" % self.run_params["jobname"])
             fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+            if "queue" in self.run_params and self.run_params["queue"] != None:
+                fout.write("#PBS -q %s\n" %self.run_params["queue"])            
             fout.write("\n")
             fout.write("cd $PBS_O_WORKDIR\n")
             fout.write("cat > INCAR<<EOF\n")
@@ -876,6 +880,8 @@ class opt_run(vasp):
             fout.write("#!/bin/bash\n")
             fout.write("#PBS -N %s\n" % self.run_params["jobname"])
             fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+            if "queue" in self.run_params and self.run_params["queue"] != None:
+                fout.write("#PBS -q %s\n" %self.run_params["queue"])            
             fout.write("\n")
             fout.write("cd $PBS_O_WORKDIR\n")
             fout.write("cat > INCAR<<EOF\n")

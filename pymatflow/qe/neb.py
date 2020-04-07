@@ -139,7 +139,7 @@ class neb_run(pwscf):
             # gen yhbatch script
             self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_NEBX")
             # gen pbs script
-            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_NEBX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_NEBX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -211,7 +211,7 @@ class neb_run(pwscf):
             fout.write("#!/bin/bash\n")
             fout.write("yhrun -N 1 -n 24 %s -inp %s > %s\n" % (cmd, inpname, output))
 
-    def gen_pbs(self, inpname, output, directory, cmd="neb.x", jobname="neb.x", nodes=1, ppn=32):
+    def gen_pbs(self, inpname, output, directory, cmd="neb.x", jobname="neb.x", nodes=1, ppn=32, queue=None):
         """
         generating pbs job script for calculation
         """
@@ -219,6 +219,8 @@ class neb_run(pwscf):
             fout.write("#!/bin/bash\n")
             fout.write("#PBS -N %s\n" % jobname)
             fout.write("#PBS -l nodes=%d:ppn=%d\n" % (nodes, ppn))
+            if queue != None:
+                fout.write("#PBS -q %s\n" % queue)
             fout.write("\n")
             fout.write("cd $PBS_O_WORKDIR\n")
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
