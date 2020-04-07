@@ -62,6 +62,9 @@ class phonopy_run(siesta):
                 fout.write("SystemLabel %s\n" % self.system.label)
                 fout.write("NumberOfSpecies %s\n" % self.system.xyz.nspecies)
 
+                for item in self.system.params:
+                    if self.system.params[item] is not None:
+                        fout.write("%s %s\n" % (item, self.system.params[item]))
 
                 fout.write("%block ChemicalSpeciesLabel\n")
                 for element in self.system.xyz.specie_labels:

@@ -1051,7 +1051,7 @@ def main():
 
     gp.add_argument("-r", "--runtype", type=int, default=0,
             choices=[0, 1, 2, 3, 4, 5],
-            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->phonpy")
+            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->phonopy; 6->molecular dynamics")
 
     gp.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory for the running.")
@@ -2298,6 +2298,16 @@ def main():
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 6:
+            # molecular dynamics
+            from pymatflow.siesta.md import md_run
+            task = md_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints_mp=args.kpoints_mp)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            task.md(directory=args.directory, runopt=args.runopt, auto=args.auto)
         else:
             pass
     elif args.driver == "vasp":

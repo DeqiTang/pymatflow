@@ -90,11 +90,11 @@ if __name__ == "__main__":
 
     # get the disps information
     os.chdir(args.directory)
-    os.system("ls | grep 'supercell-' > pos.data")
+    os.system("ls | grep 'disp-' > pos.data")
     disps = []
     with open("pos.data", 'r') as fin:
         for line in fin:
-            disps.append(line.split(".")[0].split("-")[1])
+            disps.append(line.split(".")[0].split("\n")[0].split("-")[1])
     os.chdir("../") 
 
     os.chdir(args.directory)

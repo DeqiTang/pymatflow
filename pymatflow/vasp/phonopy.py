@@ -117,7 +117,7 @@ class phonopy_run(vasp):
                     fout.write("cd ../\n")
 
             # generate the local bash script
-            with open(os.path.join(directory, "phonopy-job.bash"), 'w') as fout:
+            with open(os.path.join(directory, "phonopy-job.sh"), 'w') as fout:
                 fout.write("#!/bin/bash\n\n")
                 fout.write("\n")
                 fout.write("cat > INCAR<<EOF\n")
@@ -134,7 +134,7 @@ class phonopy_run(vasp):
                 fout.write("#!/bin/bash\n")
                 fout.write("APP_NAME=intelY_mid\n")
                 fout.write("NP=%d\n" % self.run_params["nodes"]*self.run_params["ppn"]) #np)
-                fout.write("NP_PER_NODE=%d\n" % ppn) #np_per_node)
+                fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"]) #np_per_node)
                 fout.write("RUN=\"RAW\"\n")
                 fout.write("CURDIR=$PWD\n")
                 fout.write("VASP=/home-yg/Soft/Vasp5.4/vasp_std\n")
@@ -164,12 +164,7 @@ class phonopy_run(vasp):
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            disps = self.get_disps("./")
-            for disp in disps:
-                os.chdir("disp-%s" % disp)
-                #os.system("vasp")
-                os.system("bash phonopy-job.sh")
-                os.chdir("../")
+            os.system("bash phonopy-job.sh")
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="phonopy-job", server=self.run_params["server"])
 

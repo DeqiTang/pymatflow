@@ -14,12 +14,19 @@ class phonopy_post:
     def get_kpath(self, kpath):
         self.kpath = kpath
 
-    def get_xyz(filepath):
+    def get_xyz(self, filepath):
         self.xyz = base_xyz()
         self.xyz.get_xyz(filepath)
 
     def export(self, directory):
+        os.chdir(directory)
+        os.system("ls | grep 'POSCAR-' > pos.data")
+        disps = []
+        with open("pos.data", 'r') as fin:
+            for line in fin:
+                disps.append(line.split("\n")[0].split("-")[1])
         os.chdir("../")
+
         os.chdir(directory)
         os.system("mkdir -p post-processing")
         # generate the result analysis bash script and necessary config files
@@ -57,28 +64,24 @@ class phonopy_post:
             fout.write("BAND_CONNECTION = .TRUE.\n")
             fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
             fout.write("BAND =")
-            for qpoint in qpath:
-                if qpoint[4] == None:
+            for qpoint in self.kpath:
+                if qpoint[4] != "|":
                     fout.write(" %f %f %f" % (qpoint[0], qpoint[1], qpoint[2]))
-                elif qpoint[4] == "|":
-                    fout.write(" %f %f %f," % (qpoint[0], qpoint[1], qpoint[2]))
                 else:
-                    pass
+                    fout.write(" %f %f %f," % (qpoint[0], qpoint[1], qpoint[2]))
             fout.write("\n")
             fout.write("BAND_LABELS =")
-            for qpoint in qpath:
-                if qpoint[4] == None:
+            for qpoint in self.kpath:
+                if qpoint[4] != "|":
                     if qpoint[3].upper() == "GAMMA":
                         fout.write(" $\Gamma$")
                     else:
                         fout.write(" $%s$" % qpoint[3])
-                elif qpoint[4] == "|":
+                else:
                     if qpoint[3].upper() == "GAMMA":
                         fout.write(" $\Gamma$,")
                     else:
                         fout.write(" $%s$," % qpoint[3])
-                else:
-                    pass
             fout.write("\n")
 
         with open("post-processing/phonopy-analysis.sh", 'w') as fout:

@@ -105,7 +105,10 @@ class opt_out:
                 self.opt_params["ecutrho"] = int(float(self.lines[i+8].split()[4]))
                 self.opt_params["conv_thr"] = float(self.lines[i+9].split()[3])
                 self.opt_params["mixing_beta"] = float(self.lines[i+10].split()[3])
-                self.opt_params["nstep"] = int(self.lines[i+13].split()[2])
+                if "nstep" in self.opt_params and self.opt_params["nstep"] != None:
+                    pass
+                else:
+                    self.opt_params["nstep"] = int(self.lines[i+13].split()[2])
             elif self.lines[i].split()[0] == "crystal" and self.lines[i].split()[1] == "axes:" and self.lines[i].split()[-1] =="alat)":
                 self.opt_params["cell_a_alat"] = []
                 self.opt_params["cell_a_alat"].append([float(self.lines[i+1].split()[3]), float(self.lines[i+1].split()[4]), float(self.lines[i+1].split()[5])])

@@ -7,13 +7,13 @@ from pymatflow.base.xyz import base_xyz
 class phonon_post:
     def __init__(self):
         self.mp = [8, 8, 8] # default value
-        self.supsercell_n = [1, 1, 1] # default value
+        self.supercell_n = [1, 1, 1] # default value
 
 
     def get_kpath(self, kpath):
         self.kpath = kpath
 
-    def get_xyz(filepath):
+    def get_xyz(self, filepath):
         self.xyz = base_xyz()
         self.xyz.get_xyz(filepath)
 
@@ -65,27 +65,23 @@ class phonon_post:
             fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
             fout.write("BAND =")
             for qpoint in self.kpath:
-                if qpoint[4] == None:
+                if qpoint[4] != "|":
                     fout.write(" %f %f %f" % (qpoint[0], qpoint[1], qpoint[2]))
-                elif qpoint[4] == "|":
-                    fout.write(" %f %f %f," % (qpoint[0], qpoint[1], qpoint[2]))
                 else:
-                    pass
+                    fout.write(" %f %f %f," % (qpoint[0], qpoint[1], qpoint[2]))
             fout.write("\n")
             fout.write("BAND_LABELS =")
             for qpoint in self.kpath:
-                if qpoint[4] == None:
+                if qpoint[4] != "|":
                     if qpoint[3].upper() == "GAMMA":
                         fout.write(" $\Gamma$")
                     else:
                         fout.write(" $%s$" % qpoint[3])
-                elif qpoint[4] == "|":
+                else:
                     if qpoint[3].upper() == "GAMMA":
                         fout.write(" $\Gamma$,")
                     else:
                         fout.write(" $%s$," % qpoint[3])
-                else:
-                    pass
             fout.write("\n")
 
         with open("post-processing/phonon-analysis.sh", 'w') as fout:
