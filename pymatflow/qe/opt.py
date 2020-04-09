@@ -4,7 +4,7 @@ Geometric Optimization calc
 import os
 import re
 import shutil
-
+import pymatflow.base as base
 from pymatflow.remote.server import server_handle
 from pymatflow.qe.pwscf import pwscf
 
@@ -131,7 +131,7 @@ class opt_run(pwscf):
         self.electrons.basic_setting()
         self.ions.basic_setting()
 
-    def cubic(self, directory="tmp-qe-relax-cubic", runopt="gen", auto=0):
+    def cubic(self, directory="tmp-qe-relax-cubic", runopt="gen", auto=0, na=10, stepa=0.05):
         """
         """
         if os.path.exists(directory):
@@ -159,15 +159,12 @@ class opt_run(pwscf):
 
             coordtype = "angstrom"
             fout.write("ATOMIC_SPECIES\n")
-            upf_all = [s for s in os.listdir(self.arts.pseudo.dir) if s.split(".")[-1] == "UPF"]
+            all_file = os.listdir(self.arts.pseudo.dir)
             for element in self.arts.xyz.specie_labels:
-                for upf in upf_all:
-                    if upf.split(".")[0] == element:
-                        pseudo_file =upf
+                for item in all_file:
+                    if re.match("(%s)(.*)(upf)" % (element), item, re.IGNORECASE):
+                        fout.write("%s %f %s\n" % (element, base.element[element].mass, item))
                         break
-                fout.write("%s %f %s\n" % (element, base.element[element].mass, pseudo_file))
-                pseudo_file = None
-                # after pseudo_file used, set it to None to avoid it will be used in the next element
             fout.write("\n")
             if coordtype == "angstrom":
                 fout.write("ATOMIC_POSITIONS angstrom\n")
@@ -323,7 +320,7 @@ class opt_run(pwscf):
             fout.write("cat > energy-latconst.gp<<EOF\n")
             fout.write("set term gif\n")
             fout.write("set output 'energy-latconst.gif'\n")
-            fout.write("set title Energy Latconst\n")
+            fout.write("set title 'Energy Latconst'\n")
             fout.write("set xlabel 'latconst(a)'\n")
             fout.write("set ylabel 'Energy'\n")
             fout.write("plot 'energy-latconst.data' w l\n")
@@ -334,9 +331,9 @@ class opt_run(pwscf):
             os.chdir(directory)
             os.system("bash relax-cubic.sh")
             os.chdir("../")
-        server_handle(auto=args.auto, directory=directory, jobfilebase="relax-cubic", server=args.server)
+        server_handle(auto=auto, directory=directory, jobfilebase="relax-cubic", server=self.run_params["server"])
 
-    def hexagonal(self, directory="tmp-qe-hexagonal", runopt="gen", auto=0):
+    def hexagonal(self, directory="tmp-qe-hexagonal", runopt="gen", auto=0, na=10, stepa=0.05, nc=10, stepc=0.05):
         """
         """
         if os.path.exists(directory):
@@ -364,15 +361,12 @@ class opt_run(pwscf):
 
             coordtype = "angstrom"
             fout.write("ATOMIC_SPECIES\n")
-            upf_all = [s for s in os.listdir(self.arts.pseudo.dir) if s.split(".")[-1] == "UPF"]
+            all_file = os.listdir(self.arts.pseudo.dir)
             for element in self.arts.xyz.specie_labels:
-                for upf in upf_all:
-                    if upf.split(".")[0] == element:
-                        pseudo_file =upf
+                for item in all_file:
+                    if re.match("(%s)(.*)(upf)" % (element), item, re.IGNORECASE):
+                        fout.write("%s %f %s\n" % (element, base.element[element].mass, item))
                         break
-                fout.write("%s %f %s\n" % (element, base.element[element].mass, pseudo_file))
-                pseudo_file = None
-                # after pseudo_file used, set it to None to avoid it will be used in the next element
             fout.write("\n")
             if coordtype == "angstrom":
                 fout.write("ATOMIC_POSITIONS angstrom\n")
@@ -700,7 +694,7 @@ class opt_run(pwscf):
                     fout.write("cat > energy-latconst.gp<<EOF\n")
                     fout.write("set term gif\n")
                     fout.write("set output 'energy-latconst.gif'\n")
-                    fout.write("set title Energy Latconst\n")
+                    fout.write("set title 'Energy Latconst'\n")
                     fout.write("set xlabel 'latconst(a)'\n")
                     fout.write("set ylabel 'latconst(c)'\n")
                     fout.write("set zlabel 'Energy'\n")
@@ -715,7 +709,7 @@ class opt_run(pwscf):
                     fout.write("cat > energy-latconst.gp<<EOF\n")
                     fout.write("set term gif\n")
                     fout.write("set output 'energy-latconst.gif'\n")
-                    fout.write("set title Energy Latconst\n")
+                    fout.write("set title 'Energy Latconst'\n")
                     fout.write("set xlabel 'latconst(a)'\n")
                     fout.write("set ylabel 'Energy'\n")
                     fout.write("plot 'energy-latconst.data' w l\n")
@@ -734,7 +728,7 @@ class opt_run(pwscf):
                     fout.write("cat > energy-latconst.gp<<EOF\n")
                     fout.write("set term gif\n")
                     fout.write("set output 'energy-latconst.gif'\n")
-                    fout.write("set title Energy Latconst\n")
+                    fout.write("set title 'Energy Latconst'\n")
                     fout.write("set xlabel 'latconst(c)'\n")
                     fout.write("set ylabel 'Energy'\n")
                     fout.write("plot 'energy-latconst.data' w l\n")
@@ -748,9 +742,9 @@ class opt_run(pwscf):
             os.chdir(directory)
             os.system("bash relax-hexagonal.sh")
             os.chdir("../")
-        server_handle(auto=args.auto, directory=directory, jobfilebase="relax-hexagonal", server=args.server)
+        server_handle(auto=auto, directory=directory, jobfilebase="relax-hexagonal", server=self.run_params["server"])
 
-    def tetragonal(self, directory="tmp-qe-relax-tetragonal", runopt="gen",  auto=0):
+    def tetragonal(self, directory="tmp-qe-relax-tetragonal", runopt="gen",  auto=0, na=10, stepa=0.05, nc=10, stepc=0.05):
         """
         """
         if os.path.exists(directory):
@@ -778,15 +772,12 @@ class opt_run(pwscf):
 
             coordtype = "angstrom"
             fout.write("ATOMIC_SPECIES\n")
-            upf_all = [s for s in os.listdir(self.arts.pseudo.dir) if s.split(".")[-1] == "UPF"]
+            all_file = os.listdir(self.arts.pseudo.dir)
             for element in self.arts.xyz.specie_labels:
-                for upf in upf_all:
-                    if upf.split(".")[0] == element:
-                        pseudo_file =upf
+                for item in all_file:
+                    if re.match("(%s)(.*)(upf)" % (element), item, re.IGNORECASE):
+                        fout.write("%s %f %s\n" % (element, base.element[element].mass, item))
                         break
-                fout.write("%s %f %s\n" % (element, base.element[element].mass, pseudo_file))
-                pseudo_file = None
-                # after pseudo_file used, set it to None to avoid it will be used in the next element
             fout.write("\n")
             if coordtype == "angstrom":
                 fout.write("ATOMIC_POSITIONS angstrom\n")
@@ -1105,7 +1096,7 @@ class opt_run(pwscf):
                     fout.write("cat > energy-latconst.gp<<EOF\n")
                     fout.write("set term gif\n")
                     fout.write("set output 'energy-latconst.gif'\n")
-                    fout.write("set title Energy Latconst\n")
+                    fout.write("set title 'Energy Latconst'\n")
                     fout.write("set xlabel 'latconst(a)'\n")
                     fout.write("set ylabel 'latconst(c)'\n")
                     fout.write("set zlabel 'Energy'\n")
@@ -1120,7 +1111,7 @@ class opt_run(pwscf):
                     fout.write("cat > energy-latconst.gp<<EOF\n")
                     fout.write("set term gif\n")
                     fout.write("set output 'energy-latconst.gif'\n")
-                    fout.write("set title Energy Latconst\n")
+                    fout.write("set title 'Energy Latconst'\n")
                     fout.write("set xlabel 'latconst(a)'\n")
                     fout.write("set ylabel 'Energy'\n")
                     fout.write("plot 'energy-latconst.data' w l\n")
@@ -1139,7 +1130,7 @@ class opt_run(pwscf):
                     fout.write("cat > energy-latconst.gp<<EOF\n")
                     fout.write("set term gif\n")
                     fout.write("set output 'energy-latconst.gif'\n")
-                    fout.write("set title Energy Latconst\n")
+                    fout.write("set title 'Energy Latconst'\n")
                     fout.write("set xlabel 'latconst(c)'\n")
                     fout.write("set ylabel 'Energy'\n")
                     fout.write("plot 'energy-latconst.data' w l\n")
@@ -1153,4 +1144,4 @@ class opt_run(pwscf):
             os.chdir(directory)
             os.system("bash relax-tetragonal.sh")
             os.chdir("../")
-        server_handle(auto=args.auto, directory=directory, jobfilebase="relax-tetragonal", server=args.server)
+        server_handle(auto=auto, directory=directory, jobfilebase="relax-tetragonal", server=self.run_params["server"])

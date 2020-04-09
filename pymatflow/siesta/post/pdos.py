@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8
 
+import os
 import xml.etree.ElementTree
 import numpy as np
 import matplotlib.pyplot as plt
@@ -28,7 +29,7 @@ class pdos:
         self.file = None
         
     def get_info(self, pdos_f):
-        self.file = pdos_f
+        self.file = os.path.abspath(pdos_f)
         tree = xml.etree.ElementTree.parse(self.file)
         root = tree.getroot()
         
@@ -56,10 +57,12 @@ class pdos:
 
         plt.vlines(self.fermi_energy, 0, 1, linestyle="dashed", label="Fermi Energy")
         plt.legend()
-        plt.show()
+        #plt.show()
+        plt.savefig("pdos.png")
 
     def export(self, directory):
         os.chdir(directory)
         os.system("mkdir -p post-processing")
+        os.chdir("post-processing")
         self.projected_to_element()
         os.chdir("../../")

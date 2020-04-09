@@ -1174,7 +1174,7 @@ def main():
     gp = subparser.add_argument_group(title="properties")
 
     gp.add_argument("-p", "--properties" ,nargs="+", type=int, default=[],
-            help="Option for properties calculation")
+            help="Option for properties calculation. 1->PDOS; 2->LDOS; 3->Bands; 4->Charge Density; 5->Chemical analysis; 6->Macro Polarization; 7->Net Charge Dipole Electric Field; 8->Optical; 9->Wannier90 ")
 
     gp.add_argument("--pdos-block", type=float, nargs="+",
             default=[-20, 10, 0.2, 500])
@@ -1384,7 +1384,7 @@ def main():
     gp.add_argument("--nfree", type=int, default=None,
             help="NFREE specifies the number of remembered steps in the history of ionic convergence runs, or the number of ionic displacements in frozen phonon calculations")
 
-    gp.add_argument("--kpoints-mp", type=int, nargs="+",
+    gp.add_argument("--kpoints-mp", type=int, nargs=6,
             default=[1, 1, 1, 0, 0, 0],
             help="set kpoints like -k 1 1 1 0 0 0")
 
@@ -2224,7 +2224,7 @@ def main():
                 )
 
             if 3 in args.properties:
-                task.properties.bandlines = bandlines
+                task.properties.bandlines = get_kpath(args.kpath_manual, args.kpath_file)
 
             task.set_params(params=params)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)

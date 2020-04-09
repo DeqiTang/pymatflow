@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
+import os
+import sys
 import datetime
 import subprocess
 import matplotlib.pyplot as plt
@@ -19,12 +21,12 @@ class opt_out:
 
 
 
-    def get_info(self, file):
+    def get_info(self, filepath):
         """
-        file: output file of the optimization running
+        filepath: output file of the optimization running
         """
-        self.file = file
-        with open(outputfile, 'r') as fin:
+        self.file = filepath
+        with open(self.file, 'r') as fin:
             self.lines = fin.readlines()
 
         # check whether calculation is finished
@@ -62,9 +64,9 @@ class opt_out:
             if line.split()[0] == "MD.VariableCell":
                 self.opt_params["VariableCell"] = line.split()[1]
 
-    def plot_ino(self):
+    def plot_info(self):
         #plot_run_info
-        plt.plot(opt.run_info["total_energy_each_ion_step"])
+        plt.plot(self.run_info["total_energy_each_ion_step"])
         plt.title("Total energy each ion step")
         plt.xlabel("Scf cycle")
         plt.ylabel("Total Energy (eV)")
@@ -72,7 +74,7 @@ class opt_out:
         plt.savefig("total-energy-each-ion-step.png")
         plt.close()
 
-        plt.plot(opt.run_info["scf_iterations_each_ion_step_converged"])
+        plt.plot(self.run_info["scf_iterations_each_ion_step_converged"])
         plt.title("Iterations each ion step(converged)")
         plt.xlabel("Scf cycle(converged)")
         plt.ylabel("Scf iterations")
@@ -88,29 +90,29 @@ class opt_out:
         """
         with open(md, 'w', encoding='utf-8') as fout:
             fout.write("# 几何优化实验统计\n")
-            fout.write("是否进行变胞优化: %s\n" % opt.opt_params["VariableCell"])
-            fout.write("几何优化任务是否结束:%s\n" % str(opt.job_completed))
-            if opt.job_completed == True:
-                fout.write("是否成功优化: %s\n" % str(opt.relaxed))
+            fout.write("是否进行变胞优化: %s\n" % self.opt_params["VariableCell"])
+            fout.write("几何优化任务是否结束:%s\n" % str(self.job_completed))
+            if self.job_completed == True:
+                fout.write("是否成功优化: %s\n" % str(self.relaxed))
             else:
                 fout.write("是否成功优化: %s\n" % "运行未结束, 结果未知")
             fout.write("## 优化参数\n")
-            for item in opt.opt_params:
-                fout.write("- %s: %s\n" % (item, str(opt.opt_params[item])))
+            for item in self.opt_params:
+                fout.write("- %s: %s\n" % (item, str(self.opt_params[item])))
             fout.write("## 运行信息\n")
             # calculate the running time and print it out
-            start = datetime.datetime.strptime(opt.run_info["start_time"].split()[4]+"-"+opt.run_info["start_time"].split()[5], "%d-%b-%Y-%H:%M:%S")
-            if opt.job_completed == True:
-                stop = datetime.datetime.strptime(opt.run_info["stop_time"].split()[4]+"-"+opt.run_info["stop_time"].split()[5], "%d-%b-%Y-%H:%M:%S")
+            start = datetime.datetime.strptime(self.run_info["start_time"].split()[4]+"-"+self.run_info["start_time"].split()[5], "%d-%b-%Y-%H:%M:%S")
+            if self.job_completed == True:
+                stop = datetime.datetime.strptime(self.run_info["stop_time"].split()[4]+"-"+self.run_info["stop_time"].split()[5], "%d-%b-%Y-%H:%M:%S")
                 delta_t = stop -start
             fout.write("- Time consuming:\n")
-            if opt.job_completed == True:
+            if self.job_completed == True:
                 fout.write("  - totally %.1f seconds, or %.3f minutes or %.5f hours\n" % (delta_t.total_seconds(), delta_t.total_seconds()/60, delta_t.total_seconds()/3600))
             else:
                 fout.write("  - job is not finished yet, but it starts at %s\n" % start)
             # end the time information
-            for item in opt.run_info:
-                fout.write("- %s: %s\n" % (item, str(opt.run_info[item])))
+            for item in self.run_info:
+                fout.write("- %s: %s\n" % (item, str(self.run_info[item])))
 
             fout.write("## 运行信息图示\n")
             fout.write("Iterations per SCF\n")

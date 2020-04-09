@@ -86,7 +86,7 @@ class bands_post:
                 fout.write("unset key\n")
                 fout.write("set xtics(")
                 for point in self.specialk:
-                    if point["label"] == "GAMMA":
+                    if point["label"] == 'GAMMA':
                         fout.write("%s %f, " % ("{/symbol G}", point["xcoord"]))
                     else:
                         fout.write("%s %f, " % (point["label"], point["xcoord"])) # minus 1, because in gnuplot x start with 0

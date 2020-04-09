@@ -286,6 +286,9 @@ def main():
             default=[1, 1, 1],
             help="supercell for phonopy, like [2, 2, 2]")
 
+    subparser.add_argument("--engine", type=str, default="gnuplot",
+            choices=["matplotlib", "gnuplot"],
+            help="choose gnuplot or matplot lib to do the band plot")
     # --------------------------------------------------------------------------
     # VASP
     # --------------------------------------------------------------------------
@@ -523,17 +526,17 @@ def main():
     elif args.driver == "siesta":
         if args.runtype == 0:
             # static
-            from pymatflow.post.pdos import pdos
+            from pymatflow.siesta.post.pdos import pdos
             task = pdos()
             task.get_info(os.path.join(args.directory, "siesta.PDOS.xml"))
             task.export(directory=args.directory)
-            from pymatflow.post.bands import bands_post
+            from pymatflow.siesta.post.bands import bands_post
             task = bands_post()
             task.process(os.path.join(args.directory, "siesta.bands"))
             task.export(directory=args.directory, option=args.engine)
         elif args.runtype == 1:
             # optimization
-            from pymatflow.siesta.pots.opt import opt_out
+            from pymatflow.siesta.post.opt import opt_out
             task = opt_out()
             task.get_info(os.path.join(args.directory, "geometric-optimization.out"))
             task.export(directory=args.directory)
