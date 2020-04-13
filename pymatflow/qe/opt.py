@@ -22,6 +22,7 @@ class opt_run(pwscf):
     def __init__(self):
         super().__init__()
 
+        self.arts.ifstatic = False
 
     def relax(self, directory="tmp-qe-relax", inpname="relax.in", output="relax.out", runopt="gen", auto=0):
         """

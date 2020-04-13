@@ -342,7 +342,7 @@ class static_run(vasp):
     def set_scf(self, params):
         pass
 
-    def run(self, directory="tmp-vasp-static", runopt="gen", auto=0, kpath=None, kpath_intersections=15):
+    def run(self, directory="tmp-vasp-static", runopt="gen", auto=0, kpath=None):
         """
         directory: a place for all the generated files
 
@@ -374,7 +374,7 @@ class static_run(vasp):
                 })            
 
             incar_nscf = self.incar.to_string()
-            self.set_kpoints(option="bands", kpath=kpath, kpath_intersections=kpath_intersections)
+            self.set_kpoints(option="bands", kpath=kpath)
             kpoints_nscf = self.kpoints.to_string()
 
             # gen llhpc script

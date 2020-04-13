@@ -21,6 +21,11 @@ class post_pdos:
             self.magnetic_status = "spin-unpolarized"
         elif len(self.vasprun.getroot().find("calculation").find("dos").find("partial").find("array").find("set").find("set")) == 2:
             self.magnetic_status = "spin-polarized"
+        else:
+            for i in range(len(self.vasprun.getroot().find("incar"))):
+                if self.vasprun.getroot().find("incar")[i].attrib["name"] == "LSORBIT" and self.vasprun.getroot().find("incar")[i].text.split()[0] == 'T':
+                    self.magnetic_status = "soc"
+                    break
 
         #
         if self.magnetic_status == "spin-unpolarized":
@@ -89,6 +94,58 @@ class post_pdos:
                         iondata["spin_2"][key].append(float(line.text.split()[i]))
                         i = i + 1
                 self.data.append(iondata)
+        elif self.magnetic_status == "soc":
+            """
+            self.data:
+                [
+                    {
+                        "ion": 'element label',
+                        "spin_1": {"energy": [], "s": [], "py": [], .......},
+                        "spin_2": {"energy": [], "s": [], "py": [], .......},
+                        "spin_3": {"energy": [], "s": [], "py": [], .......},
+                        "spin_4": {"energy": [], "s": [], "py": [], .......}
+                    },
+                    ...
+                ]
+            a list contains partial dos data for each ion
+            """
+            self.data = []
+            nion = len(self.vasprun.getroot().find("calculation").find("dos").find("partial").find("array").find("set"))
+            # field is in format of {"energy": [], "s": [], "py": [], .....}
+            # used to initialize data of every ion
+            field = {}
+            for item in self.vasprun.getroot().find("calculation").find("dos").find("partial").find("array").findall("field"):
+                field[item.text.split()[0]] = []
+            #
+            for ion in self.vasprun.getroot().find("calculation").find("dos").find("partial").find("array").find("set"):
+                iondata = {}
+                iondata["spin_1"] = copy.deepcopy(field)
+                iondata["spin_2"] = copy.deepcopy(field)
+                iondata["spin_3"] = copy.deepcopy(field)
+                iondata["spin_4"] = copy.deepcopy(field)
+                for line in ion[0]:
+                    i = 0
+                    for key in iondata["spin_1"].keys():
+                        iondata["spin_1"][key].append(float(line.text.split()[i]))
+                        i = i + 1
+                for line in ion[1]:
+                    i = 0
+                    for key in iondata["spin_2"].keys():
+                        iondata["spin_2"][key].append(float(line.text.split()[i]))
+                        i = i + 1
+                for line in ion[2]:
+                    i = 0
+                    for key in iondata["spin_3"].keys():
+                        iondata["spin_3"][key].append(float(line.text.split()[i]))
+                        i = i + 1
+                for line in ion[3]:
+                    i = 0
+                    for key in iondata["spin_4"].keys():
+                        iondata["spin_4"][key].append(float(line.text.split()[i]))
+                        i = i + 1                                                
+                self.data.append(iondata)
+
+
         # get element label for each ion in self.data
         # self.ion_list: ['H', 'H', 'He', 'Li', 'Li', 'Li', 'C', "N", 'N', ......]
         ion_list = []

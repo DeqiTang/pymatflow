@@ -2392,7 +2392,7 @@ def main():
                 if params["LNONCOLLINEAR"].upper() == ".TRUE." or params["LNONCOLLINEAR"].upper() == "T":
                     task.magnetic_status = "non-collinear"
             if args.static == "all":
-                task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpath=get_kpath(args.kpath_manual, args.kpath_file), kpath_intersections=args.kpath_intersections)
+                task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpath=get_kpath(args.kpath_manual, args.kpath_file))
             elif args.static == "scf":
                 task.set_kpoints(kpoints_mp=args.kpoints_mp)
                 task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto)

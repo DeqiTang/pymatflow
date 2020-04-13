@@ -116,8 +116,8 @@ class vasp:
             pass
 
     def set_kpoints(self, kpoints_mp=[1, 1, 1, 0, 0, 0], option="automatic",
-            kpath=None, kpath_intersections=15):
-        self.kpoints.set_kpoints(kpoints_mp=kpoints_mp, option=option, kpath=kpath, kpath_intersections=kpath_intersections)
+            kpath=None):
+        self.kpoints.set_kpoints(kpoints_mp=kpoints_mp, option=option, kpath=kpath)
 
     def set_run(self, mpi="", server="pbs", jobname="cp2k", nodes=1, ppn=32, queue=None):
         """ used to set  the parameters controlling the running of the task

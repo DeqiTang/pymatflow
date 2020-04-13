@@ -27,6 +27,7 @@ class static_run(pwscf):
         super().__init__()
 
         self.control.basic_setting("scf")
+        self.arts.ifstatic = True
 
     def scf(self, directory="tmp-qe-static", inpname="static-scf.in", output="static-scf.out", runopt="gen", auto=0):
         """

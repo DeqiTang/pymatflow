@@ -46,7 +46,7 @@ class pwscf:
         """
         self.arts.xyz.get_xyz(xyzfile)
         self.system.basic_setting(self.arts)
-        self.arts.basic_setting(ifstatic=True)
+        #self.arts.basic_setting(ifstatic=True)
 
 
     def set_params(self, control={}, system={}, electrons={}, ions={}, cell={}):

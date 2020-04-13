@@ -3,6 +3,7 @@ control Nudged Elastic Band(NEB)calculation
 """
 import os
 import re
+import sys
 import shutil
 import pymatflow.base as base
 
@@ -26,7 +27,7 @@ class neb_run(pwscf):
         and experience is needed.
     Q&A:
         can we fix some atoms when doing neb calculation?
-
+        surely we can through ATOMIC_POSITIONS
     """
     def __init__(self):
         """
@@ -52,7 +53,8 @@ class neb_run(pwscf):
             self.images.append(arts)
         self.system.basic_setting(self.images[0])
         for image in self.images:
-            image.basic_setting(ifstatic=True)
+            #image.basic_setting(ifstatic=True)
+            image.basic_setting(ifstatic=False)
         # self.arts is actually the same as self.images[0]
         # it is used to set kpoints convinently
         self.arts.xyz.get_xyz(self.images[0].xyz.file)
@@ -175,19 +177,66 @@ class neb_run(pwscf):
         fout.write("\n")
         fout.write("FIRST_IMAGE\n")
         fout.write("ATOMIC_POSITIONS angstrom\n")
-        for atom in self.images[0].xyz.atoms:
-            fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
+        if self.images[0].ifstatic == True:
+            for atom in self.images[0].xyz.atoms:
+                fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
+        elif self.images[0].ifstatic == False:
+            for atom in self.images[0].xyz.atoms:
+                fout.write("%s\t%.9f\t%.9f\t%.9f" % (atom.name, atom.x, atom.y, atom.z))
+                for fix in atom.fix:
+                    if fix == True:
+                        fout.write("\t0")
+                    elif fix == False:
+                        fout.write("\t1")
+                fout.write("\n")
+        else:
+            print("===============================================\n")
+            print("warning: qe.neb.neb_run.images_to_neb():\n")
+            print("self.images[i].ifstatic could only be True or False\n")
+            sys.exit(1)
         fout.write("\n")
+
         for i in range(1, len(self.images) - 1):
             fout.write("INTERMEDIATE_IMAGE\n")
             fout.write("ATOMIC_POSITIONS angstrom\n")
-            for atom in self.images[i].xyz.atoms:
-                fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
+            if self.images[i].ifstatic == True:
+                for atom in self.images[i].xyz.atoms:
+                    fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
+            elif self.images[i].ifstatic == False:
+                for atom in self.images[i].xyz.atoms:
+                    fout.write("%s\t%.9f\t%.9f\t%.9f" % (atom.name, atom.x, atom.y, atom.z))
+                    for fix in atom.fix:
+                        if fix == True:
+                            fout.write("\t0")
+                        elif fix == False:
+                            fout.write("\t1")
+                    fout.write("\n")
+            else:
+                print("===============================================\n")
+                print("warning: qe.neb.neb_run.images_to_neb():\n")
+                print("self.images[i].ifstatic could only be True or False\n")
+                sys.exit(1)
             fout.write("\n")
+                        
         fout.write("LAST_IMAGE\n")
         fout.write("ATOMIC_POSITIONS angstrom\n")
-        for atom in self.images[-1].xyz.atoms:
-            fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
+        if self.images[-1].ifstatic == True:
+            for atom in self.images[-1].xyz.atoms:
+                fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
+        elif self.images[-1].ifstatic == False:
+            for atom in self.images[-1].xyz.atoms:
+                fout.write("%s\t%.9f\t%.9f\t%.9f" % (atom.name, atom.x, atom.y, atom.z))
+                for fix in atom.fix:
+                    if fix == True:
+                        fout.write("\t0")
+                    elif fix == False:
+                        fout.write("\t1")
+                fout.write("\n")
+        else:
+            print("===============================================\n")
+            print("warning: qe.neb.neb_run.images_to_neb():\n")
+            print("self.images[i].ifstatic could only be True or False\n")
+            sys.exit(1)
         fout.write("\n")
         fout.write("END_POSITIONS\n")
 

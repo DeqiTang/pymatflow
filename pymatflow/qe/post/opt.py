@@ -153,7 +153,7 @@ class opt_out:
 
         for i in range(3):
             for j in range(3):
-                self.xyz.cell[i][j] = self.opt_params["cell_a_alat"][i][i] * self.opt_params["alat_au"] * bohr
+                self.xyz.cell[i][j] = self.opt_params["cell_a_alat"][i][j] * self.opt_params["alat_au"] * bohr
         # now self.xyz.cell are in unit of Angstrom
         # ----------------------------------------------------------------------
 
@@ -192,7 +192,7 @@ class opt_out:
             if len(self.lines[i].split()) > 0 and self.lines[i].split()[0] == "ATOMIC_POSITIONS":
                 atm = []
                 j = i + 1
-                while len(self.lines[j].split()) == 4:
+                while len(self.lines[j].split()) == 4 or len(self.lines[j].split()) == 7:
                     atm.append(Atom(self.lines[j].split()[0], float(self.lines[j].split()[1]), float(self.lines[j].split()[2]), float(self.lines[j].split()[3])))
                     j = j + 1
                 self.trajectory.append(atm)
