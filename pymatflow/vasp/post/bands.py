@@ -113,7 +113,10 @@ class post_bands:
 
                 for j in range(self.kpath[i-1][4]-1):
                     self.xcoord_k.append(self.xcoord_k[-1]+step)
-                self.xcoord_k.append(self.xcoord_k[-1])
+                if i == len(self.kpath) - 1:
+                    pass
+                else:
+                    self.xcoord_k.append(self.xcoord_k[-1])
                         
         # the old code to get kpoints from vasprun.xml and build xcoord_k
         #divisions = int(self.vasprun.find("kpoints").find("generation").find("i").text)
@@ -148,19 +151,25 @@ class post_bands:
 
         """
         # first check the magnetic_status
-        if len(self.vasprun.getroot().find("calculation").find("eigenvalues").find("array").findall("set")[0].findall("set")) == 1:
-            # spin unpolarized
-            self.magnetic_status = "spin-unpolarized"
-        elif len(self.vasprun.getroot().find("calculation").find("eigenvalues").find("array").findall("set")[0].findall("set")) == 2:
-            self.magnetic_status = "spin-polarized"
+        for i in range(len(self.vasprun.getroot().find("parameters"))):
+            if self.vasprun.getroot().find("parameters").getchildren()[i].attrib["name"] == "electronic":
+                for item in self.vasprun.getroot().find("parameters")[i]:
+                    if item.attrib["name"] == "electronic spin":
+                        for spin_item in item:
+                            if spin_item.attrib["name"] == "ISPIN":
+                                ispin = int(spin_item.text.split()[0])
+                            elif spin_item.attrib["name"] == "LNONCOLLINEAR":
+                                lnoncollinear = spin_item.text.split()[0]
+                            elif spin_item.attrib["name"] == "LSORBIT":
+                                lsorbit = spin_item.text.split()[0]
+        if lsorbit == "T":
+            self.magnetic_status = "soc-ispin-%d" % ispin # soc-ispin-1 or soc-ispin-2
         else:
-            for i in range(len(self.vasprun.getroot().find("incar"))):
-                if self.vasprun.getroot().find("incar")[i].attrib["name"] == "LSORBIT" and self.vasprun.getroot().find("incar")[i].text.split()[0] == 'T':
-                    self.magnetic_status = "soc"
-                    break            
+            self.magnetic_status = "non-soc-ispin-%d" % ispin # non-soc-ispin-1 or non-soc-ispin-2
+
 
         # get the eigenval
-        if self.magnetic_status == "spin-unpolarized":
+        if self.magnetic_status == "non-soc-ispin-1":
             # get only one spin
             self.eigenval = []
             for kpoint in self.vasprun.getroot().find("calculation").find("eigenvalues").find("array").findall("set")[0].findall("set")[0]:
@@ -178,7 +187,7 @@ class post_bands:
                 self.eigenval[i] = None
             for i in range(nk_scf):
                 self.eigenval.remove(None)
-        elif self.magnetic_status == "spin-polarized":
+        elif self.magnetic_status == "non-soc-ispin-2":
             # need to get two spin data set
             self.eigenval_spin1 = []
             for kpoint in self.vasprun.getroot().find("calculation").find("eigenvalues").find("array").findall("set")[0].findall("set")[0]:
@@ -206,7 +215,25 @@ class post_bands:
             for i in range(nk_scf):
                 self.eigenval_spin1.remove(None)
                 self.eigenval_spin2.remove(None)
-        elif self.magnetic_status == "soc":
+        elif self.magnetic_status == "soc-ispin-1":
+            # need to get four spin data set
+            self.eigenval_spin1 = []
+            for kpoint in self.vasprun.getroot().find("calculation").find("eigenvalues").find("array").findall("set")[0].findall("set")[0]:
+                self.eigenval_spin1.append({})
+                self.eigenval_spin1[-1]["energy"] = []
+                self.eigenval_spin1[-1]["occupation"] = []
+                for i in range(len(kpoint)):
+                    self.eigenval_spin1[-1]["energy"].append(float(kpoint[i].text.split()[0]))
+                    self.eigenval_spin1[-1]["occupation"].append(float(kpoint[i].text.split()[1]))
+            # if HSE is used, in pymatflow the kpoints in the KPOINTS file include the Monkhorst-pack from SCF and 
+            # kpoints from kpath. so self.eigeval contains data for both the two part of kpoints.
+            # here we remove the Monkhorst-pack part kpoint from self.eigenval.
+            nk_scf = len(self.eigenval_spin1) -  len(self.xcoord_k)
+            for i in range(nk_scf):
+                self.eigenval_spin1[i] = None
+            for i in range(nk_scf):
+                self.eigenval_spin1.remove(None)
+        elif self.magnetic_status == "soc-ispin-2":
             # need to get four spin data set
             self.eigenval_spin1 = []
             for kpoint in self.vasprun.getroot().find("calculation").find("eigenvalues").find("array").findall("set")[0].findall("set")[0]:
@@ -224,22 +251,6 @@ class post_bands:
                 for i in range(len(kpoint)):
                     self.eigenval_spin2[-1]["energy"].append(float(kpoint[i].text.split()[0]))
                     self.eigenval_spin2[-1]["occupation"].append(float(kpoint[i].text.split()[1]))
-            self.eigenval_spin3 = []
-            for kpoint in self.vasprun.getroot().find("calculation").find("eigenvalues").find("array").findall("set")[0].findall("set")[2]:
-                self.eigenval_spin3.append({})
-                self.eigenval_spin3[-1]["energy"] = []
-                self.eigenval_spin3[-1]["occupation"] = []
-                for i in range(len(kpoint)):
-                    self.eigenval_spin3[-1]["energy"].append(float(kpoint[i].text.split()[0]))
-                    self.eigenval_spin3[-1]["occupation"].append(float(kpoint[i].text.split()[1]))
-            self.eigenval_spin4 = []
-            for kpoint in self.vasprun.getroot().find("calculation").find("eigenvalues").find("array").findall("set")[0].findall("set")[3]:
-                self.eigenval_spin4.append({})
-                self.eigenval_spin4[-1]["energy"] = []
-                self.eigenval_spin4[-1]["occupation"] = []
-                for i in range(len(kpoint)):
-                    self.eigenval_spin4[-1]["energy"].append(float(kpoint[i].text.split()[0]))
-                    self.eigenval_spin4[-1]["occupation"].append(float(kpoint[i].text.split()[1]))
             # if HSE is used, in pymatflow the kpoints in the KPOINTS file include the Monkhorst-pack from SCF and 
             # kpoints from kpath. so self.eigeval contains data for both the two part of kpoints.
             # here we remove the Monkhorst-pack part kpoint from self.eigenval.
@@ -247,14 +258,9 @@ class post_bands:
             for i in range(nk_scf):
                 self.eigenval_spin1[i] = None
                 self.eigenval_spin2[i] = None
-                self.eigenval_spin3[i] = None
-                self.eigenval_spin4[i] = None
             for i in range(nk_scf):
                 self.eigenval_spin1.remove(None)
                 self.eigenval_spin2.remove(None)
-                self.eigenval_spin3.remove(None)
-                self.eigenval_spin4.remove(None)
-
 
     def _plot_band_matplotlib(self, bandrange=[0, 1.0]):
         """
@@ -269,7 +275,7 @@ class post_bands:
         :param imagebase: image file name(not full)
         """
 
-        if self.magnetic_status == "spin-unpolarized":
+        if self.magnetic_status == "non-soc-ispin-1":
             nband = len(self.eigenval[0]["energy"])
             band_min = int(bandrange[0] * nband)
             band_max = int(bandrange[1] * nband)
@@ -280,9 +286,9 @@ class post_bands:
             plt.xlabel("K")
             plt.ylabel("Energy(eV)")
             plt.grid(b=True, which='major')
-            plt.savefig("band-structure-spin-unpolarized.png")
+            plt.savefig("band-structure-%s.png" % slef.magnetic_status)
             plt.close()
-        if self.magnetic_status == "spin-polarized":
+        if self.magnetic_status == "non-soc-ispin-2":
             nband = len(self.eigenval_spin1[0]["energy"])
             band_min = int(bandrange[0] * nband)
             band_max = int(bandrange[1] * nband)
@@ -293,7 +299,7 @@ class post_bands:
             plt.ylabel("Energy(eV)")
             plt.xticks(self.locs, self.labels_for_matplotlib)
             plt.grid(b=True, which='major')
-            plt.savefig("band-structure-spin-polarized-1.png")
+            plt.savefig("band-structure-%s-spin-1.png" % self.magnetic_status)
             plt.close()
             for i in range(band_min, band_max, 1):
                 plt.plot(self.xcoord_k, [self.eigenval_spin2[k]["energy"][i] - self.efermi for k in range(len(self.eigenval_spin2))])
@@ -302,7 +308,7 @@ class post_bands:
             plt.ylabel("Energy(eV)")
             plt.xticks(self.locs, self.labels_for_matplotlib)
             plt.grid(b=True, which='major')
-            plt.savefig("band-structure-spin-polarized-2.png")
+            plt.savefig("band-structure-%s-spin-2.png" % self.magnetic_status)
             plt.close()
             # all spin in on figure
             for i in range(band_min, band_max, 1):
@@ -314,9 +320,24 @@ class post_bands:
             plt.ylabel("Energy(eV)")
             plt.xticks(self.locs, self.labels_for_matplotlib)
             plt.grid(b=True, which='major')
-            plt.savefig("band-structure-spin-polarized-all.png")
+            plt.savefig("band-structure-%s-spin-all.png" % self.magnetic_status)
             plt.close()
-        if self.magnetic_status == "soc":
+
+        if self.magnetic_status == "soc-ispin-1":
+            nband = len(self.eigenval_spin1[0]["energy"])
+            band_min = int(bandrange[0] * nband)
+            band_max = int(bandrange[1] * nband)
+            for i in range(band_min, band_max, 1):
+                plt.plot(self.xcoord_k, [self.eigenval_spin1[k]["energy"][i] - self.efermi for k in range(len(self.eigenval_spin1))])
+            plt.title("Band Structure")
+            plt.xlabel("K")
+            plt.ylabel("Energy(eV)")
+            plt.xticks(self.locs, self.labels_for_matplotlib)
+            plt.grid(b=True, which='major')
+            plt.savefig("band-structure-soc-ispin-1.png")
+            plt.close()
+
+        if self.magnetic_status == "soc-ispin-2":
             nband = len(self.eigenval_spin1[0]["energy"])
             band_min = int(bandrange[0] * nband)
             band_max = int(bandrange[1] * nband)
@@ -327,7 +348,7 @@ class post_bands:
             plt.ylabel("Energy(eV)")
             plt.xticks(self.locs, self.labels_for_matplotlib)
             plt.grid(b=True, which='major')
-            plt.savefig("band-structure-soc-spin-1.png")
+            plt.savefig("band-structure-soc-ispin-2-spin-1.png")
             plt.close()
             for i in range(band_min, band_max, 1):
                 plt.plot(self.xcoord_k, [self.eigenval_spin2[k]["energy"][i] - self.efermi for k in range(len(self.eigenval_spin2))])
@@ -336,42 +357,21 @@ class post_bands:
             plt.ylabel("Energy(eV)")
             plt.xticks(self.locs, self.labels_for_matplotlib)
             plt.grid(b=True, which='major')
-            plt.savefig("band-structure-soc-spin-2.png")
-            plt.close()
-            for i in range(band_min, band_max, 1):
-                plt.plot(self.xcoord_k, [self.eigenval_spin3[k]["energy"][i] - self.efermi for k in range(len(self.eigenval_spin3))])
-            plt.title("Band Structure(Spin 3)")
-            plt.xlabel("K")
-            plt.ylabel("Energy(eV)")
-            plt.xticks(self.locs, self.labels_for_matplotlib)
-            plt.grid(b=True, which='major')
-            plt.savefig("band-structure-soc-spin-3.png")
-            plt.close()
-            for i in range(band_min, band_max, 1):
-                plt.plot(self.xcoord_k, [self.eigenval_spin4[k]["energy"][i] - self.efermi for k in range(len(self.eigenval_spin4))])
-            plt.title("Band Structure(Spin 4)")
-            plt.xlabel("K")
-            plt.ylabel("Energy(eV)")
-            plt.xticks(self.locs, self.labels_for_matplotlib)
-            plt.grid(b=True, which='major')
-            plt.savefig("band-structure-soc-spin-4.png")
-            plt.close()                        
+            plt.savefig("band-structure-soc-ispin-2-spin-2.png")
+            plt.close()                
             # all spin in on figure
             for i in range(band_min, band_max, 1):
                 plt.plot(self.xcoord_k, [self.eigenval_spin1[k]["energy"][i] - self.efermi for k in range(len(self.eigenval_spin1))])
             for i in range(band_min, band_max, 1):
                 plt.plot(self.xcoord_k, [self.eigenval_spin2[k]["energy"][i] - self.efermi for k in range(len(self.eigenval_spin2))])
-            for i in range(band_min, band_max, 1):
-                plt.plot(self.xcoord_k, [self.eigenval_spin3[k]["energy"][i] - self.efermi for k in range(len(self.eigenval_spin3))])
-            for i in range(band_min, band_max, 1):
-                plt.plot(self.xcoord_k, [self.eigenval_spin4[k]["energy"][i] - self.efermi for k in range(len(self.eigenval_spin4))])                
             plt.title("Band Structure(all spin)")
             plt.xlabel("K")
             plt.ylabel("Energy(eV)")
             plt.xticks(self.locs, self.labels_for_matplotlib)
             plt.grid(b=True, which='major')
-            plt.savefig("band-structure-soc-spin-all.png")
-            plt.close()            
+            plt.savefig("band-structure-soc-ispin-2-spin-all.png")
+            plt.close()     
+
 
     def _plot_band_gnuplot(self, bandrange=[0, 1.0]):
         """
@@ -386,18 +386,18 @@ class post_bands:
         :param imagebase: image file name(not full)
         """
 
-        if self.magnetic_status == "spin-unpolarized":
+        if self.magnetic_status == "non-soc-ispin-1":
             nband = len(self.eigenval[0]["energy"])
             band_min = int(bandrange[0] * nband)
             band_max = int(bandrange[1] * nband)
-            with open("all-bands-spin-unpolarized.data", 'w') as fout:
+            with open("all-bands-%s.data" % self.magnetic_status, 'w') as fout:
                 fout.write("# band structure extracted from vasprun.xml\n")
                 fout.write("# efermi: %f\n" % self.efermi)
                 for i in range(nband):
                     for j in range(len(self.xcoord_k)):
                         fout.write("%f %f\n" % (self.xcoord_k[j], self.eigenval[j]["energy"][i]))
                     fout.write("\n")
-            with open("specified-bands-spin-unpolarized.data", 'w') as fout:
+            with open("specified-bands-%s.data" % self.magnetic_status, 'w') as fout:
                 fout.write("# band structure extracted from vasprun.xml\n")
                 fout.write("# efermi: %f\n" % self.efermi)
                 for i in range(band_min, band_max, 1):
@@ -405,9 +405,9 @@ class post_bands:
                         fout.write("%f %f\n" % (self.xcoord_k[j], self.eigenval[j]["energy"][i]))
                     fout.write("\n")
 
-            with open("all-bands-spin-unpolarized.gnuplot", 'w') as fout:
+            with open("all-bands-%s.gnuplot" % self.magnetic_status, 'w') as fout:
                 fout.write("set terminal gif\n")
-                fout.write("set output 'all-bands-spin-unpolarized.gif'\n")
+                fout.write("set output 'all-bands-%s.gif'\n" % self.magnetic_status)
                 fout.write("unset key\n")
                 fout.write("set parametric\n")
                 fout.write("set title 'Band Structure'\n")
@@ -422,9 +422,9 @@ class post_bands:
                 fout.write("plot 'all-bands-spin-unpolarized.data' using 1:($2-%f) w l\n" % self.efermi)
             os.system("gnuplot all-bands-spin-unpolarized.gnuplot")
 
-            with open("specified-bands-spin-unpolarized.gnuplot", 'w') as fout:
+            with open("specified-bands-%s.gnuplot" % self.magnetic_status, 'w') as fout:
                 fout.write("set terminal gif\n")
-                fout.write("set output 'specified-bands-spin-unpolarized.gif'\n")
+                fout.write("set output 'specified-bands-%s.gif'\n" % self.magnetic_status)
                 fout.write("unset key\n")
                 fout.write("set parametric\n")
                 fout.write("set title 'Band Structure'\n")
@@ -436,15 +436,15 @@ class post_bands:
                 fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
                 fout.write("set grid xtics ytics\n")
                 fout.write("set autoscale\n")
-                fout.write("plot 'specified-bands-spin-unpolarized.data' using 1:($2-%f) w l\n" % self.efermi)
-            os.system("gnuplot specified-bands-spin-unpolarized.gnuplot")
+                fout.write("plot 'specified-bands-%s.data' using 1:($2-%f) w l\n" % (self.magnetic_status, self.efermi))
+            os.system("gnuplot specified-bands-%s.gnuplot" % self.magnetic_status)
 
-        if self.magnetic_status == "spin-polarized":
+        if self.magnetic_status == "non-soc-ispin-2":
             nband = len(self.eigenval_spin1[0]["energy"])
             band_min = int(bandrange[0] * nband)
             band_max = int(bandrange[1] * nband)
 
-            with open("all-bands-spin-polarized-spin-1.data", 'w') as fout:
+            with open("all-bands-%s-spin-1.data" % self.magnetic_status, 'w') as fout:
                 fout.write("# band structure extracted from vasprun.xml\n")
                 fout.write("# efermi: %f\n" % self.efermi)
                 for i in range(nband):
@@ -452,7 +452,7 @@ class post_bands:
                         fout.write("%f %f\n" % (self.xcoord_k[j], self.eigenval_spin1[j]["energy"][i]))
                     fout.write("\n")
 
-            with open("all-bands-spin-polarized-spin-2.data", 'w') as fout:
+            with open("all-bands-%s-spin-2.data" % self.magnetic_status, 'w') as fout:
                 fout.write("# band structure extracted from vasprun.xml\n")
                 fout.write("# efermi: %f\n" % self.efermi)
                 for i in range(nband):
@@ -460,7 +460,7 @@ class post_bands:
                         fout.write("%f %f\n" % (self.xcoord_k[j], self.eigenval_spin2[j]["energy"][i]))
                     fout.write("\n")
 
-            with open("specified-bands-spin-polarized-spin-1.data", 'w') as fout:
+            with open("specified-bands-%s-spin-1.data" % self.magnetic_status, 'w') as fout:
                 fout.write("# band structure extracted from vasprun.xml\n")
                 fout.write("# efermi: %f\n" % self.efermi)
                 for i in range(band_min, band_max, 1):
@@ -468,7 +468,7 @@ class post_bands:
                         fout.write("%f %f\n" % (self.xcoord_k[j], self.eigenval_spin1[j]["energy"][i]))
                     fout.write("\n")
 
-            with open("specified-bands-spin-polarized-spin-2.data", 'w') as fout:
+            with open("specified-bands-%s-spin-2.data" % self.magnetic_status, 'w') as fout:
                 fout.write("# band structure extracted from vasprun.xml\n")
                 fout.write("# efermi: %f\n" % self.efermi)
                 for i in range(band_min, band_max, 1):
@@ -477,85 +477,105 @@ class post_bands:
                     fout.write("\n")
 
 
-
-            with open("all-bands-spin-polarized-spin-1.gnuplot", 'w') as fout:
-                fout.write("set terminal gif\n")
-                fout.write("set output 'all-bands-spin-polarized-spin-1.gif'\n")
-                fout.write("unset key\n")
-                fout.write("set parametric\n")
-                fout.write("set title 'Band Structure'\n")
-                fout.write("set xlabel 'K'\n")
-                fout.write("set ylabel 'Energy(eV)'\n")
-                fout.write("set xtics(")
-                for i in range(len(self.labels_for_gnuplot)-1):
-                    fout.write("'%s' %f, " % (self.labels_for_gnuplot[i], self.locs[i]))
-                fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
-                fout.write("set grid xtics ytics\n")
-                fout.write("set autoscale\n")
-                fout.write("plot 'all-bands-spin-polarized-spin-1.data' using 1:($2-%f) w l\n" % self.efermi)
-            os.system("gnuplot all-bands-spin-polarized-spin-1.gnuplot")
-
-
-            with open("all-bands-spin-polarized-spin-2.gnuplot", 'w') as fout:
-                fout.write("set terminal gif\n")
-                fout.write("set output 'all-bands-spin-polarized-spin-2.gif'\n")
-                fout.write("unset key\n")
-                fout.write("set parametric\n")
-                fout.write("set title 'Band Structure'\n")
-                fout.write("set xlabel 'K'\n")
-                fout.write("set ylabel 'Energy(eV)'\n")
-                fout.write("set xtics(")
-                for i in range(len(self.labels_for_gnuplot)-1):
-                    fout.write("'%s' %f, " % (self.labels_for_gnuplot[i], self.locs[i]))
-                fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
-                fout.write("set grid xtics ytics\n")
-                fout.write("set autoscale\n")
-                fout.write("plot 'all-bands-spin-polarized-spin-2.data' using 1:($2-%f) w l\n" % self.efermi)
-            os.system("gnuplot all-bands-spin-polarized-spin-2.gnuplot")
+            for k in range(2):
+                with open("all-bands-%s-spin-%d.gnuplot" % (self.magnetic_status, k+1), 'w') as fout:
+                    fout.write("set terminal gif\n")
+                    fout.write("set output 'all-bands-%s-spin-%d.gif'\n" % (self.magnetic_status, k+1))
+                    fout.write("unset key\n")
+                    fout.write("set parametric\n")
+                    fout.write("set title 'Band Structure'\n")
+                    fout.write("set xlabel 'K'\n")
+                    fout.write("set ylabel 'Energy(eV)'\n")
+                    fout.write("set xtics(")
+                    for i in range(len(self.labels_for_gnuplot)-1):
+                        fout.write("'%s' %f, " % (self.labels_for_gnuplot[i], self.locs[i]))
+                    fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
+                    fout.write("set grid xtics ytics\n")
+                    fout.write("set autoscale\n")
+                    fout.write("plot 'all-bands-%s-spin-%d.data' using 1:($2-%f) w l\n" % (self.magnetic_status, k+1, self.efermi))
+                os.system("gnuplot all-bands-%s-spin-%d.gnuplot" % (self.magnetic_status, k+1))
 
 
-            with open("specified-bands-spin-polarized-spin-1.gnuplot", 'w') as fout:
-                fout.write("set terminal gif\n")
-                fout.write("set output 'specified-bands-spin-polarized-spin-1.gif'\n")
-                fout.write("unset key\n")
-                fout.write("set parametric\n")
-                fout.write("set title 'Band Structure'\n")
-                fout.write("set xlabel 'K'\n")
-                fout.write("set ylabel 'Energy(eV)'\n")
-                fout.write("set xtics(")
-                for i in range(len(self.labels_for_gnuplot)-1):
-                    fout.write("'%s' %f, " % (self.labels_for_gnuplot[i], self.locs[i]))
-                fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
-                fout.write("set grid xtics ytics\n")
-                fout.write("set autoscale\n")
-                fout.write("plot 'specified-bands-spin-polarized-spin-1.data' using 1:($2-%f) w l\n" % self.efermi)
-            os.system("gnuplot specified-bands-spin-polarized-spin-1.gnuplot")
+                with open("specified-bands-%s-spin-%d.gnuplot" % (self.magnetic_status, k+1), 'w') as fout:
+                    fout.write("set terminal gif\n")
+                    fout.write("set output 'specified-bands-%s-spin-%d.gif'\n" % (self.magnetic_status, k+1))
+                    fout.write("unset key\n")
+                    fout.write("set parametric\n")
+                    fout.write("set title 'Band Structure'\n")
+                    fout.write("set xlabel 'K'\n")
+                    fout.write("set ylabel 'Energy(eV)'\n")
+                    fout.write("set xtics(")
+                    for i in range(len(self.labels_for_gnuplot)-1):
+                        fout.write("'%s' %f, " % (self.labels_for_gnuplot[i], self.locs[i]))
+                    fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
+                    fout.write("set grid xtics ytics\n")
+                    fout.write("set autoscale\n")
+                    fout.write("plot 'specified-bands-%s-spin-%d.data' using 1:($2-%f) w l\n" % (self.magnetic_status, k+1, self.efermi))
+                os.system("gnuplot specified-bands-%s-spin-%d.gnuplot" % (self.magnetic_status, k+1))
 
 
-            with open("specified-bands-spin-polarized-spin-2.gnuplot", 'w') as fout:
-                fout.write("set terminal gif\n")
-                fout.write("set output 'specified-bands-spin-polarized-spin-2.gif'\n")
-                fout.write("unset key\n")
-                fout.write("set parametric\n")
-                fout.write("set title 'Band Structure'\n")
-                fout.write("set xlabel 'K'\n")
-                fout.write("set ylabel 'Energy(eV)'\n")
-                fout.write("set xtics(")
-                for i in range(len(self.labels_for_gnuplot)-1):
-                    fout.write("'%s' %f, " % (self.labels_for_gnuplot[i], self.locs[i]))
-                fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
-                fout.write("set grid xtics ytics\n")
-                fout.write("set autoscale\n")
-                fout.write("plot 'specified-bands-spin-polarized-spin-2.data' using 1:($2-%f) w l\n" % self.efermi)
-            os.system("gnuplot specified-bands-spin-polarized-spin-2.gnuplot")
-
-
-        if self.magnetic_status == "soc":
+        if self.magnetic_status == "soc-ispin-1":
             nband = len(self.eigenval_spin1[0]["energy"])
             band_min = int(bandrange[0] * nband)
             band_max = int(bandrange[1] * nband)
 
-            with open("all-bands-soc-spin-1.data", 'w') as fout:
+            with open("all-bands-%s.data" % self.magnetic_status, 'w') as fout:
+                fout.write("# band structure extracted from vasprun.xml\n")
+                fout.write("# efermi: %f\n" % self.efermi)
+                for i in range(nband):
+                    for j in range(len(self.xcoord_k)):
+                        fout.write("%f %f\n" % (self.xcoord_k[j], self.eigenval_spin1[j]["energy"][i]))
+                    fout.write("\n")         
+
+            with open("specified-bands-%s.data" % self.magnetic_status, 'w') as fout:
+                fout.write("# band structure extracted from vasprun.xml\n")
+                fout.write("# efermi: %f\n" % self.efermi)
+                for i in range(band_min, band_max, 1):
+                    for j in range(len(self.xcoord_k)):
+                        fout.write("%f %f\n" % (self.xcoord_k[j], self.eigenval_spin1[j]["energy"][i]))
+                    fout.write("\n")           
+
+            with open("all-bands-%s.gnuplot" % self.magnetic_status, 'w') as fout:
+                fout.write("set terminal gif\n")
+                fout.write("set output 'all-bands-%s.gif'\n" % self.magnetic_status)
+                fout.write("unset key\n")
+                fout.write("set parametric\n")
+                fout.write("set title 'Band Structure'\n")
+                fout.write("set xlabel 'K'\n")
+                fout.write("set ylabel 'Energy(eV)'\n")
+                fout.write("set xtics(")
+                for i in range(len(self.labels_for_gnuplot)-1):
+                    fout.write("'%s' %f, " % (self.labels_for_gnuplot[i], self.locs[i]))
+                fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
+                fout.write("set grid xtics ytics\n")
+                fout.write("set autoscale\n")
+                fout.write("plot 'all-bands-%s.data' using 1:($2-%f) w l\n" % (self.magnetic_status, self.efermi))
+            os.system("gnuplot all-bands-%s.gnuplot" % self.magnetic_status)
+
+
+            with open("specified-bands-%s.gnuplot" % self.magnetic_status, 'w') as fout:
+                fout.write("set terminal gif\n")
+                fout.write("set output 'specified-bands-%s.gif'\n" % self.magnetic_status)
+                fout.write("unset key\n")
+                fout.write("set parametric\n")
+                fout.write("set title 'Band Structure'\n")
+                fout.write("set xlabel 'K'\n")
+                fout.write("set ylabel 'Energy(eV)'\n")
+                fout.write("set xtics(")
+                for i in range(len(self.labels_for_gnuplot)-1):
+                    fout.write("'%s' %f, " % (self.labels_for_gnuplot[i], self.locs[i]))
+                fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
+                fout.write("set grid xtics ytics\n")
+                fout.write("set autoscale\n")
+                fout.write("plot 'specified-bands-%s.data' using 1:($2-%f) w l\n" % (self.magnetic_status, self.efermi))
+            os.system("gnuplot specified-bands-%s.gnuplot" % self.magnetic_status)
+
+        if self.magnetic_status == "soc-ispin-2":
+            nband = len(self.eigenval_spin1[0]["energy"])
+            band_min = int(bandrange[0] * nband)
+            band_max = int(bandrange[1] * nband)
+
+            with open("all-bands-%s-spin-1.data" % self.magnetic_status, 'w') as fout:
                 fout.write("# band structure extracted from vasprun.xml\n")
                 fout.write("# efermi: %f\n" % self.efermi)
                 for i in range(nband):
@@ -563,7 +583,7 @@ class post_bands:
                         fout.write("%f %f\n" % (self.xcoord_k[j], self.eigenval_spin1[j]["energy"][i]))
                     fout.write("\n")
 
-            with open("all-bands-soc-spin-2.data", 'w') as fout:
+            with open("all-bands-%s-spin-2.data" % self.magnetic_status, 'w') as fout:
                 fout.write("# band structure extracted from vasprun.xml\n")
                 fout.write("# efermi: %f\n" % self.efermi)
                 for i in range(nband):
@@ -571,23 +591,7 @@ class post_bands:
                         fout.write("%f %f\n" % (self.xcoord_k[j], self.eigenval_spin2[j]["energy"][i]))
                     fout.write("\n")
 
-            with open("all-bands-soc-spin-3.data", 'w') as fout:
-                fout.write("# band structure extracted from vasprun.xml\n")
-                fout.write("# efermi: %f\n" % self.efermi)
-                for i in range(nband):
-                    for j in range(len(self.xcoord_k)):
-                        fout.write("%f %f\n" % (self.xcoord_k[j], self.eigenval_spin3[j]["energy"][i]))
-                    fout.write("\n")
-
-            with open("all-bands-soc-spin-4.data", 'w') as fout:
-                fout.write("# band structure extracted from vasprun.xml\n")
-                fout.write("# efermi: %f\n" % self.efermi)
-                for i in range(nband):
-                    for j in range(len(self.xcoord_k)):
-                        fout.write("%f %f\n" % (self.xcoord_k[j], self.eigenval_spin4[j]["energy"][i]))
-                    fout.write("\n")                    
-
-            with open("specified-bands-soc-spin-1.data", 'w') as fout:
+            with open("specified-bands-%s-spin-1.data" % self.magnetic_status, 'w') as fout:
                 fout.write("# band structure extracted from vasprun.xml\n")
                 fout.write("# efermi: %f\n" % self.efermi)
                 for i in range(band_min, band_max, 1):
@@ -595,170 +599,49 @@ class post_bands:
                         fout.write("%f %f\n" % (self.xcoord_k[j], self.eigenval_spin1[j]["energy"][i]))
                     fout.write("\n")
 
-            with open("specified-bands-soc-spin-2.data", 'w') as fout:
+            with open("specified-bands-%s-spin-2.data" % self.magnetic_status, 'w') as fout:
                 fout.write("# band structure extracted from vasprun.xml\n")
                 fout.write("# efermi: %f\n" % self.efermi)
                 for i in range(band_min, band_max, 1):
                     for j in range(len(self.xcoord_k)):
                         fout.write("%f %f\n" % (self.xcoord_k[j], self.eigenval_spin2[j]["energy"][i]))
                     fout.write("\n")
+  
+            for k in range(2):
+                with open("all-bands-%s-spin-%d.gnuplot" % (self.magnetic_status, k+1), 'w') as fout:
+                    fout.write("set terminal gif\n")
+                    fout.write("set output 'all-bands-%s-spin-%d.gif'\n" % (self.magnetic_status, k+1))
+                    fout.write("unset key\n")
+                    fout.write("set parametric\n")
+                    fout.write("set title 'Band Structure'\n")
+                    fout.write("set xlabel 'K'\n")
+                    fout.write("set ylabel 'Energy(eV)'\n")
+                    fout.write("set xtics(")
+                    for i in range(len(self.labels_for_gnuplot)-1):
+                        fout.write("'%s' %f, " % (self.labels_for_gnuplot[i], self.locs[i]))
+                    fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
+                    fout.write("set grid xtics ytics\n")
+                    fout.write("set autoscale\n")
+                    fout.write("plot 'all-bands-%s-spin-%d.data' using 1:($2-%f) w l\n" % (self.magnetic_status, k+1, self.efermi))
+                os.system("gnuplot all-bands-%s-spin-%d.gnuplot" % (self.magnetic_status, k+1))
+         
 
-            with open("specified-bands-soc-spin-3.data", 'w') as fout:
-                fout.write("# band structure extracted from vasprun.xml\n")
-                fout.write("# efermi: %f\n" % self.efermi)
-                for i in range(band_min, band_max, 1):
-                    for j in range(len(self.xcoord_k)):
-                        fout.write("%f %f\n" % (self.xcoord_k[j], self.eigenval_spin3[j]["energy"][i]))
-                    fout.write("\n")
-
-            with open("specified-bands-soc-spin-4.data", 'w') as fout:
-                fout.write("# band structure extracted from vasprun.xml\n")
-                fout.write("# efermi: %f\n" % self.efermi)
-                for i in range(band_min, band_max, 1):
-                    for j in range(len(self.xcoord_k)):
-                        fout.write("%f %f\n" % (self.xcoord_k[j], self.eigenval_spin4[j]["energy"][i]))
-                    fout.write("\n")                    
-
-            with open("all-bands-soc-spin-1.gnuplot", 'w') as fout:
-                fout.write("set terminal gif\n")
-                fout.write("set output 'all-bands-soc-spin-1.gif'\n")
-                fout.write("unset key\n")
-                fout.write("set parametric\n")
-                fout.write("set title 'Band Structure'\n")
-                fout.write("set xlabel 'K'\n")
-                fout.write("set ylabel 'Energy(eV)'\n")
-                fout.write("set xtics(")
-                for i in range(len(self.labels_for_gnuplot)-1):
-                    fout.write("'%s' %f, " % (self.labels_for_gnuplot[i], self.locs[i]))
-                fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
-                fout.write("set grid xtics ytics\n")
-                fout.write("set autoscale\n")
-                fout.write("plot 'all-bands-soc-spin-1.data' using 1:($2-%f) w l\n" % self.efermi)
-            os.system("gnuplot all-bands-soc-spin-1.gnuplot")
-
-
-            with open("all-bands-soc-spin-2.gnuplot", 'w') as fout:
-                fout.write("set terminal gif\n")
-                fout.write("set output 'all-bands-soc-spin-2.gif'\n")
-                fout.write("unset key\n")
-                fout.write("set parametric\n")
-                fout.write("set title 'Band Structure'\n")
-                fout.write("set xlabel 'K'\n")
-                fout.write("set ylabel 'Energy(eV)'\n")
-                fout.write("set xtics(")
-                for i in range(len(self.labels_for_gnuplot)-1):
-                    fout.write("'%s' %f, " % (self.labels_for_gnuplot[i], self.locs[i]))
-                fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
-                fout.write("set grid xtics ytics\n")
-                fout.write("set autoscale\n")
-                fout.write("plot 'all-bands-soc-spin-2.data' using 1:($2-%f) w l\n" % self.efermi)
-            os.system("gnuplot all-bands-soc-spin-2.gnuplot")
-
-            with open("all-bands-soc-spin-3.gnuplot", 'w') as fout:
-                fout.write("set terminal gif\n")
-                fout.write("set output 'all-bands-soc-spin-3.gif'\n")
-                fout.write("unset key\n")
-                fout.write("set parametric\n")
-                fout.write("set title 'Band Structure'\n")
-                fout.write("set xlabel 'K'\n")
-                fout.write("set ylabel 'Energy(eV)'\n")
-                fout.write("set xtics(")
-                for i in range(len(self.labels_for_gnuplot)-1):
-                    fout.write("'%s' %f, " % (self.labels_for_gnuplot[i], self.locs[i]))
-                fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
-                fout.write("set grid xtics ytics\n")
-                fout.write("set autoscale\n")
-                fout.write("plot 'all-bands-soc-spin-3.data' using 1:($2-%f) w l\n" % self.efermi)
-            os.system("gnuplot all-bands-soc-spin-3.gnuplot")
-
-            with open("all-bands-soc-spin-4.gnuplot", 'w') as fout:
-                fout.write("set terminal gif\n")
-                fout.write("set output 'all-bands-soc-spin-4.gif'\n")
-                fout.write("unset key\n")
-                fout.write("set parametric\n")
-                fout.write("set title 'Band Structure'\n")
-                fout.write("set xlabel 'K'\n")
-                fout.write("set ylabel 'Energy(eV)'\n")
-                fout.write("set xtics(")
-                for i in range(len(self.labels_for_gnuplot)-1):
-                    fout.write("'%s' %f, " % (self.labels_for_gnuplot[i], self.locs[i]))
-                fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
-                fout.write("set grid xtics ytics\n")
-                fout.write("set autoscale\n")
-                fout.write("plot 'all-bands-soc-spin-4.data' using 1:($2-%f) w l\n" % self.efermi)
-            os.system("gnuplot all-bands-soc-spin-4.gnuplot")            
-
-
-            with open("specified-bands-soc-spin-1.gnuplot", 'w') as fout:
-                fout.write("set terminal gif\n")
-                fout.write("set output 'specified-bands-soc-spin-1.gif'\n")
-                fout.write("unset key\n")
-                fout.write("set parametric\n")
-                fout.write("set title 'Band Structure'\n")
-                fout.write("set xlabel 'K'\n")
-                fout.write("set ylabel 'Energy(eV)'\n")
-                fout.write("set xtics(")
-                for i in range(len(self.labels_for_gnuplot)-1):
-                    fout.write("'%s' %f, " % (self.labels_for_gnuplot[i], self.locs[i]))
-                fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
-                fout.write("set grid xtics ytics\n")
-                fout.write("set autoscale\n")
-                fout.write("plot 'specified-bands-soc-spin-1.data' using 1:($2-%f) w l\n" % self.efermi)
-            os.system("gnuplot specified-bands-soc-spin-1.gnuplot")
-
-
-            with open("specified-bands-soc-spin-2.gnuplot", 'w') as fout:
-                fout.write("set terminal gif\n")
-                fout.write("set output 'specified-bands-soc-spin-2.gif'\n")
-                fout.write("unset key\n")
-                fout.write("set parametric\n")
-                fout.write("set title 'Band Structure'\n")
-                fout.write("set xlabel 'K'\n")
-                fout.write("set ylabel 'Energy(eV)'\n")
-                fout.write("set xtics(")
-                for i in range(len(self.labels_for_gnuplot)-1):
-                    fout.write("'%s' %f, " % (self.labels_for_gnuplot[i], self.locs[i]))
-                fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
-                fout.write("set grid xtics ytics\n")
-                fout.write("set autoscale\n")
-                fout.write("plot 'specified-bands-soc-spin-2.data' using 1:($2-%f) w l\n" % self.efermi)
-            os.system("gnuplot specified-bands-soc-spin-2.gnuplot")
-
-
-            with open("specified-bands-soc-spin-3.gnuplot", 'w') as fout:
-                fout.write("set terminal gif\n")
-                fout.write("set output 'specified-bands-soc-spin-3.gif'\n")
-                fout.write("unset key\n")
-                fout.write("set parametric\n")
-                fout.write("set title 'Band Structure'\n")
-                fout.write("set xlabel 'K'\n")
-                fout.write("set ylabel 'Energy(eV)'\n")
-                fout.write("set xtics(")
-                for i in range(len(self.labels_for_gnuplot)-1):
-                    fout.write("'%s' %f, " % (self.labels_for_gnuplot[i], self.locs[i]))
-                fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
-                fout.write("set grid xtics ytics\n")
-                fout.write("set autoscale\n")
-                fout.write("plot 'specified-bands-soc-spin-3.data' using 1:($2-%f) w l\n" % self.efermi)
-            os.system("gnuplot specified-bands-soc-spin-3.gnuplot")
-
-
-            with open("specified-bands-soc-spin-4.gnuplot", 'w') as fout:
-                fout.write("set terminal gif\n")
-                fout.write("set output 'specified-bands-soc-spin-4.gif'\n")
-                fout.write("unset key\n")
-                fout.write("set parametric\n")
-                fout.write("set title 'Band Structure'\n")
-                fout.write("set xlabel 'K'\n")
-                fout.write("set ylabel 'Energy(eV)'\n")
-                fout.write("set xtics(")
-                for i in range(len(self.labels_for_gnuplot)-1):
-                    fout.write("'%s' %f, " % (self.labels_for_gnuplot[i], self.locs[i]))
-                fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
-                fout.write("set grid xtics ytics\n")
-                fout.write("set autoscale\n")
-                fout.write("plot 'specified-bands-soc-spin-4.data' using 1:($2-%f) w l\n" % self.efermi)
-            os.system("gnuplot specified-bands-soc-spin-4.gnuplot")
+                with open("specified-bands-%s-spin-%d.gnuplot" % (self.magnetic_status, k+1), 'w') as fout:
+                    fout.write("set terminal gif\n")
+                    fout.write("set output 'specified-bands-%s-spin-%d.gif'\n" % (self.magnetic_status, k+1))
+                    fout.write("unset key\n")
+                    fout.write("set parametric\n")
+                    fout.write("set title 'Band Structure'\n")
+                    fout.write("set xlabel 'K'\n")
+                    fout.write("set ylabel 'Energy(eV)'\n")
+                    fout.write("set xtics(")
+                    for i in range(len(self.labels_for_gnuplot)-1):
+                        fout.write("'%s' %f, " % (self.labels_for_gnuplot[i], self.locs[i]))
+                    fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
+                    fout.write("set grid xtics ytics\n")
+                    fout.write("set autoscale\n")
+                    fout.write("plot 'specified-bands-%s-spin-%d.data' using 1:($2-%f) w l\n" % (self.magnetic_status, k+1, self.efermi))
+                os.system("gnuplot specified-bands-%s-spin-%d.gnuplot" % (self.magnetic_status, k+1))
 
     def plot_band(self, option="matplotlib", bandrange=[0, 1.0]):
         """
