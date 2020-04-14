@@ -286,7 +286,7 @@ class post_bands:
             plt.xlabel("K")
             plt.ylabel("Energy(eV)")
             plt.grid(b=True, which='major')
-            plt.savefig("band-structure-%s.png" % slef.magnetic_status)
+            plt.savefig("band-structure-%s.png" % self.magnetic_status)
             plt.close()
         if self.magnetic_status == "non-soc-ispin-2":
             nband = len(self.eigenval_spin1[0]["energy"])
@@ -419,8 +419,8 @@ class post_bands:
                 fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
                 fout.write("set grid xtics ytics\n")
                 fout.write("set autoscale\n")
-                fout.write("plot 'all-bands-spin-unpolarized.data' using 1:($2-%f) w l\n" % self.efermi)
-            os.system("gnuplot all-bands-spin-unpolarized.gnuplot")
+                fout.write("plot 'all-bands-%s.data' using 1:($2-%f) w l\n" % (self.magnetic_status, self.efermi))
+            os.system("gnuplot all-bands-%s.gnuplot" % self.magnetic_status)
 
             with open("specified-bands-%s.gnuplot" % self.magnetic_status, 'w') as fout:
                 fout.write("set terminal gif\n")
