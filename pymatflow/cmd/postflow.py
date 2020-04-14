@@ -568,7 +568,7 @@ def main():
             from pymatflow.vasp.post.bands import post_bands
             bands = post_bands()
             bands.get_kpath_and_vasprun(kpath=get_kpath(kpath_manual=args.kpath_manual, kpath_file=args.kpath_file), vasprun=os.path.join(args.directory, "vasprun.xml"))            
-            bands.export(directory=args.directory, option=args.engine, bandrange=args.bandrange)
+            bands.export(directory=args.directory, engine=args.engine, bandrange=args.bandrange)
         elif args.runtype == 1:
             # optimization
             from pymatflow.vasp.post.opt import opt_out
