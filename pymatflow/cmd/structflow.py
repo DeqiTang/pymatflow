@@ -273,23 +273,28 @@ def main():
         print("-----------------------------------------------------------------------\n")
         print("you are trying to remove from %s the following list of atoms:\n" % args.input)
         print(args.atoms)
-        for i in args.atoms:
-            print("%d -> %s\n" % (i, a.atoms[i-1].name))
+        if args.atoms != None:
+            for i in args.atoms:
+                print("%d -> %s\n" % (i, a.atoms[i-1].name))
+        else:
+            pass
         print("\n")
         print("also the following elements will be removed:\n")
         print(args.elements)
         print("the output structure file is -> %s\n" % args.output)
 
-        remove_atoms(a, atoms_to_remove=[i-1 for i in args.atoms])
+        if args.atoms != None:
+            remove_atoms(a, atoms_to_remove=[i-1 for i in args.atoms])
        
         # we should first remove atoms specified by args.atoms
         # and remove atoms specified by args.elements
         # as remove atom will change the index of atom
-        element_atoms_to_remove = []
-        for i in range(len(a.atoms)):
-            if a.atoms[i].name in args.elements:
-                element_atoms_to_remove.append(i)
-        remove_atoms(a, atoms_to_remove=element_atoms_to_remove)
+        if args.elements != None:
+            element_atoms_to_remove = []
+            for i in range(len(a.atoms)):
+                if a.atoms[i].name in args.elements:
+                    element_atoms_to_remove.append(i)
+            remove_atoms(a, atoms_to_remove=element_atoms_to_remove)
 
         # output structure
         write_structure(crystal=a, filepath=args.output)

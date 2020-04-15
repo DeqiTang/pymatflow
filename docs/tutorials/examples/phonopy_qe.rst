@@ -17,7 +17,6 @@ Pymatflow工具将使用Phonopy的过程进行了封装，能够方便地利用P
 
 最近待在家里，切身体验柴米油盐酱醋茶的滋味。为此这次的研究对象就选取每天都能尝到的NaCl好了。这里的NaCl为常见的面心立方结构，空间群为225，结构如图所示:
 
-.. image:: /_images/nacl.png
 
 准备xyz类型的结构文件(nacl.xyz)如下::
 
@@ -46,7 +45,6 @@ Pymatflow工具将使用Phonopy的过程进行了封装，能够方便地利用P
 
 声子谱:
 
-.. image:: /Figure_3.png
 
 
 这次的内容就到这里了，后面我还会继续更新Pymatflow的使用案例，并继续整理文档，欢迎使用和讨论，有意参与开发者或者有任何建议者可以联系我。
@@ -63,6 +61,6 @@ Pymatflow工具将使用Phonopy的过程进行了封装，能够方便地利用P
 微信公众号
 -----------
 
-.. image:: /_images/qrcode_for_shengcaiyoudao_1.jpg
+.. image:: /_images/qrcode_for_open_source_scientific_computation.jpg
 
 欢迎关注微信公众号"生材有道", 可以订阅更多资讯。

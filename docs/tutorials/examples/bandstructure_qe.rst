@@ -16,7 +16,6 @@ Pymatflow本质上是一个为开源软件如Quantum ESPRESSO、CP2K、SIESTA等
 
 然后准备好xyz格式的结构文件，这里以MoS2作为作为模拟对象。
 
-.. image:: /_images/mos2.png
 
 结构文件(mos2.xyz)内容如下::
 
@@ -63,8 +62,6 @@ Pymatflow本质上是一个为开源软件如Quantum ESPRESSO、CP2K、SIESTA等
 ``post-qe-bands.py -d mos2-band``
 
 得到结果如下:
-.. image:: /_images/bandstructure-matplotlib.png
-.. image:: /_images/bandstructure.gif
 
 该工具在我的日常学习工作中扮演者比较重要的角色，可以很大程度提高我的工作效率(当然撇去开发时间不算)。另外需要注意的是此工具的使用需要使用者对自己在做什么有清晰的认识，具体的计算参数的设置可以通过命令行参数传递给程序。
 
@@ -81,6 +78,6 @@ Pymatflow本质上是一个为开源软件如Quantum ESPRESSO、CP2K、SIESTA等
 
 微信公众号
 ----------
-.. image:: /_images/qrcode_for_shengcaiyoudao_1.jpg
+.. image:: /_images/qrcode_for_open_source_scientific_computation.jpg
 
 欢迎关注微信公众号"生材有道", 可以订阅更多资讯。
