@@ -970,7 +970,7 @@ def main():
     gp.add_argument("--ci-scheme", type=str, default="auto",
             help="Specify the type of Climbing Image scheme(no-CI, auto, manual)")
 
-    gp.add_argument("--path_thr", type=float, default=0.05,
+    gp.add_argument("--path-thr", type=float, default=0.05,
             help="path_thr")
 
     gp.add_argument("--ds", type=float, default=1.e0, help="Optimisation step length ( Hartree atomic units )")
