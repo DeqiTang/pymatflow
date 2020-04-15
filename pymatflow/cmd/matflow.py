@@ -708,6 +708,11 @@ def main():
             choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
             help="choices of runtype. 0->static_run; 1->relax; 2->vc-relax; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->neb; 7->dfpt; 8->phonopy; 9->pp.x")
 
+    gp.add_argument("--static", type=str, default="all",
+            choices=["all", "scf"],
+            help="in case of all(default), run scf, nscf, bands in a single run; in case of scf, run scf only")
+
+
     gp.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory for the running.")
 
@@ -975,7 +980,8 @@ def main():
 
     gp.add_argument("--ds", type=float, default=1.e0, help="Optimisation step length ( Hartree atomic units )")
 
-    gp.add_argument("--first-last-opt", type=bool, default=False,
+    gp.add_argument("--first-last-opt", type=str, default=None,
+            choices=[".true.", ".false."],
             help="whether to optimize the first and last image")
 
 
@@ -2079,7 +2085,10 @@ def main():
             task.set_pp(inputpp=inputpp, plotpp=plotpp)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpath=get_kpath(args.kpath_manual, args.kpath_file), kpoints_mp_scf=args.kpoints_mp_scf, kpoints_mp_nscf=args.kpoints_mp_nscf)
+            if args.static == "all":
+                task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpath=get_kpath(args.kpath_manual, args.kpath_file), kpoints_mp_scf=args.kpoints_mp_scf, kpoints_mp_nscf=args.kpoints_mp_nscf)
+            elif args.static == "scf":
+                task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 1:
             # relax
             from pymatflow.qe.opt import opt_run

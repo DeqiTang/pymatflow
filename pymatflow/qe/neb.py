@@ -125,7 +125,10 @@ class neb_run(pwscf):
                 for item in self.path:
                     if self.path[item] is not None:
                         if type(self.path[item]) == str:
-                            fout.write("%s = '%s'\n" % (item, self.path[item]))
+                            if self.path[item] == ".true." or self.path[item] == ".false.":
+                                fout.write("%s = %s\n" % (item, str(self.path[item])))
+                            else:
+                                fout.write("%s = '%s'\n" % (item, str(self.path[item])))
                         else:
                             fout.write("%s = %s\n" % (item, str(self.path[item])))
 

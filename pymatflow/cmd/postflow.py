@@ -507,7 +507,7 @@ def main():
             os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
         elif args.runtype == 6:
             # nudged elastic band
-            from pymatflow.qe.neb import neb_post
+            from pymatflow.qe.post.neb import neb_post
             os.chdir(args.directory)
             task = neb_post(nebout=args.nebout)
             os.chdir("../")
