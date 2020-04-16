@@ -111,10 +111,12 @@ if __name__ == "__main__":
     #
     # ----------------------------------------------------------------------------
 
+    print(specialk)
     # transfer information from specialk to kpoints
     for kpoint in kpoints:
         for point in specialk:
-            if abs(kpoint[3] - point["xcoord"]) < 1.0e-4: # 1.0e-4 can be an appropriate value to judge the equal of the xcoord
+            criteria = 1.0e-4 # 1.0e-4 can be an appropriate value to judge the equal of the coord
+            if abs(kpoint[0]-point["coord"][0])< criteria and abs(kpoint[1]-point["coord"][1])<criteria and abs(kpoint[2]-point["coord"][2])<criteria: 
                 kpoint[4] = point["label"]
                 break
    

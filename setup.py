@@ -115,6 +115,7 @@ setup(
         "pymatflow/qe/scripts/qe-relax-cubic.py",
         "pymatflow/qe/scripts/qe-relax-hexagonal.py",
         "pymatflow/qe/scripts/qe-get-matdyn-qpoints-from-bands-calc.py",
+        "pymatflow/qe/scripts/qe-get-matdyn-qpoints-from-kpath.py",
         "pymatflow/qe/post/scripts/post-qe-dos.py",
         "pymatflow/qe/post/scripts/post-qe-pdos.py",
         "pymatflow/qe/post/scripts/post-qe-neb.py",
