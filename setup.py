@@ -17,7 +17,7 @@ class CleanCommand(Command):
 
 setup(
     name = "pymatflow",
-    version = '0.0.8a2',
+    version = '0.0.8a3',
     keywords = ("Ab intio ,DFT, workflow, input generation"),
     description = "An emulation assistant, input generation and manage for DFT programs",
     license = "MIT",
@@ -165,6 +165,7 @@ setup(
         "pymatflow/scripts/pdb-to-cif.py",
         "pymatflow/scripts/xyz-modified-to-crystal.py",
         "pymatflow/scripts/kpath-xyz-seekpath.py",
+        "pymatflow/scripts/kpath-cms-2010.py",
         "pymatflow/scripts/pot-from-xyz-modified.py",
         "pymatflow/scripts/vasp-potcar-from-xyz.py",
         "pymatflow/scripts/xyz-modified-to-poscar.py",
