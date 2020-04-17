@@ -55,6 +55,21 @@ if __name__ == "__main__":
     parser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
 
+    parser.add_argument("--queue", type=str, default=None,
+            help="the queue to submit to job, default is not set")
+
+    # llhpc
+    parser.add_argument("--partition", type=str, default="free",
+            help="choose partition to submit job")
+
+    parser.add_argument("--ntask", type=int, default=24,
+            help="choose task number")
+
+    parser.add_argument("--stdout", type=str, default="slurm.out",
+            help="set standard out")
+
+    parser.add_argument("--stderr", type=str, default="slurm.err",
+            help="set standard err")
 
 
     # ==========================================================
@@ -67,5 +82,6 @@ if __name__ == "__main__":
     task = dfpt_run()
     task.get_xyz(args.file)
     task.set_q2r(q2r_input=q2r_input)
-    task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+    task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)         
+    task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
     task.q2r(directory=args.directory, runopt=args.runopt, auto=args.auto)
