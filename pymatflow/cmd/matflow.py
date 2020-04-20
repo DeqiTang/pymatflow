@@ -1394,9 +1394,9 @@ def main():
             default=[1, 1, 1, 0, 0, 0],
             help="set kpoints like -k 1 1 1 0 0 0")
 
-    gp.add_argument("--kpoints-mp-scf", type=int, nargs="+",
-            default=[1, 1, 1, 0, 0, 0],
-            help="set kpoints like -k 1 1 1 0 0 0")
+    #gp.add_argument("--kpoints-mp-scf", type=int, nargs="+",
+    #        default=[1, 1, 1, 0, 0, 0],
+    #        help="set kpoints like -k 1 1 1 0 0 0")
 
     #gp.add_argument("--kpoints-mp-nscf", type=int, nargs="+",
     #        default=[3, 3, 3, 0, 0, 0],

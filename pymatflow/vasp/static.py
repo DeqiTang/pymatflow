@@ -364,8 +364,19 @@ class static_run(vasp):
             })
             # scf
             #self.set_kpoints(option="automatic", kpoints_mp=kpoints_mp_scf)
-            incar_scf = self.incar.to_string()
-            kpoints_scf = self.kpoints.to_string()
+            if (self.incar.params["LHFCALC"] == "T" or self.incar.params["LHFCALC"] == ".TRUE.") and (self.incar.params["HFSCREEN"] == 0.2 or self.incar.params["HFSCREEN"].split()[0] == "0.2"):
+                # trying to do HSE calculation
+                # acoording to tutorials on VASP Wiki, HSE is included in nscf calc, and is not needed in scf
+                self.incar.params["LHFCALC"] = None
+                self.incar.params["HFSCREEN"] = None
+                incar_scf = self.incar.to_string()
+                kpoints_scf = self.kpoints.to_string()
+                # now we set back the value for HSE so that they can be used in nscf
+                self.incar.params["LHFCALC"] = "T"
+                self.incar.params["HFSCREEN"] = 0.2
+            else:
+                incar_scf = self.incar.to_string()
+                kpoints_scf = self.kpoints.to_string()
 
             # nscf: pdos + bands
             self.incar.set_params({

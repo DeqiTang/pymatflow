@@ -4,7 +4,6 @@ Phonopy calculation
 import sys
 import os
 import shutil
-import seekpath
 import numpy as np
 
 from pymatflow.remote.server import server_handle

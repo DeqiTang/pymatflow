@@ -569,6 +569,15 @@ def main():
             bands = post_bands()
             bands.get_kpath_and_vasprun(kpath=get_kpath(kpath_manual=args.kpath_manual, kpath_file=args.kpath_file), vasprun=os.path.join(args.directory, "vasprun.xml"))            
             bands.export(directory=args.directory, engine=args.engine, bandrange=args.bandrange)
+            if bands.magnetic_status == "soc-ispin-1" or bands.magnetic_status == "soc-ispin-2":
+                # actually soc-ispin-2 never exists
+                print("=====================================================================\n")
+                print("                             postflow\n")
+                print("---------------------------------------------------------------------\n")
+                print("Note:\n")
+                print("even when you set soc and ISPIN=2 at the same time in INCAR\n")
+                print("you will only find band-structure-soc-ispin-1-xxx in post-processing\n")
+                print("because VASP will actually reset ISPIN to 1 when considering soc\n")
         elif args.runtype == 1:
             # optimization
             from pymatflow.vasp.post.opt import opt_out
