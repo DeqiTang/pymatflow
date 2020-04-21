@@ -258,12 +258,133 @@ VASP声子谱计算(Phonopy)
 
 .. _header-n105:
 
+
+``matflow``\ 之QE计算器
+-----------------------
+
+QE几何结构优化(relax)
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: shell
+
+    ~$ matflow qe -r 1 --cif YOUR_STRUCTURE.cif -d DIRECTORY --ecutwfc VALUE --kpoints-mp VALUE
+
+QE几何结构优化(vc-relax)
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: shell
+
+    ~$ matflow qe -r 2 --cif YOUR_STRUCTURE.cif -d DIRECTORY --ecutwfc VALUE --kpoints-mp VALUE
+
+QE晶胞参数优化
+~~~~~~~~~~~~~~~~
+
+.. code:: shell
+
+   ~$ matflow qe -r [3|4|5] --cif YOUR_STRUCTURE.cif -d DIRECTORY --ecutwfc VALUE --kpoints-mp VALUE
+
+参数\ ``-r 3``\ 是进行cubic晶胞的cell参数的优化，\ ``-r 4``\ 进行hexagonal晶胞的cell参数的优化，\ ``-r 5``\ 进行tetragonal晶胞的cell参数的优化。其中需要注意\ ``-d``\ 参数不能指定为当前路径，否者命令会抛出警告并退出。后处理命令如下:
+
+.. code:: shell
+    ~$ postflow qe -r [3|4|5] -d DIRECTORY
+
+QE声子谱计算(DFPT)
+~~~~~~~~~~~~~~~~~~
+
+.. code:: shell
+    
+    ~$ matflow qe -r 0 --static scf --cif YOUR_STRUCTURE -d DIRECTORY --ecutwfc VALUE --kpionts-mp VALUE
+    ~$ # after the above task terminates
+    ~$ matflow qe -r 7 --cif -d DIRECTORY --nq VALUE --tr2-ph VALUE
+
+
+QE声子谱计算(Phonopy)
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: shell
+    
+    ~$ matflow qe -r 8 --cif YOUR_STRUCTURE.cif -d DIRECTORY --ecutwfc VALUE --kpoints-mp VALUE --supercell-n VALUE
+
+
+``matflow``\ 之CP2K计算器
+-------------------------
+
+CP2K结构优化(GEO_OPT)
+~~~~~~~~~~~~
+
+.. code:: shell
+
+    ~$ matflow cp2k -r 1 --cif YOUR_STRUCTURE.cif -d DIRECTORY --cutoff VALUE --kpoints-scheme VALUE
+
+CP2K结构优化(CELL_OPT)
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: shell
+    
+    ~$ matflow cp2k -r 2 --cif YOUR_STRUCUTRE.cif -d DIRECTORY --cutoff VALUE --kpoints-scheme VALUE
+
+
+CP2K声子谱计算(phonopy)
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: shell
+
+    ~$ matflow cp2k -r 7 --cif YOUR_STRUCTURE.cif -d DIRECTORY --cutoff VALUE --kpoints-scheme VALUE --supercell-n VALUE
+
+CP2K振动分析(VIBRATIONAL_ANALYSIS)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: shell
+
+    ~$ matflow cp2k -r 8 --cif YOUR_STRUCTURE.cif -d DIRECTORY --cutoff VALUE --kpoints-scheme VALUE
+
+CP2K晶胞参数优化
+~~~~~~~~~~~~~~~
+
+.. code:: shell
+
+   ~$ matflow cp2k -r [3|4|5] --cif YOUR_STRUCTURE.cif -d DIRECTORY --ecutwfc VALUE --kpoints-mp VALUE
+
+参数\ ``-r 3``\ 是进行cubic晶胞的cell参数的优化，\ ``-r 4``\ 进行hexagonal晶胞的cell参数的优化，\ ``-r 5``\ 进行tetragonal晶胞的cell参数的优化。其中需要注意\ ``-d``\ 参数不能指定为当前路径，否者命令会抛出警告并退出。
+
+
+``matflow``\ 之SIESTA计算器
+---------------------------
+
+SIESTA 结构优化
+~~~~~~~~~~~~~~
+
+.. code:: shell
+
+    ~$ matflow siesta -r 1 --cif YOUR_STRUCTURE.cif -d DIRECTORY --meshcutoff VALUE --kpoints-mp VALUE
+
+SIESTA 晶胞参数优化
+~~~~~~~~~~~~~~~~~~~
+
+.. code:: shell
+
+   ~$ matflow siesta -r [2|3|4] --cif YOUR_STRUCTURE.cif -d DIRECTORY --ecutwfc VALUE --kpoints-mp VALUE
+
+参数\ ``-r 2``\ 是进行cubic晶胞的cell参数的优化，\ ``-r 3``\ 进行hexagonal晶胞的cell参数的优化，\ ``-r 4``\ 进行tetragonal晶胞的cell参数的优化。其中需要注意\ ``-d``\ 参数不能指定为当前路径，否者命令会抛出警告并退出。
+
+
+SIESTA 声子谱计算(phonopy)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: shell
+
+    ~$ matflow siesta -r 5 --cif YOUR_STRUCTURE.cif -d DIRECTORY --meshcutoff VALUE --kpoints-mp VALUE --supercell-n VALUE
+
+
+
 特定类型计算
 ------------
 
 ``Pymatflow``\ 提供部分特定类型计算任务，文档暂无。
 
 .. _header-n107:
+
+
 
 服务器交互实用工具
 ------------------
