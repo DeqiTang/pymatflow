@@ -31,6 +31,17 @@ class post_pdos:
                                 lsorbit = spin_item.text.split()[0]
         if lsorbit == "T":
             self.magnetic_status = "soc-ispin-%d" % ispin # soc-ispin-1 or soc-ispin-2
+            # actually soc-ispin-2 never exists !!!
+            # I found when soc and ISPIN=2 are set in the INCAR at the same time,
+            # you can find in <incar> section of vasprun.xml ISPIN=2, but it will be turned to 1
+            # in <parameters> -> <separator name="electronic"> - > <separator name="electronic spin"> 
+            # So VASP will automatically set ISPIN to 1 even when you set ISPIN to 2 
+            # if you are considering soc
+            # I mean you can set soc and ISPIN=2 at the same time in INCAR, but 
+            # VASP will turn ISPIN to 1, and this post script will read it to be ISPIN = 1
+            # so never will therere be soc-ispin-2 even when you set it in INCAR.
+            # in vasprun.xml, we read the acutally used ISPIN from <parameters>... rather than
+            # the input from <incar>.
         else:
             self.magnetic_status = "non-soc-ispin-%d" % ispin # non-soc-ispin-1 or non-soc-ispin-2
 
