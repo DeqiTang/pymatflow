@@ -1628,6 +1628,7 @@ def main():
             else:
                 os.system("structflow convert -i %s -o %s.xyz" % (image, image))
                 images.append("%s.xyz" % image)
+        xyzfile = images[0] # this set only for dealing with pseudo potential file
         #
 
 

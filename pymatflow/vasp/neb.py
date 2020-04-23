@@ -27,7 +27,7 @@ class neb_run(vasp):
         self.incar.set_runtype(runtype="neb")
         self.poscars = []
 
-        self.nimage = 5 # default value
+        self.nimage = 3 # default value
 
 
     def get_images(self, images):
@@ -46,6 +46,9 @@ class neb_run(vasp):
         """
         directory: a place for all the generated files
         """
+
+        self.incar.params["IMAGES"] = self.nimage
+        
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
