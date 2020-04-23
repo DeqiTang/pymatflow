@@ -33,15 +33,11 @@ class post_bands:
         self.locs = []
         self.labels_for_matplotlib = []
         self.labels_for_gnuplot = []
-        n_div = 0
-        for kpoint in self.kpath:
-            if kpoint[4] == "|":
-                n_div += 1
-        n_band_line = len(self.kpath) - 1 - n_div
-        intersections = len(self.xcoord_k) / n_band_line
-        for i in range(n_band_line):
-            print(intersections*i)
-            self.locs.append(self.xcoord_k[int(intersections*i)])
+
+        self.locs.append(self.xcoord_k[0])
+        for i in range(1, len(self.xcoord_k) - 1):
+            if self.xcoord_k[i] == self.xcoord_k[i-1]:
+                self.locs.append(self.xcoord_k[i])
         self.locs.append(self.xcoord_k[-1])
 
         self.labels_for_matplotlib.append(r"$%s$" % self.kpath[0][3].upper() if self.kpath[0][3].upper() != "GAMMA" else r"$\Gamma$")
@@ -53,6 +49,10 @@ class post_bands:
             else:
                 self.labels_for_matplotlib[-1] = r"$%s | %s$" % (self.labels_for_matplotlib[-1].split("$")[1], self.kpath[i][3].upper())
                 self.labels_for_gnuplot[-1] = "%s | %s" % (self.labels_for_gnuplot[-1], self.kpath[i][3].upper())
+
+        #print(self.locs)
+        #print(self.labels_for_matplotlib)
+        #print(self.labels_for_gnuplot)
 
     def get_xcoord_k(self):
         """
