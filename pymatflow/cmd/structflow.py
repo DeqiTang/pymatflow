@@ -70,6 +70,8 @@ def write_structure(structure, filepath):
         poscar = vasp_poscar()
         poscar.xyz.cell = structure.cell
         poscar.xyz.atoms = structure.atoms
+        poscar.xyz.natom = len(poscar.xyz.atoms)
+        poscar.xyz.set_species_number() # needed for poscar output
         with open(filepath, 'w') as fout:
             poscar.to_poscar(fout)
     else:
