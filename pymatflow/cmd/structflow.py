@@ -41,31 +41,39 @@ def read_structure(filepath):
     return a
 
 
-def write_structure(crystal, filepath):
+def write_structure(structure, filepath):
     """
     write structure to file
-    :param crystal: an instance of pymatflow.structure.crystal
+    :param structure: an instance of pymatflow.structure.crystal
 
     :param filepath: file path for the output structure file
         it will judge the file type by the suffix
     """
     if filepath.split(".")[-1] == "xyz":
-        crystal.write_xyz(filepath=filepath)
+        structure.write_xyz(filepath=filepath)
     elif filepath.split(".")[-1] == "cif":
         import pymatflow.third.aseio as aseio
-        aseio.write_cif(cell=crystal.cell, atoms=crystal.atoms, filepath=filepath)
+        aseio.write_cif(cell=structure.cell, atoms=structure.atoms, filepath=filepath)
     elif filepath.split(".")[-1] == "xsd":
         import pymatflow.third.aseio as aseio
-        aseio.write_xsd(cell=crystal.cell, atoms=crystal.atoms, filepath=filepath)
+        aseio.write_xsd(cell=structure.cell, atoms=structure.atoms, filepath=filepath)
     elif filepath.split(".")[-1] == "xsf":
         import pymatflow.third.aseio as aseio
-        aseio.write_xsf(cell=crystal.cell, atoms=crystal.atoms, filepath=filepath)
+        aseio.write_xsf(cell=structure.cell, atoms=structure.atoms, filepath=filepath)
     elif filepath.split(".")[-1] == "cube":
         import pymatflow.third.aseio as aseio
-        aseio.write_cube(cell=crystal.cell, atoms=crystal.atoms, filepath=filepath)
+        aseio.write_cube(cell=structure.cell, atoms=structure.atoms, filepath=filepath)
+    elif os.path.basename(filepath) == "POSCAR" or os.path.basename(filepath) == "CONTCAR":
+        from pymatflow.structure.crystal import crystal
+        from pymatflow.vasp.base.poscar import vasp_poscar
+        #import pymatflow.third.aseio as aseio
+        poscar = vasp_poscar()
+        poscar.xyz.cell = structure.cell
+        poscar.xyz.atoms = structure.atoms
+        with open(filepath, 'w') as fout:
+            poscar.to_poscar(fout)
     else:
         pass
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -203,7 +211,7 @@ def main():
         supercell = a.build_supercell(args.supern)
         new_structure = crystal()
         new_structure.get_cell_atoms(cell=supercell["cell"], atoms=supercell["atoms"])
-        write_structure(crystal=new_structure, filepath=args.output)
+        write_structure(structure=new_structure, filepath=args.output)
         
         print("=========================================================\n")
         print("              structflow supercell builder\n")
@@ -229,7 +237,7 @@ def main():
         # will convert file type according to the suffix of the specified input and output file
 
         a = read_structure(filepath=args.input)
-        write_structure(crystal=a, filepath=args.output)
+        write_structure(structure=a, filepath=args.output)
 
 
         print("=========================================================\n")
@@ -262,7 +270,7 @@ def main():
         move_along(a, atoms_to_move=[i-1 for i in args.atoms], direc=args.direction, disp=args.disp)
         
         # output structure
-        write_structure(crystal=a, filepath=args.output)
+        write_structure(structure=a, filepath=args.output)
 
     elif args.driver == "remove":
         from pymatflow.structure.tools import remove_atoms
@@ -297,7 +305,7 @@ def main():
             remove_atoms(a, atoms_to_remove=element_atoms_to_remove)
 
         # output structure
-        write_structure(crystal=a, filepath=args.output)
+        write_structure(structure=a, filepath=args.output)
 
     elif args.driver == "vacuum":
         from pymatflow.structure.tools import vacuum_layer
@@ -320,7 +328,7 @@ def main():
         vacuum_layer(a, plane=args.plane, thickness=args.thick)
         
         # output structure
-        write_structure(crystal=a, filepath=args.output)
+        write_structure(structure=a, filepath=args.output)
     # --------------------------------------------------------------------------
 
 

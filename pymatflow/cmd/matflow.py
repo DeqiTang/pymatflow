@@ -1306,7 +1306,7 @@ def main():
             choices=["pbs", "llhpc", "lsf_sz"],
             help="type of remote server, can be pbs or llhpc or lsf_sz")
 
-    gp.add_argument("--jobname", type=str, default="vasp-scf",
+    gp.add_argument("--jobname", type=str, default="matflow-running",
             help="jobname on the pbs server")
 
     gp.add_argument("--nodes", type=int, default=1,
