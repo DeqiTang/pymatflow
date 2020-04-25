@@ -9,7 +9,7 @@ from pymatflow.vasp.base.xc import xc_incharge
 from pymatflow.vasp.base.lr import lr_incharge
 from pymatflow.vasp.base.orbitalmagnet import orbitalmagnet_incharge
 
-neb_incharge =  ["IOPT", "SPRING", "IMAGES", "LCLIMB"]
+neb_incharge =  ["IOPT", "SPRING", "IMAGES", "LCLIMB", "ICHAIN"]
 
 """
 in misc now, waiting for further classification:

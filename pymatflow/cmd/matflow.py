@@ -1551,6 +1551,8 @@ def main():
     gp.add_argument("--nimage", type=int, default=None,
             help="number of image to interpolate. total image will be nimage+2.")
 
+    gp.add_argument("--outcars", type=str, nargs="+",
+            help="OUTCAR for the initial and final structure in neb calc")
 
     # PHONOPY parameters
     # ----------------------------------------
@@ -2464,6 +2466,11 @@ def main():
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.neb(directory=args.directory, runopt=args.runopt, auto=args.auto)
+            # move the OUTCAR for initial stucture and final structure to the corresponding dir
+            # if they are specified
+            if args.outcars != None and len(args.outcars) > 0:
+                os.system("cp %s %s" % (args.outcars[0], os.path.join(args.directory, "00/")))
+                os.system("cp %s %s" % (args.outcars[-1], os.path.join(args.directory, "%.2d/" % (args.nimage+1))))                
         elif args.runtype == 6:
             # vasp phonon
             from pymatflow.vasp.phonon import phonon_run
