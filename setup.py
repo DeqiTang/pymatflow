@@ -212,6 +212,7 @@ setup(
         "pymatflow/vasp/post/scripts/post-vasp-phonon.py",
         "pymatflow/vasp/post/scripts/post-vasp-bands.py",
         "pymatflow/vasp/post/scripts/post-vasp-pdos.py",
+        "pymatflow/vasp/post/scripts/post-vasp-neb-vtst.py",
         ],
     entry_points = {
         'console_scripts': [

@@ -2457,6 +2457,8 @@ def main():
             task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
         elif args.runtype == 5:
             # neb
+            # we better set NSW manually in VTST neb calc. 
+            # if not set, pymatflow.vasp.neb will set it to 100 automatically
             from pymatflow.vasp.neb import neb_run
             task = neb_run()
             task.get_images(images)
@@ -2474,7 +2476,7 @@ def main():
         elif args.runtype == 6:
             # vasp phonon
             from pymatflow.vasp.phonon import phonon_run
-            task = phonon_run()
+            task = phonon_run() 
             task.get_xyz(xyzfile)
             task.set_params(params=params, runtype="phonon")
             task.set_kpoints(kpoints_mp=args.kpoints_mp)

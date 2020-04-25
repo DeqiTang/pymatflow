@@ -106,11 +106,11 @@ class vasp:
                     self.incar.set_params({item: params[item]})
         elif runtype == "neb":
             for item in params:
-                if item in static_allowed:
+                if item in neb_allowed:
                     self.incar.set_params({item: params[item]})
         elif runtype == "md":
             for item in params:
-                if item in static_allowed:
+                if item in md_allowed:
                     self.incar.set_params({item: params[item]})
         else:
             pass

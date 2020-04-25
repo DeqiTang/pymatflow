@@ -48,7 +48,12 @@ class neb_run(vasp):
         """
 
         self.incar.params["IMAGES"] = self.nimage
-        
+        # in NEB calc you must set NSW manually, or it will default to 0
+        # and the optimization will actually be scf
+        # so we make a check here
+        if "NSW" not in self.incar.params or self.incar.params["NSW"] == None:
+            self.incar.params["NSW"] = 100 # set to 100 by default if it is not set
+
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -79,6 +84,7 @@ class neb_run(vasp):
             # 否者就可以通过设置IBRION = 3, POTIM = 0来关闭vasp的优化器
             # 然后设置IOPT= 1或者2来使用VTST的优化器
             # 当设置IOPT > 0，的时候也要注意需要明确设置EDIFFG < 0
+
 
             # gen llhpc script
             self.gen_llhpc(directory=directory, cmd="$PMF_VASP_STD_NEB", scriptname="neb.slurm")
