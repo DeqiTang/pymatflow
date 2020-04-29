@@ -88,3 +88,31 @@ def vacuum_layer(structure, plane, thickness):
     else:
         pass
     # end
+
+    
+def inverse_geo_center(structure):
+    """
+    calc the geometric center of the system and make an inversion against that center
+    :param structure: an instance of pymatflow.structure.crystal.crystal()
+    :params atoms_to_move: a list of atoms to move, counting starts with 0
+    :param direc: three number to indicate the direction to move along
+        namely the crystal orientation index
+    :param disp: displacement of the atoms in unit of Angstrom
+    """
+    # calc the geometric center
+    x = 0
+    y = 0
+    z = 0
+    for atom in structure.atoms:
+        x += atom.x
+        y += atom.y
+        z += atom.z
+    x /= len(structure.atoms)
+    y /= len(structure.atoms)
+    z /= len(structure.atoms)
+    # now get the symmetry image against the geometric center
+    for atom in structure.atoms:
+        atom.x = x * 2 - atom.x
+        atom.y = y * 2 - atom.y
+        atom.z = z * 2 - atom.z
+    # end

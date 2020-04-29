@@ -174,6 +174,7 @@ def main():
 
     subparser.add_argument("--elements", type=str, nargs="+",
             help="elements to remove")
+
     # ---------------------------------------------------------------------------------
     # vacuum layer
     # ---------------------------------------------------------------------------------
@@ -190,6 +191,17 @@ def main():
 
     subparser.add_argument("--thick", type=float,
             help="thickness of the vacuum layer, in unit of Angstrom")
+
+    # ---------------------------------------------------------------------------------
+    # inverse atoms against geometric center
+    # ---------------------------------------------------------------------------------
+    subparser = subparsers.add_parser("inverse", help="inverse against geo center")
+
+    subparser.add_argument("-i", "--input", type=str, required=True,
+            help="input structure file")
+
+    subparser.add_argument("-o", "--output", type=str, required=True,
+            help="output structure file")
 
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
@@ -331,6 +343,22 @@ def main():
         
         # output structure
         write_structure(structure=a, filepath=args.output)
+    elif args.driver == "inverse":
+        from pymatflow.structure.tools import inverse_geo_center
+        a = read_structure(filepath=args.input) 
+        # add vacuum layer
+        print("=======================================================================\n")
+        print("                       structflow\n")
+        print("-----------------------------------------------------------------------\n")
+        print("you are trying to inverse the system against the geometric center\n")
+        print("from %s\n" % args.input)
+        print("\n")
+        print("the output structure file is -> %s\n" % args.output)
+
+        inverse_geo_center(a)
+        
+        # output structure
+        write_structure(structure=a, filepath=args.output)        
     # --------------------------------------------------------------------------
 
 
