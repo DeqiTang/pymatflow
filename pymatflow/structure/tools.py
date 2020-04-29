@@ -94,10 +94,6 @@ def inverse_geo_center(structure):
     """
     calc the geometric center of the system and make an inversion against that center
     :param structure: an instance of pymatflow.structure.crystal.crystal()
-    :params atoms_to_move: a list of atoms to move, counting starts with 0
-    :param direc: three number to indicate the direction to move along
-        namely the crystal orientation index
-    :param disp: displacement of the atoms in unit of Angstrom
     """
     # calc the geometric center
     x = 0
@@ -116,3 +112,38 @@ def inverse_geo_center(structure):
         atom.y = y * 2 - atom.y
         atom.z = z * 2 - atom.z
     # end
+
+def inverse_point(structure, point):
+    """
+    calc the geometric center of the system and make an inversion against that center
+    :param structure: an instance of pymatflow.structure.crystal.crystal()
+    :param point: the inverse center point, like [0.0, 0.0, 0.0]
+    """
+    # now get the symmetry image against the inverse center
+    for atom in structure.atoms:
+        atom.x = point[0] * 2 - atom.x
+        atom.y = point[1] * 2 - atom.y
+        atom.z = point[2] * 2 - atom.z
+    # end
+
+def inverse_cell_center(structure):
+    """
+    make an inversion against the cell center
+    :param structure: an instance of pymatflow.structure.crystal.crystal()
+    """
+    # first transfer to fractional coordinate and inverse against [0.5, 0.5, 0.5]
+    structure.natom = len(structure.atoms)
+    frac = structure.get_fractional()
+    for atom in frac:
+        atom[1] = 0.5 * 2 - atom[1]
+        atom[2] = 0.5 * 2 - atom[2]
+        atom[3] = 0.5 * 2 - atom[3]
+    # convert frac to cartesian again
+    latcell = np.array(structure.cell)
+    convmat = latcell.T
+    from pymatflow.base.atom import Atom
+    structure.atoms = []
+    for atom in frac:
+        cartesian = list(convmat.dot(np.array([atom[1], atom[2], atom[3]])))
+        structure.atoms.append(Atom(name=atom[0], x=cartesian[0], y=cartesian[1], z=cartesian[2]))
+    #

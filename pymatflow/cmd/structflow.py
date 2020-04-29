@@ -203,6 +203,9 @@ def main():
     subparser.add_argument("-o", "--output", type=str, required=True,
             help="output structure file")
 
+    subparser.add_argument("-c", "--center", type=str, default="cell",
+            choices=["geo", "cell"],
+            help="inversion center, can geo or cell")
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
     # ==========================================================
@@ -345,17 +348,23 @@ def main():
         write_structure(structure=a, filepath=args.output)
     elif args.driver == "inverse":
         from pymatflow.structure.tools import inverse_geo_center
+        from pymatflow.structure.tools import inverse_cell_center
         a = read_structure(filepath=args.input) 
-        # add vacuum layer
         print("=======================================================================\n")
         print("                       structflow\n")
         print("-----------------------------------------------------------------------\n")
-        print("you are trying to inverse the system against the geometric center\n")
+        if args.center == "geo":
+            print("you are trying to inverse the system against the geometric center\n")
+        elif args.center == "cell":
+            print("you are trying to inverse the system against the cell center\n")            
         print("from %s\n" % args.input)
         print("\n")
         print("the output structure file is -> %s\n" % args.output)
 
-        inverse_geo_center(a)
+        if args.center == "geo":
+            inverse_geo_center(a)
+        elif args.center == "cell":
+            inverse_cell_center(a)
         
         # output structure
         write_structure(structure=a, filepath=args.output)        
