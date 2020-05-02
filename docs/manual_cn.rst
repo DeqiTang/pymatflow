@@ -385,6 +385,46 @@ SIESTA 声子谱计算(phonopy)
 .. _header-n107:
 
 
+structflow工具
+--------------
+
+结构格式转换
+~~~~~~~~~~~~
+
+structflow支持cif、xsf、xsd、cube等结构文件的相互转换。例如,下面的命令会将cif格式的结构文件转换为xsd格式。
+
+    .. code:: shell
+
+    ~$ sflow convert -i INPUT_STRUCTURE.cif -o OUTPUT_STRUCTURE.xsd
+
+
+构建Supercell
+~~~~~~~~~~~~~
+
+    .. code:: shell
+
+    ~$ sflow supercell -i INPUT_STRUCTURE.cif -o OUTPUT_STRUCTURE.cif -n N1 N2 N3
+
+删除晶体结构中的指定元素
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+    .. code:: shell
+
+    ~$ sflow remove -i INPUT_STRUCTURE.cif -o OUTPUT_STRUCTURE.cif --elements ELEMENTS_TO_REMOVE
+
+指定移除晶体结构中原子
+~~~~~~~~~~~~~~~~~~~~~
+
+    .. code:: shell
+
+    ~$ sflow remove -i INPUT_STRUCTURE.cif -o OUTPUT_STRUCTURE.cif --atoms ATOMS_TO_REMOVE
+
+更改晶体结构中原子的位置
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+    .. code:: shell
+
+    ~$ sflow move -i INPUT_STRUCTURE.cif -o OUTPUT_STRUCTURE.cif --atoms ATOMS_TO_REMOVE --disp LENGTH --direction DIRECTION
 
 服务器交互实用工具
 ------------------

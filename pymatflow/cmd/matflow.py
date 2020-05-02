@@ -1462,6 +1462,9 @@ def main():
             choices=[0.3, 0.2],
             help=" specifies the range-separation parameter in range separated hybrid functionals: HSE03->0.3, HSE06->0.2, must also set LHFCALC=.TRUE.")
 
+    gp.add_argument("--aexx", type=float, default=None,
+            help="AEXX specifies the fraction of exact exchange in a Hartree-Fock/DFT hybrid functional type calculation")
+
     gp.add_argument("--lsubrot", type=str, default=None,
             choices=["T", "F", ".TRUE.", ".FALSE."],
             help="This flag can be set for hybrid functionals (HF-type calculations).")
@@ -2385,6 +2388,7 @@ def main():
         params["ALGO"] = args.algo if "ALGO" not in params or args.algo != None else params["ALGO"]
         params["LHFCALC"] = args.lhfcalc if "LHFCALC" not in params or args.lhfcalc != None else params["LHFCALC"]
         params["HFSCREEN"] = args.hfscreen if "HFSCREEN" not in params or args.hfscreen != None else params["HFSCREEN"]
+        params["AEXX"] = args.aexx if "AEXX" not in params or args.aexx != None else params["AEXX"]
         params["LELF"] = args.lelf if "LELF" not in params or args.lelf != None else params["LELF"]
         params["IOPT"] = args.iopt if "IOPT" not in params or args.iopt != None else params["IOPT"]
         params["LCLIMB"] = args.lclimb if "LCLIMB" not in params or args.lclimb != None else params["LCLIMB"]
