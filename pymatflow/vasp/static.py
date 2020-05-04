@@ -733,7 +733,7 @@ class static_run(vasp):
                 self.incar.params["LOPTICS"] = None
             if "CSHIFT" in self.incar.params:
                 optics_params["CSHIFT"] = self.incar.params["CSHIFT"]
-                self.incar.params["LOPTICS"] = None
+                self.incar.params["CSHIFT"] = None
             if "NEDOS" in self.incar.params:
                 optics_params["NEDOS"] = self.incar.params["NEDOS"]
                 self.incar.params["NEDOS"] = None
@@ -743,7 +743,7 @@ class static_run(vasp):
             self.incar.set_params(optics_params)
             #self.incar.set_params({
             #    "ICHARG": 11,
-            #})   
+            #})
             incar_nscf = self.incar.to_string()
             kpoints_nscf = self.kpoints.to_string()
 
