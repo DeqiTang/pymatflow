@@ -1287,8 +1287,8 @@ def main():
             help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->neb; 6->vasp-phonon; 7->phonopy")
 
     gp.add_argument("--static", type=str, default="all",
-            choices=["all", "scf"],
-            help="in case of all(default), run scf, nscf, bands in a single run; in case of scf, run scf only")
+            choices=["all", "scf", "optics"],
+            help="in case of all(default), run scf, nscf, bands in a single run; in case of scf, run scf only, in case of optics, run scf and optics calc in a single run")
 
     # run option
     gp.add_argument("--runopt", type=str, default="gen",
@@ -1426,10 +1426,17 @@ def main():
             choices=[0, 1, 2, 5, 10, 11, 12],
             help="together with an appropriate RWIGS, determines whether the PROCAR or PROOUT files are written")
 
+    # optics related
     gp.add_argument("--loptics", type=str, default=None,
             choices=["TRUE", "FALSE"],
             help="calculates the frequency dependent dielectric matrix after the electronic ground state has been determined.")
 
+    gp.add_argument("--cshift", type=float, default=None,
+            help="CSHIFT sets the (small) complex shift η in the Kramers-Kronig transformation")
+
+    gp.add_argument("--nedos", type=int, default=None,
+            help="NEDOS specifies number of gridpoints on which the DOS is evaluated")
+            
     # magnetic related
     gp.add_argument("--ispin", type=int, default=None,
             choices=[1, 2],
@@ -2371,6 +2378,8 @@ def main():
         params["POTIM"] = args.potim if "POTIM" not in params or args.potim != None else params["POTIM"]
         params["LORBIT"] = args.lorbit if "LORBIT" not in params or args.potim != None else params["LORBIT"]
         params["LOPTICS"] = args.loptics if "LOPTICS" not in params or args.loptics != None else params["LOPTICS"]
+        params["CSHIFT"] = args.cshift if "CSHIFT" not in params or args.cshift != None else params["CSHIFT"]
+        params["NEDOS"] = args.nedos if "NEDOS"  not in params or args.nedos != None else params["NEDOS"]
         params["LSUBROT"] = args.lsubrot if "LSUBROT" not in params or args.lsubrot != None else params["LSUBROT"]
         params["SAXIS"] = args.saxis if "SAXIS" not in params or args.saxis != None else params["SAXIS"]
         params["LMAXMIX"] = args.lmaxmix if "LMAXMIX" not in params or args.lmaxmix != None else params["LMAXMIX"]
@@ -2412,6 +2421,9 @@ def main():
             elif args.static == "scf":
                 task.set_kpoints(kpoints_mp=args.kpoints_mp)
                 task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto)
+            elif args.static == "optics":
+                task.set_kpoints(kpoints_mp=args.kpoints_mp)                    
+                task.optics(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 1:
             # optimization
             from pymatflow.vasp.opt import opt_run

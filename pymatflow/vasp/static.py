@@ -689,3 +689,253 @@ class static_run(vasp):
             os.system("bash static.sh")
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="static", server=self.run_params["server"])
+
+
+    def optics(self, directory="tmp-vasp-static", runopt="gen", auto=0):
+        """
+        directory: a place for all the generated files
+
+        runopt:
+            gen    -> generate a new calculation but do not run
+            run    -> run a calculation on the previously generated files
+            genrun -> generate a calculation and run it
+        Note: scf nscf(pdos, bands) in a single run
+        """
+        if runopt == "gen" or runopt == "genrun":
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
+            shutil.copyfile("POTCAR", os.path.join(directory, "POTCAR"))
+            os.system("cp %s %s/" % (self.poscar.xyz.file, directory))
+
+            self.incar.set_params({
+                "IBRION": -1,
+            })
+            # scf
+            """
+            if (self.incar.params["LHFCALC"] == "T" or self.incar.params["LHFCALC"] == ".TRUE.") and (self.incar.params["HFSCREEN"] == 0.2 or self.incar.params["HFSCREEN"].split()[0] == "0.2"):
+                # trying to do HSE calculation
+                # acoording to tutorials on VASP Wiki, HSE is included in nscf calc, and is not needed in scf
+                self.incar.params["LHFCALC"] = None
+                self.incar.params["HFSCREEN"] = None
+                incar_scf = self.incar.to_string()
+                kpoints_scf = self.kpoints.to_string()
+                # now we set back the value for HSE so that they can be used in nscf
+                self.incar.params["LHFCALC"] = "T"
+                self.incar.params["HFSCREEN"] = 0.2
+            else:
+                incar_scf = self.incar.to_string()
+                kpoints_scf = self.kpoints.to_string()
+            """
+            optics_params = {}
+            if "LOPTICS" in self.incar.params:
+                optics_params["LOPTICS"] = self.incar.params["LOPTICS"]
+                self.incar.params["LOPTICS"] = None
+            if "CSHIFT" in self.incar.params:
+                optics_params["CSHIFT"] = self.incar.params["CSHIFT"]
+                self.incar.params["LOPTICS"] = None
+            if "NEDOS" in self.incar.params:
+                optics_params["NEDOS"] = self.incar.params["NEDOS"]
+                self.incar.params["NEDOS"] = None
+            incar_scf = self.incar.to_string()
+            kpoints_scf = self.kpoints.to_string()
+            # nscf: LOPTICS
+            self.incar.set_params(optics_params)
+            #self.incar.set_params({
+            #    "ICHARG": 11,
+            #})   
+            incar_nscf = self.incar.to_string()
+            kpoints_nscf = self.kpoints.to_string()
+
+            # gen llhpc script
+            with open(os.path.join(directory, "static-optics.slurm"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                fout.write("cat >POSCAR<<EOF\n")
+                self.poscar.to_poscar(fout)
+                fout.write("EOF\n")
+                fout.write("# scf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                fout.write(incar_scf)
+                fout.write("EOF\n")
+                fout.write("cat >KPOINTS<<EOF\n")
+                #self.kpoints.to_kpoints(fout)
+                fout.write(kpoints_scf)
+                fout.write("EOF\n")
+
+                if self.magnetic_status == "non-collinear":
+                    fout.write("yhrun $PMF_VASP_NCL\n")
+                else:
+                    fout.write("yhrun $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.scf\n")
+                fout.write("cp vasprun.xml vasprun.xml.scf\n")
+
+                fout.write("# nscf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                #self.incar.to_incar(fout)
+                fout.write(incar_nscf)
+                fout.write("EOF\n")
+                fout.write("cat >KPOINTS<<EOF\n")
+                fout.write(kpoints_nscf)
+                fout.write("EOF\n")
+                
+                if self.magnetic_status == "non-collinear":
+                    fout.write("yhrun $PMF_VASP_NCL\n")
+                else:
+                    fout.write("yhrun $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.nscf\n")
+                fout.write('cp vasprun.xml vasprun.xml.nscf\n')
+
+
+            # gen pbs script
+            with open(os.path.join(directory, "static-optics.pbs"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+                if "queue" in self.run_params and self.run_params["queue"] != None:
+                    fout.write("#PBS -q %s\n" %self.run_params["queue"])                
+                fout.write("\n")
+                fout.write("cd $PBS_O_WORKDIR\n")
+                fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+                fout.write("cat >POSCAR<<EOF\n")
+                self.poscar.to_poscar(fout)
+                fout.write("EOF\n")
+                fout.write("# scf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                #self.incar.to_incar(fout)
+                fout.write(incar_scf)
+                fout.write("EOF\n")
+                fout.write("cat > KPOINTS<<EOF\n")
+                #self.kpoints.to_kpoints(fout)
+                fout.write(kpoints_scf)
+                fout.write("EOF\n")
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_NCL \n")
+                else:
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.scf\n")
+                fout.write("cp vasprun.xml vasprun.xml.scf\n")
+
+                fout.write("# nscf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                #self.incar.to_incar(fout)
+                fout.write(incar_nscf)
+                fout.write("EOF\n")
+                
+                fout.write("cat >KPOINTS<<EOF\n")
+                fout.write(kpoints_nscf)
+                fout.write("EOF\n")
+
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_NCL \n")
+                else:
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.nscf\n")
+                fout.write("cp vasprun.xml vasprun.xml.nscf\n")
+
+
+            # gen local bash script
+            with open(os.path.join(directory, "static-optics.sh"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("cat >POSCAR<<EOF\n")
+                self.poscar.to_poscar(fout)
+                fout.write("EOF\n")
+                fout.write("# scf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                #self.incar.to_incar(fout)
+                fout.write(incar_scf)
+                fout.write("EOF\n")
+                fout.write("cat > KPOINTS<<EOF\n")
+                #self.kpoints.to_kpoints(fout)
+                fout.write(kpoints_scf)
+                fout.write("EOF\n")
+                if self.magnetic_status == "non-collinear":
+                    fout.write("%s $PMF_VASP_NCL \n" % self.run_params["mpi"])
+                else:
+                    fout.write("%s $PMF_VASP_STD \n" % self.run_params["mpi"])
+                fout.write("cp OUTCAR OUTCAR.scf\n")
+                fout.write("cp vasprun.xml vasprun.xml.scf\n")
+
+                fout.write("# nscf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                #self.incar.to_incar(fout)
+                fout.write(incar_nscf)
+                fout.write("EOF\n")
+
+                fout.write("cat >KPOINTS<<EOF\n")
+                fout.write(kpoints_nscf)
+                fout.write("EOF\n")
+
+                if self.magnetic_status == "non-collinear":
+                    fout.write("%s $PMF_VASP_NCL \n" % self.run_params["mpi"])
+                else:
+                    fout.write("%s $PMF_VASP_STD \n" % self.run_params["mpi"])
+                fout.write("cp OUTCAR OUTCAR.nscf\n")
+                fout.write("cp vasprun.xml vasprun.xml.nscf\n")
+
+
+            # gen lsf_sz script
+            with open(os.path.join(directory, "static-optics.lsf_sz"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("APP_NAME=intelY_mid\n")
+                fout.write("NP=%d\n" % (self.run_params["nodes"] * self.run_params["ppn"]))
+                fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
+                fout.write("RUN=\"RAW\"\n")
+                fout.write("CURDIR=$PWD\n")
+                fout.write("#VASP=/home-yg/Soft/Vasp5.4/vasp_std\n")
+                fout.write("source /home-yg/env/intel-12.1.sh\n")
+                fout.write("source /home-yg/env/openmpi-1.6.5-intel.sh\n")
+                fout.write("cd $CURDIR\n")
+                fout.write("# starting creating ./nodelist\n")
+                fout.write("rm -rf $CURDIR/nodelist >& /dev/null\n")
+                fout.write("for i in `echo $LSB_HOSTS`\n")
+                fout.write("do\n")
+                fout.write("  echo \"$i\" >> $CURDIR/nodelist \n")
+                fout.write("done\n")
+                fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\n\' \',\')\n")
+
+                fout.write("cat >POSCAR<<EOF\n")
+                self.poscar.to_poscar(fout)
+                fout.write("EOF\n")
+                fout.write("# scf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                #self.incar.to_incar(fout)
+                fout.write(incar_scf)
+                fout.write("EOF\n")
+                fout.write("cat > KPOINTS<<EOF\n")
+                #self.kpoints.to_kpoints(fout)
+                fout.write(kpoints_scf)
+                fout.write("EOF\n")
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_NCL\n")
+                else:
+                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                fout.write("cp OUTCAR OUTCAR.scf\n")
+                fout.write("cp vasprun.xml vasprun.xml.scf\n")
+                fout.write("# nscf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                #self.incar.to_incar(fout)
+                fout.write(incar_nscf)
+                fout.write("EOF\n")
+
+                fout.write("cat >KPOINTS<<EOF\n")
+                fout.write(kpoints_nscf)
+                fout.write("EOF\n")
+
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_NCL\n")
+                else:
+                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                fout.write("cp OUTCAR OUTCAR.nscf\n")
+                fout.write("cp vasprun.xml vasprun.xml.nscf\n")
+
+        if runopt == "run" or runopt == "genrun":
+            os.chdir(directory)
+            os.system("bash static-optics.sh")
+            os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="static-optics", server=self.run_params["server"])

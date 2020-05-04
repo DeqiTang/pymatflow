@@ -49,9 +49,9 @@ class vasp:
         """
         static_allowed = [
             "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
-            "IVDW", "LORBIT", "LOPTICS", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
+            "IVDW", "LORBIT", "LOPTICS", "CSHIFT", "NEDOS", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "LSORBIT","SAXIS", "LMAXMIX", "LHFCALC", "HFSCREEN", "AEXX", "LSUBROT", "ALGO", "IALGO", "ADDGRID",
-            "ISYM", "LREAL", "LWAVE", "LCHARG", "LELF", ""
+            "ISYM", "LREAL", "LWAVE", "LCHARG", "LELF",
         ]
         opt_allowed = [
             "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
