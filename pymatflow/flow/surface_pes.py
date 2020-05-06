@@ -57,7 +57,7 @@ class cp2k_run(cp2k.opt_run):
             os.system("mkdir -p post-processing")
             for deltax in np.arange(xrange[0], xrange[1], xrange[2]):
                 for deltay in np.arange(yrange[0], yrange[1], yrange[2]):
-                    os.mkdir("_%.3f_%.3f_" % (deltax, deltay))
+                    os.mkdir("_%.3f_%.3f_" % (deltax if np.abs(deltax) >= 0.001 else 0.0, deltay if np.abs(deltay) >= 0.001 else 0.0))
 
                     for i in self.pes_params["move_atom"]:
                         self.force_eval.subsys.xyz.atoms[i].x += deltax
@@ -66,7 +66,7 @@ class cp2k_run(cp2k.opt_run):
                         #----------------------------------------------
                         self.force_eval.subsys.xyz.atoms[i].z += zshift
 
-                    with open("_%.3f_%.3f_/geo-opt.inp" % (deltax, deltay), 'w') as fout:
+                    with open("_%.3f_%.3f_/geo-opt.inp" % (deltax if np.abs(deltax) >= 0.001 else 0.0, deltay if np.abs(deltay) >= 0.001 else 0.0), 'w') as fout:
                         self.glob.to_input(fout)
                         self.force_eval.to_input(fout)
                         self.motion.to_input(fout)
@@ -74,7 +74,7 @@ class cp2k_run(cp2k.opt_run):
                     with open("post-processing/trajectory-initial.xyz", 'a') as fout:
                         # generate the xyz trajectory file -> (unrelaxed original traj)
                         fout.write("%d\n" % self.force_eval.subsys.xyz.natom)
-                        fout.write("deltax: %.3f | deltay: %.3f\n" % (deltax, deltay))
+                        fout.write("deltax: %.3f | deltay: %.3f\n" % (deltax if np.abs(deltax) >= 0.001 else 0.0, deltay if np.abs(deltay) >= 0.001 else 0.0))
                         for atom in self.force_eval.subsys.xyz.atoms:
                             fout.write("%s %.9f %.9f %.9f\n" % (atom.name, atom.x, atom.y, atom.z))
 
@@ -94,9 +94,9 @@ class cp2k_run(cp2k.opt_run):
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
 
-                fout.write("for deltax in `seq -w %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
+                fout.write("for deltax in `seq %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
                 fout.write("do\n")
-                fout.write("for deltay in `seq -w %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
+                fout.write("for deltay in `seq %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
                 fout.write("do\n")
                 fout.write("  # run the calculation\n")
                 fout.write("  cd _${deltax}_${deltay}_\n")
@@ -113,9 +113,9 @@ class cp2k_run(cp2k.opt_run):
                 #fout.write("\n")
                 fout.write("output_trajfile=./post-processing/trajectory-relaxed.xyz\n")
                 fout.write("natom=%d\n" % self.force_eval.subsys.xyz.natom)
-                fout.write("for deltax in `seq -w %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
+                fout.write("for deltax in `seq %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
                 fout.write("do\n")
-                fout.write("for deltay in `seq -w %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
+                fout.write("for deltay in `seq %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
                 fout.write("do\n")
                 fout.write("  echo ${natom} >> ${output_trajfile}\n")
                 fout.write("  cat >> ${output_trajfile}<<EOF\n")
@@ -132,9 +132,9 @@ class cp2k_run(cp2k.opt_run):
                 fout.write("# format: x y energy(Ry)\n")
                 fout.write("EOF\n")
                 fout.write("\n")
-                fout.write("for deltax in `seq -w %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
+                fout.write("for deltax in `seq %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
                 fout.write("do\n")
-                fout.write("for deltay in `seq -w %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
+                fout.write("for deltay in `seq %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
                 fout.write("do\n")
                 fout.write("  energy=`cat _${deltax}_${deltay}_/geo-opt.out | grep 'ENERGY| Total FORCE_EVAL ( QS ) energy (a.u.):' | tail -1`\n")
                 fout.write("  cat >> post-processing/pes.data<<EOF\n")
@@ -154,9 +154,9 @@ class cp2k_run(cp2k.opt_run):
             with open("pes-relax.sh", 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 fout.write("\n")
-                fout.write("for deltax in `seq -w %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
+                fout.write("for deltax in `seq %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
                 fout.write("do\n")
-                fout.write("for deltay in `seq -w %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
+                fout.write("for deltay in `seq %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
                 fout.write("do\n")
                 fout.write("  # run the calculation\n")
                 fout.write("  cd _${deltax}_${deltay}_\n")
@@ -173,9 +173,9 @@ class cp2k_run(cp2k.opt_run):
                 #fout.write("\n")
                 fout.write("output_trajfile=./post-processing/trajectory-relaxed.xyz\n")
                 fout.write("natom=%d\n" % self.force_eval.subsys.xyz.natom)
-                fout.write("for deltax in `seq -w %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
+                fout.write("for deltax in `seq %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
                 fout.write("do\n")
-                fout.write("for deltay in `seq -w %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
+                fout.write("for deltay in `seq %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
                 fout.write("do\n")
                 fout.write("  echo ${natom} >> ${output_trajfile}\n")
                 fout.write("  cat >> ${output_trajfile}<<EOF\n")
@@ -192,9 +192,9 @@ class cp2k_run(cp2k.opt_run):
                 fout.write("# format: x y energy(Ry)\n")
                 fout.write("EOF\n")
                 fout.write("\n")
-                fout.write("for deltax in `seq -w %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
+                fout.write("for deltax in `seq %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
                 fout.write("do\n")
-                fout.write("for deltay in `seq -w %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
+                fout.write("for deltay in `seq %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
                 fout.write("do\n")
                 fout.write("  energy=`cat _${deltax}_${deltay}_/geo-opt.out | grep 'ENERGY| Total FORCE_EVAL ( QS ) energy (a.u.):' | tail -1`\n")
                 fout.write("  cat >> post-processing/pes.data<<EOF\n")
@@ -258,7 +258,8 @@ class qe_run(qe.opt_run):
                         shutil.copyfile(upf, os.path.join(directory, upf))
                         break
             self.arts.pseudo.dir = os.path.abspath(directory)
-            self.control.pseudo_dir = os.path.abspath(directory)
+            #self.control.pseudo_dir = os.path.abspath(directory)
+            self.control.set_params({"pseudo_dir": os.path.abspath(directory)})
             #
 
             xrange = self.pes_params["xrange"]
@@ -269,7 +270,8 @@ class qe_run(qe.opt_run):
             os.system("mkdir -p post-processing")
             for deltax in np.arange(xrange[0], xrange[1], xrange[2]):
                 for deltay in np.arange(yrange[0], yrange[1], yrange[2]):
-                    os.mkdir("_%.3f_%.3f_" % (deltax, deltay))
+                    # to avoid float -0.000 be translated to string -0.000 we use 0.0 when value ==0 whether it is 0.0 or -0.0
+                    os.mkdir("_%.3f_%.3f_" % (deltax if np.abs(deltax) >= 0.001 else 0.0, deltay if np.abs(deltay) >= 0.001 else 0.0))
 
                     for i in self.pes_params["move_atom"]:
                         self.arts.xyz.atoms[i].x += deltax
@@ -278,7 +280,15 @@ class qe_run(qe.opt_run):
                         #----------------------------------------------
                         self.arts.xyz.atoms[i].z += zshift
 
-                    with open("_%.3f_%.3f_/relax.in" % (deltax, deltay), 'w') as fout:
+                    # fix no move atoms and xy of move atoms
+                    # first fix all atoms
+                    for i in range(len(self.arts.xyz.atoms)):
+                        self.arts.xyz.atoms[i].fix = [True, True, True]
+                    # unfix z of moving atoms
+                    for i in self.pes_params["move_atom"]:
+                        self.arts.xyz.atoms[i].fix[2] = False
+
+                    with open("_%.3f_%.3f_/relax.in" % (deltax if np.abs(deltax) >= 0.001 else 0.0, deltay if np.abs(deltay) >= 0.001 else 0.0), 'w') as fout:
                         self.control.to_in(fout)
                         self.system.to_in(fout)
                         self.electrons.to_in(fout)
@@ -288,7 +298,7 @@ class qe_run(qe.opt_run):
                     with open("post-processing/trajectory-initial.xyz", 'a') as fout:
                         # generate the xyz trajectory file -> (unrelaxed original traj)
                         fout.write("%d\n" % self.arts.xyz.natom)
-                        fout.write("deltax: %.3f | deltay: %.3f\n" % (deltax, deltay))
+                        fout.write("deltax: %.3f | deltay: %.3f\n" % (deltax if np.abs(deltax) >= 0.001 else 0.0, deltay if np.abs(deltay) >= 0.001 else 0.0))
                         for atom in self.arts.xyz.atoms:
                             fout.write("%s %.9f %.9f %.9f\n" % (atom.name, atom.x, atom.y, atom.z))
 
@@ -304,17 +314,20 @@ class qe_run(qe.opt_run):
                 fout.write("#!/bin/bash\n")
                 fout.write("#PBS -N %s\n" % self.run_params["jobname"])
                 fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+                if "queue" in self.run_params and self.run_params["queue"] != None:
+                    fout.write("#PBS -q %s\n" %self.run_params["queue"])                      
                 fout.write("\n")
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
 
-                fout.write("for deltax in `seq -w %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
+                # do not add -w to seq
+                fout.write("for deltax in `seq %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
                 fout.write("do\n")
-                fout.write("for deltay in `seq -w %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
+                fout.write("for deltay in `seq %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
                 fout.write("do\n")
                 fout.write("  # run the calculation\n")
                 fout.write("  cd _${deltax}_${deltay}_\n")
-                fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("pw.x", "relax.in", "relax.out"))
+                fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("$PMF_PWX", "relax.in", "relax.out"))
                 fout.write("  cd ../\n")
                 fout.write("done\n")
                 fout.write("done\n")
@@ -327,11 +340,11 @@ class qe_run(qe.opt_run):
                 #fout.write("\n")
                 fout.write("output_trajfile=./post-processing/trajectory-relaxed.xyz\n")
                 fout.write("natom=%d\n" % self.arts.xyz.natom)
-                fout.write("for deltax in `seq -w %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
+                fout.write("for deltax in `seq %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
                 fout.write("do\n")
-                fout.write("for deltay in `seq -w %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
+                fout.write("for deltay in `seq %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
                 fout.write("do\n")
-                fout.write("  post-qe-relax.py -d _${deltax}_${deltay}_")
+                fout.write("  post-qe-relax.py -d _${deltax}_${deltay}_\n")
                 fout.write("  echo ${natom} >> ${output_trajfile}\n")
                 fout.write("  cat >> ${output_trajfile}<<EOF\n")
                 fout.write("deltax: ${deltax} | deltay: ${deltay}\n")
@@ -347,9 +360,9 @@ class qe_run(qe.opt_run):
                 fout.write("# format: x y energy(Ry)\n")
                 fout.write("EOF\n")
                 fout.write("\n")
-                fout.write("for deltax in `seq -w %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
+                fout.write("for deltax in `seq %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
                 fout.write("do\n")
-                fout.write("for deltay in `seq -w %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
+                fout.write("for deltay in `seq %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
                 fout.write("do\n")
                 fout.write("  energy=`cat _${deltax}_${deltay}_/relax.out | grep '!    total energ' | tail -1`\n")
                 fout.write("  cat >> post-processing/pes.data<<EOF\n")
@@ -369,13 +382,13 @@ class qe_run(qe.opt_run):
             with open("pes-relax.sh", 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 fout.write("#\n")
-                fout.write("for deltax in `seq -w %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
+                fout.write("for deltax in `seq %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
                 fout.write("do\n")
-                fout.write("for deltay in `seq -w %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
+                fout.write("for deltay in `seq %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
                 fout.write("do\n")
                 fout.write("  # run the calculation\n")
                 fout.write("  cd _${deltax}_${deltay}_\n")
-                fout.write("  %s %s < %s > %s\n" % (self.run_params["mpi"], "pw.x", "relax.in", "relax.out"))
+                fout.write("  %s %s < %s > %s\n" % (self.run_params["mpi"], "$PMF_PWX", "relax.in", "relax.out"))
                 fout.write("  cd ../\n")
                 fout.write("done\n")
                 fout.write("done\n")
@@ -388,11 +401,11 @@ class qe_run(qe.opt_run):
                 #fout.write("\n")
                 fout.write("output_trajfile=./post-processing/trajectory-relaxed.xyz\n")
                 fout.write("natom=%d\n" % self.arts.xyz.natom)
-                fout.write("for deltax in `seq -w %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
+                fout.write("for deltax in `seq %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
                 fout.write("do\n")
-                fout.write("for deltay in `seq -w %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
+                fout.write("for deltay in `seq %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
                 fout.write("do\n")
-                fout.write("  post-qe-relax.py -d _${deltax}_${deltay}_")
+                fout.write("  post-qe-relax.py -d _${deltax}_${deltay}_\n")
                 fout.write("  echo ${natom} >> ${output_trajfile}\n")
                 fout.write("  cat >> ${output_trajfile}<<EOF\n")
                 fout.write("deltax: ${deltax} | deltay: ${deltay}\n")
@@ -408,9 +421,9 @@ class qe_run(qe.opt_run):
                 fout.write("# format: x y energy(Ry)\n")
                 fout.write("EOF\n")
                 fout.write("\n")
-                fout.write("for deltax in `seq -w %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
+                fout.write("for deltax in `seq %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
                 fout.write("do\n")
-                fout.write("for deltay in `seq -w %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
+                fout.write("for deltay in `seq %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
                 fout.write("do\n")
                 fout.write("  energy=`cat _${deltax}_${deltay}_/relax.out | grep '!    total energ' | tail -1`\n")
                 fout.write("  cat >> post-processing/pes.data<<EOF\n")
@@ -433,3 +446,4 @@ class qe_run(qe.opt_run):
             oschdir("../")
         # server handle
         server_handle(auto=auto, directory=directory, jobfilebase="pes-relax", server=self.run_params["server"])
+

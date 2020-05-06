@@ -27,7 +27,7 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--directory", type=str, default="tmp-qe-pes-relax",
             help="Directory for the pes relax running.")
 
-    parser.add_argument("-f", "--file", type=str,
+    parser.add_argument("--xyz", type=str,
             help="The xyz file name.")
 
     parser.add_argument("--runopt", type=str, default="gen",
@@ -138,6 +138,9 @@ if __name__ == "__main__":
     parser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
 
+    parser.add_argument("--queue", type=str, default=None,
+            help="queue to submit the job")
+
 
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
@@ -155,12 +158,12 @@ if __name__ == "__main__":
     electrons["conv_thr"] = args.conv_thr
 
     task = qe_run()
-    task.get_xyz(args.file)
+    task.get_xyz(args.xyz)
     task.set_relax()
     task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
     task.set_params(control=control, system=system, electrons=electrons, ions=ions)
-    task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
-    task.set_pes( move_atom=args.move_atom, xrange=args.xrange, yrange=args.yrange, zshift=args.zshift)
+    task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+    task.set_pes(move_atom=args.move_atom, xrange=args.xrange, yrange=args.yrange, zshift=args.zshift)
     task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
 
 
