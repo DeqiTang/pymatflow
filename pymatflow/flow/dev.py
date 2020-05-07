@@ -1,6 +1,7 @@
 #!/usr/bin/env pyton
 # _*_ coding: utf-8 _*_
 
+import numpy as np
 import qmpy_rester as qr
 
 
@@ -11,10 +12,13 @@ def crystal_to_cartesian(cell, coord):
 
     return [x, y, z] in cartesian
     """
-    x = cell[0][0] * coord[0] + cell[1][0] * coord[1] + cell[2][0] * coord[2]
-    y = cell[0][1] * coord[0] + cell[1][1] * coord[1] + cell[2][1] * coord[2]
-    z = cell[0][2] * coord[0] + cell[1][2] * coord[1] + cell[2][2] * coord[2]
-    return [x, y, z]
+    # convert frac to cartesian again
+    latcell = np.array(cell)
+    convmat = latcell.T
+    
+    cartesian = list(convmat.dot(np.array([coord[0], coord[1], coord[2]])))
+
+    return cartesian
 
 
 def oqmd_data_to_xyz(data, xyzfile="oqmd.xyz"):

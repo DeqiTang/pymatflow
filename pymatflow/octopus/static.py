@@ -6,13 +6,13 @@ import sys
 import shutil
 
 from pymatflow.remote.server import server_handle
-from pymatflow.vasp.vasp import vasp
+from pymatflow.octopus.octopus import octopus
 
 """
 usage:
 """
 
-class static_run(vasp):
+class static_run(octopus):
     """
     """
     def __init__(self):

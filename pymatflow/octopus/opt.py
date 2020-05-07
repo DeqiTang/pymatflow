@@ -7,13 +7,13 @@ import sys
 import shutil
 
 from pymatflow.remote.server import server_handle
-from pymatflow.vasp.vasp import vasp
+from pymatflow.octopus.octopus import octopus
 
 """
 usage:
 """
 
-class opt_run(vasp):
+class opt_run(octopus):
     """
     """
     def __init__(self):
@@ -22,7 +22,7 @@ class opt_run(vasp):
         self.incar.set_runtype(runtype="opt")
 
 
-    def optimize(self, directory="tmp-vasp-optimization", runopt="gen", auto=0):
+    def optimize(self, directory="tmp-octopus-optimization", runopt="gen", auto=0):
         """
         directory: a place for all the generated files
         """

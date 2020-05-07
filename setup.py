@@ -17,7 +17,7 @@ class CleanCommand(Command):
 
 setup(
     name = "pymatflow",
-    version = '0.0.8a5',
+    version = '0.0.9a1',
     keywords = ("Ab intio ,DFT, workflow, input generation"),
     description = "An emulation assistant, input generation and manage for DFT programs",
     license = "MIT",
@@ -183,6 +183,7 @@ setup(
         "pymatflow/flow/scripts/flow-pes-static-qe.py",
         "pymatflow/flow/scripts/flow-pes-relax-qe.py",
         "pymatflow/flow/scripts/flow-pes-relax-cp2k.py",
+        "pymatflow/flow/scripts/pes-to-img.py",
         "pymatflow/vasp/scripts/vasp-bands.py",
         "pymatflow/vasp/scripts/vasp-phono3py.py",
         "pymatflow/vasp/scripts/vasp-md.py",
@@ -213,6 +214,7 @@ setup(
         "pymatflow/vasp/post/scripts/post-vasp-bands.py",
         "pymatflow/vasp/post/scripts/post-vasp-pdos.py",
         "pymatflow/vasp/post/scripts/post-vasp-neb-vtst.py",
+        "pymatflow/octopus/scripts/octflow.py",
         ],
     entry_points = {
         'console_scripts': [

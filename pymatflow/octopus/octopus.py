@@ -1,40 +1,17 @@
-#!/usr/bin/env python
-# _*_ coding: utf-8 _*_
 
 import os
 import sys
 import shutil
 
-from pymatflow.octopus.base.incar import vasp_incar
-from pymatflow.octopus.base.poscar import vasp_poscar
-from pymatflow.octopus.base.kpoints import vasp_kpoints
-
+from pymatflow.octopus.base.inp import inp
 """
-in the past pymatflow.vasp will generate the INCAR directly,
-but that is inconvenient when we want to keep the INCAR
-of different kind of calculation. for instance, when you
-calculate the band structure you have to continue from
-previous scf and nscf calculation, and if you directly
-generate the INCAR it will remove the previous INCAR that
-is terrible when sometime later you want to check your previous
-parameters.
-so now pymatflow.vasp will generate the bash script that can
-generate the corresponding INCAR for different type of
-calculation. and we can check the correspondig bash script
-to check the parameter used.
 """
 
 class octopus:
     """
     """
     def __init__(self):
-        self.control = qe_control()
-        self.system = qe_system()
-        self.electrons = qe_electrons()
-        self.ions = qe_ions()
-        self.cell = qe_cell()
-        self.arts = qe_arts()
-
+        self.inp = inp()
         self._initialize()
 
     def _initialize(self):
@@ -44,7 +21,7 @@ class octopus:
         self.set_run()
 
     def get_xyz(self, xyzfile):
-        self.poscar.xyz.get_xyz(xyzfile)
+        self.inp.system.xyz.get_xyz(xyzfile)
 
     def set_params(self, params, runtype):
         """
@@ -118,11 +95,11 @@ class octopus:
         else:
             pass
 
-    def set_kpoints(self, kpoints_mp=[1, 1, 1, 0, 0, 0], option="automatic",
+    def set_kpoints(self, kpoints_mp=[1, 1, 1, 0, 0, 0], option="mp",
             kpath=None):
         self.kpoints.set_kpoints(kpoints_mp=kpoints_mp, option=option, kpath=kpath)
 
-    def set_run(self, mpi="", server="pbs", jobname="cp2k", nodes=1, ppn=32, queue=None):
+    def set_run(self, mpi="", server="pbs", jobname="octopus", nodes=1, ppn=32, queue=None):
         """ used to set  the parameters controlling the running of the task
         :param mpi: you can specify the mpi command here, it only has effect on native running
         """
@@ -141,7 +118,7 @@ class octopus:
         self.run_params["stdout"] = stdout
         self.run_params["stderr"] = stderr
 
-    def gen_llhpc(self, directory, scriptname="vasp.sub", cmd="vasp_std"):
+    def gen_llhpc(self, directory, scriptname="octopus.sub", cmd="$PMF_OCTOPUS"):
         """
         generating yhbatch job script for calculation
         """
@@ -153,30 +130,24 @@ class octopus:
             fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
             fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
             fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
-            fout.write("cat > INCAR<<EOF\n")
-            self.incar.to_incar(fout)
-            fout.write("EOF\n")
-            fout.write("cat > KPOINTS<<EOF\n")
-            self.kpoints.to_kpoints(fout)
+            fout.write("cat > inp<<EOF\n")
+            fout.write(self.inp.to_string())
             fout.write("EOF\n")
             fout.write("yhrun %s\n" % cmd)
 
 
-    def gen_yh(self, directory, scriptname="vasp.sub", cmd="vasp_std"):
+    def gen_yh(self, directory, scriptname="octopus.sub", cmd="$PMF_OCTOPUS"):
         """
         generating yhbatch job script for calculation
         """
         with open(os.path.join(directory, scriptname), 'w') as fout:
             fout.write("#!/bin/bash\n")
             fout.write("cat > INCAR<<EOF\n")
-            self.incar.to_incar(fout)
-            fout.write("EOF\n")
-            fout.write("cat > KPOINTS<<EOF\n")
-            self.kpoints.to_kpoints(fout)
+            fout.write(self.inp.to_string())
             fout.write("EOF\n")
             fout.write("yhrun -N 1 -n 24 %s\n" % (cmd))
 
-    def gen_pbs(self, directory, cmd="vasp_std", scriptname="vasp.pbs", jobname="vasp", nodes=1, ppn=32, queue=None):
+    def gen_pbs(self, directory, cmd="$PMF_OCTOPUS", scriptname="ocotpus.pbs", jobname="vasp", nodes=1, ppn=32, queue=None):
         """
         generating pbs job script for calculation
         """
@@ -189,15 +160,12 @@ class octopus:
             fout.write("\n")
             fout.write("cd $PBS_O_WORKDIR\n")
             fout.write("cat > INCAR<<EOF\n")
-            self.incar.to_incar(fout)
-            fout.write("EOF\n")
-            fout.write("cat > KPOINTS<<EOF\n")
-            self.kpoints.to_kpoints(fout)
+            fout.write(self.inp.to_string())
             fout.write("EOF\n")
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
             fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s \n" % (cmd))
 
-    def gen_bash(self, directory, mpi="", cmd="vasp_std", scriptname="vasp.bash"):
+    def gen_bash(self, directory, mpi="", cmd="$PMF_OCTOPUS", scriptname="octopus.sh"):
         """
         generating bash script for local calculation
         """
@@ -205,14 +173,11 @@ class octopus:
             fout.write("#!/bin/bash\n")
             fout.write("\n")
             fout.write("cat > INCAR<<EOF\n")
-            self.incar.to_incar(fout)
-            fout.write("EOF\n")
-            fout.write("cat > KPOINTS<<EOF\n")
-            self.kpoints.to_kpoints(fout)
+            fout.write(self.inp.to_string())
             fout.write("EOF\n")
             fout.write("%s %s\n" % (mpi, cmd))
 
-    def gen_lsf_sz(self, directory, cmd="vasp_std", scriptname="vasp.lsf_sz", np=24, np_per_node=12):
+    def gen_lsf_sz(self, directory, cmd="$PMF_OCTOPUS", scriptname="octopus.lsf_sz", np=24, np_per_node=12):
         """
         generating lsf job script for calculation on ShenZhen supercomputer
         """
@@ -236,9 +201,6 @@ class octopus:
             fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\\n\' \',\')\n")
 
             fout.write("cat > INCAR<<EOF\n")
-            self.incar.to_incar(fout)
-            fout.write("EOF\n")
-            fout.write("cat > KPOINTS<<EOF\n")
-            self.kpoints.to_kpoints(fout)
+            fout.write(self.inp.to_string())
             fout.write("EOF\n")
             fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist %s\n" % cmd)
