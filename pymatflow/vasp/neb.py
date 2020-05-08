@@ -72,9 +72,9 @@ class neb_run(vasp):
             os.mkdir("./is")
             os.mkdir("./fs")
             with open("./is/POSCAR", 'w') as fout:
-                self.poscars[0].to_poscar(fout)
+                self.poscars[0].to_poscar(fout, coordtype="Direct") # use Direct here for better interpolation of images
             with open("./fs/POSCAR", 'w') as fout:
-                self.poscars[-1].to_poscar(fout)
+                self.poscars[-1].to_poscar(fout, coordtype="Direct")
 
             os.system("nebmake.pl is/POSCAR fs/POSCAR %d" % self.nimage)
             os.chdir("../")
