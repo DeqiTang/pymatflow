@@ -4,6 +4,7 @@ Geometric Optimization calc
 import os
 import re
 import shutil
+import numpy as np
 import pymatflow.base as base
 from pymatflow.remote.server import server_handle
 from pymatflow.qe.pwscf import pwscf
