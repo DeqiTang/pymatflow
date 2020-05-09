@@ -50,7 +50,7 @@ class opt_run(pwscf):
                         shutil.copyfile(item, os.path.join(directory, item))
                         break
             self.arts.pseudo.dir = os.path.abspath(directory)
-            self.control.pseudo_dir = os.path.abspath(directory)
+            self.control.set_params({"pseudo_dir": os.path.abspath(directory)})            
             #
 
             with open(os.path.join(directory, inpname), 'w') as fout:
@@ -96,7 +96,7 @@ class opt_run(pwscf):
                         break
             #
             self.arts.pseudo.dir = os.path.abspath(directory)
-            self.control.pseudo_dir = os.path.abspath(directory)
+            self.control.set_params({"pseudo_dir": os.path.abspath(directory)})    
 
 
             with open(os.path.join(directory, inpname), 'w') as fout:
@@ -149,7 +149,7 @@ class opt_run(pwscf):
                     shutil.copyfile(item, os.path.join(directory, item))
                     break
         self.arts.pseudo.dir = os.path.abspath(directory)
-        self.control.pseudo_dir = os.path.abspath(directory)
+        self.control.set_params({"pseudo_dir": os.path.abspath(directory)})
         #
         os.chdir(directory)
 
@@ -402,6 +402,7 @@ class opt_run(pwscf):
             fout.write("set ylabel 'Energy'\n")
             fout.write("plot 'energy-latconst.data' w l\n")
             fout.write("EOF\n")
+            fout.write("gnuplot energy-latconst.gp\n")
         #os.system("cd post-processing; bash get_energy.sh; cd ../")
         os.chdir("../")
         if runopt == "run" or runopt == "genrun":
@@ -426,7 +427,7 @@ class opt_run(pwscf):
                     shutil.copyfile(item, os.path.join(directory, item))
                     break
         self.arts.pseudo.dir = os.path.abspath(directory)
-        self.control.pseudo_dir = os.path.abspath(directory)
+        self.control.set_params({"pseudo_dir": os.path.abspath(directory)})
         #
         os.chdir(directory)
 
@@ -903,6 +904,7 @@ class opt_run(pwscf):
                 else:
                     # neither a nor c is optimized
                     pass
+            fout.write("gnuplot energy-latconst.gp\n")                
         #os.system("cd post-processing; bash get_energy.sh; cd ../")
         os.chdir("../")
         if runopt == "run" or runopt == "genrun":
@@ -927,7 +929,7 @@ class opt_run(pwscf):
                     shutil.copyfile(item, os.path.join(directory, item))
                     break
         self.arts.pseudo.dir = os.path.abspath(directory)
-        self.control.pseudo_dir = os.path.abspath(directory)
+        self.control.set_params({"pseudo_dir": os.path.abspath(directory)})
         #
         os.chdir(directory)
 
@@ -1401,6 +1403,7 @@ class opt_run(pwscf):
                 else:
                     # neither a nor c is optimized
                     pass
+            fout.write("gnuplot energy-latconst.gp\n")                
         #os.system("cd post-processing; bash get_energy.sh; cd ../")
         os.chdir("../")
         if runopt == "run" or runopt == "genrun":

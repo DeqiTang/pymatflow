@@ -101,7 +101,7 @@ class neb_run(pwscf):
                             shutil.copyfile(item, os.path.join(directory, item))
                             break
                 self.arts.pseudo.dir = os.path.abspath(directory)
-                self.control.pseudo_dir = os.path.abspath(directory)
+                self.control.set_params({"pseudo_dir": os.path.abspath(directory)})
                 #
             elif restart_mode == "restart":
                 self.path["restart_mode"] = restart_mode

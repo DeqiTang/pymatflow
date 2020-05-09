@@ -70,7 +70,7 @@ class static_run(pwscf):
                         break
                     
             self.arts.pseudo.dir = os.path.abspath(directory)
-            self.control.pseudo_dir = os.path.abspath(directory)
+            self.control.set_params({"pseudo_dir": os.path.abspath(directory)})
             #
 
             with open(os.path.join(directory, inpname), 'w') as fout:
@@ -112,7 +112,7 @@ class static_run(pwscf):
         if runopt == 'gen' or runopt == 'genrun':
 
             self.arts.pseudo.dir = os.path.abspath(directory)
-            self.control.pseudo_dir = os.path.abspath(directory)
+            self.control.set_params({"pseudo_dir": os.path.abspath(directory)})
 
             with open(os.path.join(directory, inpname), 'w') as fout:
                 self.control.to_in(fout)
@@ -146,7 +146,7 @@ class static_run(pwscf):
                         break
 
             self.arts.pseudo.dir = os.path.abspath(directory)
-            self.control.pseudo_dir = os.path.abspath(directory)
+            self.control.set_params({"pseudo_dir": os.path.abspath(directory)})
 
             os.chdir(directory)
             n_test = int((emax - emin) / step)
@@ -218,7 +218,7 @@ class static_run(pwscf):
                         break
 
             self.arts.pseudo.dir = os.path.abspath(directory)
-            self.control.pseudo_dir = os.path.abspath(directory)
+            self.control.set_params({"pseudo_dir": os.path.abspath(directory)})
 
 
             os.chdir(directory)
@@ -301,7 +301,7 @@ class static_run(pwscf):
                         break
 
             self.arts.pseudo.dir = os.path.abspath(directory)
-            self.control.pseudo_dir = os.path.abspath(directory)
+            self.control.set_params({"pseudo_dir": os.path.abspath(directory)})
 
             os.chdir(directory)
             n_test = int((nk_max - nk_min) / step)
@@ -399,7 +399,7 @@ class static_run(pwscf):
                         break
 
             self.arts.pseudo.dir = os.path.abspath(directory)
-            self.control.pseudo_dir = os.path.abspath(directory)
+            self.control.set_params({"pseudo_dir": os.path.abspath(directory)})
 
             os.chdir(directory)
             n_test = int((degauss_max - degauss_min) / step)
@@ -1085,7 +1085,7 @@ class static_run(pwscf):
                         break
                     
             self.arts.pseudo.dir = os.path.abspath(directory)
-            self.control.pseudo_dir = os.path.abspath(directory)
+            self.control.set_params({"pseudo_dir": os.path.abspath(directory)})
             #
 
             # 1) scf

@@ -18,10 +18,10 @@ class static_run(octopus):
     def __init__(self):
         super().__init__()
 
-        self.incar.set_runtype(runtype="static")
+        self.inp.set_runtype(runtype="static")
         self.magnetic_status = "spin-unpolarized" # "spin-polarized" "non-collinear"
 
-    def scf(self, directory="tmp-vasp-static", runopt="gen", auto=0):
+    def scf(self, directory="tmp-octopus-static", runopt="gen", auto=0):
         """
         directory: a place for all the generated files
 

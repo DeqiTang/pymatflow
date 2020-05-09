@@ -258,7 +258,6 @@ class qe_run(qe.opt_run):
                         shutil.copyfile(upf, os.path.join(directory, upf))
                         break
             self.arts.pseudo.dir = os.path.abspath(directory)
-            #self.control.pseudo_dir = os.path.abspath(directory)
             self.control.set_params({"pseudo_dir": os.path.abspath(directory)})
             #
 

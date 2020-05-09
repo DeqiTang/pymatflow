@@ -2015,6 +2015,9 @@ def main():
         ions = {}
 
         control["tstress"] = args.tstress
+        control["nstep"] = args.nstep
+        control["etot_conv_thr"] = args.etot_conv_thr
+        control["forc_conv_thr"] = args.forc_conv_thr
         system["ecutwfc"] = args.ecutwfc
         system["ecutrho"] = args.ecutrho
         system["occupations"] = args.occupations
