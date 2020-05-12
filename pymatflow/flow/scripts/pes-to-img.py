@@ -32,6 +32,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     data = np.loadtxt(args.input)
+    
     img = scale(data[:, 2]).reshape((args.shape[0], args.shape[1]))
 
     plt.imshow(img, cmap="gray")
