@@ -41,13 +41,15 @@ def read_structure(filepath):
     return a
 
 
-def write_structure(structure, filepath):
+def write_structure(structure, filepath, frac=1):
     """
     write structure to file
     :param structure: an instance of pymatflow.structure.crystal
 
     :param filepath: file path for the output structure file
         it will judge the file type by the suffix
+    :param frac: output fractional coordinates, currently only used by POSCAR/CONTCAR
+        1(default): use faractional, 0: use cartesian
     """
     if filepath.split(".")[-1] == "xyz":
         structure.write_xyz(filepath=filepath)
@@ -73,7 +75,14 @@ def write_structure(structure, filepath):
         poscar.xyz.natom = len(poscar.xyz.atoms)
         poscar.xyz.set_species_number() # needed for poscar output
         with open(filepath, 'w') as fout:
-            poscar.to_poscar(fout)
+            #poscar.to_poscar(fout=fout, coordtype="Cartesian" if frac == 0 else "Direct")            
+            if frac == 0:
+                coordtype = "Cartesian"
+            elif frac == 1:
+                coordtype = "Direct"
+            else:
+                pass
+            poscar.to_poscar(fout=fout, coordtype=coordtype)
     else:
         pass
 

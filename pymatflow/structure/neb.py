@@ -5,7 +5,7 @@ implement inter image construction
 import copy
 import numpy as np
 
-def interpolate(intial, final, nimage, moving_atom):
+def interpolate(initial, final, nimage, moving_atom):
     """
     :param initial -> instance of pymatflow.structure.crystal.crystal()
     :param final -> instance of pymatflow.structure.crystal.crystal()
@@ -19,6 +19,8 @@ def interpolate(intial, final, nimage, moving_atom):
         of the initial image as the cooresponding coordinate for the inter image.
     """
     # use fractional coordinates to interpolate the images
+    initial.natom = len(initial.atoms)
+    final.natom = len(final.atoms)
     initial_frac = initial.get_fractional()
     final_frac = final.get_fractional()
 
@@ -47,14 +49,14 @@ def interpolate(intial, final, nimage, moving_atom):
     latcell = np.array(initial.cell)
     convmat = latcell.T
     from pymatflow.base.atom import Atom
-    from pymatflow.structure.crystal import crystal()
+    from pymatflow.structure.crystal import crystal
     for i in range(nimage):
         img = crystal()
         img.atoms = []
         img.cell = initial.cell
         for atom in images_frac[i]:
             cartesian = list(convmat.dot(np.array([atom[1], atom[2], atom[3]])))
-            structure.atoms.append(Atom(name=atom[0], x=cartesian[0], y=cartesian[1], z=cartesian[2]))
+            img.atoms.append(Atom(name=atom[0], x=cartesian[0], y=cartesian[1], z=cartesian[2]))
         images.append(img)
         #
     return images
