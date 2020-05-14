@@ -117,6 +117,10 @@ if __name__ == "__main__":
     parser.add_argument("--zshift", type=float,
             default=0.0,
             help="z shift for the moving atoms, will shift the z of specified moving atoms by value of zshift")
+    
+    parser.add_argument("--fix-z", type=int, default=1,
+            choices=[0, 1, 2],
+            help="0 -> do not fix any z of the atoms, 1: only fix z of the buttom atoms, 2: fix z of both the buttom and the moving atoms. note x y are all fixed")
 
 
     # -----------------------------------------------------------------
@@ -163,7 +167,7 @@ if __name__ == "__main__":
     task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
     task.set_params(control=control, system=system, electrons=electrons, ions=ions)
     task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
-    task.set_pes(move_atom=args.move_atom, xrange=args.xrange, yrange=args.yrange, zshift=args.zshift)
+    task.set_pes(move_atom=args.move_atom, xrange=args.xrange, yrange=args.yrange, zshift=args.zshift, fix_z=args.fix_z)
     task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
 
 

@@ -1283,8 +1283,8 @@ def main():
             help="directory to generate all the files, do not specify the current directory")
 
     gp.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5, 6, 7],
-            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->neb; 6->vasp-phonon; 7->phonopy")
+            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8],
+            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->neb; 6->vasp-phonon; 7->phonopy; 8->surf pes")
 
     gp.add_argument("--static", type=str, default="all",
             choices=["all", "scf", "optics"],
@@ -1596,6 +1596,30 @@ def main():
 
     gp.add_argument("--incar", type=str, default=None,
             help="specify incar template to set parameters")
+
+    # surf pes
+    gp = subparser.add_argument_group(title="surf pes",
+            description="surf pes")
+
+    gp.add_argument("--move-atom", type=int, nargs="+",
+            default=[-1],
+            help="specify the atoms to move, index starts from 0")
+
+    gp.add_argument("--xrange", type=float, nargs="+",
+            default=[1, 3, 0.5],
+            help="x range for moving the specified moving atoms.")
+
+    gp.add_argument("--yrange", type=float, nargs="+",
+            default=[3, 5, 0.5],
+            help="y range for moving the specified moving atoms.")
+
+    gp.add_argument("--zshift", type=float,
+            default=0.0,
+            help="z shift for the moving atoms, will shift the z of specified moving atoms by value of zshift")
+
+    gp.add_argument("--fix-z", type=int, default=1,
+            choices=[0, 1, 2],
+            help="0 -> do not fix any z of the atoms, 1: only fix z of the buttom atoms, 2: fix z of both the buttom and the moving atoms. note x y are all fixed")
 
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
@@ -2514,6 +2538,19 @@ def main():
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 8:
+            # sur pes
+            from pymatflow.flow.surface_pes import vasp_run
+            task = vasp_run()
+            task.get_xyz(args.xyz)
+            task.set_params(params=params, runtype="opt")
+            task.set_kpoints(kpoints_mp=args.kpoints_mp)
+            #task.poscar.selective_dynamics = True if args.selective_dynamics.upper()[0] == "T" else False
+            task.poscar.selective_dynamics = True # always use selective_dynamics            
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            #task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            task.set_pes(move_atom=args.move_atom, xrange=args.xrange, yrange=args.yrange, zshift=args.zshift, fix_z=args.fix_z)
+            task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
     # --------------------------------------------------------------------------
 
 
