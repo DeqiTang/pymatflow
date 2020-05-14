@@ -170,6 +170,7 @@ setup(
         "pymatflow/scripts/vasp-potcar-from-xyz.py",
         "pymatflow/scripts/xyz-modified-to-poscar.py",
         "pymatflow/scripts/llhpc-env.py",
+        "pymatflow/scripts/nebmake.py",
         "pymatflow/remote/scripts/thq.py",
         "pymatflow/remote/scripts/thcancel.py",
         "pymatflow/remote/scripts/thpull.py",
