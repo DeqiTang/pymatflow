@@ -1564,6 +1564,13 @@ def main():
     gp.add_argument("--outcars", type=str, nargs="+",
             help="OUTCAR for the initial and final structure in neb calc")
 
+    gp.add_argument("--nebmake", type=int, default=0,
+            choices=[0, 1],
+            help="0(default): use nebmake.pl, 1: use nebmake.py")
+    
+    gp.add_argument("--moving-atom", type=int, nargs="+",
+            help="spedifying moving atoms, only needed when --nebmake=1 using nebmake.py. index start from 0")
+
     # PHONOPY parameters
     # ----------------------------------------
     gp = subparser.add_argument_group(title="phonopy parameters",
@@ -2508,6 +2515,14 @@ def main():
             task.set_params(params=params, runtype="neb")
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.nimage = args.nimage
+            if args.nebmake == 1 and args.moving_atom == None:
+                print("============================================\n")
+                print("when using nebmake.py to generate inter image\n")
+                print("you have to specify the moving atoms.\n")
+                print("index start from 0\n")
+                sys.exit(1)
+            task.nebmake = "nebmake.pl" if args.nebmake == 0 else "nebmake.py"
+            task.moving_atom = args.moving_atom
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.neb(directory=args.directory, runopt=args.runopt, auto=args.auto)

@@ -69,7 +69,7 @@ class opt_run(vasp):
             self.kpoints.to_kpoints(fout)
 
         with open(os.path.join(directory, "POSCAR"), 'w') as fout:
-            self.poscar.to_poscar(fout)
+            self.poscar.to_poscar(fout=fout, coordtype="Direct")
 
         os.chdir(directory)
 
@@ -363,7 +363,7 @@ class opt_run(vasp):
         with open(os.path.join(directory, "KPOINTS"), "w") as fout:
             self.kpoints.to_kpoints(fout)
         with open(os.path.join(directory, "POSCAR"), 'w') as fout:
-            self.poscar.to_poscar(fout)
+            self.poscar.to_poscar(fout=fout, coordtype="Direct")
 
         os.chdir(directory)
 
@@ -966,7 +966,7 @@ class opt_run(vasp):
         with open(os.path.join(directory, "KPOINTS"), 'w') as fout:
             self.kpoints.to_kpoints(fout)
         with open(os.path.join(directory, "POSCAR"), 'w') as fout:
-            self.poscar.to_poscar(fout)
+            self.poscar.to_poscar(fout=fout, coordtype="Direct")
 
         os.chdir(directory)
 

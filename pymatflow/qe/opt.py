@@ -159,7 +159,7 @@ class opt_run(pwscf):
             self.electrons.to_in(fout)
             self.ions.to_in(fout)
 
-            coordtype = "angstrom"
+            coordtype = "crystal" # use crystal here so we could only change cell when opt cell
             fout.write("ATOMIC_SPECIES\n")
             all_file = os.listdir(self.arts.pseudo.dir)
             for element in self.arts.xyz.specie_labels:
@@ -437,7 +437,7 @@ class opt_run(pwscf):
             self.electrons.to_in(fout)
             self.ions.to_in(fout)
 
-            coordtype = "angstrom"
+            coordtype = "crystal" # use crystal here so we could only change cell when opt cell
             fout.write("ATOMIC_SPECIES\n")
             all_file = os.listdir(self.arts.pseudo.dir)
             for element in self.arts.xyz.specie_labels:
@@ -939,7 +939,7 @@ class opt_run(pwscf):
             self.electrons.to_in(fout)
             self.ions.to_in(fout)
 
-            coordtype = "angstrom"
+            coordtype = "crystal" # use crystal here so we could only change cell when opt cell
             fout.write("ATOMIC_SPECIES\n")
             all_file = os.listdir(self.arts.pseudo.dir)
             for element in self.arts.xyz.specie_labels:

@@ -43,7 +43,7 @@ def main():
     os.system("mkdir -p %s" % os.path.join(args.directory, "%.2d" % (0)))
     write_structure(structure=initial, filepath=os.path.join(args.directory, "%.2d/POSCAR" % (0)), frac=args.frac)
     os.system("mkdir -p %s" % os.path.join(args.directory, "%.2d" % (args.nimage+1)))    
-    write_structure(structure=initial, filepath=os.path.join(args.directory, "%.2d/POSCAR" % (args.nimage+1)), frac=args.frac)
+    write_structure(structure=final, filepath=os.path.join(args.directory, "%.2d/POSCAR" % (args.nimage+1)), frac=args.frac)
     for i in range(len(inter_images)):
         os.system("mkdir -p %s" % os.path.join(args.directory, "%.2d" % (i+1)))        
         write_structure(structure=inter_images[i], filepath=os.path.join(args.directory, "%.2d/POSCAR" % (i+1)), frac=args.frac)

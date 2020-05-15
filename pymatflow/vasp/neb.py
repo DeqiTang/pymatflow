@@ -29,6 +29,8 @@ class neb_run(vasp):
 
         self.nimage = 3 # default value
 
+        self.nebmake = "nebmake.pl" # can be "nebmake.pl" or "nebmake.py"
+        self.moving_atom = None # used only when self.nebmake == nebmake.py
 
     def get_images(self, images):
         """
@@ -76,7 +78,14 @@ class neb_run(vasp):
             with open("./fs/POSCAR", 'w') as fout:
                 self.poscars[-1].to_poscar(fout, coordtype="Direct")
 
-            os.system("nebmake.pl is/POSCAR fs/POSCAR %d" % self.nimage)
+            if self.nebmake.lower() == "nebmake.pl":
+                os.system("nebmake.pl is/POSCAR fs/POSCAR %d" % self.nimage)
+            elif self.nebmake.lower() == "nebmake.py":
+                cmd = "nebmake.py --images is/POSCAR fs/POSCAR --nimage %d --moving-atom " % (self.nimage)
+                for item in self.moving_atom:
+                    cmd += " %d" % item
+                os.system(cmd)
+            
             os.chdir("../")
 
             # 对每个镜像进行几何优化时可以用vasp的优化器也可以用vtst的
