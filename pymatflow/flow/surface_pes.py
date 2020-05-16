@@ -1,5 +1,11 @@
 """
 Overall manger for surface PES calculation
+
+Prospects:
+we might use a special scanning matter(moving atoms), like those used in AFM, and get the 
+image of the surface potential energy, which may help build the dataset for traning of the
+surface recoginization and classification for microscopy picture and help use research on
+the surface with image processing technique.
 """
 import numpy as np
 import sys

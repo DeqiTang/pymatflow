@@ -27,7 +27,7 @@ class mesh:
                 self.kpoints_mp[1],
                 self.kpoints_mp[2],
                 ))
-        fout.write("\%\n")                
+            fout.write("\%\n")                
         elif self.kpoints_option == "kpath":
             # there is a trick:
             # when self.kpath[i][4] == "|"
@@ -45,6 +45,7 @@ class mesh:
                 fout.write("%f | %f | %f #%s\n" % sefl.kpath[i][3])
             #
             #fout.write("KPointsUseSymmetries = no\n")
+            fout.write("\%\n")      
 
     def set_kpoints(self, kpoints_mp=[1, 1, 1, 0, 0, 0], option="mp", kpath=None):
         """

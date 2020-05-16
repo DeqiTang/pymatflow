@@ -2,6 +2,7 @@
 in control of the system structure related parameters
 """
 
+import numpy as np
 import pymatflow.base as base
 from pymatflow.base.xyz import base_xyz
 
