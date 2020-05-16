@@ -323,6 +323,9 @@ def main():
             help="The xsf structure file")
 
 
+    subparser.add_argument("--efermi", type=str, default="nscf",
+            choices=["scf", "nscf"],
+            help="choose to read the efermi from nscf or scf")
 
     subparser.add_argument("--plotrange", type=float, nargs="+",
             default=[0, 1.0],
@@ -564,10 +567,12 @@ def main():
             from pymatflow.vasp.post.pdos import post_pdos
             pdos = post_pdos()
             pdos.get_vasprun(os.path.join(args.directory, "vasprun.xml"))
+            pdos.get_efermi(vasprun=os.path.join(args.directory, "vasprun.xml" if args.efermi.lower() == "nscf" else "vasprun.xml.scf"))            
             pdos.export(directory=args.directory, engine=args.engine, plotrange=args.plotrange)
             from pymatflow.vasp.post.bands import post_bands
             bands = post_bands()
-            bands.get_kpath_and_vasprun(kpath=get_kpath(kpath_manual=args.kpath_manual, kpath_file=args.kpath_file), vasprun=os.path.join(args.directory, "vasprun.xml"))            
+            bands.get_kpath_and_vasprun(kpath=get_kpath(kpath_manual=args.kpath_manual, kpath_file=args.kpath_file), vasprun=os.path.join(args.directory, "vasprun.xml"))
+            bands.get_efermi(vasprun=os.path.join(args.directory, "vasprun.xml" if args.efermi.lower() == "nscf" else "vasprun.xml.scf"))
             bands.export(directory=args.directory, engine=args.engine, bandrange=args.bandrange)
             if bands.magnetic_status == "soc-ispin-1" or bands.magnetic_status == "soc-ispin-2":
                 # actually soc-ispin-2 never exists

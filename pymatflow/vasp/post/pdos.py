@@ -9,11 +9,20 @@ class post_pdos:
     def __init__(self):
         pass
 
+
+    def get_efermi(self, vasprun="vasprun.xml"):
+        """
+        we set efermi in an individual function because we can choose to get efermi from nscf run
+        or scf run in this way.
+        if you want to get efermi from the scf run specify the vasprun.xml for the scf
+        if you want to get efermi from the nscf run specify the vasprun.xml for the nscf
+        """
+        vasprun_xml = parse(vasprun)
+        self.efermi = float(vasprun_xml.getroot().find("calculation").find("dos").find("i").text)
+
     def get_vasprun(self, vasprun="vasprun.xml"):
         self.vasprun = parse(vasprun)
-        self.efermi = float(self.vasprun.getroot().find("calculation").find("dos").find("i").text)
         self.get_dos_partial()
-
 
 
     def get_dos_partial(self):

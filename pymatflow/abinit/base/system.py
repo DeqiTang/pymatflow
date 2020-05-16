@@ -13,6 +13,7 @@ class abinit_system:
         self.xyz = base_xyz()
         self.status = True
         #
+        self.coordtype = "cartesian" # can be cartesian or reduced
 
     def to_string(self, n=0):
         """
@@ -49,9 +50,20 @@ class abinit_system:
             input_str += " "
         input_str += "\n"
         input_str += "\n"
-        input_str += "xangst%s\n" % (n if n > 0 else "")
-        for atom in self.xyz.atoms:
-            input_str += "%.9f %.9f %.9f\n" % (atom.x, atom.y, atom.z)
+        if self.coordtype.lower() == "cartesian":
+            input_str += "xangst%s\n" % (n if n > 0 else "")
+            for atom in self.xyz.atoms:
+                input_str += "%.9f %.9f %.9f\n" % (atom.x, atom.y, atom.z)
+        elif self.coordtype.lower() == "reduced":
+            latcell = np.array(self.xyz.cell)
+            convmat = np.linalg.inv(latcell.T)
+            crystal_coord = np.zeros([self.xyz.natom, 3])
+            for i in range(self.xyz.natom):
+                crystal_coord[i] = convmat.dot(np.array([self.xyz.atoms[i].x, self.xyz.atoms[i].y, self.xyz.atoms[i].z]))
+            #
+            input_str += "xred%s\n" % (n if n > 0 else "")
+            for k in range(len(crystal_coord)):
+                input_str += "%.9f %.9f %.9f\n" % (crystal_coord[k, 0], crystal_coord[k, 1], crystal_coord[k, 2])
         input_str += "\n"
 
         return input_str

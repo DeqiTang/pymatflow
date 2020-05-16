@@ -115,6 +115,7 @@ class opt_run(abinit):
             fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
             fout.write("cat > optimization.in<<EOF\n")
             #self.dataset[0].to_input(fout)
+            self.dataset[0].system.coordtype = "reduced"
             fout.write(self.dataset[0].to_string())
             fout.write("EOF\n")
             fout.write("cat > optimization.files<<EOF\n")
@@ -184,6 +185,7 @@ class opt_run(abinit):
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
             fout.write("cat > optimization.in<<EOF\n")
             #self.dataset[0].to_input(fout)
+            self.dataset[0].system.coordtype = "reduced"            
             fout.write(self.dataset[0].to_string())
             fout.write("EOF\n")
             fout.write("cat > optimization.files<<EOF\n")
@@ -249,6 +251,7 @@ class opt_run(abinit):
 
             fout.write("cat > optimization.in<<EOF\n")
             #self.dataset[0].to_input(fout)
+            self.dataset[0].system.coordtype = "reduced"            
             fout.write(self.dataset[0].to_string())
             fout.write("EOF\n")
             fout.write("cat > optimization.files<<EOF\n")
@@ -368,6 +371,7 @@ class opt_run(abinit):
             fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
             fout.write("cat > optimization.in<<EOF\n")
             #self.dataset[0].to_input(fout)
+            self.dataset[0].system.coordtype = "reduced"            
             fout.write(self.dataset[0].to_string())
             fout.write("EOF\n")
             fout.write("cat > optimization.files<<EOF\n")
@@ -499,6 +503,7 @@ class opt_run(abinit):
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
             fout.write("cat > optimization.in<<EOF\n")
             #self.dataset[0].to_input(fout)
+            self.dataset[0].system.coordtype = "reduced"            
             fout.write(self.dataset[0].to_string())
             fout.write("EOF\n")
             fout.write("cat > optimization.files<<EOF\n")
@@ -626,6 +631,7 @@ class opt_run(abinit):
 
             fout.write("cat > optimization.in<<EOF\n")
             #self.dataset[0].to_input(fout)
+            self.dataset[0].system.coordtype = "reduced"            
             fout.write(self.dataset[0].to_string())
             fout.write("EOF\n")
             fout.write("cat > optimization.files<<EOF\n")
@@ -863,6 +869,7 @@ class opt_run(abinit):
             fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
             fout.write("cat > optimization.in<<EOF\n")
             #self.dataset[0].to_input(fout)
+            self.dataset[0].system.coordtype = "reduced"            
             fout.write(self.dataset[0].to_string())
             fout.write("EOF\n")
             fout.write("cat > optimization.files<<EOF\n")
@@ -993,6 +1000,7 @@ class opt_run(abinit):
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
             fout.write("cat > optimization.in<<EOF\n")
             #self.dataset[0].to_input(fout)
+            self.dataset[0].system.coordtype = "reduced"            
             fout.write(self.dataset[0].to_string())
             fout.write("EOF\n")
             fout.write("cat > optimization.files<<EOF\n")
@@ -1118,6 +1126,7 @@ class opt_run(abinit):
             fout.write("#!/bin/bash\n")
             fout.write("cat > optimization.in<<EOF\n")
             #self.dataset[0].to_input(fout)
+            self.dataset[0].system.coordtype = "reduced"            
             fout.write(self.dataset[0].to_string())
             fout.write("EOF\n")
             fout.write("cat > optimization.files<<EOF\n")
