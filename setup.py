@@ -119,8 +119,6 @@ setup(
         "pymatflow/qe/post/scripts/post-qe-dos.py",
         "pymatflow/qe/post/scripts/post-qe-pdos.py",
         "pymatflow/qe/post/scripts/post-qe-neb.py",
-        "pymatflow/qe/post/scripts/post-qe-relax.py",
-        "pymatflow/qe/post/scripts/post-qe-vc-relax.py",
         "pymatflow/qe/post/scripts/post-qe-scf.py",
         "pymatflow/qe/post/scripts/post-qe-converge.py",
         "pymatflow/qe/post/scripts/post-qe-bands.py",

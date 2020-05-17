@@ -249,6 +249,9 @@ def main():
             default=[1, 1, 1],
             help="supercell for phonopy, like [2, 2, 2]")
 
+    subparser.add_argument("--opt-out", type=str, default=None,
+            help="path of the output file for relax or vc-relax")
+
     # --------------------------------------------------------------------------
     # SIESTA
     # --------------------------------------------------------------------------
@@ -491,13 +494,21 @@ def main():
             # relax
             from pymatflow.qe.post.opt import opt_out
             task = opt_out()
-            task.get_info(os.path.join(args.directory, "relax.out"))
+            #task.get_info(os.path.join(args.directory, "relax.out"))
+            if args.opt_out == None:
+                # use default relax.out
+                args.opt_out = os.path.join(args.directory, "relax.out")
+            task.get_info(args.opt_out)
             task.export(args.directory)
         elif args.runtype == 2:
             # vc-relax
             from pymatflow.qe.post.opt import opt_out
             task = opt_out()
-            task.get_info(os.path.join(args.directory, "vc-relax.out"))
+            #task.get_info(os.path.join(args.directory, "vc-relax.out"))
+            if args.opt_out == None:
+                # use default vc-relax.out
+                args.opt_out = os.path.join(args.directory, "vc-relax.out")
+            task.get_info(args.opt_out)
             task.export(args.directory)
         elif args.runtype == 3:
             # cubic cell
