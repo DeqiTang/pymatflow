@@ -2557,7 +2557,7 @@ def main():
             # sur pes
             from pymatflow.flow.surface_pes import vasp_run
             task = vasp_run()
-            task.get_xyz(args.xyz)
+            task.get_xyz(xyzfile)
             task.set_params(params=params, runtype="opt")
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             #task.poscar.selective_dynamics = True if args.selective_dynamics.upper()[0] == "T" else False

@@ -329,7 +329,7 @@ class post_bands:
             for j in range(band_min, band_max, 1):
                 plt.plot(self.xcoord_k, [self.eigenval["spin_%d" % (i+1)][k]["energy"][j] - self.efermi for k in range(len(self.eigenval["spin_%d" % (i+1)]))], color='blue', linewidth=1)
             plt.xticks(self.locs, self.labels_for_matplotlib)
-            plt.title("Band Structure (Spin %d)" % (i+1))
+            #plt.title("Band Structure (Spin %d)" % (i+1))
             plt.xlabel("K")
             plt.ylabel("Energy(eV)")
             plt.grid(b=True, which='major')
@@ -341,7 +341,7 @@ class post_bands:
             for i in range(spin_n):
                 for j in range(band_min, band_max, 1):
                     plt.plot(self.xcoord_k, [self.eigenval["spin_%d" % (i+1)][k]["energy"][j] - self.efermi for k in range(len(self.eigenval["spin_%d" % (i+1)]))], linewidth=1, label="spin-%d" % (i+1))
-            plt.title("Band Structure(all spin)")
+            #plt.title("Band Structure(all spin)")
             plt.xlabel("K")
             plt.ylabel("Energy(eV)")
             plt.xticks(self.locs, self.labels_for_matplotlib)
@@ -408,7 +408,7 @@ class post_bands:
                 fout.write("set output 'all-bands-%s-spin-%d.gif'\n" % (self.magnetic_status, i+1))
                 fout.write("unset key\n")
                 fout.write("set parametric\n")
-                fout.write("set title 'Band Structure (Spin %d)'\n" % (i+1))
+                #fout.write("set title 'Band Structure (Spin %d)'\n" % (i+1))
                 fout.write("set xlabel 'K'\n")
                 fout.write("set ylabel 'Energy(eV)'\n")
                 fout.write("set xtics(")
@@ -425,7 +425,7 @@ class post_bands:
                 fout.write("set output 'specified-bands-%s-spin-%d.gif'\n" % (self.magnetic_status, i+1))
                 fout.write("unset key\n")
                 fout.write("set parametric\n")
-                fout.write("set title 'Band Structure (Spin %d)'\n" % (i+1))
+                #fout.write("set title 'Band Structure (Spin %d)'\n" % (i+1))
                 fout.write("set xlabel 'K'\n")
                 fout.write("set ylabel 'Energy(eV)'\n")
                 fout.write("set xtics(")
