@@ -186,7 +186,8 @@ class opt_run(vasp):
             fout.write("EOF\n")
             fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
             fout.write("  cd relax-${a}/\n")
-            fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+            #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+            fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")
             fout.write("  cd ../\n")
             fout.write("done\n")
 
@@ -549,7 +550,8 @@ class opt_run(vasp):
                     fout.write("EOF\n")
                     fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
                     fout.write("  cd relax-${a}-${c}/\n")
-                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+                    #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")
                     fout.write("  cd ../\n")
                     fout.write("done\n")
                 else:
@@ -574,7 +576,8 @@ class opt_run(vasp):
                     fout.write("EOF\n")
                     fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
                     fout.write("  cd relax-${a}/\n")
-                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+                    #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")
                     fout.write("  cd ../\n")
                 fout.write("done\n")
             else:
@@ -603,7 +606,8 @@ class opt_run(vasp):
                     fout.write("EOF\n")
                     fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
                     fout.write("  cd relax-${c}/\n")
-                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+                    #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")                    
                     fout.write("  cd ../\n")
                     fout.write("done\n")
                 else:
@@ -1150,7 +1154,8 @@ class opt_run(vasp):
                     fout.write("EOF\n")
                     fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
                     fout.write("  cd relax-${a}-${c}/\n")
-                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+                    #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")
                     fout.write("  cd ../\n")
                     fout.write("done\n")
                 else:
@@ -1175,7 +1180,8 @@ class opt_run(vasp):
                     fout.write("EOF\n")
                     fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
                     fout.write("  cd relax-${a}/\n")
-                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+                    #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")
                     fout.write("  cd ../\n")
                 fout.write("done\n")
             else:
@@ -1204,7 +1210,8 @@ class opt_run(vasp):
                     fout.write("EOF\n")
                     fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
                     fout.write("  cd relax-${c}/\n")
-                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+                    #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")
                     fout.write("  cd ../\n")
                     fout.write("done\n")
                 else:

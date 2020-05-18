@@ -185,7 +185,8 @@ class static_run(vasp):
                 for i in range(n_test + 1):
                     encut = int(emin + i * step)
                     fout.write("cd ./encut-%d\n" % encut)
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("$PMF_VASP_STD"))
+                    #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("$PMF_VASP_STD"))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s\n" % ("$PMF_VASP_STD"))                    
                     fout.write("cd ../\n")
                     fout.write("\n")
             os.chdir("../")
@@ -253,7 +254,8 @@ class static_run(vasp):
                 for i in range(n_test + 1):
                     kpoints = int(kmin + i * step)
                     fout.write("cd ./kpoints-%d\n" % kpoints)
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("$PMF_VASP_STD"))
+                    #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("$PMF_VASP_STD"))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s\n" % ("$PMF_VASP_STD"))
                     fout.write("cd ../\n")
                     fout.write("\n")
             os.chdir("../")
@@ -321,7 +323,8 @@ class static_run(vasp):
                 for i in range(n_test + 1):
                     sigma = sigma_min + i * step
                     fout.write("cd ./sigma-%.6f\n" % sigma)
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("$PMF_VASP_STD"))
+                    #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("$PMF_VASP_STD"))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s\n" % ("$PMF_VASP_STD"))
                     fout.write("cd ../\n")
                     fout.write("\n")
             os.chdir("../")
@@ -484,9 +487,11 @@ class static_run(vasp):
                 fout.write(kpoints_scf)
                 fout.write("EOF\n")
                 if self.magnetic_status == "non-collinear":
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_NCL \n")
+                    #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_NCL \n")
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_NCL \n")                    
                 else:
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
+                    #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD \n")
                 fout.write("cp OUTCAR OUTCAR.scf\n")
                 fout.write("cp vasprun.xml vasprun.xml.scf\n")
 
@@ -528,9 +533,11 @@ class static_run(vasp):
                     fout.write("EOF\n")
 
                 if self.magnetic_status == "non-collinear":
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_NCL \n")
+                    #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_NCL \n")
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_NCL \n")
                 else:
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
+                    #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD \n")
                 fout.write("cp OUTCAR OUTCAR.nscf\n")
                 fout.write("cp vasprun.xml vasprun.xml.nscf\n")
 
@@ -815,9 +822,11 @@ class static_run(vasp):
                 fout.write(kpoints_scf)
                 fout.write("EOF\n")
                 if self.magnetic_status == "non-collinear":
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_NCL \n")
+                    #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_NCL \n")
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_NCL \n")
                 else:
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
+                    #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD \n")
                 fout.write("cp OUTCAR OUTCAR.scf\n")
                 fout.write("cp vasprun.xml vasprun.xml.scf\n")
 
@@ -832,9 +841,11 @@ class static_run(vasp):
                 fout.write("EOF\n")
 
                 if self.magnetic_status == "non-collinear":
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_NCL \n")
+                    #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_NCL \n")
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_NCL \n")
                 else:
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
+                    #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD \n")                    
                 fout.write("cp OUTCAR OUTCAR.nscf\n")
                 fout.write("cp vasprun.xml vasprun.xml.nscf\n")
 

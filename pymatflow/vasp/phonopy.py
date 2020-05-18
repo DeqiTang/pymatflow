@@ -113,7 +113,8 @@ class phonopy_run(vasp):
                 for disp in disps:
                     fout.write("cd disp-%s\n" % disp)
                     fout.write("cp ../INCAR .\n")
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("$PMF_VASP_STD"))
+                    #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("$PMF_VASP_STD"))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s\n" % ("$PMF_VASP_STD"))
                     fout.write("cd ../\n")
 
             # generate the local bash script

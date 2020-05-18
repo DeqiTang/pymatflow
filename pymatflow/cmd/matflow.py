@@ -1628,6 +1628,9 @@ def main():
             choices=[0, 1, 2],
             help="0 -> do not fix any z of the atoms, 1: only fix z of the buttom atoms, 2: fix z of both the buttom and the moving atoms. note x y are all fixed")
 
+    gp.add_argument("--batch-x-y", type=int, nargs=2, default=None,
+            help="number of structures to calculate each batch x and y, default is all in one batch")
+
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
     # ==========================================================
@@ -2564,7 +2567,8 @@ def main():
             task.poscar.selective_dynamics = True # always use selective_dynamics            
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             #task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.set_pes(move_atom=args.move_atom, xrange=args.xrange, yrange=args.yrange, zshift=args.zshift, fix_z=args.fix_z)
+            task.batch_x_y = args.batch_x_y
+            task.set_pes(move_atom=args.move_atom, xrange=args.xrange, yrange=args.yrange, zshift=args.zshift, fix_z=args.fix_z)            
             task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
     # --------------------------------------------------------------------------
 

@@ -192,7 +192,8 @@ class vasp:
             self.kpoints.to_kpoints(fout)
             fout.write("EOF\n")
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
-            fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s \n" % (cmd))
+            #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s \n" % (cmd))
+            fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s \n" % (cmd))            
 
     def gen_bash(self, directory, mpi="", cmd="vasp_std", scriptname="vasp.bash"):
         """
