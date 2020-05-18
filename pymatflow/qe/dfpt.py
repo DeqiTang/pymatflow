@@ -277,7 +277,7 @@ class dfpt_run:
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("% $PMF_Q2RX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.system("%s $PMF_Q2RX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="q2r", server=self.run_params["server"])
 

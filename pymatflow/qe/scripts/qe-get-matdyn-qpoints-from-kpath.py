@@ -14,9 +14,6 @@ usage:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-
-    parser.add_argument("-d", "--directory", type=str, default="tmp-qe-static",
-            help="Directory for the static running.")
     
     parser.add_argument("--kpath-manual", type=str, nargs="+", default=None,
             help="manual input kpath for phonon band calc")

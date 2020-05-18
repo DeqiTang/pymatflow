@@ -246,19 +246,33 @@ def main():
         print("the output structure file is -> %s\n" % args.output)
 
     elif args.driver == "fix":
-        # can only read and write xyz
-        if args.input.split(".")[-1] == "xyz" and args.output.split(".")[-1] == "xyz":
-            pass
+        # can only write xyz and poscar file
+        
+        if args.output.split(".")[-1] == "xyz":
+            fix_str = ""
+            for i in args.fix:
+                fix_str += "%d " % i
+            os.system("xyz-fix-atoms.py -i %s -o %s --fix %s" % (args.input, args.output, fix_str))
+        elif os.path.basename(args.output) == "POSCAR":
+            from pymatflow.vasp.base.poscar import vasp_poscar
+            a = read_structure(filepath=args.input)
+            for i in args.fix:
+                a.atoms[i-1].fix = [True, True, True]
+            poscar = vasp_poscar()
+            poscar.xyz.cell = a.cell
+            poscar.xyz.atoms = a.atoms
+            poscar.xyz.natom = len(poscar.xyz.atoms)
+            poscar.xyz.set_species_number() # needed for poscar output
+            poscar.selective_dynamics = True
+            with open(args.output, 'w') as fout:
+                poscar.to_poscar(fout=fout, coordtype="Direct")
         else:
             print("===============================================================\n")
             print("                      WARNING !!!\n")
             print("---------------------------------------------------------------\n")
-            print("structflow fix now only supports xyz for input and output\n")
-            sys.exit(1)
-        fix_str = ""
-        for i in args.fix:
-            fix_str += "%d " % i
-        os.system("xyz-fix-atoms.py -i %s -o %s --fix %s" % (args.input, args.output, fix_str))
+            print("structflow fix now only supports write of xyz and POSCAR\n")
+            sys.exit(1)        
+
     elif args.driver == "convert":
         # will convert file type according to the suffix of the specified input and output file
 

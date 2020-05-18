@@ -993,18 +993,6 @@ class opt_run(vasp):
         with open("post-processing/get_energy.sh", 'w') as fout:
             fout.write("#!/bin/bash\n")
 
-            range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
-            range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
-            # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
-            if range_a_end  > range_a[1]:
-                range_a_end = range_a[1]
-
-            range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
-            range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
-            # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
-            if range_c_end  > range_c[1]:
-                range_c_end = range_c[1]
-
             # the comment
             if na >= 2 and nc >= 2:
                 fout.write("cat > energy-latconst.data <<EOF\n")
@@ -1020,10 +1008,10 @@ class opt_run(vasp):
                 fout.write("EOF\n")
             # end
             if na >= 2:
-                fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
+                fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a[0], range_a[2], a+range_a[1]))
                 fout.write("do\n")
                 if nc >= 2:
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c[0], range_c[2], c+range_c[1]))
                     fout.write("do\n")
                     fout.write("  energy=`cat ../relax-${a}-${c}/OUTCAR | grep 'energy  without entropy=' | tail -1`\n")
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
@@ -1064,7 +1052,7 @@ class opt_run(vasp):
                     fout.write("gnuplot energy-latconst.gp")
             else:
                 if nc >= 2:
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c[0], range_c[2], c+range_c[1]))
                     fout.write("do\n")
                     fout.write("  energy=`cat ../relax-${c}/OUTCAR | grep 'energy  without entropy=' | tail -1`\n")
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
@@ -1704,41 +1692,12 @@ class opt_run(vasp):
                 fout.write("# format: c energy(eV)\n")
                 fout.write("EOF\n")
             # end
-            a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
-            b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
-            c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
-
-            fout.write("a_in=%f\n" % a)
-            fout.write("b_in=%f\n" % b)
-            fout.write("c_in=%f\n" % c)
-
-            fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
-            fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
-            fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
-            fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
-            fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
-            fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
-            fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
-            fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
-            fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
-
-            range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
-            range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
-            # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
-            if range_a_end  > range_a[1]:
-                range_a_end = range_a[1]
-
-            range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
-            range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
-            # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
-            if range_c_end  > range_c[1]:
-                range_c_end = range_c[1]
 
             if na >= 2:
-                fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
+                fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a[0], range_a[2], a+range_a[1]))
                 fout.write("do\n")
                 if nc >= 2:
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c[0], range_c[2], c+range_c[1]))
                     fout.write("do\n")
                     fout.write("  energy=`cat ../relax-${a}-${c}/OUTCAR | grep 'energy  without entropy=' | tail -1`\n")
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
@@ -1779,7 +1738,7 @@ class opt_run(vasp):
                     fout.write("gnuplot energy-latconst.gp")
             else:
                 if nc >= 2:
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c[0], range_c[2], c+range_c[1]))
                     fout.write("do\n")
                     fout.write("  energy=`cat ../relax-${c}/OUTCAR | grep 'energy  without entropy=' | tail -1`\n")
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
