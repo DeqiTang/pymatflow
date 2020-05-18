@@ -1581,23 +1581,28 @@ def main():
             help="supercell for phonopy, like [2, 2, 2]")
 
 
-    # na stepa nc stepc
+    # range_a range_c
     # ----------------------------------------------
     gp = subparser.add_argument_group(title="cell optimization",
             description="cubic, hexagonal, tetragonal cell optimization parameters")
 
-    gp.add_argument("--na", type=int, default=10,
-            help="number of a to run")
+    gp.add_argument("--range-a", type=float, nargs=3,
+            default=[-0.1, 0.1, 0.01],
+            help="test range for a")
 
-    gp.add_argument("--stepa", type=float, default=0.05,
-            help="step of a in unit of Angstrom")
+    gp.add_argument("--range-c", type=float, nargs=3,
+            default=[-0.1, 0.1, 0.01],
+            help="test range for c")
 
-    gp.add_argument("--nc", type=int, default=10,
-            help="number of c to run")
+    gp.add_argument("--batch-a", type=int,
+            default=None,
+            help="number of structure each batch a")
 
-    gp.add_argument("--stepc", type=float, default=0.05,
-            help="step of c in unit of Angstrom")
+    gp.add_argument("--batch-c", type=int,
+            default=None,
+            help="number of structure each batch c")
 
+    # incar template
     gp = subparser.add_argument_group(title="template", 
             description="read in INCAR template")
 
@@ -2487,7 +2492,8 @@ def main():
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa)
+            task.batch_a = args.batch_a
+            task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a)
         elif args.runtype == 3:
             # hexagonal cell
             from pymatflow.vasp.opt import opt_run
@@ -2497,7 +2503,9 @@ def main():
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
+            task.batch_a = args.batch_a
+            task.batch_c = args.batch_c            
+            task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_c=args.range_c)
         elif args.runtype == 4:
             # tetragonal cell
             from pymatflow.vasp.opt import opt_run
@@ -2507,7 +2515,9 @@ def main():
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
+            task.batch_a = args.batch_a     
+            task.batch_c = args.batch_c            
+            task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_c=args.range_c)
         elif args.runtype == 5:
             # neb
             # we better set NSW manually in VTST neb calc. 

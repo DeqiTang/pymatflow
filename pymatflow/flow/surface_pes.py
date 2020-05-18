@@ -632,10 +632,39 @@ class vasp_run(vasp.opt_run):
                 fout.write("  cd ../\n")
                 fout.write("done\n")
                 fout.write("done\n")
-                fout.write("cd post-processing; bash get_results.sh; cd ../\n")
+                fout.write("cd post-processing; bash get_pes.sh; bash get_trajectory.sh; cd ../\n")
 
             # result collection bash script
-            with open("post-processing/get_results.sh", 'w') as fout:
+            with open("post-processing/get_pes.sh", 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                # write pes analysis file
+                fout.write("\n\n")
+                #fout.write("#!/bin/bash\n")
+                fout.write("cat > ./pes.data<<EOF\n")
+                fout.write("# format: x y energy(Ry)\n")
+                fout.write("EOF\n")
+                fout.write("\n")
+                fout.write("for deltay in `seq %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
+                fout.write("do\n")
+                fout.write("for deltax in `seq %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
+                fout.write("do\n")
+                fout.write("  energy=`cat ../_${deltax}_${deltay}_/OUTCAR | grep 'entropy=' | tail -1 | cut -d \"=\" -f 2 | cut -d \"e\" -f 1`\n")
+                fout.write("  cat >> ./pes.data<<EOF\n")
+                fout.write("${deltax} ${deltay} ${energy}\n")
+                fout.write("EOF\n")
+                fout.write("done\n")
+                fout.write("done\n")
+                fout.write("\n")
+                fout.write("cat > ./plot.gnuplot<<EOF\n")
+                fout.write("set term png\n")
+                fout.write("set output 'pes.png'\n")
+                fout.write("splot 'pes.data'\n")
+                fout.write("set xlabel 'x'\n")
+                fout.write("set ylabel 'y'\n")                
+                fout.write("EOF\n")
+                fout.write("gnuplot plot.gnuplot\n")
+
+            with open("post-processing/get_trajectory.sh", 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 # write bash script to generate the xyz trajectory file -> (relaxed)
                 #with open("get_traj_relaxed.sh", 'w') as fout:
@@ -658,37 +687,10 @@ class vasp_run(vasp.opt_run):
                 fout.write("  cat ../_${deltax}_${deltay}_/optimized.xyz | tail -n -${natom} >> ${output_trajfile}\n")
                 fout.write("done\n")
                 fout.write("done\n")
-                # write result analysis file
-                #with open("get_pes.sh", 'w') as fout:
-                fout.write("\n\n")
-                #fout.write("#!/bin/bash\n")
-                fout.write("cat > ./pes.data<<EOF\n")
-                fout.write("# format: x y energy(Ry)\n")
-                fout.write("EOF\n")
-                fout.write("\n")
-                fout.write("for deltay in `seq %.3f %.3f %.3f`\n" % (yrange[0], yrange[2], yrange[1]))
-                fout.write("do\n")
-                fout.write("for deltax in `seq %.3f %.3f %.3f`\n" % (xrange[0], xrange[2], xrange[1]))
-                fout.write("do\n")
-                fout.write("  energy=`cat ../_${deltax}_${deltay}_/OUTCAR | grep 'entropy=' | tail -1 | cut -d \"=\" -f 2 | cut -d \"e\" -f 1`\n")
-                fout.write("  cat >> post-processing/pes.data<<EOF\n")
-                fout.write("${deltax} ${deltay} ${energy}\n")
-                fout.write("EOF\n")
-                fout.write("done\n")
-                fout.write("done\n")
-                fout.write("\n")
-                fout.write("cat > ./plot.gnuplot<<EOF\n")
-                fout.write("set term png\n")
-                fout.write("set output 'pes.png'\n")
-                fout.write("splot 'pes.data'\n")
-                fout.write("set xlabel 'x'\n")
-                fout.write("set ylabel 'y'\n")                
-                fout.write("EOF\n")
-                fout.write("gnuplot plot.gnuplot\n")
+
 
             # batch submitting script
             # dividing structures into groups, each group has one sub script   
-            
             
             # generate job script for each batch
             for i_batch_y in range(n_batch_y):

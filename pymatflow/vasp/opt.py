@@ -21,6 +21,9 @@ class opt_run(vasp):
 
         self.incar.set_runtype(runtype="opt")
 
+        self.batch_a = None
+        self.batch_c = None
+
 
     def optimize(self, directory="tmp-vasp-optimization", runopt="gen", auto=0):
         """
@@ -56,9 +59,24 @@ class opt_run(vasp):
     #
 
 
-    def cubic(self, directory="tmp-vasp-opt-cubic", runopt="gen", auto=0, na=10, stepa=0.05):
+    def cubic(self, directory="tmp-vasp-opt-cubic", runopt="gen", auto=0, range_a=[-0.1, 0.1, 0.01]):
         """
         """
+        
+        na = len(np.arange(range_a[0], range_a[1], range_a[2]))
+
+        if self.batch_a == None:
+            # namely all in one batch
+            self.batch_a = na
+        else:
+            pass
+        
+        if na % self.batch_a == 0:
+            n_batch_a = int(na / self.batch_a)
+        else:
+            n_batch_a = int(na / self.batch_a) + 1
+        #
+
         if os.path.exists(directory):
             shutil.rmtree(directory)
         os.mkdir(directory)
@@ -73,245 +91,270 @@ class opt_run(vasp):
 
         os.chdir(directory)
 
-        # gen llhpc script
-        with open("opt-cubic.slurm", 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
-            fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
-            fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
-            fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
-            fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
-            fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+        for i_batch_a in range(n_batch_a):
+            # gen llhpc script
+            with open("opt-cubic-batch-%d.slurm" % (i_batch_a), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s-%d\n" % (self.run_params["jobname"], i_batch_a))
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
 
-            fout.write("cat > INCAR<<EOF\n")
-            self.incar.to_incar(fout)
-            fout.write("EOF\n")
+                fout.write("cat > INCAR<<EOF\n")
+                self.incar.to_incar(fout)
+                fout.write("EOF\n")
 
-            a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
-            b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
-            c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
+                a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
+                b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
+                c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
 
-            fout.write("a_in=%f\n" % a)
-            fout.write("b_in=%f\n" % b)
-            fout.write("c_in=%f\n" % c)
+                fout.write("a_in=%f\n" % a)
+                fout.write("b_in=%f\n" % b)
+                fout.write("c_in=%f\n" % c)
 
-            fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
-            fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
-            fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
-            fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
-            fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
-            fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
-            fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
-            fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
-            fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
+                fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
+                fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
+                fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
+                fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
+                fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
+                fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
+                fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
+                fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
+                fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
 
-            fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
-            fout.write("do\n")
-            fout.write("  mkdir relax-${a}\n")
-            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
-            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                    
-            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                        
-            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                    
-            fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
-            fout.write("general comment\n")
-            fout.write("1.0\n")
-            fout.write("${vec11} ${vec12} ${vec13}\n")
-            fout.write("${vec21} ${vec22} ${vec23}\n")
-            fout.write("${vec31} ${vec32} ${vec33}\n")
-            fout.write("EOF\n")
-            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
-            fout.write("  cd relax-${a}/\n")
-            fout.write("  yhrun $PMF_VASP_STD\n")
-            fout.write("  cd ../\n")
-            fout.write("done\n")
+                range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
+                range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
+                # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                if range_a_end  > range_a[1]:
+                    range_a_end = range_a[1]
 
-
-        # gen pbs script
-        with open("opt-cubic.pbs", 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("#PBS -N %s\n" % self.run_params["jobname"])
-            fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
-            if "queue" in self.run_params and self.run_params["queue"] != None:
-                fout.write("#PBS -q %s\n" %self.run_params["queue"])            
-            fout.write("\n")
-            fout.write("cd $PBS_O_WORKDIR\n")
-            fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
-            fout.write("cat > INCAR<<EOF\n")
-            self.incar.to_incar(fout)
-            fout.write("EOF\n")
-
-            a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
-            b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
-            c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
-
-            fout.write("a_in=%f\n" % a)
-            fout.write("b_in=%f\n" % b)
-            fout.write("c_in=%f\n" % c)
-
-            fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
-            fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
-            fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
-            fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
-            fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
-            fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
-            fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
-            fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
-            fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
-
-            fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
-            fout.write("do\n")
-            fout.write("  mkdir relax-${a}\n")
-            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
-            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                 
-            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                
-            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                  
-            fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
-            fout.write("general comment\n")
-            fout.write("1.0\n")
-            fout.write("${vec11} ${vec12} ${vec13}\n")
-            fout.write("${vec21} ${vec22} ${vec23}\n")
-            fout.write("${vec31} ${vec32} ${vec33}\n")
-            fout.write("EOF\n")
-            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
-            fout.write("  cd relax-${a}/\n")
-            #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
-            fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")
-            fout.write("  cd ../\n")
-            fout.write("done\n")
+                fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
+                fout.write("do\n")
+                fout.write("  mkdir relax-${a}\n")
+                fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
+                fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                    
+                fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec31=`echo \"scale=6; result=${c1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec32=`echo \"scale=6; result=${c2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                        
+                fout.write("  vec33=`echo \"scale=6; result=${c3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                    
+                fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
+                fout.write("general comment\n")
+                fout.write("1.0\n")
+                fout.write("${vec11} ${vec12} ${vec13}\n")
+                fout.write("${vec21} ${vec22} ${vec23}\n")
+                fout.write("${vec31} ${vec32} ${vec33}\n")
+                fout.write("EOF\n")
+                fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
+                fout.write("  cd relax-${a}/\n")
+                fout.write("  yhrun $PMF_VASP_STD\n")
+                fout.write("  cd ../\n")
+                fout.write("done\n")
 
 
-        # gen local bash script
-        with open("opt-cubic.sh", 'w') as fout:
-            fout.write("#!/bin/bash\n")
+            # gen pbs script
+            with open("opt-cubic-batch-%d.pbs" % (i_batch_a), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#PBS -N %s-%d\n" % (self.run_params["jobname"], i_batch_a))
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+                if "queue" in self.run_params and self.run_params["queue"] != None:
+                    fout.write("#PBS -q %s\n" %self.run_params["queue"])            
+                fout.write("\n")
+                fout.write("cd $PBS_O_WORKDIR\n")
+                fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+                fout.write("cat > INCAR<<EOF\n")
+                self.incar.to_incar(fout)
+                fout.write("EOF\n")
 
-            fout.write("cat > INCAR<<EOF\n")
-            self.incar.to_incar(fout)
-            fout.write("EOF\n")
+                a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
+                b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
+                c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
 
-            a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
-            b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
-            c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
+                fout.write("a_in=%f\n" % a)
+                fout.write("b_in=%f\n" % b)
+                fout.write("c_in=%f\n" % c)
 
-            fout.write("a_in=%f\n" % a)
-            fout.write("b_in=%f\n" % b)
-            fout.write("c_in=%f\n" % c)
+                fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
+                fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
+                fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
+                fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
+                fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
+                fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
+                fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
+                fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
+                fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
 
-            fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
-            fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
-            fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
-            fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
-            fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
-            fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
-            fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
-            fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
-            fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
+                range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
+                range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
+                # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                if range_a_end  > range_a[1]:
+                    range_a_end = range_a[1]
 
-            fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
-            fout.write("do\n")
-            fout.write("  mkdir relax-${a}\n")
-            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
-            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")              
-            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                  
-            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                 
-            fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
-            fout.write("general comment\n")
-            fout.write("1.0\n")
-            fout.write("${vec11} ${vec12} ${vec13}\n")
-            fout.write("${vec21} ${vec22} ${vec23}\n")
-            fout.write("${vec31} ${vec32} ${vec33}\n")
-            fout.write("EOF\n")
-            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
-            fout.write("  cd relax-${a}/\n")
-            fout.write("  %s $PMF_VASP_STD\n" % self.run_params["mpi"])
-            fout.write("  cd ../\n")
-            fout.write("done\n")
+                fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
+                fout.write("do\n")
+                fout.write("  mkdir relax-${a}\n")
+                fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
+                fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                 
+                fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec31=`echo \"scale=6; result=${c1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec32=`echo \"scale=6; result=${c2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                
+                fout.write("  vec33=`echo \"scale=6; result=${c3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                  
+                fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
+                fout.write("general comment\n")
+                fout.write("1.0\n")
+                fout.write("${vec11} ${vec12} ${vec13}\n")
+                fout.write("${vec21} ${vec22} ${vec23}\n")
+                fout.write("${vec31} ${vec32} ${vec33}\n")
+                fout.write("EOF\n")
+                fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
+                fout.write("  cd relax-${a}/\n")
+                #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+                fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")
+                fout.write("  cd ../\n")
+                fout.write("done\n")
 
 
-        # gen lsf_sz script
-        with open("opt-cubic.lsf_sz", 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("APP_NAME=intelY_mid\n")
-            fout.write("NP=%d\n" % (self.run_params["nodes"]*self.run_params["ppn"]))
-            fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
-            fout.write("RUN=\"RAW\"\n")
-            fout.write("CURDIR=$PWD\n")
-            fout.write("#VASP=/home-yg/Soft/Vasp5.4/vasp_std\n")
-            fout.write("source /home-yg/env/intel-12.1.sh\n")
-            fout.write("source /home-yg/env/openmpi-1.6.5-intel.sh\n")
-            fout.write("cd $CURDIR\n")
-            fout.write("# starting creating ./nodelist\n")
-            fout.write("rm -rf $CURDIR/nodelist >& /dev/null\n")
-            fout.write("for i in `echo $LSB_HOSTS`\n")
-            fout.write("do\n")
-            fout.write("  echo \"$i\" >> $CURDIR/nodelist \n")
-            fout.write("done\n")
-            fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\n\' \',\')\n")
+            # gen local bash script
+            with open("opt-cubic-batch-%d.sh" % (i_batch_a), 'w') as fout:
+                fout.write("#!/bin/bash\n")
 
-            fout.write("cat > INCAR<<EOF\n")
-            self.incar.to_incar(fout)
-            fout.write("EOF\n")
+                fout.write("cat > INCAR<<EOF\n")
+                self.incar.to_incar(fout)
+                fout.write("EOF\n")
 
-            a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
-            b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
-            c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
+                a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
+                b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
+                c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
 
-            fout.write("a_in=%f\n" % a)
-            fout.write("b_in=%f\n" % b)
-            fout.write("c_in=%f\n" % c)
+                fout.write("a_in=%f\n" % a)
+                fout.write("b_in=%f\n" % b)
+                fout.write("c_in=%f\n" % c)
 
-            fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
-            fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
-            fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
-            fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
-            fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
-            fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
-            fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
-            fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
-            fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
+                fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
+                fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
+                fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
+                fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
+                fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
+                fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
+                fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
+                fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
+                fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
 
-            fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
-            fout.write("do\n")
-            fout.write("  mkdir relax-${a}\n")
-            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
-            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")              
-            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                      
-            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                 
-            fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
-            fout.write("general comment\n")
-            fout.write("1.0\n")
-            fout.write("${vec11} ${vec12} ${vec13}\n")
-            fout.write("${vec21} ${vec22} ${vec23}\n")
-            fout.write("${vec31} ${vec32} ${vec33}\n")
-            fout.write("EOF\n")
-            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
-            fout.write("  cd relax-${a}/\n")
-            fout.write("  mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
-            fout.write("  cd ../\n")
-            fout.write("done\n")
+                range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
+                range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
+                # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                if range_a_end  > range_a[1]:
+                    range_a_end = range_a[1]
+
+                fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
+                fout.write("do\n")
+                fout.write("  mkdir relax-${a}\n")
+                fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
+                fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")              
+                fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec31=`echo \"scale=6; result=${c1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec32=`echo \"scale=6; result=${c2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                  
+                fout.write("  vec33=`echo \"scale=6; result=${c3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                 
+                fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
+                fout.write("general comment\n")
+                fout.write("1.0\n")
+                fout.write("${vec11} ${vec12} ${vec13}\n")
+                fout.write("${vec21} ${vec22} ${vec23}\n")
+                fout.write("${vec31} ${vec32} ${vec33}\n")
+                fout.write("EOF\n")
+                fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
+                fout.write("  cd relax-${a}/\n")
+                fout.write("  %s $PMF_VASP_STD\n" % self.run_params["mpi"])
+                fout.write("  cd ../\n")
+                fout.write("done\n")
+
+
+            # gen lsf_sz script
+            with open("opt-cubic-batch-%d.lsf_sz" % (i_batch_a), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("APP_NAME=intelY_mid\n")
+                fout.write("NP=%d\n" % (self.run_params["nodes"]*self.run_params["ppn"]))
+                fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
+                fout.write("RUN=\"RAW\"\n")
+                fout.write("CURDIR=$PWD\n")
+                fout.write("#VASP=/home-yg/Soft/Vasp5.4/vasp_std\n")
+                fout.write("source /home-yg/env/intel-12.1.sh\n")
+                fout.write("source /home-yg/env/openmpi-1.6.5-intel.sh\n")
+                fout.write("cd $CURDIR\n")
+                fout.write("# starting creating ./nodelist\n")
+                fout.write("rm -rf $CURDIR/nodelist >& /dev/null\n")
+                fout.write("for i in `echo $LSB_HOSTS`\n")
+                fout.write("do\n")
+                fout.write("  echo \"$i\" >> $CURDIR/nodelist \n")
+                fout.write("done\n")
+                fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\n\' \',\')\n")
+
+                fout.write("cat > INCAR<<EOF\n")
+                self.incar.to_incar(fout)
+                fout.write("EOF\n")
+
+                a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
+                b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
+                c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
+
+                fout.write("a_in=%f\n" % a)
+                fout.write("b_in=%f\n" % b)
+                fout.write("c_in=%f\n" % c)
+
+                fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
+                fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
+                fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
+                fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
+                fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
+                fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
+                fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
+                fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
+                fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
+
+                range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
+                range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
+                # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                if range_a_end  > range_a[1]:
+                    range_a_end = range_a[1]
+
+                fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
+                fout.write("do\n")
+                fout.write("  mkdir relax-${a}\n")
+                fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
+                fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")              
+                fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec31=`echo \"scale=6; result=${c1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                fout.write("  vec32=`echo \"scale=6; result=${c2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                      
+                fout.write("  vec33=`echo \"scale=6; result=${c3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                 
+                fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
+                fout.write("general comment\n")
+                fout.write("1.0\n")
+                fout.write("${vec11} ${vec12} ${vec13}\n")
+                fout.write("${vec21} ${vec22} ${vec23}\n")
+                fout.write("${vec31} ${vec32} ${vec33}\n")
+                fout.write("EOF\n")
+                fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
+                fout.write("  cd relax-${a}/\n")
+                fout.write("  mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                fout.write("  cd ../\n")
+                fout.write("done\n")
 
 
         # generate result analysis script
@@ -324,7 +367,7 @@ class opt_run(vasp):
             fout.write("# format: a energy(eV)\n")
             fout.write("EOF\n")
             # end
-            fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
+            fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a[0], range_a[2], a+range_a[1]))
             fout.write("do\n")
             fout.write("  energy=`cat ../relax-${a}/OUTCAR | grep 'energy  without entropy=' | tail -1`\n")
             fout.write("  cat >> energy-latconst.data <<EOF\n")
@@ -347,14 +390,42 @@ class opt_run(vasp):
         os.chdir("../")
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("bash opt-cubic.sh")
+            for i_batch_a in range(n_batch_a):
+                os.system("bash opt-cubic-%d.sh" % (i_batch_a))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="opt-cubic", server=self.run_params["server"])
+        for i_batch_a in range(n_batch_a):
+            server_handle(auto=auto, directory=directory, jobfilebase="opt-cubic-%d" % (i_batch_a), server=self.run_params["server"])
 
 
-    def hexagonal(self, directory="tmp-vasp-opt-hexagonal", runopt="gen", auto=0, na=10, nc=10, stepa=0.05, stepc=0.05):
+    def hexagonal(self, directory="tmp-vasp-opt-hexagonal", runopt="gen", auto=0, range_a=[-0.1, 0.1, 0.01], range_c=[-0.1, 0.1, 0.01]):
         """
         """
+        na = len(np.arange(range_a[0], range_a[1], range_a[2]))
+        nc = len(np.arange(range_c[0], range_c[1], range_c[2]))
+
+        if self.batch_a == None:
+            # namely all in one batch
+            self.batch_a = na
+        else:
+            pass    
+
+        if self.batch_c == None:
+            # namely all in one batch
+            self.batch_c = nc
+        else:
+            pass
+
+        if na % self.batch_a == 0:
+            n_batch_a = int(na / self.batch_a)
+        else:
+            n_batch_a = int(na / self.batch_a) + 1
+
+        if nc % self.batch_c == 0:
+            n_batch_c = int(nc / self.batch_c)
+        else:
+            n_batch_c = int(nc / self.batch_c) + 1        
+        #
+
         if os.path.exists(directory):
             shutil.rmtree(directory)
         os.mkdir(directory)
@@ -368,508 +439,572 @@ class opt_run(vasp):
 
         os.chdir(directory)
 
-        # gen llhpc script
-        with open("opt-hexagonal.slurm", 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
-            fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
-            fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
-            fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
-            fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
-            fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
 
-            a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
-            b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
-            c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
+        for i_batch_a in range(n_batch_a):
+            for i_batch_c in range(n_batch_c):
+                # gen llhpc script
+                with open("opt-hexagonal-%d-%d.slurm" % (i_batch_a, i_batch_c), 'w') as fout:
+                    fout.write("#!/bin/bash\n")
+                    fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                    fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                    fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                    fout.write("#SBATCH -J %s-%d-%d\n" % (self.run_params["jobname"], i_batch_a, i_batch_c))
+                    fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                    fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
 
-            fout.write("a_in=%f\n" % a)
-            fout.write("b_in=%f\n" % b)
-            fout.write("c_in=%f\n" % c)
+                    a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
+                    b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
+                    c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
 
-            fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
-            fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
-            fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
-            fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
-            fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
-            fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
-            fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
-            fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
-            fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
+                    fout.write("a_in=%f\n" % a)
+                    fout.write("b_in=%f\n" % b)
+                    fout.write("c_in=%f\n" % c)
 
-            if na >= 2:
-                # a is optimized
-                fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
-                fout.write("do\n")
-                if nc >= 2:
-                    # optimize both a and c
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
+                    fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
+                    fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
+                    fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
+                    fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
+                    fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
+                    fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
+                    fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
+                    fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
+
+                    range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
+                    range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
+                    # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_a_end  > range_a[1]:
+                        range_a_end = range_a[1]
+
+                    range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
+                    range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
+                    # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_c_end  > range_c[1]:
+                        range_c_end = range_c[1]
+
+                    if na >= 2:
+                        # a is optimized                        
+                        fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
+                        fout.write("do\n")
+                        if nc >= 2:
+                            # optimize both a and c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                            fout.write("do\n")
+                            fout.write("  mkdir relax-${a}-${c}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}-${c}/\n")                     
+                            # here with the usage of length and scale in bs processing, we can make sure that number like '.123' will be correctly
+                            # set as '0.123', namely the ommited 0 by bs by default is not ommited now!
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                  
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                      
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                  
+                            fout.write("  cat > relax-${a}-${c}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
+                            fout.write("  cd relax-${a}-${c}/\n")
+                            fout.write("  yhrun $PMF_VASP_STD\n")
+                            fout.write("  cd ../\n")
+                            fout.write("done\n")
+                        else:
+                            # only optimize a
+                            fout.write("  mkdir relax-${a}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                  
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                      
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                  
+                            fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
+                            fout.write("  cd relax-${a}/\n")
+                            fout.write("  yhrun $PMF_VASP_STD\n")
+                            fout.write("  cd ../\n")
+                        fout.write("done\n")
+                    else:
+                        # a is not optimized
+                        if nc >= 2:
+                            # only optimize c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                            fout.write("do\n")
+                            fout.write("  mkdir relax-${c}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${c}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                  
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  cat > relax-${c}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
+                            fout.write("  cd relax-${c}/\n")
+                            fout.write("  yhrun $PMF_VASP_STD\n")
+                            fout.write("  cd ../\n")
+                            fout.write("done\n")
+                        else:
+                            # neither a or c is optimized
+                            pass
+
+
+                # gen pbs script
+                with open("opt-hexagonal-%d-%d.pbs" % (i_batch_a, i_batch_c), 'w') as fout:
+                    fout.write("#!/bin/bash\n")
+                    fout.write("#PBS -N %s-%d-%d\n" % (self.run_params["jobname"], i_batch_a, i_batch_c))
+                    fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+                    if "queue" in self.run_params and self.run_params["queue"] != None:
+                        fout.write("#PBS -q %s\n" %self.run_params["queue"])            
+                    fout.write("\n")
+                    fout.write("cd $PBS_O_WORKDIR\n")
+                    fout.write("cat > INCAR<<EOF\n")
+                    self.incar.to_incar(fout)
+                    fout.write("EOF\n")
+                    fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+
+                    a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
+                    b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
+                    c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
+
+                    fout.write("a_in=%f\n" % a)
+                    fout.write("b_in=%f\n" % b)
+                    fout.write("c_in=%f\n" % c)
+
+                    fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
+                    fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
+                    fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
+                    fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
+                    fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
+                    fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
+                    fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
+                    fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
+                    fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
+
+                    range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
+                    range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
+                    # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_a_end  > range_a[1]:
+                        range_a_end = range_a[1]
+
+                    range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
+                    range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
+                    # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_c_end  > range_c[1]:
+                        range_c_end = range_c[1]
+
+                    if na >= 2:
+                        # a is optimized
+                        fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
+                        fout.write("do\n")
+                        if nc >= 2:
+                            # optimize both a and c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                            fout.write("do\n")
+                            fout.write("  mkdir relax-${a}-${c}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}-${c}/\n")
+                            # here with the usage of length and scale in bs processing, we can make sure that number like '.123' will be correctly
+                            # set as '0.123', namely the ommited 0 by bs by default is not ommited now!
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  cat > relax-${a}-${c}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
+                            fout.write("  cd relax-${a}-${c}/\n")
+                            #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+                            fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")
+                            fout.write("  cd ../\n")
+                            fout.write("done\n")
+                        else:
+                            # only optimize a
+                            fout.write("  mkdir relax-${a}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
+                            fout.write("  cd relax-${a}/\n")
+                            #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+                            fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")
+                            fout.write("  cd ../\n")
+                        fout.write("done\n")
+                    else:
+                        # a is not optimized
+                        if nc >= 2:
+                            # only optimize c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], range_c_end))
+                            fout.write("do\n")
+                            fout.write("  mkdir relax-${c}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${c}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  cat > relax-${c}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
+                            fout.write("  cd relax-${c}/\n")
+                            #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+                            fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")                    
+                            fout.write("  cd ../\n")
+                            fout.write("done\n")
+                        else:
+                            # neither a or c is optimized
+                            pass
+
+                # gen local bash script
+                with open("opt-hexagonal-%d-%d.sh" % (i_batch_a, i_batch_c), 'w') as fout:
+                    fout.write("#!/bin/bash\n")
+
+                    fout.write("cat > INCAR<<EOF\n")
+                    self.incar.to_incar(fout)
+                    fout.write("EOF\n")
+
+                    a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
+                    b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
+                    c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
+
+                    fout.write("a_in=%f\n" % a)
+                    fout.write("b_in=%f\n" % b)
+                    fout.write("c_in=%f\n" % c)
+
+                    fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
+                    fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
+                    fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
+                    fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
+                    fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
+                    fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
+                    fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
+                    fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
+                    fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
+
+                    range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
+                    range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
+                    # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_a_end  > range_a[1]:
+                        range_a_end = range_a[1]
+
+                    range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
+                    range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
+                    # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_c_end  > range_c[1]:
+                        range_c_end = range_c[1]
+
+                    if na >= 2:
+                        # a is optimized
+                        fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
+                        fout.write("do\n")
+                        if nc >= 2:
+                            # optimize both a and c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                            fout.write("do\n")
+                            fout.write("  mkdir relax-${a}-${c}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}-${c}/\n")
+                            # here with the usage of length and scale in bs processing, we can make sure that number like '.123' will be correctly
+                            # set as '0.123', namely the ommited 0 by bs by default is not ommited now!
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  cat > relax-${a}-${c}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
+                            fout.write("  cd relax-${a}-${c}/\n")
+                            fout.write("  %s $PMF_VASP_STD\n" % self.run_params["mpi"])
+                            fout.write("  cd ../\n")
+                            fout.write("done\n")
+                        else:
+                            # only optimize a
+                            fout.write("  mkdir relax-${a}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
+                            fout.write("  cd relax-${a}/\n")
+                            fout.write("  %s $PMF_VASP_STD\n" % self.run_params["mpi"])
+                            fout.write("  cd ../\n")
+                        fout.write("done\n")
+                    else:
+                        # a is not optimized
+                        if nc >= 2:
+                            # only optimize c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                            fout.write("do\n")
+                            fout.write("  mkdir relax-${c}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${c}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  cat > relax-${c}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
+                            fout.write("  cd relax-${c}/\n")
+                            fout.write("  %s $PMF_VASP_STD\n" % self.run_params["mpi"])
+                            fout.write("  cd ../\n")
+                            fout.write("done\n")
+                        else:
+                            # neither a or c is optimized
+                            pass
+
+
+                # gen lsf_sz script
+                with open("opt-hexagonal-%d-%d.lsf_sz" % (i_batch_a, i_batch_c), 'w') as fout:
+                    fout.write("#!/bin/bash\n")
+                    fout.write("APP_NAME=intelY_mid\n")
+                    fout.write("NP=%d\n" % (self.run_params["nodes"]*self.run_params["ppn"]))
+                    fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
+                    fout.write("RUN=\"RAW\"\n")
+                    fout.write("CURDIR=$PWD\n")
+                    fout.write("#VASP=/home-yg/Soft/Vasp5.4/vasp_std\n")
+                    fout.write("source /home-yg/env/intel-12.1.sh\n")
+                    fout.write("source /home-yg/env/openmpi-1.6.5-intel.sh\n")
+                    fout.write("cd $CURDIR\n")
+                    fout.write("# starting creating ./nodelist\n")
+                    fout.write("rm -rf $CURDIR/nodelist >& /dev/null\n")
+                    fout.write("for i in `echo $LSB_HOSTS`\n")
                     fout.write("do\n")
-                    fout.write("  mkdir relax-${a}-${c}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}-${c}/\n")                     
-                    # here with the usage of length and scale in bs processing, we can make sure that number like '.123' will be correctly
-                    # set as '0.123', namely the ommited 0 by bs by default is not ommited now!
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                  
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                      
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                  
-                    fout.write("  cat > relax-${a}-${c}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
-                    fout.write("  cd relax-${a}-${c}/\n")
-                    fout.write("  yhrun $PMF_VASP_STD\n")
-                    fout.write("  cd ../\n")
+                    fout.write("  echo \"$i\" >> $CURDIR/nodelist \n")
                     fout.write("done\n")
-                else:
-                    # only optimize a
-                    fout.write("  mkdir relax-${a}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                  
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                      
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                  
-                    fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
+                    fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\n\' \',\')\n")
+
+                    fout.write("cat > INCAR<<EOF\n")
+                    self.incar.to_incar(fout)
                     fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
-                    fout.write("  cd relax-${a}/\n")
-                    fout.write("  yhrun $PMF_VASP_STD\n")
-                    fout.write("  cd ../\n")
-                fout.write("done\n")
-            else:
-                # a is not optimized
-                if nc >= 2:
-                    # only optimize c
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
-                    fout.write("do\n")
-                    fout.write("  mkdir relax-${c}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${c}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                  
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  cat > relax-${c}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
-                    fout.write("  cd relax-${c}/\n")
-                    fout.write("  yhrun $PMF_VASP_STD\n")
-                    fout.write("  cd ../\n")
-                    fout.write("done\n")
-                else:
-                    # neither a or c is optimized
-                    pass
 
+                    a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
+                    b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
+                    c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
 
-        # gen pbs script
-        with open("opt-hexagonal.pbs", 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("#PBS -N %s\n" % self.run_params["jobname"])
-            fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
-            if "queue" in self.run_params and self.run_params["queue"] != None:
-                fout.write("#PBS -q %s\n" %self.run_params["queue"])            
-            fout.write("\n")
-            fout.write("cd $PBS_O_WORKDIR\n")
-            fout.write("cat > INCAR<<EOF\n")
-            self.incar.to_incar(fout)
-            fout.write("EOF\n")
-            fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+                    fout.write("a_in=%f\n" % a)
+                    fout.write("b_in=%f\n" % b)
+                    fout.write("c_in=%f\n" % c)
 
-            a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
-            b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
-            c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
+                    fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
+                    fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
+                    fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
+                    fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
+                    fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
+                    fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
+                    fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
+                    fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
+                    fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
 
-            fout.write("a_in=%f\n" % a)
-            fout.write("b_in=%f\n" % b)
-            fout.write("c_in=%f\n" % c)
+                    range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
+                    range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
+                    # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_a_end  > range_a[1]:
+                        range_a_end = range_a[1]
 
-            fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
-            fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
-            fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
-            fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
-            fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
-            fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
-            fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
-            fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
-            fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
+                    range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
+                    range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
+                    # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_c_end  > range_c[1]:
+                        range_c_end = range_c[1]
 
-            if na >= 2:
-                # a is optimized
-                fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
-                fout.write("do\n")
-                if nc >= 2:
-                    # optimize both a and c
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
-                    fout.write("do\n")
-                    fout.write("  mkdir relax-${a}-${c}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}-${c}/\n")
-                    # here with the usage of length and scale in bs processing, we can make sure that number like '.123' will be correctly
-                    # set as '0.123', namely the ommited 0 by bs by default is not ommited now!
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  cat > relax-${a}-${c}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
-                    fout.write("  cd relax-${a}-${c}/\n")
-                    #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
-                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")
-                    fout.write("  cd ../\n")
-                    fout.write("done\n")
-                else:
-                    # only optimize a
-                    fout.write("  mkdir relax-${a}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
-                    fout.write("  cd relax-${a}/\n")
-                    #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
-                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")
-                    fout.write("  cd ../\n")
-                fout.write("done\n")
-            else:
-                # a is not optimized
-                if nc >= 2:
-                    # only optimize c
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
-                    fout.write("do\n")
-                    fout.write("  mkdir relax-${c}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${c}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  cat > relax-${c}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
-                    fout.write("  cd relax-${c}/\n")
-                    #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
-                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")                    
-                    fout.write("  cd ../\n")
-                    fout.write("done\n")
-                else:
-                    # neither a or c is optimized
-                    pass
-
-        # gen local bash script
-        with open("opt-hexagonal.sh", 'w') as fout:
-            fout.write("#!/bin/bash\n")
-
-            fout.write("cat > INCAR<<EOF\n")
-            self.incar.to_incar(fout)
-            fout.write("EOF\n")
-
-            a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
-            b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
-            c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
-
-            fout.write("a_in=%f\n" % a)
-            fout.write("b_in=%f\n" % b)
-            fout.write("c_in=%f\n" % c)
-
-            fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
-            fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
-            fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
-            fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
-            fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
-            fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
-            fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
-            fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
-            fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
-
-            if na >= 2:
-                # a is optimized
-                fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
-                fout.write("do\n")
-                if nc >= 2:
-                    # optimize both a and c
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
-                    fout.write("do\n")
-                    fout.write("  mkdir relax-${a}-${c}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}-${c}/\n")
-                    # here with the usage of length and scale in bs processing, we can make sure that number like '.123' will be correctly
-                    # set as '0.123', namely the ommited 0 by bs by default is not ommited now!
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  cat > relax-${a}-${c}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
-                    fout.write("  cd relax-${a}-${c}/\n")
-                    fout.write("  %s $PMF_VASP_STD\n" % self.run_params["mpi"])
-                    fout.write("  cd ../\n")
-                    fout.write("done\n")
-                else:
-                    # only optimize a
-                    fout.write("  mkdir relax-${a}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
-                    fout.write("  cd relax-${a}/\n")
-                    fout.write("  %s $PMF_VASP_STD\n" % self.run_params["mpi"])
-                    fout.write("  cd ../\n")
-                fout.write("done\n")
-            else:
-                # a is not optimized
-                if nc >= 2:
-                    # only optimize c
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
-                    fout.write("do\n")
-                    fout.write("  mkdir relax-${c}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${c}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  cat > relax-${c}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
-                    fout.write("  cd relax-${c}/\n")
-                    fout.write("  %s $PMF_VASP_STD\n" % self.run_params["mpi"])
-                    fout.write("  cd ../\n")
-                    fout.write("done\n")
-                else:
-                    # neither a or c is optimized
-                    pass
-
-
-        # gen lsf_sz script
-        with open("opt-hexagonal.lsf_sz", 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("APP_NAME=intelY_mid\n")
-            fout.write("NP=%d\n" % (self.run_params["nodes"]*self.run_params["ppn"]))
-            fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
-            fout.write("RUN=\"RAW\"\n")
-            fout.write("CURDIR=$PWD\n")
-            fout.write("#VASP=/home-yg/Soft/Vasp5.4/vasp_std\n")
-            fout.write("source /home-yg/env/intel-12.1.sh\n")
-            fout.write("source /home-yg/env/openmpi-1.6.5-intel.sh\n")
-            fout.write("cd $CURDIR\n")
-            fout.write("# starting creating ./nodelist\n")
-            fout.write("rm -rf $CURDIR/nodelist >& /dev/null\n")
-            fout.write("for i in `echo $LSB_HOSTS`\n")
-            fout.write("do\n")
-            fout.write("  echo \"$i\" >> $CURDIR/nodelist \n")
-            fout.write("done\n")
-            fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\n\' \',\')\n")
-
-            fout.write("cat > INCAR<<EOF\n")
-            self.incar.to_incar(fout)
-            fout.write("EOF\n")
-
-            a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
-            b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
-            c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
-
-            fout.write("a_in=%f\n" % a)
-            fout.write("b_in=%f\n" % b)
-            fout.write("c_in=%f\n" % c)
-
-            fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
-            fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
-            fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
-            fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
-            fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
-            fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
-            fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
-            fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
-            fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
-
-            if na >= 2:
-                # a is optimized
-                fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
-                fout.write("do\n")
-                if nc >= 2:
-                    # optimize both a and c
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
-                    fout.write("do\n")
-                    fout.write("  mkdir relax-${a}-${c}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}-${c}/\n")
-                    # here with the usage of length and scale in bs processing, we can make sure that number like '.123' will be correctly
-                    # set as '0.123', namely the ommited 0 by bs by default is not ommited now!
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  cat > relax-${a}-${c}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
-                    fout.write("  cd relax-${a}-${c}/\n")
-                    fout.write("  mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
-                    fout.write("  cd ../\n")
-                    fout.write("done\n")
-                else:
-                    # only optimize a
-                    fout.write("  mkdir relax-${a}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
-                    fout.write("  cd relax-${a}/\n")
-                    fout.write("  mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
-                    fout.write("  cd ../\n")
-                fout.write("done\n")
-            else:
-                # a is not optimized
-                if nc >= 2:
-                    # only optimize c
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
-                    fout.write("do\n")
-                    fout.write("  mkdir relax-${c}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${c}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  cat > relax-${c}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
-                    fout.write("  cd relax-${c}/\n")
-                    fout.write("  mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
-                    fout.write("  cd ../\n")
-                    fout.write("done\n")
-                else:
-                    # neither a or c is optimized
-                    pass
+                    if na >= 2:
+                        # a is optimized
+                        fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
+                        fout.write("do\n")
+                        if nc >= 2:
+                            # optimize both a and c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                            fout.write("do\n")
+                            fout.write("  mkdir relax-${a}-${c}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}-${c}/\n")
+                            # here with the usage of length and scale in bs processing, we can make sure that number like '.123' will be correctly
+                            # set as '0.123', namely the ommited 0 by bs by default is not ommited now!
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  cat > relax-${a}-${c}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
+                            fout.write("  cd relax-${a}-${c}/\n")
+                            fout.write("  mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                            fout.write("  cd ../\n")
+                            fout.write("done\n")
+                        else:
+                            # only optimize a
+                            fout.write("  mkdir relax-${a}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
+                            fout.write("  cd relax-${a}/\n")
+                            fout.write("  mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                            fout.write("  cd ../\n")
+                        fout.write("done\n")
+                    else:
+                        # a is not optimized
+                        if nc >= 2:
+                            # only optimize c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                            fout.write("do\n")
+                            fout.write("  mkdir relax-${c}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${c}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  cat > relax-${c}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
+                            fout.write("  cd relax-${c}/\n")
+                            fout.write("  mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                            fout.write("  cd ../\n")
+                            fout.write("done\n")
+                        else:
+                            # neither a or c is optimized
+                            pass
 
         # generate result analysis script
         os.system("mkdir -p post-processing")
 
         with open("post-processing/get_energy.sh", 'w') as fout:
             fout.write("#!/bin/bash\n")
+
+            range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
+            range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
+            # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
+            if range_a_end  > range_a[1]:
+                range_a_end = range_a[1]
+
+            range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
+            range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
+            # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
+            if range_c_end  > range_c[1]:
+                range_c_end = range_c[1]
+
             # the comment
             if na >= 2 and nc >= 2:
                 fout.write("cat > energy-latconst.data <<EOF\n")
@@ -885,10 +1020,10 @@ class opt_run(vasp):
                 fout.write("EOF\n")
             # end
             if na >= 2:
-                fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
+                fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
                 fout.write("do\n")
                 if nc >= 2:
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
                     fout.write("do\n")
                     fout.write("  energy=`cat ../relax-${a}-${c}/OUTCAR | grep 'energy  without entropy=' | tail -1`\n")
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
@@ -929,7 +1064,7 @@ class opt_run(vasp):
                     fout.write("gnuplot energy-latconst.gp")
             else:
                 if nc >= 2:
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
                     fout.write("do\n")
                     fout.write("  energy=`cat ../relax-${c}/OUTCAR | grep 'energy  without entropy=' | tail -1`\n")
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
@@ -953,13 +1088,45 @@ class opt_run(vasp):
         os.chdir("../")
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("bash opt-hexagonal.sh")
+            for i_batch_a in range(n_batch_a):
+                for i_batch_c in range(n_batch_c):
+                    os.system("bash opt-hexagonal-%d-%d.sh" % (i_batch_a, i_batch_c))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="opt-hexagonal", server=self.run_params["server"])
+        for i_batch_a in range(n_batch_a):
+            for i_batch_c in range(n_batch_c):
+                server_handle(auto=auto, directory=directory, jobfilebase="opt-hexagonal-%d-%d" % (i_batch_a, i_batch_c), server=self.run_params["server"])
 
-    def tetragonal(self, directory="tmp-vasp-opt-tetragonal", runopt="gen", auto=0, na=10, nc=10, stepa=0.05, stepc=0.05):
+    def tetragonal(self, directory="tmp-vasp-opt-tetragonal", runopt="gen", auto=0, range_a=[-0.1, 0.1, 0.01], range_c=[-0.1, 0.1, 0.01]):
         """
         """
+
+        na = len(np.arange(range_a[0], range_a[1], range_a[2]))
+        nc = len(np.arange(range_c[0], range_c[1], range_c[2]))
+
+        if self.batch_a == None:
+            # namely all in one batch
+            self.batch_a = na
+        else:
+            pass    
+
+        if self.batch_c == None:
+            # namely all in one batch
+            self.batch_c = nc
+        else:
+            pass
+
+        if na % self.batch_a == 0:
+            n_batch_a = int(na / self.batch_a)
+        else:
+            n_batch_a = int(na / self.batch_a) + 1
+
+        if nc % self.batch_c == 0:
+            n_batch_c = int(nc / self.batch_c)
+        else:
+            n_batch_c = int(nc / self.batch_c) + 1        
+        #
+
+
         if os.path.exists(directory):
             shutil.rmtree(directory)
         os.mkdir(directory)
@@ -974,498 +1141,549 @@ class opt_run(vasp):
 
         os.chdir(directory)
 
-        # gen llhpc script
-        with open("opt-tetragonal.slurm", 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
-            fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
-            fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
-            fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
-            fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
-            fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+        for i_batch_a in range(n_batch_a):
+            for i_batch_c in range(n_batch_c):
+                # gen llhpc script
+                with open("opt-tetragonal-%d-%d.slurm" % (i_batch_a, i_batch_c), 'w') as fout:
+                    fout.write("#!/bin/bash\n")
+                    fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                    fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                    fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                    fout.write("#SBATCH -J %s-%d-%d\n" % (self.run_params["jobname"], i_batch_a, i_batch_c))
+                    fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                    fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
 
-            #a = self.poscar.xyz.cell[0][0]
-            #c = self.poscar.xyz.cell[2][2]
-            a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
-            b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
-            c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
+                    #a = self.poscar.xyz.cell[0][0]
+                    #c = self.poscar.xyz.cell[2][2]
+                    a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
+                    b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
+                    c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
 
-            fout.write("a_in=%f\n" % a)
-            fout.write("b_in=%f\n" % b)
-            fout.write("c_in=%f\n" % c)
+                    fout.write("a_in=%f\n" % a)
+                    fout.write("b_in=%f\n" % b)
+                    fout.write("c_in=%f\n" % c)
 
-            fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
-            fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
-            fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
-            fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
-            fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
-            fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
-            fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
-            fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
-            fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
+                    fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
+                    fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
+                    fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
+                    fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
+                    fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
+                    fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
+                    fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
+                    fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
+                    fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
 
-            if na >= 2:
-                # a is optimized
-                fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
-                fout.write("do\n")
-                if nc >= 2:
-                    # optimize both a and c
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+
+                    range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
+                    range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
+                    # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_a_end  > range_a[1]:
+                        range_a_end = range_a[1]
+
+                    range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
+                    range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
+                    # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_c_end  > range_c[1]:
+                        range_c_end = range_c[1]
+
+                    if na >= 2:
+                        # a is optimized
+                        fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
+                        fout.write("do\n")
+                        if nc >= 2:
+                            # optimize both a and c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                            fout.write("do\n")
+                            fout.write("  mkdir relax-${a}-${c}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}-${c}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  cat > relax-${a}-${c}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
+                            fout.write("  cd relax-${a}-${c}/\n")
+                            fout.write("  yhrun $PMF_VASP_STD\n")
+                            fout.write("  cd ../\n")
+                            fout.write("done\n")
+                        else:
+                            # only optimize a
+                            fout.write("  mkdir relax-${a}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
+                            fout.write("  cd relax-${a}/\n")
+                            fout.write("  yhrun $PMF_VASP_STD\n")
+                            fout.write("  cd ../\n")
+                        fout.write("done\n")
+                    else:
+                        # a is not optimized
+                        if nc >= 2:
+                            # only optimize c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                            fout.write("do\n")
+                            fout.write("  mkdir relax-${c}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${c}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                        
+                            fout.write("  cat > relax-${c}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
+                            fout.write("  cd relax-${c}/\n")
+                            fout.write("  yhrun $PMF_VASP_STD\n")
+                            fout.write("  cd ../\n")
+                            fout.write("done\n")
+                        else:
+                            # neither a or c is optimized
+                            pass
+
+
+                # gen pbs script
+                with open("opt-tetragonal-%d-%d.pbs" % (i_batch_a, i_batch_c), 'w') as fout:
+                    fout.write("#!/bin/bash\n")
+                    fout.write("#PBS -N %s-%d-%d\n" % (self.run_params["jobname"], i_batch_a, i_batch_c))
+                    fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+                    if "queue" in self.run_params and self.run_params["queue"] != None:
+                        fout.write("#PBS -q %s\n" %self.run_params["queue"])            
+                    fout.write("\n")
+                    fout.write("cd $PBS_O_WORKDIR\n")
+                    fout.write("cat > INCAR<<EOF\n")
+                    self.incar.to_incar(fout)
+                    fout.write("EOF\n")
+                    fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+
+                    a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
+                    b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
+                    c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
+
+                    fout.write("a_in=%f\n" % a)
+                    fout.write("b_in=%f\n" % b)
+                    fout.write("c_in=%f\n" % c)
+
+                    fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
+                    fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
+                    fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
+                    fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
+                    fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
+                    fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
+                    fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
+                    fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
+                    fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
+
+                    range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
+                    range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
+                    # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_a_end  > range_a[1]:
+                        range_a_end = range_a[1]
+
+                    range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
+                    range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
+                    # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_c_end  > range_c[1]:
+                        range_c_end = range_c[1]
+
+                    if na >= 2:
+                        # a is optimized
+                        fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
+                        fout.write("do\n")
+                        if nc >= 2:
+                            # optimize both a and c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                            fout.write("do\n")
+                            fout.write("  mkdir relax-${a}-${c}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}-${c}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                           
+                            fout.write("  cat > relax-${a}-${c}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
+                            fout.write("  cd relax-${a}-${c}/\n")
+                            #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+                            fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")
+                            fout.write("  cd ../\n")
+                            fout.write("done\n")
+                        else:
+                            # only optimize a
+                            fout.write("  mkdir relax-${a}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                           
+                            fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
+                            fout.write("  cd relax-${a}/\n")
+                            #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+                            fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")
+                            fout.write("  cd ../\n")
+                        fout.write("done\n")
+                    else:
+                        # a is not optimized
+                        if nc >= 2:
+                            # only optimize c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                            fout.write("do\n")
+                            fout.write("  mkdir relax-${c}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${c}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                           
+                            fout.write("  cat > relax-${c}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
+                            fout.write("  cd relax-${c}/\n")
+                            #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
+                            fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")
+                            fout.write("  cd ../\n")
+                            fout.write("done\n")
+                        else:
+                            # neither a or c is optimized
+                            pass
+
+                # gen local bash script
+                with open("opt-tetragonal.sh", 'w') as fout:
+                    fout.write("#!/bin/bash\n")
+
+                    fout.write("cat > INCAR<<EOF\n")
+                    self.incar.to_incar(fout)
+                    fout.write("EOF\n")
+
+                    a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
+                    b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
+                    c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
+
+                    fout.write("a_in=%f\n" % a)
+                    fout.write("b_in=%f\n" % b)
+                    fout.write("c_in=%f\n" % c)
+
+                    fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
+                    fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
+                    fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
+                    fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
+                    fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
+                    fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
+                    fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
+                    fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
+                    fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
+
+                    range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
+                    range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
+                    # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_a_end  > range_a[1]:
+                        range_a_end = range_a[1]
+
+                    range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
+                    range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
+                    # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_c_end  > range_c[1]:
+                        range_c_end = range_c[1]
+
+                    if na >= 2:
+                        # a is optimized
+                        fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
+                        fout.write("do\n")
+                        if nc >= 2:
+                            # optimize both a and c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                            fout.write("do\n")
+                            fout.write("  mkdir relax-${a}-${c}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}-${c}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                           
+                            fout.write("  cat > relax-${a}-${c}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
+                            fout.write("  cd relax-${a}-${c}/\n")
+                            fout.write("  %s $PMF_VASP_STD\n" % self.run_params["mpi"])
+                            fout.write("  cd ../\n")
+                            fout.write("done\n")
+                        else:
+                            # only optimize a
+                            fout.write("  mkdir relax-${a}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                    
+                            fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
+                            fout.write("  cd relax-${a}/\n")
+                            fout.write("  %s $PMF_VASP_STD\n" % self.run_params["mpi"])
+                            fout.write("  cd ../\n")
+                        fout.write("done\n")
+                    else:
+                        # a is not optimized
+                        if nc >= 2:
+                            # only optimize c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                            fout.write("do\n")
+                            fout.write("  mkdir relax-${c}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${c}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                    
+                            fout.write("  cat > relax-${c}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
+                            fout.write("  cd relax-${c}/\n")
+                            fout.write("  %s $PMF_VASP_STD\n" % self.run_params["mpi"])
+                            fout.write("  cd ../\n")
+                            fout.write("done\n")
+                        else:
+                            # neither a or c is optimized
+                            pass
+
+
+                # gen lsf_sz script
+                with open("opt-tetragonal-%d-%d.lsf_sz" % (i_batch_a, i_batch_c), 'w') as fout:
+                    fout.write("#!/bin/bash\n")
+                    fout.write("APP_NAME=intelY_mid\n")
+                    fout.write("NP=%d\n" % (self.run_params["nodes"]*self.run_params["ppn"]))
+                    fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
+                    fout.write("RUN=\"RAW\"\n")
+                    fout.write("CURDIR=$PWD\n")
+                    fout.write("#VASP=/home-yg/Soft/Vasp5.4/vasp_std\n")
+                    fout.write("source /home-yg/env/intel-12.1.sh\n")
+                    fout.write("source /home-yg/env/openmpi-1.6.5-intel.sh\n")
+                    fout.write("cd $CURDIR\n")
+                    fout.write("# starting creating ./nodelist\n")
+                    fout.write("rm -rf $CURDIR/nodelist >& /dev/null\n")
+                    fout.write("for i in `echo $LSB_HOSTS`\n")
                     fout.write("do\n")
-                    fout.write("  mkdir relax-${a}-${c}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}-${c}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  cat > relax-${a}-${c}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
-                    fout.write("  cd relax-${a}-${c}/\n")
-                    fout.write("  yhrun $PMF_VASP_STD\n")
-                    fout.write("  cd ../\n")
+                    fout.write("  echo \"$i\" >> $CURDIR/nodelist \n")
                     fout.write("done\n")
-                else:
-                    # only optimize a
-                    fout.write("  mkdir relax-${a}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
+                    fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\n\' \',\')\n")
+
+
+                    fout.write("cat > INCAR<<EOF\n")
+                    self.incar.to_incar(fout)
                     fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
-                    fout.write("  cd relax-${a}/\n")
-                    fout.write("  yhrun $PMF_VASP_STD\n")
-                    fout.write("  cd ../\n")
-                fout.write("done\n")
-            else:
-                # a is not optimized
-                if nc >= 2:
-                    # only optimize c
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
-                    fout.write("do\n")
-                    fout.write("  mkdir relax-${c}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${c}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                        
-                    fout.write("  cat > relax-${c}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
-                    fout.write("  cd relax-${c}/\n")
-                    fout.write("  yhrun $PMF_VASP_STD\n")
-                    fout.write("  cd ../\n")
-                    fout.write("done\n")
-                else:
-                    # neither a or c is optimized
-                    pass
 
 
-        # gen pbs script
-        with open("opt-tetragonal.pbs", 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("#PBS -N %s\n" % self.run_params["jobname"])
-            fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
-            if "queue" in self.run_params and self.run_params["queue"] != None:
-                fout.write("#PBS -q %s\n" %self.run_params["queue"])            
-            fout.write("\n")
-            fout.write("cd $PBS_O_WORKDIR\n")
-            fout.write("cat > INCAR<<EOF\n")
-            self.incar.to_incar(fout)
-            fout.write("EOF\n")
-            fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+                    a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
+                    b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
+                    c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
 
-            a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
-            b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
-            c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
+                    fout.write("a_in=%f\n" % a)
+                    fout.write("b_in=%f\n" % b)
+                    fout.write("c_in=%f\n" % c)
 
-            fout.write("a_in=%f\n" % a)
-            fout.write("b_in=%f\n" % b)
-            fout.write("c_in=%f\n" % c)
+                    fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
+                    fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
+                    fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
+                    fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
+                    fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
+                    fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
+                    fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
+                    fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
+                    fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
 
-            fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
-            fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
-            fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
-            fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
-            fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
-            fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
-            fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
-            fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
-            fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
+                    range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
+                    range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
+                    # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_a_end  > range_a[1]:
+                        range_a_end = range_a[1]
 
-            if na >= 2:
-                # a is optimized
-                fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
-                fout.write("do\n")
-                if nc >= 2:
-                    # optimize both a and c
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
-                    fout.write("do\n")
-                    fout.write("  mkdir relax-${a}-${c}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}-${c}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                           
-                    fout.write("  cat > relax-${a}-${c}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
-                    fout.write("  cd relax-${a}-${c}/\n")
-                    #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
-                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")
-                    fout.write("  cd ../\n")
-                    fout.write("done\n")
-                else:
-                    # only optimize a
-                    fout.write("  mkdir relax-${a}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                           
-                    fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
-                    fout.write("  cd relax-${a}/\n")
-                    #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
-                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")
-                    fout.write("  cd ../\n")
-                fout.write("done\n")
-            else:
-                # a is not optimized
-                if nc >= 2:
-                    # only optimize c
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
-                    fout.write("do\n")
-                    fout.write("  mkdir relax-${c}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${c}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                           
-                    fout.write("  cat > relax-${c}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
-                    fout.write("  cd relax-${c}/\n")
-                    #fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPMI_FABRICS shm:tmi $PMF_VASP_STD\n")
-                    fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD\n")
-                    fout.write("  cd ../\n")
-                    fout.write("done\n")
-                else:
-                    # neither a or c is optimized
-                    pass
+                    range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
+                    range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
+                    # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_c_end  > range_c[1]:
+                        range_c_end = range_c[1]
 
-        # gen local bash script
-        with open("opt-tetragonal.sh", 'w') as fout:
-            fout.write("#!/bin/bash\n")
-
-            fout.write("cat > INCAR<<EOF\n")
-            self.incar.to_incar(fout)
-            fout.write("EOF\n")
-
-            a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
-            b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
-            c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
-
-            fout.write("a_in=%f\n" % a)
-            fout.write("b_in=%f\n" % b)
-            fout.write("c_in=%f\n" % c)
-
-            fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
-            fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
-            fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
-            fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
-            fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
-            fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
-            fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
-            fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
-            fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
-
-            if na >= 2:
-                # a is optimized
-                fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
-                fout.write("do\n")
-                if nc >= 2:
-                    # optimize both a and c
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
-                    fout.write("do\n")
-                    fout.write("  mkdir relax-${a}-${c}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}-${c}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                           
-                    fout.write("  cat > relax-${a}-${c}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
-                    fout.write("  cd relax-${a}-${c}/\n")
-                    fout.write("  %s $PMF_VASP_STD\n" % self.run_params["mpi"])
-                    fout.write("  cd ../\n")
-                    fout.write("done\n")
-                else:
-                    # only optimize a
-                    fout.write("  mkdir relax-${a}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                    
-                    fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
-                    fout.write("  cd relax-${a}/\n")
-                    fout.write("  %s $PMF_VASP_STD\n" % self.run_params["mpi"])
-                    fout.write("  cd ../\n")
-                fout.write("done\n")
-            else:
-                # a is not optimized
-                if nc >= 2:
-                    # only optimize c
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
-                    fout.write("do\n")
-                    fout.write("  mkdir relax-${c}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${c}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                    
-                    fout.write("  cat > relax-${c}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
-                    fout.write("  cd relax-${c}/\n")
-                    fout.write("  %s $PMF_VASP_STD\n" % self.run_params["mpi"])
-                    fout.write("  cd ../\n")
-                    fout.write("done\n")
-                else:
-                    # neither a or c is optimized
-                    pass
-
-
-        # gen lsf_sz script
-        with open("opt-tetragonal.lsf_sz", 'w') as fout:
-            fout.write("#!/bin/bash\n")
-            fout.write("APP_NAME=intelY_mid\n")
-            fout.write("NP=%d\n" % (self.run_params["nodes"]*self.run_params["ppn"]))
-            fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
-            fout.write("RUN=\"RAW\"\n")
-            fout.write("CURDIR=$PWD\n")
-            fout.write("#VASP=/home-yg/Soft/Vasp5.4/vasp_std\n")
-            fout.write("source /home-yg/env/intel-12.1.sh\n")
-            fout.write("source /home-yg/env/openmpi-1.6.5-intel.sh\n")
-            fout.write("cd $CURDIR\n")
-            fout.write("# starting creating ./nodelist\n")
-            fout.write("rm -rf $CURDIR/nodelist >& /dev/null\n")
-            fout.write("for i in `echo $LSB_HOSTS`\n")
-            fout.write("do\n")
-            fout.write("  echo \"$i\" >> $CURDIR/nodelist \n")
-            fout.write("done\n")
-            fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\n\' \',\')\n")
-
-
-            fout.write("cat > INCAR<<EOF\n")
-            self.incar.to_incar(fout)
-            fout.write("EOF\n")
-
-
-            a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
-            b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
-            c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
-
-            fout.write("a_in=%f\n" % a)
-            fout.write("b_in=%f\n" % b)
-            fout.write("c_in=%f\n" % c)
-
-            fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
-            fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
-            fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
-            fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
-            fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
-            fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
-            fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
-            fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
-            fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
-
-            if na >= 2:
-                # a is optimized
-                fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
-                fout.write("do\n")
-                if nc >= 2:
-                    # optimize both a and c
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
-                    fout.write("do\n")
-                    fout.write("  mkdir relax-${a}-${c}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}-${c}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                    
-                    fout.write("  cat > relax-${a}-${c}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
-                    fout.write("  cd relax-${a}-${c}/\n")
-                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
-                    fout.write("  cd ../\n")
-                    fout.write("done\n")
-                else:
-                    # only optimize a
-                    fout.write("  mkdir relax-${a}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                    
-                    fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
-                    fout.write("  cd relax-${a}/\n")
-                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
-                    fout.write("  cd ../\n")
-                fout.write("done\n")
-            else:
-                # a is not optimized
-                if nc >= 2:
-                    # only optimize c
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
-                    fout.write("do\n")
-                    fout.write("  mkdir relax-${c}\n")
-                    fout.write("  cp POTCAR KPOINTS INCAR relax-${c}/\n")
-                    fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
-                    fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
-                    fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
-                    fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                    
-                    fout.write("  cat > relax-${c}/POSCAR<<EOF\n")
-                    fout.write("general comment\n")
-                    fout.write("1.0\n")
-                    fout.write("${vec11} ${vec12} ${vec13}\n")
-                    fout.write("${vec21} ${vec22} ${vec23}\n")
-                    fout.write("${vec31} ${vec32} ${vec33}\n")
-                    fout.write("EOF\n")
-                    fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
-                    fout.write("  cd relax-${c}/\n")
-                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
-                    fout.write("  cd ../\n")
-                    fout.write("done\n")
-                else:
-                    # neither a or c is optimized
-                    pass
+                    if na >= 2:
+                        # a is optimized
+                        fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
+                        fout.write("do\n")
+                        if nc >= 2:
+                            # optimize both a and c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                            fout.write("do\n")
+                            fout.write("  mkdir relax-${a}-${c}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}-${c}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                    
+                            fout.write("  cat > relax-${a}-${c}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}-${c}/POSCAR\n")
+                            fout.write("  cd relax-${a}-${c}/\n")
+                            fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                            fout.write("  cd ../\n")
+                            fout.write("done\n")
+                        else:
+                            # only optimize a
+                            fout.write("  mkdir relax-${a}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${a}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                    
+                            fout.write("  cat > relax-${a}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${a}/POSCAR\n")
+                            fout.write("  cd relax-${a}/\n")
+                            fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                            fout.write("  cd ../\n")
+                        fout.write("done\n")
+                    else:
+                        # a is not optimized
+                        if nc >= 2:
+                            # only optimize c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                            fout.write("do\n")
+                            fout.write("  mkdir relax-${c}\n")
+                            fout.write("  cp POTCAR KPOINTS INCAR relax-${c}/\n")
+                            fout.write("  vec11=`echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec12=`echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                   
+                            fout.write("  vec13=`echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec21=`echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec22=`echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec23=`echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec31=`echo \"scale=6; result=${c1} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")
+                            fout.write("  vec32=`echo \"scale=6; result=${c2} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                                       
+                            fout.write("  vec33=`echo \"scale=6; result=${c3} * ${c} / ${c_in}; if (length(result)==scale(result) && result!=0) print 0; print result\" | bc`\n")                    
+                            fout.write("  cat > relax-${c}/POSCAR<<EOF\n")
+                            fout.write("general comment\n")
+                            fout.write("1.0\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  cat POSCAR | tail -n +6 >> relax-${c}/POSCAR\n")
+                            fout.write("  cd relax-${c}/\n")
+                            fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                            fout.write("  cd ../\n")
+                            fout.write("done\n")
+                        else:
+                            # neither a or c is optimized
+                            pass
 
         # generate result analysis script
         os.system("mkdir -p post-processing")
@@ -1504,11 +1722,23 @@ class opt_run(vasp):
             fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
             fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
 
+            range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
+            range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
+            # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
+            if range_a_end  > range_a[1]:
+                range_a_end = range_a[1]
+
+            range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
+            range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
+            # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
+            if range_c_end  > range_c[1]:
+                range_c_end = range_c[1]
+
             if na >= 2:
-                fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
+                fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
                 fout.write("do\n")
                 if nc >= 2:
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
                     fout.write("do\n")
                     fout.write("  energy=`cat ../relax-${a}-${c}/OUTCAR | grep 'energy  without entropy=' | tail -1`\n")
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
@@ -1549,7 +1779,7 @@ class opt_run(vasp):
                     fout.write("gnuplot energy-latconst.gp")
             else:
                 if nc >= 2:
-                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
                     fout.write("do\n")
                     fout.write("  energy=`cat ../relax-${c}/OUTCAR | grep 'energy  without entropy=' | tail -1`\n")
                     fout.write("  cat >> energy-latconst.data <<EOF\n")
@@ -1574,6 +1804,10 @@ class opt_run(vasp):
         os.chdir("../")
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("bash opt-tetragonal.sh")
+            for i_batch_a in range(n_batch_a):
+                for i_batch_c in range(n_batch_c):
+                    os.system("bash opt-tetragonal-%d-%d.sh" % (i_batch_a, i_batch_c))
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="opt-tetragonal", server=self.run_params["server"])
+        for i_batch_a in range(n_batch_a):
+            for i_batch_c in range(n_batch_c):
+                server_handle(auto=auto, directory=directory, jobfilebase="opt-tetragonal-%d-%d" % (i_batch_a, i_batch_c), server=self.run_params["server"])
