@@ -1001,9 +1001,12 @@ def main():
             help="set epsil in inputph")
 
     gp.add_argument("--lraman", type=str, default=None,
-            choices=["true", "false"],
+            choices=[".true.", ".false."],
             help="set lraman, can be 'true' or 'false' only. default is None which means 'false' in real world.")
 
+    gp.add_argument("--search-sym", type=str, default=None,
+            choices=[".true.", ".false."],
+            help="set it to .false. if you want to disable the mode symmetry analysis.")
 
     # Phonopy
     # ---------------------------------------------------------
@@ -2090,6 +2093,7 @@ def main():
         inputph["nq1"] = args.nq[0]
         inputph["nq2"] = args.nq[1]
         inputph["nq3"] = args.nq[2]
+        inputph["search_sym"] = args.search_sym
 
 
         if args.runtype == 0:

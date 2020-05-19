@@ -40,7 +40,28 @@ if __name__ == "__main__":
             specialk.append({
                 "label": line.split("\n")[0].split("#")[1].upper(),
                 "xcoord": float(line.split()[3]),
-                }) 
+                })
+    
+
+    locs = [specialk[i]["xcoord"] for i in range(len(specialk))]
+    labels = ["{/symbol G}" if specialk[i]["label"] == "GAMMA" else "%s" % specialk[i]["label"] for i in range(len(specialk))]
+    #
+    # sometime the xcoord of two specialk might be the same
+    # either caused from physical reason or when you specif
+    # 0 to connect the two special k point.
+    # whatever the reason we should join the two label to one
+    # label like K|U
+    locs_refined = []
+    labels_refined = []
+    labels_refined.append(labels[0])
+    locs_refined.append(locs[0])
+    for i in range(1, len(labels)):
+        if locs[i]  == locs[i-1]:
+            # join labels[i] and labels[i-1]
+            labels_refined[-1] = "%s | %s" % (labels[i-1], labels[i])
+        else:
+            labels_refined.append(labels[i])
+            locs_refined.append(locs[i])
 
 
     # get flfrq file name
@@ -72,13 +93,12 @@ if __name__ == "__main__":
         fout.write("set title 'Phonon spectrum'\n")
         fout.write("set xlabel 'K'\n")
         fout.write("set ylabel 'Frequency (cm^{-1})'\n")
+
         fout.write("set xtics(")
-        for point in specialk:
-            if point["label"].upper() == "GAMMA":
-                fout.write("'%s' %f, " % ("{/symbol G}", point["xcoord"]))
-            else:
-                fout.write("'%s' %f, " % (point["label"], point["xcoord"]))
-        fout.write(")\n")
+        for i in range(int(len(labels_refined)-1)):
+            fout.write("'%s' %f, " % (labels_refined[i], locs_refined[i]))
+        fout.write("'%s' %f)\n" % (labels_refined[-1], locs_refined[-1]))
+
         fout.write("set grid xtics ytics\n")
         fout.write("set autoscale\n")
         fout.write("plot for [i=${column_begin}:${column_end}:1] 'matdyn.freq.gp' using 1:i w l\n")

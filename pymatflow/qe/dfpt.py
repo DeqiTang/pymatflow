@@ -145,6 +145,7 @@ class dfpt_run:
                 "nq1": 0,
                 "nq2": 0,
                 "nq3": 0,
+                "search_sym": None,
                 }
         # ldisp and nogg is not allowed to be set through inputph
         if "ldisp" in inputph or "nogg" in inputph:
@@ -180,7 +181,7 @@ class dfpt_run:
                     if item in ["nq1", "nq2", "nq3"]:
                         continue  # handled individually
                     if self.inputph[item] is not None:
-                        if type(self.inputph[item]) == str and item != "trans" and item != "epsil":
+                        if type(self.inputph[item]) == str and item not in ["trans", "epsil", "lrman", "search_sym"]:
                             fout.write("%s = '%s'\n" % (item, str(self.inputph[item])))
                         else:
                             fout.write("%s = %s\n" % (item, str(self.inputph[item])))
