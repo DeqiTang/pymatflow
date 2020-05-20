@@ -67,7 +67,7 @@ int main() {
 
     for (auto dir : xy_dirs) {
         opt_out.open(dir+"/OUTCAR");
-        /*&
+        /*
         while (std::getline(opt_out, line)) {
             if (std::regex_match(line, energy_regex)) {
                 energy_strings.push_back(line);
@@ -79,6 +79,7 @@ int main() {
         std::vector<std::string> xy(std::sregex_token_iterator(dir.begin(), dir.end(), xy_dir, -1), 
             std::sregex_token_iterator());
         pes_data_file<< std::setprecision(std::numeric_limits<double>::digits10 + 1)  << xy[1] << " " << xy[2] << " " << get_final_energy_from_outcar(opt_out) << "\n";
+        opt_out.close();
     }
 
     return 0;
