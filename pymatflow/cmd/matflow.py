@@ -1551,15 +1551,40 @@ def main():
             description="nudged elastic band related setting")
 
     gp.add_argument("--iopt", type=int, default=None,
-            choices=[0, 1, 2],
+            choices=[0, 1, 2, 3],
             help="chioce for optimizer: 0->vasp, 1, 2->vtst")
 
     gp.add_argument("--lclimb", type=str, default=None,
             choices=["T", "F"],
             help="whether use climbing image")
 
+    gp.add_argument("--lnebcell", type=str, default=None,
+            choices=["T", "F"],
+            help="flag to turn on SS-NEB, used with ISIF=3 and IOPT=3")
+
     gp.add_argument("--spring", type=int, default=None,
             help="gives the spring constant between the images as used in the elastic band method")
+
+    gp.add_argument("--maxmove", type=float, default=None,
+            help="maximum allowed step size for translation, default is None which means 0.2")
+
+    gp.add_argument("--lglobal", type=str, default=None,
+            choices=["T", "F"],
+            help="optimize the NEB globally instead of image-by-image, default is None which means .TRUE.")
+
+    gp.add_argument("--lautoscale", type=str, default=None,
+            choices=["T", "F"],
+            help="automatically determines INVCURV, default is T")
+
+    gp.add_argument("--invcurv", type=float, default=None,
+            help="initial inverse curvature, used to construct the inverse Hessian matrix. default is None which means 0.01")
+
+    gp.add_argument("--llineopt", type=str, default=None,
+            choices=["T", "F"],
+            help="use a force based line minimizer for translation. default is None(means F)")
+
+    gp.add_argument("--fdstep", type=float, default=None,
+            help="finite difference step size for line optimizer, default is None(5E-3)")
 
     gp.add_argument("--nimage", type=int, default=None,
             help="number of image to interpolate. total image will be nimage+2.")
@@ -2447,9 +2472,15 @@ def main():
         params["LELF"] = args.lelf if "LELF" not in params or args.lelf != None else params["LELF"]
         params["IOPT"] = args.iopt if "IOPT" not in params or args.iopt != None else params["IOPT"]
         params["LCLIMB"] = args.lclimb if "LCLIMB" not in params or args.lclimb != None else params["LCLIMB"]
+        params["LNEBCELL"] = args.lnebcell if "LNEBCELL" not in params or args.lnebcell != None else params["LNEBCELL"]
         params["SPRING"] = args.spring if "SPRING" not in params or args.spring != None else params["SPRING"]
+        params["MAXMOVE"] = args.maxmove if "MAXMOVE" not in params or args.maxmove != None else params["MAXMOVE"]
+        params["LGLOBAL"] = args.lglobal if "LGLOBAL" not in params or args.lglobal != None else params["LGLOBAL"]
+        params["LAUTOSCALE"] = args.lautoscale if "LAUTOSCALE" not in params or args.lautoscale != None else params["LAUTOSCALE"]
+        params["INVCURV"] = args.invcurv if "INVCURV" not in params or args.invcurv != None else params["INVCURV"]
         params["IMAGES"] = args.nimage if "IMAGES" not in params or args.images != None else params["IMAGES"]
-
+        params["LLINEOPT"] = args.llineopt if "LLINEOPT" not in params or args.llineopt != None else params["LLINEOPT"]
+        params["FDSTEP"] = args.fdstep if "FDSTEP" not in params or args.fdstep != None else params["FDSTEP"]
         if args.runtype == 0:
             # static
             from pymatflow.vasp.static import static_run

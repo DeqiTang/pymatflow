@@ -72,7 +72,8 @@ class vasp:
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG",
             "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG",
-            "IOPT", "LCLIMB", "SPRING", "IMAGES"
+            "IOPT", "LCLIMB", "SPRING", "IMAGES", "LNEBCELL", "MAXMOVE", "LGLOBAL", 
+            "LAUTOSCALE", "INVCURV", "LLINEOPT", "FDSTEP", 
         ]
         md_allowed = [
             "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
