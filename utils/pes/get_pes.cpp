@@ -40,7 +40,7 @@ double get_final_energy_from_outcar(std::ifstream& outcar) {
 
     //return double(energy_str_split[3]);
     std::cout << energy_str_split[4] << std::endl;
-    return (double)std::atof(energy_str_split[4].c_str());
+    return std::atof(energy_str_split[4].c_str());
 };
 
 
@@ -65,6 +65,8 @@ int main() {
     pes_data_file.open("post-processing/pes.data", std::ios::out);
     pes_data_file << "#format: x y energy\n";
 
+    std::regex xy_dir("_");
+    
     for (auto dir : xy_dirs) {
         opt_out.open(dir+"/OUTCAR");
         /*
@@ -75,12 +77,12 @@ int main() {
         }
         */
         //std::cout << std::setprecision(std::numeric_limits<double>::digits10 + 1) << get_final_energy_from_outcar(opt_out) << std::endl;
-        std::regex xy_dir("_");
         std::vector<std::string> xy(std::sregex_token_iterator(dir.begin(), dir.end(), xy_dir, -1), 
             std::sregex_token_iterator());
         pes_data_file<< std::setprecision(std::numeric_limits<double>::digits10 + 1)  << xy[1] << " " << xy[2] << " " << get_final_energy_from_outcar(opt_out) << "\n";
         opt_out.close();
     }
 
+    pes_data_file.close()
     return 0;
 }
