@@ -1664,6 +1664,12 @@ def main():
     gp.add_argument("--batch-x-y", type=int, nargs=2, default=None,
             help="number of structures to calculate each batch x and y, default is all in one batch")
 
+    # fix atoms
+    gp = sub_parser.add_argument_group(title="fix atoms",
+            description="specify atoms to fix in optimization, only used when --runtype=1")
+
+    gp.add_argument("--fix", help="list of fixed atoms", nargs='+', type=int)
+
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
     # ==========================================================
@@ -2504,6 +2510,14 @@ def main():
         elif args.runtype == 1:
             # optimization
             from pymatflow.vasp.opt import opt_run
+            #
+            if args.fix != None:
+                fix_str = ""
+                for i in args.fix:
+                        fix_str += "%d " % i
+                os.system("xyz-fix-atoms.py -i %s -o %s --fix %s" % (xyzfile, xyzfile, fix_str))
+                args.selective_dynamics = "T"
+            #            
             task = opt_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params, runtype="opt")

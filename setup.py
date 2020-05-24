@@ -17,7 +17,7 @@ class CleanCommand(Command):
 
 setup(
     name = "pymatflow",
-    version = '0.0.9a2',
+    version = '0.0.9a3',
     keywords = ("Ab intio ,DFT, workflow, input generation"),
     description = "An emulation assistant, input generation and manage for DFT programs",
     license = "MIT",
