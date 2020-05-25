@@ -1290,7 +1290,7 @@ def main():
             help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->neb; 6->vasp-phonon; 7->phonopy; 8->surf pes")
 
     gp.add_argument("--static", type=str, default="all",
-            choices=["all", "scf", "optics"],
+            choices=["all", "scf", "optics", "bse"],
             help="in case of all(default), run scf, nscf, bands in a single run; in case of scf, run scf only, in case of optics, run scf and optics calc in a single run")
 
     # run option
@@ -1665,10 +1665,22 @@ def main():
             help="number of structures to calculate each batch x and y, default is all in one batch")
 
     # fix atoms
-    gp = sub_parser.add_argument_group(title="fix atoms",
+    gp = subparser.add_argument_group(title="fix atoms",
             description="specify atoms to fix in optimization, only used when --runtype=1")
 
     gp.add_argument("--fix", help="list of fixed atoms", nargs='+', type=int)
+
+    # miscellaneous
+    gp = subparser.add_argument_group(title="miscellaneous",
+            description="miscallaneous setting")
+
+    gp.add_argument("--bse-level", type=int, default=0,
+            choices=[0, 1, 2],
+            help="0 -> bse on standard DFT; 1 -> bse on hybrid functional; 2 -> bse on GW")
+
+    gp.add_argument("--algo-gw", type=str, default="EVGW",
+            choices=["EVGW", "GW", "GW0", "QPGW0", "QPGW"],
+            help="ALGO used for GW")
 
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
@@ -2507,6 +2519,9 @@ def main():
             elif args.static == "optics":
                 task.set_kpoints(kpoints_mp=args.kpoints_mp)                    
                 task.optics(directory=args.directory, runopt=args.runopt, auto=args.auto)
+            elif args.static == "bse":
+                task.set_kpoints(kpoints_mp=args.kpoints_mp)
+                task.bse(directory=args.directory, runopt=args.runopt, auto=args.auto, bse_level=args.bse_level, algo_gw=args.algo_gw)
         elif args.runtype == 1:
             # optimization
             from pymatflow.vasp.opt import opt_run
