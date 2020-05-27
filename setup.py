@@ -169,6 +169,7 @@ setup(
         "pymatflow/scripts/xyz-modified-to-poscar.py",
         "pymatflow/scripts/llhpc-env.py",
         "pymatflow/scripts/nebmake.py",
+        "pymatflow/scripts/contour-xyz.py",
         "pymatflow/remote/scripts/thq.py",
         "pymatflow/remote/scripts/thcancel.py",
         "pymatflow/remote/scripts/thpull.py",

@@ -1681,6 +1681,9 @@ def main():
     gp.add_argument("--algo-gw", type=str, default="EVGW",
             choices=["EVGW", "GW", "GW0", "QPGW0", "QPGW"],
             help="ALGO used for GW")
+    
+    gp.add_argument("--symprec", type=float, default=None,
+            help="determines how accurately the positions in the POSCAR file must be specified. The default, SYMPREC=10-5, is usually large enough, even if the POSCAR file has been generated with single precision accuracy. Increasing SYMPREC means that the positions in the POSCAR file can be specified with less accuracy (increasing fuzziness).")
 
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
