@@ -29,6 +29,9 @@ if __name__ == "__main__":
     parser.add_argument("--shape", type=int, nargs=2, #required=True,
         help="size of the image")
 
+    parser.add_argument("--levels", type=int, default=10,
+        help="levels of the color map or color bar")
+
     # ============================================================================
     args = parser.parse_args()
 
@@ -67,7 +70,7 @@ if __name__ == "__main__":
     Z = data[:, 2].reshape((shape[0], shape[1]))
     # fill color, three color are divided into three layer(6)
     # cmap = plt.cm.hot means using thermostat plot(graduated red yellow)
-    cset = plt.contourf(X, Y, Z, levels=6, cmap=plt.cm.hot)
+    cset = plt.contourf(X, Y, Z, levels=args.levels, cmap=plt.cm.hot)
     contour = plt.contour(X, Y, Z, levels=[20, 40], colors='k')
     plt.colorbar(cset)
     #plt.autoscale()

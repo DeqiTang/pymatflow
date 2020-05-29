@@ -1289,10 +1289,6 @@ def main():
             choices=[0, 1, 2, 3, 4, 5, 6, 7, 8],
             help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->neb; 6->vasp-phonon; 7->phonopy; 8->surf pes")
 
-    gp.add_argument("--static", type=str, default="all",
-            choices=["all", "scf", "optics", "bse"],
-            help="in case of all(default), run scf, nscf, bands in a single run; in case of scf, run scf only, in case of optics, run scf and optics calc in a single run")
-
     # run option
     gp.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
@@ -1670,9 +1666,18 @@ def main():
 
     gp.add_argument("--fix", help="list of fixed atoms", nargs='+', type=int)
 
-    # miscellaneous
-    gp = subparser.add_argument_group(title="miscellaneous",
-            description="miscallaneous setting")
+
+    # static calc related setting
+    gp = subparser.add_argument_group(title="static calc",
+            description="setting type of static calculation when -r 0")
+
+    gp.add_argument("--static", type=str, default="band",
+            choices=["scf", "band", "optics", "bse"],
+            help="in case of band(default), run scf, nscf(bands) in a single run; in case of scf, run scf only, in case of optics, run scf and optics calc in a single run")
+
+    gp.add_argument("--hse-in-scf", type=str, default="false",
+            choices=["true", "false", "True", "False"],
+            help="choose whether to use HSE in both scf and nscf or only in nscf, when calc band structure")
 
     gp.add_argument("--bse-level", type=int, default=0,
             choices=[0, 1, 2],
@@ -1681,6 +1686,10 @@ def main():
     gp.add_argument("--algo-gw", type=str, default="EVGW",
             choices=["EVGW", "GW", "GW0", "QPGW0", "QPGW"],
             help="ALGO used for GW")
+
+    # miscellaneous
+    gp = subparser.add_argument_group(title="miscellaneous",
+            description="miscallaneous setting")
     
     gp.add_argument("--symprec", type=float, default=None,
             help="determines how accurately the positions in the POSCAR file must be specified. The default, SYMPREC=10-5, is usually large enough, even if the POSCAR file has been generated with single precision accuracy. Increasing SYMPREC means that the positions in the POSCAR file can be specified with less accuracy (increasing fuzziness).")
@@ -2514,8 +2523,12 @@ def main():
             if params["LNONCOLLINEAR"] != None:
                 if params["LNONCOLLINEAR"].upper() == ".TRUE." or params["LNONCOLLINEAR"].upper() == "T":
                     task.magnetic_status = "non-collinear"
-            if args.static == "all":
-                task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpath=get_kpath(args.kpath_manual, args.kpath_file))
+            if args.static == "band":
+                if args.hse_in_scf.lower() == "true":
+                    hse_in_scf = True
+                elif args.hse_in_scf.lower() == "false":
+                    hse_in_scf = False
+                task.band(directory=args.directory, runopt=args.runopt, auto=args.auto, kpath=get_kpath(args.kpath_manual, args.kpath_file), hse_in_scf=hse_in_scf)
             elif args.static == "scf":
                 task.set_kpoints(kpoints_mp=args.kpoints_mp)
                 task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto)

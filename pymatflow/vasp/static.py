@@ -345,10 +345,13 @@ class static_run(vasp):
     def set_scf(self, params):
         pass
 
-    def run(self, directory="tmp-vasp-static", runopt="gen", auto=0, kpath=None):
+    def band(self, directory="tmp-vasp-static", runopt="gen", auto=0, kpath=None, hse_in_scf=True):
         """
         directory: a place for all the generated files
 
+        hse_in_scf:
+            if HSE is used, choose whether to use HSE in both scf and nscf or only in nscf.
+            if HSE is not used, hse_in_scf will do nothing
         runopt:
             gen    -> generate a new calculation but do not run
             run    -> run a calculation on the previously generated files
@@ -370,13 +373,18 @@ class static_run(vasp):
             if (self.incar.params["LHFCALC"] == "T" or self.incar.params["LHFCALC"] == ".TRUE.") and (self.incar.params["HFSCREEN"] == 0.2 or self.incar.params["HFSCREEN"].split()[0] == "0.2"):
                 # trying to do HSE calculation
                 # acoording to tutorials on VASP Wiki, HSE is included in nscf calc, and is not needed in scf
-                self.incar.params["LHFCALC"] = None
-                self.incar.params["HFSCREEN"] = None
-                incar_scf = self.incar.to_string()
-                kpoints_scf = self.kpoints.to_string()
-                # now we set back the value for HSE so that they can be used in nscf
-                self.incar.params["LHFCALC"] = "T"
-                self.incar.params["HFSCREEN"] = 0.2
+                # but actually we use hse_in_scf to control whether use HSE in scf here.
+                if hse_in_scf == False:
+                    self.incar.params["LHFCALC"] = None
+                    self.incar.params["HFSCREEN"] = None
+                    incar_scf = self.incar.to_string()
+                    kpoints_scf = self.kpoints.to_string()
+                    # now we set back the value for HSE so that they can be used in nscf
+                    self.incar.params["LHFCALC"] = "T"
+                    self.incar.params["HFSCREEN"] = 0.2
+                else:
+                    incar_scf = self.incar.to_string()
+                    kpoints_scf = self.kpoints.to_string()
             else:
                 incar_scf = self.incar.to_string()
                 kpoints_scf = self.kpoints.to_string()
