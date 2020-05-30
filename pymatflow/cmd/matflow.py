@@ -1694,6 +1694,12 @@ def main():
     gp.add_argument("--symprec", type=float, default=None,
             help="determines how accurately the positions in the POSCAR file must be specified. The default, SYMPREC=10-5, is usually large enough, even if the POSCAR file has been generated with single precision accuracy. Increasing SYMPREC means that the positions in the POSCAR file can be specified with less accuracy (increasing fuzziness).")
 
+    gp.add_argument("--amix", type=float, default=None,
+            help="specifies the linear mixing parameter.")
+
+    gp.add_argument("--bmix", type=float, default=None,
+            help="sets the cutoff wave vector for Kerker mixing scheme")            
+
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
     # ==========================================================
@@ -2511,6 +2517,8 @@ def main():
         params["IMAGES"] = args.nimage if "IMAGES" not in params or args.images != None else params["IMAGES"]
         params["LLINEOPT"] = args.llineopt if "LLINEOPT" not in params or args.llineopt != None else params["LLINEOPT"]
         params["FDSTEP"] = args.fdstep if "FDSTEP" not in params or args.fdstep != None else params["FDSTEP"]
+        params["AMIX"] = args.amix if "AMIX" not in params or args.amix != None else params["AMIX"]
+        params["BMIX"] = args.bmix if "BMIX" not in params or args.bmix != None else params["BMIX"]
         if args.runtype == 0:
             # static
             from pymatflow.vasp.static import static_run

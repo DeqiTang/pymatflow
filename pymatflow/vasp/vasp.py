@@ -52,6 +52,7 @@ class vasp:
             "IVDW", "LORBIT", "LOPTICS", "CSHIFT", "NEDOS", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "LSORBIT","SAXIS", "LMAXMIX", "LHFCALC", "HFSCREEN", "AEXX", "LSUBROT", "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG", "LELF",
+            "AMIX", "BMIX",
         ]
         opt_allowed = [
             "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
@@ -59,12 +60,14 @@ class vasp:
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG",
             "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG",
+            "AMIX", "BMIX",
         ]
         phonopy_allowed = [
             "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
             "IVDW", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG",
+            "AMIX", "BMIX",
         ]
         neb_allowed = [
             "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
@@ -74,6 +77,7 @@ class vasp:
             "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG",
             "IOPT", "LCLIMB", "SPRING", "IMAGES", "LNEBCELL", "MAXMOVE", "LGLOBAL", 
             "LAUTOSCALE", "INVCURV", "LLINEOPT", "FDSTEP", 
+            "AMIX", "BMIX",
         ]
         md_allowed = [
             "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
@@ -81,6 +85,7 @@ class vasp:
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG",
             "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG",
+            "AMIX", "BMIX",
         ]
         phonon_allowed = [
             "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
@@ -88,6 +93,7 @@ class vasp:
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG",
             "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG",
+            "AMIX", "BMIX",
         ]
         if runtype == "static":
             for item in params:
