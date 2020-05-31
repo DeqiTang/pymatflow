@@ -2,17 +2,20 @@
 
 import os
 import sys
+import copy
 import argparse
 
 from pymatflow.cmd.structflow import read_structure
 
+from pymatflow.vasp.post.pdos import post_pdos
+
 def main():
     parser = argparse.ArgumentParser()
     
-    parser.add_argument("-i", "--input", type=str, required=True,
-            help="input structure file")
+    parser.add_argument("-i", "--input", type=str, nargs="+", required=True,
+            help="input structure file and vasprun.xml, you can specify two vasprun.xml(one for scf and one for nscf). eg. -i structure.cif vasprun.xml.scf vasprun.xml.nscf")
 
-    parser.add_argument("-o", "--output", type=str, default="./contour",
+    parser.add_argument("-o", "--output", type=str, default="./contour-ldos",
         help="prefix of the output image file name")
     
     parser.add_argument("--atoms", nargs='+', type=int,
@@ -20,10 +23,6 @@ def main():
 
     parser.add_argument("--around-z", type=float, nargs=3,
         help="select atoms around specified z in Angstrom with tolerance, like this --around-z 10 -0.5 0.5")
-
-    parser.add_argument("--dgrid3d", type=int, nargs=3,
-        default=[100, 100, 4],
-        help="used by gnuplot to set dgrid3d int, int, int")
 
     parser.add_argument("--levels", type=int, default=10,
         help="levels of the color map or color bar")
@@ -41,7 +40,20 @@ def main():
     args = parser.parse_args()
 
 
-    structure = read_structure(args.input)
+    structure = read_structure(args.input[0])
+
+    pdos = post_pdos()
+    if len(args.input) == 2:
+        efermi_from = "nscf"
+        pdos.get_vasprun(args.input[1])
+        pdos.get_efermi(vasprun=args.input[1])
+    elif len(args.input) == 3:
+        efermi_from = "scf"
+        pdos.get_vasprun(args.input[2])
+        pdos.get_efermi(vasprun=args.input[1])
+    #pdos.export(directory=args.directory, engine=args.engine, plotrange=args.plotrange)
+
+
 
     if args.atoms == None and args.around_z == None:
         atoms_index_from_1 = range(1, len(structure.atoms)+1)
@@ -58,45 +70,32 @@ def main():
         print("--atoms and --around-z can not be used at the same time.")
         sys.exit(1)
     
+    # data: [x, y, z, ldos]
     data = []
     for i in atoms_index_from_1:
-        #X.append(structure.atoms[i-1].x)
-        #Y.append(structure.atoms[i-1].y)
-        #Z.append(structure.atoms[i-1].z)
-        data.append([structure.atoms[i-1].x, structure.atoms[i-1].y, structure.atoms[i-1].z])
+        ldos = 0.0
+        #if pdos.magnetic_status == "non-soc-ispin-1":
+        #    pdos.data[i-1]
+        #elif pdos.magnetic_status == "non-soc-ispin-2":
+        #    pdos.data[i-1]
+        #elif pdos.magnetic_status == "soc-ispin-1" or pdos.magnetic_status == "soc-ispin-2":
+        #    pdos.data[i-1]
+        for item in pdos.data[i-1]:
+            if item == "ion":
+                continue
+            for itm in pdos.data[i-1][item]:
+                if itm == "energy":
+                    continue
+                ldos += sum(pdos.data[i-1][item][itm])
+        data.append([structure.atoms[i-1].x, structure.atoms[i-1].y, structure.atoms[i-1].z, ldos])
+
 
     with open(args.output+".data", "w") as fout:
-        fout.write("# format: x y z\n")
+        fout.write("# format: x y z ldos\n")
         for d in data:
-            fout.write("%f\t%f\t%f\n" % (d[0], d[1], d[2]))
+            fout.write("%f\t%f\t%f\t%f\n" % (d[0], d[1], d[2], d[3]))
     
 
-    with open("plot.gnuplot", "w") as fout:
-        fout.write("set term gif\n")
-        fout.write("set dgrid3d %d, %d, %d\n" % (args.dgrid3d[0], args.dgrid3d[1], args.dgrid3d[2]))
-        fout.write("set contour base\n")
-        fout.write("unset key\n")
-        fout.write("set autoscale\n")
-        fout.write("set xlabel \"X\"\n")
-        fout.write("set ylabel \"Y\"\n")
-        fout.write("set zlabel \"Z\"\n")
-        #fout.write("set output \"%s\"\n" % (args.output+".gif"))
-        #fout.write("set multiplot layout 1, 2\n")
-
-        #fout.write("set origin 0, 0\n")
-        fout.write("\n\n")
-        fout.write("set surface\n")
-        fout.write("set pm3d hidden3d\n")
-        fout.write("set output \"%s\"\n" % (args.output+".surf"+".gif"))
-        fout.write("splot '%s' u 1:2:3 w pm3d\n" % (args.output+".data"))
-
-        #fout.write("set origin 0.5, 0\n")
-        fout.write("\n\n")
-        fout.write("set pm3d map\n")
-        fout.write("set surface\n")
-        fout.write("set output \"%s\"\n" % (args.output+".map"+".gif"))
-        fout.write("splot '%s' u 1:2:3 w pm3d\n" % (args.output+".data"))
-    os.system("gnuplot plot.gnuplot")
 
     # ----------------
     # 2D contour plot
@@ -126,9 +125,9 @@ def main():
     
     ngridx = args.ngridx
     ngridy = args.ngridy
-    x = data_np[:, 0]
-    y = data_np[:, 1]
-    z = data_np[:, 2]
+    x = data_np[:, 0] # x
+    y = data_np[:, 1] # y
+    z = data_np[:, 3] # ldos
 
     #fig, (ax1, ax2) = plt.subplots(nrows=2)
     fig = plt.figure()
@@ -190,6 +189,17 @@ def main():
     plt.autoscale()
     plt.show() 
     fig.savefig(args.output+".2d-contour.png")
+
+    plt.close()
+    ax = plt.axes(projection='3d')    
+    cset = ax.plot_trisurf(x, y, z, cmap='rainbow')
+    plt.colorbar(cset)
+    plt.autoscale()
+    plt.tight_layout()
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('ldos')    
+    plt.savefig(args.output+".3d-trisurf.png")
 
 if __name__ == "__main__":
     main()

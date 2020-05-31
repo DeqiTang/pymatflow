@@ -338,6 +338,14 @@ def main():
             default=[0, 1.0],
             help="band range to plot. in percentage")
 
+    subparser.add_argument("--xrange", type=float, nargs=2,
+            default=None,
+            help="x range of the plot")
+
+    subparser.add_argument("--yrange", type=float, nargs=2,
+            default=None,
+            help="y range of the plot")
+
     subparser.add_argument("--engine", type=str, default="matplotlib",
             choices=["matplotlib", "gnuplot"],
             help="plot engine, matplotlib or gnuplot")
@@ -584,7 +592,7 @@ def main():
             bands = post_bands()
             bands.get_kpath_and_vasprun(kpath=get_kpath(kpath_manual=args.kpath_manual, kpath_file=args.kpath_file), vasprun=os.path.join(args.directory, "vasprun.xml"))
             bands.get_efermi(vasprun=os.path.join(args.directory, "vasprun.xml" if args.efermi.lower() == "nscf" else "vasprun.xml.scf"))
-            bands.export(directory=args.directory, engine=args.engine, bandrange=args.bandrange)
+            bands.export(directory=args.directory, engine=args.engine, bandrange=args.bandrange, xrange=args.xrange, yrange=args.yrange)
             if bands.magnetic_status == "soc-ispin-1" or bands.magnetic_status == "soc-ispin-2":
                 # actually soc-ispin-2 never exists
                 print("=====================================================================\n")

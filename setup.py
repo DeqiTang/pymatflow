@@ -17,7 +17,7 @@ class CleanCommand(Command):
 
 setup(
     name = "pymatflow",
-    version = '0.0.9a3',
+    version = '0.0.9a4',
     keywords = ("Ab intio ,DFT, workflow, input generation"),
     description = "An emulation assistant, input generation and manage for DFT programs",
     license = "MIT",
@@ -170,6 +170,8 @@ setup(
         "pymatflow/scripts/llhpc-env.py",
         "pymatflow/scripts/nebmake.py",
         "pymatflow/scripts/contour-xyz.py",
+        "pymatflow/scripts/contour-xyz-diff.py",
+        "pymatflow/scripts/ldos-xyz.py",        
         "pymatflow/remote/scripts/thq.py",
         "pymatflow/remote/scripts/thcancel.py",
         "pymatflow/remote/scripts/thpull.py",

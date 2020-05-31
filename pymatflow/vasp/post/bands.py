@@ -271,7 +271,7 @@ class post_bands:
                 eigenval.remove(None)
             self.eigenval["spin_%d" % (i+1)] = eigenval
 
-    def _plot_band_matplotlib(self, bandrange=[0, 1.0]):
+    def _plot_band_matplotlib(self, bandrange=[0, 1.0], xrange=None, yrange=None):
         """
         :param bandrange:
             a list of two values(between 0 and 1) defining the percentage
@@ -333,6 +333,10 @@ class post_bands:
             plt.xlabel("K")
             plt.ylabel("Energy(eV)")
             plt.grid(b=True, which='major')
+            if xrange != None:
+                plt.xlim(xmin=xrange[0], xmax=xrange[1])
+            if yrange != None:
+                plt.ylim(ymin=yrange[0], ymax=yrange[1])
             plt.savefig("band-structure-%s-spin-%d.png" % (self.magnetic_status, i+1))
             plt.close()
 
@@ -346,11 +350,15 @@ class post_bands:
             plt.ylabel("Energy(eV)")
             plt.xticks(self.locs, self.labels_for_matplotlib)
             plt.grid(b=True, which='major')
+            if xrange != None:
+                plt.xlim(xmin=xrange[0], xmax=xrange[1])
+            if yrange != None:
+                plt.ylim(ymin=yrange[0], ymax=yrange[1])            
             plt.savefig("band-structure-%s-spin-all.png" % self.magnetic_status)
             plt.close()     
 
 
-    def _plot_band_gnuplot(self, bandrange=[0, 1.0]):
+    def _plot_band_gnuplot(self, bandrange=[0, 1.0], xrange=None, yrange=None):
         """
         :param bandrange:
             a list of two values(between 0 and 1) defining the percentage
@@ -417,6 +425,10 @@ class post_bands:
                 fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
                 fout.write("set grid xtics ytics\n")
                 fout.write("set autoscale\n")
+                if xrange != None:
+                    fout.write("set xrange [%f:%f]\n" % (xrange[0], xrange[1]))
+                if yrange != None:
+                    fout.write("set yrange [%f:%f]\n" % (yrange[0], yrange[1]))
                 fout.write("plot 'all-bands-%s-spin-%d.data' using 1:($2-%f) w l\n" % (self.magnetic_status, i+1, self.efermi))
             os.system("gnuplot all-bands-%s-spin-%d.gnuplot" % (self.magnetic_status, i+1))
 
@@ -434,12 +446,16 @@ class post_bands:
                 fout.write("'%s' %f)\n" % (self.labels_for_gnuplot[-1], self.locs[-1]))
                 fout.write("set grid xtics ytics\n")
                 fout.write("set autoscale\n")
+                if xrange != None:
+                    fout.write("set xrange [%f:%f]\n" % (xrange[0], xrange[1]))
+                if yrange != None:
+                    fout.write("set yrange [%f:%f]\n" % (yrange[0], yrange[1]))                
                 fout.write("plot 'specified-bands-%s-spin-%d.data' using 1:($2-%f) w l\n" % (self.magnetic_status, i+1, self.efermi))
             os.system("gnuplot specified-bands-%s-spin-%d.gnuplot" % (self.magnetic_status, i+1))
 
 
  
-    def plot_band(self, bandrange=[0, 1.0], engine="matplotlib"):
+    def plot_band(self, bandrange=[0, 1.0], engine="matplotlib", xrange=None, yrange=None):
         """
         :parama engine:
             gnuplot or matplotlib
@@ -454,12 +470,12 @@ class post_bands:
         :param imagebase: image file name(not full)
         """
         if engine == "matplotlib":
-            self._plot_band_matplotlib(bandrange=bandrange)
+            self._plot_band_matplotlib(bandrange=bandrange, xrange=xrange, yrange=yrange)
         elif engine == "gnuplot":
-            self._plot_band_gnuplot(bandrange=bandrange)
+            self._plot_band_gnuplot(bandrange=bandrange, xrange=xrange, yrange=yrange)
         #
 
-    def export(self, directory="tmp-vasp-static", bandrange=[0, 1], engine="matplotlib"):
+    def export(self, directory="tmp-vasp-static", bandrange=[0, 1], engine="matplotlib", xrange=None, yrange=None):
         """
         :parama engine:
             gnuplot or matplotlib
@@ -474,5 +490,5 @@ class post_bands:
         """
         os.system("mkdir -p %s/post-processing" % directory)
         os.chdir(os.path.join(directory, "post-processing"))
-        self.plot_band(engine=engine,  bandrange=bandrange)
+        self.plot_band(engine=engine,  bandrange=bandrange, xrange=xrange, yrange=yrange)
         os.chdir("../../")

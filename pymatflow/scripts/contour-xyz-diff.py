@@ -2,6 +2,7 @@
 
 import os
 import sys
+import copy
 import argparse
 
 from pymatflow.cmd.structflow import read_structure
@@ -9,10 +10,10 @@ from pymatflow.cmd.structflow import read_structure
 def main():
     parser = argparse.ArgumentParser()
     
-    parser.add_argument("-i", "--input", type=str, required=True,
-            help="input structure file")
+    parser.add_argument("-i", "--input", type=str, nargs=2, required=True,
+            help="input initial and final structure file, eg. -i initial.cif final.cif")
 
-    parser.add_argument("-o", "--output", type=str, default="./contour",
+    parser.add_argument("-o", "--output", type=str, default="./contour-diff",
         help="prefix of the output image file name")
     
     parser.add_argument("--atoms", nargs='+', type=int,
@@ -21,9 +22,6 @@ def main():
     parser.add_argument("--around-z", type=float, nargs=3,
         help="select atoms around specified z in Angstrom with tolerance, like this --around-z 10 -0.5 0.5")
 
-    parser.add_argument("--dgrid3d", type=int, nargs=3,
-        default=[100, 100, 4],
-        help="used by gnuplot to set dgrid3d int, int, int")
 
     parser.add_argument("--levels", type=int, default=10,
         help="levels of the color map or color bar")
@@ -34,6 +32,9 @@ def main():
     parser.add_argument("--ngridy", type=int, default=200,
         help="ngridy to plot the contour for irregularly spaced data")        
 
+    parser.add_argument("--diff", type=str, default="z",
+        choices=["x", "y", "z"],
+        help="choose to plot the diff of x or y or z")
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
     # ==========================================================
@@ -41,14 +42,15 @@ def main():
     args = parser.parse_args()
 
 
-    structure = read_structure(args.input)
+    initial_structure = read_structure(args.input[0])
+    final_structure = read_structure(args.input[1])
 
     if args.atoms == None and args.around_z == None:
-        atoms_index_from_1 = range(1, len(structure.atoms)+1)
+        atoms_index_from_1 = range(1, len(initial_structure.atoms)+1)
     elif args.atoms == None and args.around_z != None:
         atoms_index_from_1 = []
-        for i in range(len(structure.atoms)):
-            if structure.atoms[i].z > (args.around_z[0] + args.around_z[1]) and structure.atoms[i].z < (args.around_z[0] + args.around_z[2]):
+        for i in range(len(initial_structure.atoms)):
+            if initial_structure.atoms[i].z > (args.around_z[0] + args.around_z[1]) and initial_structure.atoms[i].z < (args.around_z[0] + args.around_z[2]):
                 atoms_index_from_1.append(i+1)
     elif args.atoms != None and args.around_z == None:
         atoms_index_from_1 = args.atoms
@@ -58,45 +60,40 @@ def main():
         print("--atoms and --around-z can not be used at the same time.")
         sys.exit(1)
     
-    data = []
+    initial_data = []
     for i in atoms_index_from_1:
         #X.append(structure.atoms[i-1].x)
         #Y.append(structure.atoms[i-1].y)
         #Z.append(structure.atoms[i-1].z)
-        data.append([structure.atoms[i-1].x, structure.atoms[i-1].y, structure.atoms[i-1].z])
+        initial_data.append([initial_structure.atoms[i-1].x, initial_structure.atoms[i-1].y, initial_structure.atoms[i-1].z])
+
+    final_data = []
+    for i in atoms_index_from_1:
+        #X.append(structure.atoms[i-1].x)
+        #Y.append(structure.atoms[i-1].y)
+        #Z.append(structure.atoms[i-1].z)
+        final_data.append([final_structure.atoms[i-1].x, final_structure.atoms[i-1].y, final_structure.atoms[i-1].z])
+
+
+    # data: [x, y, z, diff(x|y|z)]
+    data = copy.deepcopy(final_data)
+    for i in range(len(final_data)):
+        if args.diff == "x":
+            diff = final_data[i][0] - initial_data[i][0]
+        elif args.diff == "y":
+            diff = final_data[i][1] - initial_data[i][1]   
+        elif args.diff == "z":
+            diff = final_data[i][2] - initial_data[i][2]
+        else:
+            pass
+        data[i].append(diff)
 
     with open(args.output+".data", "w") as fout:
-        fout.write("# format: x y z\n")
+        fout.write("# format: x y z diff(%s)\n" % (args.diff))
         for d in data:
-            fout.write("%f\t%f\t%f\n" % (d[0], d[1], d[2]))
+            fout.write("%f\t%f\t%f\t%f\n" % (d[0], d[1], d[2], d[3]))
     
 
-    with open("plot.gnuplot", "w") as fout:
-        fout.write("set term gif\n")
-        fout.write("set dgrid3d %d, %d, %d\n" % (args.dgrid3d[0], args.dgrid3d[1], args.dgrid3d[2]))
-        fout.write("set contour base\n")
-        fout.write("unset key\n")
-        fout.write("set autoscale\n")
-        fout.write("set xlabel \"X\"\n")
-        fout.write("set ylabel \"Y\"\n")
-        fout.write("set zlabel \"Z\"\n")
-        #fout.write("set output \"%s\"\n" % (args.output+".gif"))
-        #fout.write("set multiplot layout 1, 2\n")
-
-        #fout.write("set origin 0, 0\n")
-        fout.write("\n\n")
-        fout.write("set surface\n")
-        fout.write("set pm3d hidden3d\n")
-        fout.write("set output \"%s\"\n" % (args.output+".surf"+".gif"))
-        fout.write("splot '%s' u 1:2:3 w pm3d\n" % (args.output+".data"))
-
-        #fout.write("set origin 0.5, 0\n")
-        fout.write("\n\n")
-        fout.write("set pm3d map\n")
-        fout.write("set surface\n")
-        fout.write("set output \"%s\"\n" % (args.output+".map"+".gif"))
-        fout.write("splot '%s' u 1:2:3 w pm3d\n" % (args.output+".data"))
-    os.system("gnuplot plot.gnuplot")
 
     # ----------------
     # 2D contour plot
@@ -126,9 +123,9 @@ def main():
     
     ngridx = args.ngridx
     ngridy = args.ngridy
-    x = data_np[:, 0]
-    y = data_np[:, 1]
-    z = data_np[:, 2]
+    x = data_np[:, 0] # x
+    y = data_np[:, 1] # y
+    z = data_np[:, 3] # diff(x|y|z)
 
     #fig, (ax1, ax2) = plt.subplots(nrows=2)
     fig = plt.figure()
