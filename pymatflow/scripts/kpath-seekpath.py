@@ -5,7 +5,8 @@ import seekpath
 import argparse
 
 from pymatflow.base.xyz import base_xyz
-
+from pymatflow.cmd.structflow import read_structure
+from pymatflow.base.element import element
 """
 Reference:
     https://atztogo.github.io/spglib/python-spglib.html
@@ -35,8 +36,8 @@ Warning:
 def main():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-i", "--xyz", type=str, default=None,
-            help="the input xyz structure file")
+    parser.add_argument("-i", "--input", type=str, required=True,
+            help="input structure file")
 
     parser.add_argument("-o", "--output", type=str, default="kpath-from-seekpath.txt",
             help="the output kpoitns file")
@@ -44,21 +45,26 @@ def main():
     parser.add_argument("--join", type=int, default=15,
             help="default number of kpoint to connect the connected high symmetry k point")
 
+    # ===============================================================================
     args = parser.parse_args()
-    #
+    
+    structure = read_structure(filepath=args.input)
 
-    xyz = base_xyz()
-    xyz.get_xyz(args.xyz)
-
-    lattice = xyz.cell
+    lattice = structure.cell
     positions = []
     numbers = []
-    a = np.sqrt(xyz.cell[0][0]**2 + xyz.cell[0][1]**2 + xyz.cell[0][2]**2)
-    b = np.sqrt(xyz.cell[1][0]**2 + xyz.cell[1][1]**2 + xyz.cell[1][2]**2)
-    c = np.sqrt(xyz.cell[2][0]**2 + xyz.cell[2][1]**2 + xyz.cell[2][2]**2)
-    for atom in xyz.atoms:
+    a = np.sqrt(structure.cell[0][0]**2 + structure.cell[0][1]**2 + structure.cell[0][2]**2)
+    b = np.sqrt(structure.cell[1][0]**2 + structure.cell[1][1]**2 + structure.cell[1][2]**2)
+    c = np.sqrt(structure.cell[2][0]**2 + structure.cell[2][1]**2 + structure.cell[2][2]**2)
+    for atom in structure.atoms:
         positions.append([atom.x / a, atom.y / b, atom.z / c]) # must be scaled cartesian
-        numbers.append(xyz.specie_labels[atom.name])
+        #xyz = base_xyz()
+        #xyz.atoms = structure.atoms
+        #xyz.cell = structure.cell
+        #xyz.set_species_number()
+        #numbers.append(xyz.specie_labels[atom.name])
+        numbers.append(element[atom.name].number)
+
     cell = (lattice, positions, numbers)
 
     kpoints_seekpath = seekpath.get_path(cell)

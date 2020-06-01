@@ -191,5 +191,18 @@ def main():
     plt.show() 
     fig.savefig(args.output+".2d-contour.png")
 
+    # =======================
+    # =======================
+    plt.close()
+    ax = plt.axes(projection='3d')    
+    cset = ax.plot_trisurf(x, y, z, cmap='rainbow')
+    plt.colorbar(cset)
+    plt.autoscale()
+    plt.tight_layout()
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')    
+    plt.savefig(args.output+".3d-trisurf.png")
+
 if __name__ == "__main__":
     main()

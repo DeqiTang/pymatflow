@@ -17,7 +17,7 @@ class CleanCommand(Command):
 
 setup(
     name = "pymatflow",
-    version = '0.0.9a4',
+    version = '0.0.10a1',
     keywords = ("Ab intio ,DFT, workflow, input generation"),
     description = "An emulation assistant, input generation and manage for DFT programs",
     license = "MIT",
@@ -162,7 +162,7 @@ setup(
         "pymatflow/scripts/cif-to-pdb.py",
         "pymatflow/scripts/pdb-to-cif.py",
         "pymatflow/scripts/xyz-modified-to-crystal.py",
-        "pymatflow/scripts/kpath-xyz-seekpath.py",
+        "pymatflow/scripts/kpath-seekpath.py",
         "pymatflow/scripts/kpath-cms-2010.py",
         "pymatflow/scripts/pot-from-xyz-modified.py",
         "pymatflow/scripts/vasp-potcar-from-xyz.py",
@@ -204,6 +204,7 @@ setup(
         "pymatflow/vasp/scripts/vasp-efficiency-test.py",
         "pymatflow/vasp/scripts/vasp-phonon.py",
         "pymatflow/vasp/scripts/vasp-berry.py",
+        "pymatflow/vasp/scripts/vasp-time.py",
         "pymatflow/vasp/post/scripts/post-vasp-opt.py",
         "pymatflow/vasp/post/scripts/post-vasp-md.py",
         "pymatflow/vasp/post/scripts/post-vasp-converge.py",
