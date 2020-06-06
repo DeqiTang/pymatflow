@@ -475,6 +475,149 @@ class post_bands:
             self._plot_band_gnuplot(bandrange=bandrange, xrange=xrange, yrange=yrange)
         #
 
+    def print_gap(self):
+        """
+        print out the gap of the band
+        """
+        if self.magnetic_status == "non-soc-ispin-1":
+            spin_n = 1
+        elif self.magnetic_status == "non-soc-ispin-2":
+            spin_n = 2
+        elif self.magnetic_status == "soc-ispin-1":
+            spin_n = 1
+        elif self.magnetic_status == "soc-ispin-2":
+            spin_n = 2
+        """
+        self.eigenval = {
+            "spin_1": [
+                {
+                    "energy": [],
+                    "occupation": [],
+                },
+                {
+                    "energy": [],
+                    "occupation": [],
+                }
+                ...... 
+            ], # length equals to number of kpoints
+            "spin_2": [
+                {
+                    "energy": [],
+                    "occupation": [],
+                },
+                {
+                    "energy": [],
+                    "occupation": [],
+                }
+                ...... 
+            ], # length equals to number of kpoints        
+        }     
+        """
+        
+        print("===============================================================\n")
+        print("            Info about the gap of the system\n")
+        print("---------------------------------------------------------------\n")
+        
+        nband = len(self.eigenval["spin_1"][0]["energy"])
+        nkpoints = len(self.eigenval["spin_1"])
+        if spin_n == 1:
+            print("The calculation is done for only one spin\n")
+            is_metallic = False
+            for i in range(nband):
+                band_energies = [self.eigenval["spin_1"][k]["energy"][i] for k in range(nkpoints)]
+                if min(band_energies) < self.efermi < max(band_energies):
+                    is_metallic = True
+                    break
+            if is_metallic == True:
+                print("The system is metallic!\n")
+                return
+            # is_metallic == False:
+            homo = 0
+            lumo = 0
+            valence = []
+            conduction = []
+            for i in range(nband):
+                band_energies = [self.eigenval["spin_1"][k]["energy"][i] for k in range(nkpoints)]
+                if max(band_energies) <= self.efermi:
+                    valence.append(i)
+                    continue
+                elif min(band_energies) >= self.efermi:
+                    conduction.append(i)
+                    continue
+                else:
+                    print("WARNING: band %d can not be classified to valence or conduction\n" % (i))
+            homo = max(valence)
+            lumo = min(conduction)
+            gap = min([self.eigenval["spin_1"][k]["energy"][lumo] for k in range(nkpoints)]) - max([self.eigenval["spin_1"][k]["energy"][homo] for k in range(nkpoints)])
+            print("The system is semiconducting or insulating\n")
+            print("And the gap is %f\n" % gap)
+        elif spin_n == 2:
+            print("The calculation is done for two spin\n")
+            print("Spin 1:\n")
+            is_metallic_spin_1 = False
+            for i in range(nband):
+                band_energies = [self.eigenval["spin_1"][k]["energy"][i] for k in range(nkpoints)]
+                if min(band_energies) < self.efermi < max(band_energies):
+                    is_metallic_spin_1 = True
+                    break
+
+            if is_metallic_spin_1 == True:
+                print("The system is metallic in spin 1!\n")
+            else:
+                # is_metallic == False:
+                homo = 0
+                lumo = 0
+                valence = []
+                conduction = []
+                for i in range(nband):
+                    band_energies = [self.eigenval["spin_1"][k]["energy"][i] for k in range(nkpoints)]
+                    if max(band_energies) <= self.efermi:
+                        valence.append(i)
+                        continue
+                    elif min(band_energies) >= self.efermi:
+                        conduction.append(i)
+                        continue
+                    else:
+                        print("WARNING: band %d in spin 1 can not be classified to valence or conduction\n" % (i))
+                homo = max(valence)
+                lumo = min(conduction)
+                gap = min([self.eigenval["spin_1"][k]["energy"][lumo] for k in range(nkpoints)]) - max([self.eigenval["spin_1"][k]["energy"][homo] for k in range(nkpoints)])
+                print("The system is semiconducting or insulating in spin 1\n")
+                print("And the gap in spin 1 is %f\n" % gap)
+            
+            print("Spin 2:\n")
+            is_metallic_spin_2 = False
+            for i in range(nband):
+                band_energies = [self.eigenval["spin_2"][k]["energy"][i] for k in range(nkpoints)]
+                if min(band_energies) < self.efermi < max(band_energies):
+                    is_metallic_spin_2 = True
+                    break
+
+            if is_metallic_spin_2 == True:
+                print("The system is metallic in spin 2!\n")
+            else:
+                # is_metallic == False:
+                homo = 0
+                lumo = 0
+                valence = []
+                conduction = []
+                for i in range(nband):
+                    band_energies = [self.eigenval["spin_2"][k]["energy"][i] for k in range(nkpoints)]
+                    if max(band_energies) <= self.efermi:
+                        valence.append(i)
+                        continue
+                    elif min(band_energies) >= self.efermi:
+                        conduction.append(i)
+                        continue
+                    else:
+                        print("WARNING: band %d in spin 2 can not be classified to valence or conduction\n" % (i))
+                homo = max(valence)
+                lumo = min(conduction)
+                gap = min([self.eigenval["spin_2"][k]["energy"][lumo] for k in range(nkpoints)]) - max([self.eigenval["spin_2"][k]["energy"][homo] for k in range(nkpoints)])
+                print("The system is semiconducting or insulating in spin 2\n")
+                print("And the gap in spin 2 is %f\n" % gap)
+
+                    
     def export(self, directory="tmp-vasp-static", bandrange=[0, 1], engine="matplotlib", xrange=None, yrange=None):
         """
         :parama engine:

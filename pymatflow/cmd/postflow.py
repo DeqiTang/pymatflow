@@ -602,6 +602,7 @@ def main():
                 print("even when you set soc and ISPIN=2 at the same time in INCAR\n")
                 print("you will only find band-structure-soc-ispin-1-xxx in post-processing\n")
                 print("because VASP will actually reset ISPIN to 1 when considering soc\n")
+            bands.print_gap()
         elif args.runtype == 1:
             # optimization
             from pymatflow.vasp.post.opt import opt_out
