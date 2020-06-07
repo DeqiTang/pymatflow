@@ -48,41 +48,74 @@ def main():
     # build the energy barrier plot
     import numpy as np 
     import matplotlib.pyplot as plt
-    from scipy.interpolate import interp1d
+    
+    import scipy.interpolate as spinterpolate
     
     os.system("nebresults.pl")
     
     neb_dat = np.loadtxt("neb.dat")
     
-    # style: linear
-    plt.plot(neb_dat[:, 1], neb_dat[:, 2], marker="o")
-    plt.xlabel("Reaction Coordinate (Angstrom)")
-    plt.ylabel("Energy (eV)")
-    plt.savefig("post-processing/mep-style-linear.png")
-    plt.close()
-
-    
-    # style: cubic
-    fun_dat = interp1d(neb_dat[:, 1], neb_dat[:, 2], kind="cubic")
+    # style: linear spline
+    fun_dat = spinterpolate.interp1d(neb_dat[:, 1], neb_dat[:, 2], kind="linear")
     denser_x = np.linspace(neb_dat[:, 1].min(), neb_dat[:, 1].max(), 30*len(neb_dat))
     plt.plot(denser_x, fun_dat(denser_x))
     plt.scatter(neb_dat[:, 1], neb_dat[:, 2], marker="o")
     plt.xlabel("Reaction Coordinate (Angstrom)")
     plt.ylabel("Energy (eV)")
-    plt.savefig("post-processing/mep-style-cubic-order.png")
+    plt.savefig("post-processing/mep-style-linear-spline.png")
+    plt.close()    
+
+
+    # style: slinear
+    fun_dat = spinterpolate.interp1d(neb_dat[:, 1], neb_dat[:, 2], kind="slinear")
+    denser_x = np.linspace(neb_dat[:, 1].min(), neb_dat[:, 1].max(), 30*len(neb_dat))
+    plt.plot(denser_x, fun_dat(denser_x))
+    plt.scatter(neb_dat[:, 1], neb_dat[:, 2], marker="o")
+    plt.xlabel("Reaction Coordinate (Angstrom)")
+    plt.ylabel("Energy (eV)")
+    plt.savefig("post-processing/mep-style-slinear-spline.png")
+    plt.close()    
+
+    # style: cubic spline
+    fun_dat = spinterpolate.interp1d(neb_dat[:, 1], neb_dat[:, 2], kind="quadratic")
+    denser_x = np.linspace(neb_dat[:, 1].min(), neb_dat[:, 1].max(), 30*len(neb_dat))
+    plt.plot(denser_x, fun_dat(denser_x))
+    plt.scatter(neb_dat[:, 1], neb_dat[:, 2], marker="o")
+    plt.xlabel("Reaction Coordinate (Angstrom)")
+    plt.ylabel("Energy (eV)")
+    plt.savefig("post-processing/mep-style-quadratic-spline.png")
+    plt.close()    
+    
+    # style: cubic spline
+    fun_dat = spinterpolate.interp1d(neb_dat[:, 1], neb_dat[:, 2], kind="cubic")
+    denser_x = np.linspace(neb_dat[:, 1].min(), neb_dat[:, 1].max(), 30*len(neb_dat))
+    plt.plot(denser_x, fun_dat(denser_x))
+    plt.scatter(neb_dat[:, 1], neb_dat[:, 2], marker="o")
+    plt.xlabel("Reaction Coordinate (Angstrom)")
+    plt.ylabel("Energy (eV)")
+    plt.savefig("post-processing/mep-style-cubic-spline.png")
     plt.close()    
         
-    # style: order of 5
-    fun_dat = interp1d(neb_dat[:, 1], neb_dat[:, 2], kind=5)
+    # style: 5 order spline
+    fun_dat = spinterpolate.interp1d(neb_dat[:, 1], neb_dat[:, 2], kind=5)
     denser_x = np.linspace(neb_dat[:, 1].min(), neb_dat[:, 1].max(), 30*len(neb_dat))
     plt.plot(denser_x, fun_dat(denser_x))
     plt.scatter(neb_dat[:, 1], neb_dat[:, 2], marker="o")
     plt.xlabel("Reaction Coordinate (Angstrom)")
     plt.ylabel("Energy (eV)")
-    plt.savefig("post-processing/mep-style-5th-order.png")
+    plt.savefig("post-processing/mep-style-5-order-spline.png")
     plt.close()    
     
     
-
+    # style: KroghInterpolator
+    fun_dat = spinterpolate.KroghInterpolator(neb_dat[:, 1], neb_dat[:, 2])
+    denser_x = np.linspace(neb_dat[:, 1].min(), neb_dat[:, 1].max(), 30*len(neb_dat))
+    plt.plot(denser_x, fun_dat(denser_x))
+    plt.scatter(neb_dat[:, 1], neb_dat[:, 2], marker="o")
+    plt.xlabel("Reaction Coordinate (Angstrom)")
+    plt.ylabel("Energy (eV)")
+    plt.savefig("post-processing/mep-style-kroghinterpolator.png")
+    plt.close()    
+        
 if __name__ == "__main__":
     main()

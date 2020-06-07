@@ -17,7 +17,7 @@ class CleanCommand(Command):
 
 setup(
     name = "pymatflow",
-    version = '0.0.10a1',
+    version = '0.0.10a2',
     keywords = ("Ab intio ,DFT, workflow, input generation"),
     description = "An emulation assistant, input generation and manage for DFT programs",
     license = "MIT",
@@ -205,6 +205,7 @@ setup(
         "pymatflow/vasp/scripts/vasp-phonon.py",
         "pymatflow/vasp/scripts/vasp-berry.py",
         "pymatflow/vasp/scripts/vasp-time.py",
+        "pymatflow/vasp/scripts/vasp-grep-energy.py",
         "pymatflow/vasp/post/scripts/post-vasp-opt.py",
         "pymatflow/vasp/post/scripts/post-vasp-md.py",
         "pymatflow/vasp/post/scripts/post-vasp-converge.py",
