@@ -2725,8 +2725,6 @@ def main():
             pso.vasp.poscar.selective_dynamics = True if args.selective_dynamics.upper()[0] == "T" else False
             pso.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             pso.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            os.system("sflow convert -i %s -o %s" % (xyzfile, os.path.join(args.directory, "input_structure.cif")))
-            pso.set_params({"CifFilePath": "input_structure.cif"})
             pso.run_vasp(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 2:
             pass

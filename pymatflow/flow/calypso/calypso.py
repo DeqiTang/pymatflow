@@ -62,11 +62,13 @@ class calypso:
 
             os.system("cp %s %s/" % (self.vasp.poscar.xyz.file, directory))
 
+            os.system("sflow convert -i %s -o %s" % (self.vasp.poscar.xyz.file, os.path.join(directory, "input_structure.cif")))
+            self.set_params({"CifFilePath": "input_structure.cif"})
+            
             with open(os.path.join(directory, "submit.sh"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 fout.write("mpiexec -n %d $PMF_VASP_STD > log 2>/dev/null\n" % (self.run_params["ppn"]))
         
-            
             #with open(os.path.join(directory, "INCAR"), 'w') as fout:
             #    self.vasp.incar.to_incar(fout)
                 
