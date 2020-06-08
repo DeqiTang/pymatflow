@@ -229,7 +229,8 @@ setup(
             'structflow = pymatflow.cmd.structflow:main',
             'sflow = pymatflow.cmd.structflow:main',
             'lmpflow = pymatflow.cmd.lmpflow:main',
-            'lflow = pymatflow.cmd.lmpflow:main'
+            'lflow = pymatflow.cmd.lmpflow:main',
+            "psoflow = pymatflow.flow.calypso.psoflow:main"
         ]
     },
 
