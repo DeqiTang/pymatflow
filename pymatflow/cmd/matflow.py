@@ -1354,7 +1354,10 @@ def main():
 
     gp.add_argument("--pot", type=str, default="./",
             help="specify the path to the POTCAR, default is ./. if you pass 'auto' to it, matflow will build the POTCAR foryou(need simple configuration, see manual)")
-
+        
+    gp.add_argument("--pot-type", type=str, default="PAW_PBE",
+            choices=["PAW_PBE", "PAW_LDA", "PAW_PW91", "paw_pbe", "paw_lda", "paw_pw91"],
+            help="choose type of POT for POTCAR")
 
     # --------------------------------------------------------
     #                   INCAR PARAMETERS
@@ -1770,7 +1773,7 @@ def main():
             print("please prepare it yourself\n")
             sys.exit(1)
         elif args.driver == "vasp":
-            os.system("vasp-potcar-from-xyz.py -i %s -o ./POTCAR" % xyzfile)
+            os.system("vasp-potcar-from-xyz.py --type %s -i %s -o ./POTCAR" % (args.pot_type, xyzfile))
     else:
         os.system("cp %s/* ./" % args.pot)
 

@@ -24,6 +24,10 @@ if __name__ == "__main__":
             default=os.path.join(os.path.expanduser("~"), ".pot-vasp"),
             help="vasp pot databse directory")
 
+    parser.add_argument("--type", type=str, default="PAW_PBE",
+            choices=["PAW_PBE", "PAW_LDA", "PAW_PW91", "paw_pbe", "paw_lda", "paw_pw91"],
+            help="choose type of POT for POTCAR")
+
     args = parser.parse_args()
 
     print("================================================\n")
@@ -38,7 +42,13 @@ if __name__ == "__main__":
 
     cmd = "cat "
     for element in poscar.xyz.specie_labels:
-        cmd = cmd + os.path.join(args.pot_database, "PAW_PBE/%s/POTCAR " % element)
+        if args.type.upper() == "PAW_PBE":
+            cmd = cmd + os.path.join(args.pot_database, "PAW_PBE/%s/POTCAR " % element)
+        elif args.type.upper() == "PAW_LDA":
+            cmd = cmd + os.path.join(args.pot_database, "PAW_LDA/%s/POTCAR " % element)
+        elif args.type.upper() == "PAW_PW91":
+            cmd = cmd + os.path.join(args.pot_database, "PAW_PW91/%s/POTCAR " % element)
+        else:
+            pass
     cmd = cmd + "> %s" % args.potcar
-
     os.system(cmd)

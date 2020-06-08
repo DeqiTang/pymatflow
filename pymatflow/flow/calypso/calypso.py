@@ -1,6 +1,12 @@
 """
 providing interface to calypso software
 """
+import os
+import sys
+import shutil
+
+from pymatflow.remote.server import server_handle
+
 from pymatflow.vasp.opt import opt_run as vasp_opt_run
 
 class calypso:
@@ -8,7 +14,7 @@ class calypso:
     """
     def __init__(self):
         self._initialize()
-        self.vasp = vasp_opt_run
+        self.vasp = vasp_opt_run()
 
     def _initialize(self):
         self.params = {
@@ -34,15 +40,41 @@ class calypso:
         """
         directory: a place for all the generated files
         """
-
+        
+        self.params["Command"] = "sh submit.sh"
+        self.params["NumberOfSpecies"] = self.vasp.poscar.xyz.nspecies
+        self.params["NameOfAtoms"] = []
+        for element in self.vasp.poscar.xyz.specie_labels:
+            self.params["NameOfAtoms"].append(element)
+        self.params["NumberOfAtoms"] = []
+        for element in self.vasp.poscar.xyz.specie_labels:
+            n_atom_tmp = 0
+            for atom in self.vasp.poscar.xyz.atoms:
+                if atom.name == element:
+                    n_atom_tmp += 1
+            self.params["NumberOfAtoms"].append(n_atom_tmp)            
+        
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
             shutil.copyfile("POTCAR", os.path.join(directory, "POTCAR"))
+
+            os.system("cp %s %s/" % (self.vasp.poscar.xyz.file, directory))
+
+            with open(os.path.join(directory, "submit.sh"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("mpiexec -n %d $PMF_VASP_STD > log 2>/dev/null\n" % (self.run_params["ppn"]))
+        
             
-            with open(os.path.join(directory, "input.dat")) as fout:
-                self.to_input_dat(fout)
+            #with open(os.path.join(directory, "INCAR"), 'w') as fout:
+            #    self.vasp.incar.to_incar(fout)
+                
+            with open(os.path.join(directory, "POSCAR"), 'w') as fout:
+                self.vasp.poscar.to_poscar(fout)
+            
+            #with open(os.path.join(directory, "input.dat"), 'w') as fout:
+            #    self.to_input_dat(fout)
             
             with open(os.path.join(directory, "calypso.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
@@ -53,19 +85,18 @@ class calypso:
                 fout.write("\n")
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("cat > INCAR<<EOF\n")
-                self.incar.to_incar(fout)
+                self.vasp.incar.to_incar(fout)
                 fout.write("EOF\n")
                 fout.write("cat > KPOINTS<<EOF\n")
-                self.kpoints.to_kpoints(fout)
+                self.vasp.kpoints.to_kpoints(fout)
+                fout.write("EOF\n")
+                fout.write("cat > input.dat<<EOF\n")
+                self.to_input_dat(fout)
                 fout.write("EOF\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
                 fout.write("cat $PBS_NODEFILE > machinefile\n")
-                fout.write("./$PMF_CALYPSOX > pso.log\n")
+                fout.write("$PMF_CALYPSOX > pso.log\n")
             
-            with open(os.path.join(directory, "submit.sh"), 'w') as fout:
-                fout.write("#!/bin/bash\n")
-                fout.write("mpiexec -n %d $PMF_VASP_STD > log 2>/dev/null\n" % (self.run_params["ppn"]))
-            self.params["Command"] = "sh submit.sh"
                 
         if runopt == "run" or runopt == "genrun":
             # run the neb calculation
@@ -103,8 +134,10 @@ class calypso:
     
     def to_input_dat(self, fout):
         for item in self.params:
+            if self.params[item] == None:
+                continue
             if type(self.params[item]) != list:
-                fout.write("%s = %s\n" % (item, self.params))
+                fout.write("%s = %s\n" % (item, self.params[item]))
                 fout.write("\n")
             elif type(self.params[item][0]) != list:
                 # self.params[item] is vec

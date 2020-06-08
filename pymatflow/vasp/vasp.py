@@ -53,6 +53,7 @@ class vasp:
             "LSORBIT","SAXIS", "LMAXMIX", "LHFCALC", "HFSCREEN", "AEXX", "LSUBROT", "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG", "LELF",
             "AMIX", "BMIX",
+            "KSPACING",
         ]
         opt_allowed = [
             "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
@@ -61,6 +62,7 @@ class vasp:
             "ISYM", "LREAL", "LWAVE", "LCHARG",
             "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG",
             "AMIX", "BMIX",
+            "KSPACING",
         ]
         phonopy_allowed = [
             "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
@@ -68,6 +70,7 @@ class vasp:
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG",
             "AMIX", "BMIX",
+            "KSPACING",
         ]
         neb_allowed = [
             "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
@@ -78,6 +81,7 @@ class vasp:
             "IOPT", "LCLIMB", "SPRING", "IMAGES", "LNEBCELL", "MAXMOVE", "LGLOBAL", 
             "LAUTOSCALE", "INVCURV", "LLINEOPT", "FDSTEP", 
             "AMIX", "BMIX",
+            "KSPACING",
         ]
         md_allowed = [
             "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
@@ -86,6 +90,7 @@ class vasp:
             "ISYM", "LREAL", "LWAVE", "LCHARG",
             "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG",
             "AMIX", "BMIX",
+            "KSPACING",
         ]
         phonon_allowed = [
             "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
@@ -94,6 +99,7 @@ class vasp:
             "ISYM", "LREAL", "LWAVE", "LCHARG",
             "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG",
             "AMIX", "BMIX",
+            "KSPACING",
         ]
         if runtype == "static":
             for item in params:
