@@ -8,7 +8,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input", help="intput xyz file", type=str)
 parser.add_argument("-o", "--output", help="output xyz file", type=str)
-parser.add_argument("--fix", help="list of fixed atoms", nargs='+', type=int)
+parser.add_argument("--fix", help="list of fixed atoms, index start from 1", nargs='+', type=int)
 
 args = parser.parse_args()
 

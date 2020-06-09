@@ -1667,7 +1667,7 @@ def main():
     gp = subparser.add_argument_group(title="fix atoms",
             description="specify atoms to fix in optimization, only used when --runtype=1")
 
-    gp.add_argument("--fix", help="list of fixed atoms", nargs='+', type=int)
+    gp.add_argument("--fix", help="list of fixed atoms, index start from 1", nargs='+', type=int)
 
 
     # static calc related setting

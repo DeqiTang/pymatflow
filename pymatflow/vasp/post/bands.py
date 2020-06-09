@@ -487,32 +487,6 @@ class post_bands:
             spin_n = 1
         elif self.magnetic_status == "soc-ispin-2":
             spin_n = 2
-        """
-        self.eigenval = {
-            "spin_1": [
-                {
-                    "energy": [],
-                    "occupation": [],
-                },
-                {
-                    "energy": [],
-                    "occupation": [],
-                }
-                ...... 
-            ], # length equals to number of kpoints
-            "spin_2": [
-                {
-                    "energy": [],
-                    "occupation": [],
-                },
-                {
-                    "energy": [],
-                    "occupation": [],
-                }
-                ...... 
-            ], # length equals to number of kpoints        
-        }     
-        """
         
         print("===============================================================\n")
         print("            Info about the gap of the system\n")
@@ -617,6 +591,238 @@ class post_bands:
                 print("The system is semiconducting or insulating in spin 2\n")
                 print("And the gap in spin 2 is %f\n" % gap)
 
+
+    def print_effective_mass(self):
+        """
+        print out the effective mass of the band(top of homo and buttom of lumo)
+        """
+        if self.magnetic_status == "non-soc-ispin-1":
+            spin_n = 1
+        elif self.magnetic_status == "non-soc-ispin-2":
+            spin_n = 2
+        elif self.magnetic_status == "soc-ispin-1":
+            spin_n = 1
+        elif self.magnetic_status == "soc-ispin-2":
+            spin_n = 2
+        
+        print("===============================================================\n")
+        print("            Info about the effective Mass of the system\n")
+        print("---------------------------------------------------------------\n")
+        
+        nband = len(self.eigenval["spin_1"][0]["energy"])
+        nkpoints = len(self.eigenval["spin_1"])
+        if spin_n == 1:
+            print("The calculation is done for only one spin\n")
+            is_metallic = False
+            for i in range(nband):
+                band_energies = [self.eigenval["spin_1"][k]["energy"][i] for k in range(nkpoints)]
+                if min(band_energies) < self.efermi < max(band_energies):
+                    is_metallic = True
+                    break
+            if is_metallic == True:
+                print("The system is metallic!\n")
+                return
+            # is_metallic == False:
+            homo = 0
+            lumo = 0
+            valence = []
+            conduction = []
+            for i in range(nband):
+                band_energies = [self.eigenval["spin_1"][k]["energy"][i] for k in range(nkpoints)]
+                if max(band_energies) <= self.efermi:
+                    valence.append(i)
+                    continue
+                elif min(band_energies) >= self.efermi:
+                    conduction.append(i)
+                    continue
+                else:
+                    print("WARNING: band %d can not be classified to valence or conduction\n" % (i))
+            homo = max(valence)
+            lumo = min(conduction)
+            
+            top_energy = max([self.eigenval["spin_1"][k]["energy"][homo] for k in range(nkpoints)])
+            low_energy = min([self.eigenval["spin_1"][k]["energy"][lumo] for k in range(nkpoints)])
+            for k in range(nkpoints):
+                if self.eigenval["spin_1"][k]["energy"][homo] == top_energy:
+                    top_peak_k = k
+            for k in range(nkpoints):
+                if self.eigenval["spin_1"][k]["energy"][lumo] == low_energy:
+                    low_valley_k = k
+            # now interpolate datas around top_peak_k and low_valley_k
+            # on the left we choose num_k_left, on the right we choose num_k_right
+            num_k_left = 5 
+            num_k_right = 5
+            homo_x = [self.xcoord_k[top_peak_k+i] for i in range(-num_k_left, +num_k_right+1)]
+            homo_y = [self.eigenval["spin_1"][top_peak_k+i]["energy"][homo] for i in range(-num_k_left, +num_k_right+1)]
+            lumo_x = [self.xcoord_k[low_valley_k+i] for i in range(-num_k_left, +num_k_right+1)]
+            lumo_y = [self.eigenval["spin_1"][low_valley_k+i]["energy"][lumo] for i in range(-num_k_left, +num_k_right+1)]        
+            # unit of y is eV
+            # unit of x is 1/a namely 1/Angstrom
+            # we now transfor m unit of y to Hartree and unit of x to bohr-1
+            Bohr = 0.529177208
+            for i in range(len(homo_x)):
+                homo_x[i] =  homo_x[i] * Bohr                
+            for i in range(len(lumo_x)):
+                lumo_x[i] = lumo_x[i] * Bohr
+            Hartree = 27.211396
+            for i in range(len(homo_y)):
+                homo_y[i] = homo_y[i] / Hartree
+            for i in range(len(lumo_y)):
+                lumo_y[i] = lumo_y[i] / Hartree
+                
+            homo_result = np.polyfit(homo_x, homo_y, deg=2) # fit to a quadratic function: y = a * x**2 + b * x + c
+            lumo_result = np.polyfit(lumo_x, lumo_y, deg=2)
+            m_effective_homo = 1 / (2*homo_result[0]) # 1/(2a)
+            m_effective_lumo = 1 / (2*lumo_result[0])
+            
+            print("The system is semiconducting or insulating\n")
+            print("And the effective mass at HOMO is %f\n" % (m_effective_homo))
+            print("the corresponding E-k is %f %f\n" % (top_energy, self.xcoord_k[top_peak_k]))
+            print("And the effective mass at LUMO is %f\n" % (m_effective_lumo))
+            print("the corresponding E-k is %f %f\n" % (low_energy, self.xcoord_k[low_valley_k]))
+            print("The Efermi is: %f\n" % self.efermi)
+        elif spin_n == 2:
+            print("The calculation is done for two spin\n")
+            print("Spin 1:\n")
+            is_metallic_spin_1 = False
+            for i in range(nband):
+                band_energies = [self.eigenval["spin_1"][k]["energy"][i] for k in range(nkpoints)]
+                if min(band_energies) < self.efermi < max(band_energies):
+                    is_metallic_spin_1 = True
+                    break
+
+            if is_metallic_spin_1 == True:
+                print("The system is metallic in spin 1!\n")
+            else:
+                # is_metallic == False:
+                homo = 0
+                lumo = 0
+                valence = []
+                conduction = []
+                for i in range(nband):
+                    band_energies = [self.eigenval["spin_1"][k]["energy"][i] for k in range(nkpoints)]
+                    if max(band_energies) <= self.efermi:
+                        valence.append(i)
+                        continue
+                    elif min(band_energies) >= self.efermi:
+                        conduction.append(i)
+                        continue
+                    else:
+                        print("WARNING: band %d in spin 1 can not be classified to valence or conduction\n" % (i))
+                homo = max(valence)
+                lumo = min(conduction)
+                
+                top_energy = max([self.eigenval["spin_1"][k]["energy"][homo] for k in range(nkpoints)])
+                low_energy = min([self.eigenval["spin_1"][k]["energy"][lumo] for k in range(nkpoints)])
+                for k in range(nkpoints):
+                    if self.eigenval["spin_1"][k]["energy"][homo] == top_energy:
+                        top_peak_k = k
+                for k in range(nkpoints):
+                    if self.eigenval["spin_1"][k]["energy"][lumo] == low_energy:
+                        low_valley_k = k
+                # now interpolate datas around top_peak_k and low_valley_k
+                # on the left we choose num_k_left, on the right we choose num_k_right
+                num_k_left = 5 
+                num_k_right = 5
+                homo_x = [self.xcoord_k[top_peak_k+i] for i in range(-num_k_left, +num_k_right+1)]
+                homo_y = [self.eigenval["spin_1"][top_peak_k+i]["energy"][homo] for i in range(-num_k_left, +num_k_right+1)]
+                lumo_x = [self.xcoord_k[low_valley_k+i] for i in range(-num_k_left, +num_k_right+1)]
+                lumo_y = [self.eigenval["spin_1"][low_valley_k+i]["energy"][lumo] for i in range(-num_k_left, +num_k_right+1)]        
+                # unit of y is eV
+                # unit of x is 1/a namely 1/Angstrom
+                # we now transfor m unit of y to Hartree and unit of x to bohr-1
+                Bohr = 0.529177208
+                for i in range(len(homo_x)):
+                    homo_x[i] =  homo_x[i] * Bohr                
+                for i in range(len(lumo_x)):
+                    lumo_x[i] = lumo_x[i] * Bohr
+                Hartree = 27.211396
+                for i in range(len(homo_y)):
+                    homo_y[i] = homo_y[i] / Hartree
+                for i in range(len(lumo_y)):
+                    lumo_y[i] = lumo_y[i] / Hartree
+                
+                homo_result = np.polyfit(homo_x, homo_y, deg=2) # fit to a quadratic function: y = a * x**2 + b * x + c
+                lumo_result = np.polyfit(lumo_x, lumo_y, deg=2)
+                m_effective_homo = 1 / (2*homo_result[0]) # 1/(2a)
+                m_effective_lumo = 1 / (2*lumo_result[0])
+            
+                print("The system is semiconducting or insulating in spin 1\n")
+                print("And the effective mass at HOMO of spin 1 is %f\n" % (m_effective_homo))
+                print("the corresponding E-k is %f %f\n" % (top_energy, self.xcoord_k[top_peak_k]))
+                print("And the effective mass at LUMO of spin 1 is %f\n" % (m_effective_lumo))
+                print("the corresponding E-k is %f %f\n" % (low_energy, self.xcoord_k[low_valley_k]))
+                print("The Efermi is: %f\n" % self.efermi)
+            print("Spin 2:\n")
+            is_metallic_spin_2 = False
+            for i in range(nband):
+                band_energies = [self.eigenval["spin_2"][k]["energy"][i] for k in range(nkpoints)]
+                if min(band_energies) < self.efermi < max(band_energies):
+                    is_metallic_spin_2 = True
+                    break
+
+            if is_metallic_spin_2 == True:
+                print("The system is metallic in spin 2!\n")
+            else:
+                # is_metallic == False:
+                homo = 0
+                lumo = 0
+                valence = []
+                conduction = []
+                for i in range(nband):
+                    band_energies = [self.eigenval["spin_2"][k]["energy"][i] for k in range(nkpoints)]
+                    if max(band_energies) <= self.efermi:
+                        valence.append(i)
+                        continue
+                    elif min(band_energies) >= self.efermi:
+                        conduction.append(i)
+                        continue
+                    else:
+                        print("WARNING: band %d in spin 2 can not be classified to valence or conduction\n" % (i))
+                homo = max(valence)
+                lumo = min(conduction)
+                top_energy = max([self.eigenval["spin_1"][k]["energy"][homo] for k in range(nkpoints)])
+                low_energy = min([self.eigenval["spin_1"][k]["energy"][lumo] for k in range(nkpoints)])
+                for k in range(nkpoints):
+                    if self.eigenval["spin_1"][k]["energy"][homo] == top_energy:
+                        top_peak_k = k
+                for k in range(nkpoints):
+                    if self.eigenval["spin_1"][k]["energy"][lumo] == low_energy:
+                        low_valley_k = k
+                # now interpolate datas around top_peak_k and low_valley_k
+                # on the left we choose num_k_left, on the right we choose num_k_right
+                num_k_left = 5 
+                num_k_right = 5
+                homo_x = [self.xcoord_k[top_peak_k+i] for i in range(-num_k_left, +num_k_right+1)]
+                homo_y = [self.eigenval["spin_1"][top_peak_k+i]["energy"][homo] for i in range(-num_k_left, +num_k_right+1)]
+                lumo_x = [self.xcoord_k[low_valley_k+i] for i in range(-num_k_left, +num_k_right+1)]
+                lumo_y = [self.eigenval["spin_1"][low_valley_k+i]["energy"][lumo] for i in range(-num_k_left, +num_k_right+1)]        
+                # unit of y is eV
+                # unit of x is 1/a namely 1/Angstrom
+                # we now transfor m unit of y to Hartree and unit of x to bohr-1
+                Bohr = 0.529177208
+                for i in range(len(homo_x)):
+                    homo_x[i] =  homo_x[i] * Bohr                
+                for i in range(len(lumo_x)):
+                    lumo_x[i] = lumo_x[i] * Bohr
+                Hartree = 27.211396
+                for i in range(len(homo_y)):
+                    homo_y[i] = homo_y[i] / Hartree
+                for i in range(len(lumo_y)):
+                    lumo_y[i] = lumo_y[i] / Hartree
+                
+                homo_result = np.polyfit(homo_x, homo_y, deg=2) # fit to a quadratic function: y = a * x**2 + b * x + c
+                lumo_result = np.polyfit(lumo_x, lumo_y, deg=2)
+                m_effective_homo = 1 / (2*homo_result[0]) # 1/(2a)
+                m_effective_lumo = 1 / (2*lumo_result[0])
+            
+                print("The system is semiconducting or insulating in spin 2\n")
+                print("And the effective mass of spin 2 at HOMO is %f\n" % (m_effective_homo))
+                print("the corresponding E-k is %f %f\n" % (top_energy, self.xcoord_k[top_peak_k]))
+                print("And the effective mass of spin 2 at LUMO is %f\n" % (m_effective_lumo))
+                print("the corresponding E-k is %f %f\n" % (low_energy, self.xcoord_k[low_valley_k]))
+                print("The Efermi is: %f\n" % self.efermi)
+                    
                     
     def export(self, directory="tmp-vasp-static", bandrange=[0, 1], engine="matplotlib", xrange=None, yrange=None):
         """

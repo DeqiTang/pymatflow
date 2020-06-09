@@ -604,6 +604,7 @@ def main():
                     print("you will only find band-structure-soc-ispin-1-xxx in post-processing\n")
                     print("because VASP will actually reset ISPIN to 1 when considering soc\n")
                 bands.print_gap()
+                bands.print_effective_mass()
             elif args.static == "dos":
                 from pymatflow.vasp.post.pdos import post_pdos
                 pdos = post_pdos()
