@@ -1400,9 +1400,9 @@ def main():
     #        default=[1, 1, 1, 0, 0, 0],
     #        help="set kpoints like -k 1 1 1 0 0 0")
 
-    #gp.add_argument("--kpoints-mp-nscf", type=int, nargs="+",
-    #        default=[3, 3, 3, 0, 0, 0],
-    #        help="set kpoints like -k 1 1 1 0 0 0")
+    gp.add_argument("--kpoints-mp-nscf", type=int, nargs="+",
+            default=None,
+            help="set kpoints like -k 1 1 1 0 0 0")
 
     gp.add_argument("--kpath-manual", type=str, nargs="+", default=None,
             help="set kpoints for band structure calculation manually")
@@ -1675,7 +1675,7 @@ def main():
             description="setting type of static calculation when -r 0")
 
     gp.add_argument("--static", type=str, default="band",
-            choices=["scf", "band", "optics", "bse"],
+            choices=["scf", "band", "dos", "optics", "bse"],
             help="in case of band(default), run scf, nscf(bands) in a single run; in case of scf, run scf only, in case of optics, run scf and optics calc in a single run")
 
     gp.add_argument("--hse-in-scf", type=str, default="false",
@@ -2534,15 +2534,26 @@ def main():
             if params["LNONCOLLINEAR"] != None:
                 if params["LNONCOLLINEAR"].upper() == ".TRUE." or params["LNONCOLLINEAR"].upper() == "T":
                     task.magnetic_status = "non-collinear"
-            if args.static == "band":
+
+            if args.static == "scf":
+                task.set_kpoints(kpoints_mp=args.kpoints_mp)
+                task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto)
+            elif args.static == "band":
                 if args.hse_in_scf.lower() == "true":
                     hse_in_scf = True
                 elif args.hse_in_scf.lower() == "false":
                     hse_in_scf = False
-                task.band(directory=args.directory, runopt=args.runopt, auto=args.auto, kpath=get_kpath(args.kpath_manual, args.kpath_file), hse_in_scf=hse_in_scf)
-            elif args.static == "scf":
-                task.set_kpoints(kpoints_mp=args.kpoints_mp)
-                task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto)
+                task.band(directory=args.directory, runopt=args.runopt, auto=args.auto, kpath=get_kpath(args.kpath_manual, args.kpath_file), hse_in_scf=hse_in_scf)                
+            elif args.static == "dos":
+                if args.hse_in_scf.lower() == "true":
+                    hse_in_scf = True
+                elif args.hse_in_scf.lower() == "false":
+                    hse_in_scf = False
+                if args.kpoints_mp_nscf == None:
+                    kpoints_mp_nscf = args.kpoints_mp #[2*k for k in args.kpoints_mp]
+                else:
+                    kpoints_mp_nscf = args.kpoints_mp_nscf
+                task.dos(directory=args.directory, runopt=args.runopt, auto=args.auto, hse_in_scf=hse_in_scf, kpoints_mp_nscf=kpoints_mp_nscf)
             elif args.static == "optics":
                 task.set_kpoints(kpoints_mp=args.kpoints_mp)                    
                 task.optics(directory=args.directory, runopt=args.runopt, auto=args.auto)

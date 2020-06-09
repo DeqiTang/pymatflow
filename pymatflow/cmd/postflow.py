@@ -304,6 +304,11 @@ def main():
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory for the running.")
 
+    
+    subparser.add_argument("--static", type=str, default="band",
+            choices=["scf", "band", "dos", "optics", "bse"],
+            help="in case of band(default), run scf, nscf(bands) in a single run; in case of scf, run scf only, in case of optics, run scf and optics calc in a single run")
+
 
     subparser.add_argument("--kpath-manual", type=str, nargs="+", default=None,
             help="manual input kpath like --kpath-manual '0.000000 0.000000 0.000000 GAMMA 5' '0.500000 0.000000 0.000000 X 5' '0.0000 0.000 0.50000 A |' '0.5 0.5 0.5 R '")
@@ -583,26 +588,29 @@ def main():
     elif args.driver == "vasp":
         if args.runtype == 0:
             # static
-            from pymatflow.vasp.post.pdos import post_pdos
-            pdos = post_pdos()
-            pdos.get_vasprun(os.path.join(args.directory, "vasprun.xml"))
-            pdos.get_efermi(vasprun=os.path.join(args.directory, "vasprun.xml" if args.efermi.lower() == "nscf" else "vasprun.xml.scf"))            
-            pdos.export(directory=args.directory, engine=args.engine, plotrange=args.plotrange)
-            from pymatflow.vasp.post.bands import post_bands
-            bands = post_bands()
-            bands.get_kpath_and_vasprun(kpath=get_kpath(kpath_manual=args.kpath_manual, kpath_file=args.kpath_file), vasprun=os.path.join(args.directory, "vasprun.xml"))
-            bands.get_efermi(vasprun=os.path.join(args.directory, "vasprun.xml" if args.efermi.lower() == "nscf" else "vasprun.xml.scf"))
-            bands.export(directory=args.directory, engine=args.engine, bandrange=args.bandrange, xrange=args.xrange, yrange=args.yrange)
-            if bands.magnetic_status == "soc-ispin-1" or bands.magnetic_status == "soc-ispin-2":
-                # actually soc-ispin-2 never exists
-                print("=====================================================================\n")
-                print("                             postflow\n")
-                print("---------------------------------------------------------------------\n")
-                print("Note:\n")
-                print("even when you set soc and ISPIN=2 at the same time in INCAR\n")
-                print("you will only find band-structure-soc-ispin-1-xxx in post-processing\n")
-                print("because VASP will actually reset ISPIN to 1 when considering soc\n")
-            bands.print_gap()
+            if args.static == "band":
+                from pymatflow.vasp.post.bands import post_bands
+                bands = post_bands()
+                bands.get_kpath_and_vasprun(kpath=get_kpath(kpath_manual=args.kpath_manual, kpath_file=args.kpath_file), vasprun=os.path.join(args.directory, "vasprun.xml"))
+                bands.get_efermi(vasprun=os.path.join(args.directory, "vasprun.xml" if args.efermi.lower() == "nscf" else "vasprun.xml.scf"))
+                bands.export(directory=args.directory, engine=args.engine, bandrange=args.bandrange, xrange=args.xrange, yrange=args.yrange)
+                if bands.magnetic_status == "soc-ispin-1" or bands.magnetic_status == "soc-ispin-2":
+                    # actually soc-ispin-2 never exists
+                    print("=====================================================================\n")
+                    print("                             postflow\n")
+                    print("---------------------------------------------------------------------\n")
+                    print("Note:\n")
+                    print("even when you set soc and ISPIN=2 at the same time in INCAR\n")
+                    print("you will only find band-structure-soc-ispin-1-xxx in post-processing\n")
+                    print("because VASP will actually reset ISPIN to 1 when considering soc\n")
+                bands.print_gap()
+            elif args.static == "dos":
+                from pymatflow.vasp.post.pdos import post_pdos
+                pdos = post_pdos()
+                pdos.get_vasprun(os.path.join(args.directory, "vasprun.xml"))
+                pdos.get_efermi(vasprun=os.path.join(args.directory, "vasprun.xml" if args.efermi.lower() == "nscf" else "vasprun.xml.scf"))            
+                pdos.export(directory=args.directory, engine=args.engine, plotrange=args.plotrange)
+                
         elif args.runtype == 1:
             # optimization
             from pymatflow.vasp.post.opt import opt_out
