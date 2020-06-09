@@ -1286,7 +1286,7 @@ def main():
             help="directory to generate all the files, do not specify the current directory")
 
     gp.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8],
+            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
             help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->neb; 6->vasp-phonon; 7->phonopy; 8->surf pes")
 
     # run option
@@ -1624,7 +1624,11 @@ def main():
     gp.add_argument("--batch-a", type=int,
             default=None,
             help="number of structure each batch a")
-
+    
+    gp.add_argument("--batch-b", type=int, 
+            default=None,
+            help="number of structure each batch b")
+            
     gp.add_argument("--batch-c", type=int,
             default=None,
             help="number of structure each batch c")
@@ -2682,6 +2686,19 @@ def main():
             task.batch_x_y = args.batch_x_y
             task.set_pes(move_atom=args.move_atom, xrange=args.xrange, yrange=args.yrange, zshift=args.zshift, fix_z=args.fix_z)            
             task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 9:
+            # abc cell
+            from pymatflow.vasp.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params, runtype="opt")
+            task.set_kpoints(kpoints_mp=args.kpoints_mp)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            task.batch_a = args.batch_a     
+            task.batch_b = args.batch_b
+            task.batch_c = args.batch_c            
+            task.abc(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_b=args.range_b, range_c=args.range_c)
     # --------------------------------------------------------------------------
 
 
