@@ -89,8 +89,8 @@ def main():
             description="control the overall running parameters")
 
     gp.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5, 6, 7],
-            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-opt; 3->hexagonal-opt; 4->tetragonal-opt; 5->dfpt-elastic-piezo-dielec; 6->dfpt-phonon; 7->phonopy")
+            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8],
+            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-opt; 3->hexagonal-opt; 4->tetragonal-opt; 5->dfpt-elastic-piezo-dielec; 6->dfpt-phonon; 7->phonopy; 8->abc")
 
     gp.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory to do the calculation")
@@ -293,6 +293,36 @@ def main():
             default=[1, 1, 1],
             help="supercell build for phonopy.")
 
+    # range_a range_b range_c
+    # ----------------------------------------------
+    gp = subparser.add_argument_group(title="cell optimization",
+            description="cubic, hexagonal, tetragonal cell or general abc optimization parameters")
+
+    gp.add_argument("--range-a", type=float, nargs=3,
+            default=[-0.1, 0.1, 0.01],
+            help="test range for a")
+
+    gp.add_argument("--range-b", type=float, nargs=3,
+            default=[-0.1, 0.1, 0.01], 
+            help="test range for b")
+            
+    gp.add_argument("--range-c", type=float, nargs=3,
+            default=[-0.1, 0.1, 0.01],
+            help="test range for c")
+
+    gp.add_argument("--batch-a", type=int,
+            default=None,
+            help="number of structure each batch a")
+    
+    gp.add_argument("--batch-b", type=int, 
+            default=None,
+            help="number of structure each batch b")
+            
+    gp.add_argument("--batch-c", type=int,
+            default=None,
+            help="number of structure each batch c")
+            
+
     # --------------------------------------------------------------------------
     # CP2K
     # --------------------------------------------------------------------------
@@ -301,8 +331,8 @@ def main():
     gp = subparser.add_argument_group(title="overall running control")
 
     gp.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4 ,5, 6, 7, 8, 9, 10],
-            help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6-neb; 7->phonopy; 8->vibrational_analysis; 9->converge test; 10->aimd")
+            choices=[0, 1, 2, 3, 4 ,5, 6, 7, 8, 9, 10, 11],
+            help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6-neb; 7->phonopy; 8->vibrational_analysis; 9->converge test; 10->aimd; 11->abc")
 
     gp.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory to do the calculation")
@@ -676,6 +706,35 @@ def main():
 
     gp.add_argument("--stepc", type=float, default=0.05,
             help="c step")
+
+    # range_a range_b range_c
+    # ----------------------------------------------
+    gp = subparser.add_argument_group(title="cell optimization",
+            description="cubic, hexagonal, tetragonal cell or general abc optimization parameters")
+
+    gp.add_argument("--range-a", type=float, nargs=3,
+            default=[-0.1, 0.1, 0.01],
+            help="test range for a")
+
+    gp.add_argument("--range-b", type=float, nargs=3,
+            default=[-0.1, 0.1, 0.01], 
+            help="test range for b")
+            
+    gp.add_argument("--range-c", type=float, nargs=3,
+            default=[-0.1, 0.1, 0.01],
+            help="test range for c")
+
+    gp.add_argument("--batch-a", type=int,
+            default=None,
+            help="number of structure each batch a")
+    
+    gp.add_argument("--batch-b", type=int, 
+            default=None,
+            help="number of structure each batch b")
+            
+    gp.add_argument("--batch-c", type=int,
+            default=None,
+            help="number of structure each batch c")
 
     # converge test
     gp = subparser.add_argument_group(title="converge test",
@@ -1088,8 +1147,8 @@ def main():
     gp = subparser.add_argument_group(title="overall running control:")
 
     gp.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5],
-            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->phonopy; 6->molecular dynamics")
+            choices=[0, 1, 2, 3, 4, 5, 6, 7],
+            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->phonopy; 6->molecular dynamics; 7->abc")
 
     gp.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory for the running.")
@@ -1299,7 +1358,34 @@ def main():
             default=[1, 1,1],
             help="supercell option for phonopy, like '2 2 2'")
 
+    # range_a range_c
+    # ----------------------------------------------
+    gp = subparser.add_argument_group(title="cell optimization",
+            description="cubic, hexagonal, tetragonal cell or general abc optimization parameters")
 
+    gp.add_argument("--range-a", type=float, nargs=3,
+            default=[-0.1, 0.1, 0.01],
+            help="test range for a")
+
+    gp.add_argument("--range-b", type=float, nargs=3,
+            default=[-0.1, 0.1, 0.01], 
+            help="test range for b")
+            
+    gp.add_argument("--range-c", type=float, nargs=3,
+            default=[-0.1, 0.1, 0.01],
+            help="test range for c")
+
+    gp.add_argument("--batch-a", type=int,
+            default=None,
+            help="number of structure each batch a")
+    
+    gp.add_argument("--batch-b", type=int, 
+            default=None,
+            help="number of structure each batch b")
+            
+    gp.add_argument("--batch-c", type=int,
+            default=None,
+            help="number of structure each batch c")
 
 
     # --------------------------------------------------------------------------
@@ -1637,7 +1723,7 @@ def main():
             help="supercell for phonopy, like [2, 2, 2]")
 
 
-    # range_a range_c
+    # range_a range_b range_c
     # ----------------------------------------------
     gp = subparser.add_argument_group(title="cell optimization",
             description="cubic, hexagonal, tetragonal cell or general abc optimization parameters")
@@ -1937,6 +2023,21 @@ def main():
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 8:
+            # abc opt
+            params["optcell"] = 0 # must be 0
+            params["ionmov"] = args.ionmov
+            from pymatflow.abinit.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_kpoints(kpoints=kpoints)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            task.batch_a = args.batch_a     
+            task.batch_b = args.batch_b
+            task.batch_c = args.batch_c     
+            task.abc(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_b=args.range_b, range_c=args.range_c)
         else:
             pass
 # ==============================================================================
@@ -2146,6 +2247,19 @@ def main():
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.aimd(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 11:
+            # abc cell opt
+            from pymatflow.cp2k.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_geo_opt()
+            task.set_params(params=params)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            task.batch_a = args.batch_a     
+            task.batch_b = args.batch_b
+            task.batch_c = args.batch_c     
+            task.abc(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_b=args.range_b, range_c=args.range_c)
         else:
             pass
 # ==============================================================================
@@ -2490,6 +2604,20 @@ def main():
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.md(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 7:
+            # abc cell opt
+            from pymatflow.siesta.opt import opt_run
+            task = opt_run()
+            task.get_xyz(xyzfile)
+            task.set_relax()
+            task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+            task.set_params(control=control, system=system, electrons=electrons, ions=ions)
+            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            task.batch_a = args.batch_a     
+            task.batch_b = args.batch_b
+            task.batch_c = args.batch_c     
+            task.abc(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_b=args.range_b, range_c=args.range_c)
         else:
             pass
     elif args.driver == "vasp":

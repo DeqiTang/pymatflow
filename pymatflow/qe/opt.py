@@ -1459,20 +1459,123 @@ class opt_run(pwscf):
         if os.path.exists(directory):
             shutil.rmtree(directory)
         os.mkdir(directory)
-        shutil.copyfile("POTCAR", os.path.join(directory, "POTCAR"))
-        os.system("cp %s %s/" % (self.poscar.xyz.file, directory))
 
-
-        with open(os.path.join(directory, "KPOINTS"), 'w') as fout:
-            self.kpoints.to_kpoints(fout)
-        with open(os.path.join(directory, "POSCAR"), 'w') as fout:
-            self.poscar.to_poscar(fout=fout, coordtype="Direct")
-
+        shutil.copyfile(self.arts.xyz.file, os.path.join(directory, os.path.basename(self.arts.xyz.file)))
+        #all_upfs = [s for s in os.listdir() if s.split(".")[-1] == "UPF"]
+        all_file = os.listdir()
+        for element in self.arts.xyz.specie_labels:
+            for item in all_file:
+                if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                    shutil.copyfile(item, os.path.join(directory, item))
+                    break
+        self.arts.pseudo.dir = os.path.abspath(directory)
+        self.control.set_params({"pseudo_dir": os.path.abspath(directory)})
+        #
         os.chdir(directory)
 
+        with open("relax.in.template", 'w') as fout:
+            self.control.to_in(fout)
+            self.system.to_in(fout)
+            self.electrons.to_in(fout)
+            self.ions.to_in(fout)
+
+            coordtype = "crystal" # use crystal here so we could only change cell when opt cell
+            fout.write("ATOMIC_SPECIES\n")
+            all_file = os.listdir(self.arts.pseudo.dir)
+            for element in self.arts.xyz.specie_labels:
+                for item in all_file:
+                    if re.match("(%s)(.*)(upf)" % (element), item, re.IGNORECASE):
+                        fout.write("%s %f %s\n" % (element, base.element[element].mass, item))
+                        break
+            fout.write("\n")
+            if coordtype == "angstrom":
+                fout.write("ATOMIC_POSITIONS angstrom\n")
+                if self.arts.ifstatic == True:
+                    for atom in self.arts.xyz.atoms:
+                        fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
+                elif self.arts.ifstatic == False:
+                    for atom in self.arts.xyz.atoms:
+                        fout.write("%s\t%.9f\t%.9f\t%.9f" % (atom.name, atom.x, atom.y, atom.z))
+                        for fix in atom.fix:
+                            if fix == True:
+                                fout.write("\t0")
+                            elif fix == False:
+                                fout.write("\t1")
+                        fout.write("\n")
+                else:
+                    print("===============================================\n")
+                    print("warning: qe.base.arts.to_in():\n")
+                    print("arts.ifstatic could only be True or False\n")
+                    sys.exit(1)
+                fout.write("\n")
+            elif coordtype == "crystal":
+                # crystal namely fractional coordinate can be convert from cartesian coordinates
+                # the conversion process is like transformation of presentation in quantum mechanics
+                # the convmat is bulid to do the conversion
+                #latcell = np.array(self.xyz.cell)
+                #latcell = latcell.reshape(3, 3)
+                latcell = np.array(self.arts.xyz.cell)
+                convmat = np.linalg.inv(latcell.T)
+                crystal_coord = np.zeros([self.arts.xyz.natom, 3])
+                for i in range(self.arts.xyz.natom):
+                    crystal_coord[i] = convmat.dot(np.array([self.arts.xyz.atoms[i].x, self.arts.xyz.atoms[i].y, self.arts.xyz.atoms[i].z]))
+                #
+                fout.write("ATOMIC_POSITIONS crystal\n")
+                if self.arts.ifstatic == True:
+                    for k in range(self.arts.xyz.natom):
+                        fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (self.arts.xyz.atoms[k].name, crystal_coord[k, 0], crystal_coord[k, 1], crystal_coord[k, 2]))
+                elif self.arts.ifstatic == False:
+                    for k in range(self.arts.xyz.natom):
+                        fout.write("%s\t%.9f\t%.9f\t%.9f" % (self.arts.xyz.atoms[k].name, crystal_coord[k, 0], crystal_coord[k, 1], crystal_coord[k, 2]))
+                        for fix in self.arts.xyz.atoms[k].fix:
+                            if fix == True:
+                                fout.write("\t0")
+                            elif fix == False:
+                                fout.write("\t1")
+                        fout.write("\n")
+                else:
+                    print("===============================================\n")
+                    print("warning: qe.base.arts.to_in():\n")
+                    print("arts.ifstatic could only be True or False\n")
+                    sys.exit(1)
+                fout.write("\n")
+            # end crystal type ATOMIC_POSITIONS
+
+            # writing KPOINTS to the fout
+            self.arts.write_kpoints(fout)
+            # =========================
+            #
+            # writing forces act on atoms
+            if self.arts.atomic_forces_status == True:
+                self.arts.write_atomic_forces(fout)
+            # =========================
+            
         for i_batch_a in range(n_batch_a):
             for i_batch_b in range(n_batch_b):
                 for i_batch_c in range(n_batch_c):
+                
+                    range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
+                    range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
+                    # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_a_end  > range_a[1]:
+                        range_a_end = range_a[1]
+
+                    range_b_start = range_b[0] + i_batch_b * self.batch_b * range_b[2]
+                    range_b_end = range_b[0] + (i_batch_b+1) * self.batch_b * range_b[2] - range_b[2] / 2
+                    # - range_b[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_b_end  > range_b[1]:
+                        range_b_end = range_b[1]
+                        
+                    range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
+                    range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
+                    # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_c_end  > range_c[1]:
+                        range_c_end = range_c[1]
+
+                    a = np.sqrt(self.arts.xyz.cell[0][0]**2+self.arts.xyz.cell[0][1]**2+self.arts.xyz.cell[0][2]**2)
+                    b = np.sqrt(self.arts.xyz.cell[1][0]**2+self.arts.xyz.cell[1][1]**2+self.arts.xyz.cell[1][2]**2)
+                    c = np.sqrt(self.arts.xyz.cell[2][0]**2+self.arts.xyz.cell[2][1]**2+self.arts.xyz.cell[2][2]**2)
+
                     # gen llhpc script
                     with open("opt-abc-%d-%d-%d.slurm" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
                         fout.write("#!/bin/bash\n")
@@ -1482,13 +1585,7 @@ class opt_run(pwscf):
                         fout.write("#SBATCH -J %s-%d-%d-%d\n" % (self.run_params["jobname"], i_batch_a, i_batch_b, i_batch_c))
                         fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
                         fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
-
-                        #a = self.poscar.xyz.cell[0][0]
-                        #c = self.poscar.xyz.cell[2][2]
-                        a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
-                        b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
-                        c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
-
+            
                         fout.write("a_in=%f\n" % a)
                         fout.write("b_in=%f\n" % b)
                         fout.write("c_in=%f\n" % c)
@@ -1502,26 +1599,6 @@ class opt_run(pwscf):
                         fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
                         fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
                         fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
-
-
-                        range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
-                        range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
-                        # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_a_end  > range_a[1]:
-                            range_a_end = range_a[1]
-
-                        range_b_start = range_b[0] + i_batch_b * self.batch_b * range_b[2]
-                        range_b_end = range_b[0] + (i_batch_b+1) * self.batch_b * range_b[2] - range_b[2] / 2
-                        # - range_b[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_b_end  > range_b[1]:
-                            range_b_end = range_b[1]
-                            
-                        range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
-                        range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
-                        # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_c_end  > range_c[1]:
-                            range_c_end = range_c[1]
-
 
                         fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
                         fout.write("do\n")
@@ -1564,14 +1641,7 @@ class opt_run(pwscf):
                             fout.write("#PBS -q %s\n" %self.run_params["queue"])            
                         fout.write("\n")
                         fout.write("cd $PBS_O_WORKDIR\n")
-                        fout.write("cat > INCAR<<EOF\n")
-                        self.incar.to_incar(fout)
-                        fout.write("EOF\n")
                         fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
-
-                        a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
-                        b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
-                        c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
 
                         fout.write("a_in=%f\n" % a)
                         fout.write("b_in=%f\n" % b)
@@ -1586,25 +1656,6 @@ class opt_run(pwscf):
                         fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
                         fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
                         fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
-
-
-                        range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
-                        range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
-                        # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_a_end  > range_a[1]:
-                            range_a_end = range_a[1]
-
-                        range_b_start = range_b[0] + i_batch_b * self.batch_b * range_b[2]
-                        range_b_end = range_b[0] + (i_batch_b+1) * self.batch_b * range_b[2] - range_b[2] / 2
-                        # - range_b[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_b_end  > range_b[1]:
-                            range_b_end = range_b[1]
-                            
-                        range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
-                        range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
-                        # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_c_end  > range_c[1]:
-                            range_c_end = range_c[1]
 
 
                         fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
@@ -1641,14 +1692,6 @@ class opt_run(pwscf):
                     with open("opt-tetragonal.sh", 'w') as fout:
                         fout.write("#!/bin/bash\n")
 
-                        fout.write("cat > INCAR<<EOF\n")
-                        self.incar.to_incar(fout)
-                        fout.write("EOF\n")
-
-                        a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
-                        b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
-                        c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
-
                         fout.write("a_in=%f\n" % a)
                         fout.write("b_in=%f\n" % b)
                         fout.write("c_in=%f\n" % c)
@@ -1662,26 +1705,7 @@ class opt_run(pwscf):
                         fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
                         fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
                         fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
-
-
-                        range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
-                        range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
-                        # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_a_end  > range_a[1]:
-                            range_a_end = range_a[1]
-
-                        range_b_start = range_b[0] + i_batch_b * self.batch_b * range_b[2]
-                        range_b_end = range_b[0] + (i_batch_b+1) * self.batch_b * range_b[2] - range_b[2] / 2
-                        # - range_b[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_b_end  > range_b[1]:
-                            range_b_end = range_b[1]
-                            
-                        range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
-                        range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
-                        # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_c_end  > range_c[1]:
-                            range_c_end = range_c[1]
-
+                        
 
                         fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
                         fout.write("do\n")
@@ -1733,16 +1757,6 @@ class opt_run(pwscf):
                         fout.write("done\n")
                         fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\n\' \',\')\n")
 
-
-                        fout.write("cat > INCAR<<EOF\n")
-                        self.incar.to_incar(fout)
-                        fout.write("EOF\n")
-
-
-                        a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
-                        b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
-                        c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
-
                         fout.write("a_in=%f\n" % a)
                         fout.write("b_in=%f\n" % b)
                         fout.write("c_in=%f\n" % c)
@@ -1756,25 +1770,6 @@ class opt_run(pwscf):
                         fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
                         fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
                         fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
-
-
-                        range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
-                        range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
-                        # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_a_end  > range_a[1]:
-                            range_a_end = range_a[1]
-
-                        range_b_start = range_b[0] + i_batch_b * self.batch_b * range_b[2]
-                        range_b_end = range_b[0] + (i_batch_b+1) * self.batch_b * range_b[2] - range_b[2] / 2
-                        # - range_b[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_b_end  > range_b[1]:
-                            range_b_end = range_b[1]
-                            
-                        range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
-                        range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
-                        # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_c_end  > range_c[1]:
-                            range_c_end = range_c[1]
 
 
                         fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
