@@ -81,6 +81,7 @@ class post_pdos:
                 for line in ion[0]:
                     i = 0
                     for key in iondata["spin_1"].keys():
+                        #print(line.text.split()[i])
                         iondata["spin_1"][key].append(float(line.text.split()[i]))
                         i = i + 1
                 self.data.append(iondata)

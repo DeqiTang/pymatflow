@@ -681,6 +681,7 @@ class post_bands:
             print("And the effective mass at LUMO is %f\n" % (m_effective_lumo))
             print("the corresponding E-k is %f %f\n" % (low_energy, self.xcoord_k[low_valley_k]))
             print("The Efermi is: %f\n" % self.efermi)
+            print("The value is not right as the unit of k is not rightly handled now\n")
         elif spin_n == 2:
             print("The calculation is done for two spin\n")
             print("Spin 1:\n")
@@ -753,6 +754,7 @@ class post_bands:
                 print("And the effective mass at LUMO of spin 1 is %f\n" % (m_effective_lumo))
                 print("the corresponding E-k is %f %f\n" % (low_energy, self.xcoord_k[low_valley_k]))
                 print("The Efermi is: %f\n" % self.efermi)
+                print("The value is not right as the unit of k is not rightly handled now\n")
             print("Spin 2:\n")
             is_metallic_spin_2 = False
             for i in range(nband):
@@ -822,6 +824,7 @@ class post_bands:
                 print("And the effective mass of spin 2 at LUMO is %f\n" % (m_effective_lumo))
                 print("the corresponding E-k is %f %f\n" % (low_energy, self.xcoord_k[low_valley_k]))
                 print("The Efermi is: %f\n" % self.efermi)
+                print("The value is not right as the unit of k is not rightly handled now\n")
                     
                     
     def export(self, directory="tmp-vasp-static", bandrange=[0, 1], engine="matplotlib", xrange=None, yrange=None):

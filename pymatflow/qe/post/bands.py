@@ -434,11 +434,11 @@ class bands_post:
         homo_y = [data[homo*nks:(homo+1)*nks, 1][i] for i in range(-num_k_left, +num_k_right+1)]
         
         # unit of y is eV
-        # unit of x is 1/a namely 1/Angstrom
+        # unit of x is 2pi/a namely 2pi/Angstrom (if you use crystal_b or tpiba_b in band calc)
         # we now transfor m unit of y to Hartree and unit of x to bohr-1
         Bohr = 0.529177208
         for i in range(len(homo_x)):
-            homo_x[i] =  homo_x[i] * Bohr                
+            homo_x[i] =  homo_x[i] * Bohr          
         for i in range(len(lumo_x)):
             lumo_x[i] = lumo_x[i] * Bohr
         Hartree = 27.211396
@@ -458,3 +458,4 @@ class bands_post:
         print("And the effective mass at LUMO is %f\n" % (m_effective_lumo))
         print("the corresponding E-k is %f %f\n" % (low_energy, self.xcoord_k[low_valley_k]))
         print("The Efermi is: %f\n" % self.efermi)
+        print("The value is not right as the unit of k is not rightly handled now\n")
