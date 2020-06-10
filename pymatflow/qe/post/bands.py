@@ -102,7 +102,7 @@ class bands_post:
         # but only use it to set the gnuplot scripts so that gnuplot
         # script will be responsible for shfiting Efermi to zero.
 
-    def plot_band(self, option="gnuplot", bandrange=[0, 1.0]):
+    def plot_band(self, option="gnuplot", bandrange=[0, 1.0], xrange=None, yrange=None):
         """
         option:
             gnuplot or matplotlib
@@ -206,6 +206,10 @@ class bands_post:
                 print(labels_refined)
 
                 fout.write("set grid xtics ytics\n")
+                if xrange != None:
+                    fout.write("set xrange [%f:%f]\n" % (xrange[0], xrange[1]))
+                if yrange != None:
+                    fout.write("set yrange [%f:%f]\n" % (yrange[0], yrange[1]))     
                 fout.write("set autoscale\n")
                 fout.write("# fermi energy shifted to zero by use using 1:($2-%f) in plot function\n" % self.efermi)
                 fout.write("# and data in %s file is not modified at all, and is as it is\n" % self.bandfile_gnu)
@@ -295,7 +299,162 @@ class bands_post:
             #plt.xticks(locs, labels) # do not use this, it is unrefined
             plt.xticks(locs_refined, labels_refined)
             #plt.legend()
+            if xrange != None:
+                plt.xlim(xmin=xrange[0], xmax=xrange[1])
+            if yrange != None:
+                plt.ylim(ymin=yrange[0], ymax=yrange[1])
             plt.tight_layout()
             plt.savefig(os.path.join("post-processing", "bandstructure-maplotlib.png"))
             plt.close()
             #
+
+    def print_gap(self):
+        """
+        print out the gap of the band
+        """
+
+        print("===============================================================\n")
+        print("            Info about the gap of the system\n")
+        print("---------------------------------------------------------------\n")
+        
+        
+        with open(self.bandfile_dat, 'r') as fout:
+            lines = fout.readlines()
+            nbnd = int(lines[0].split()[2].split(",")[0])
+            nks = int(lines[0].split()[4])
+                
+        with open(self.bandfile_gnu, 'r') as fout:
+            data =  np.loadtxt(fout)
+
+
+            for i in range(begin, end):
+                # here minus self.efermi means the plot will shift efermi to 0
+                # band the data variable is not modified.
+                plt.plot(data[i*nks:(i+1)*nks, 0], data[i*nks:(i+1)*nks, 1] - self.efermi)
+                
+        is_metallic = False
+        for i in range(nbnd):
+            band_energies = list(data[i*nks:(i+1)*nks, 1])
+            if min(band_energies) < self.efermi < max(band_energies):
+                is_metallic = True
+                break
+        if is_metallic == True:
+            print("The system is metallic!\n")
+            return
+        # is_metallic == False:
+        homo = 0
+        lumo = 0
+        valence = []
+        conduction = []
+        for i in range(nbnd):
+            band_energies = list(data[i*nks:(i+1)*nks, 1])
+            if max(band_energies) <= self.efermi:
+                valence.append(i)
+                continue
+            elif min(band_energies) >= self.efermi:
+                conduction.append(i)
+                continue
+            else:
+                print("WARNING: band %d can not be classified to valence or conduction\n" % (i))
+        homo = max(valence)
+        lumo = min(conduction)
+        
+        gap = min(list(data[lumo*nks:(lumo+1)*nks, 1])) - max(list(data[homo*nks:(homo+1)*nks, 1]))
+        print("The system is semiconducting or insulating\n")
+        print("And the gap is %f\n" % gap)
+
+
+    def print_effective_mass(self):
+        """
+        print out the effective mass of the band(top of homo and buttom of lumo)
+        """
+
+        
+        print("===============================================================\n")
+        print("            Info about the effective Mass of the system\n")
+        print("---------------------------------------------------------------\n")
+        
+        with open(self.bandfile_dat, 'r') as fout:
+            lines = fout.readlines()
+            nbnd = int(lines[0].split()[2].split(",")[0])
+            nks = int(lines[0].split()[4])
+                
+        with open(self.bandfile_gnu, 'r') as fout:
+            data =  np.loadtxt(fout)
+
+
+            for i in range(begin, end):
+                # here minus self.efermi means the plot will shift efermi to 0
+                # band the data variable is not modified.
+                plt.plot(data[i*nks:(i+1)*nks, 0], data[i*nks:(i+1)*nks, 1] - self.efermi)
+                
+        is_metallic = False
+        for i in range(nbnd):
+            band_energies = list(data[i*nks:(i+1)*nks, 1])
+            if min(band_energies) < self.efermi < max(band_energies):
+                is_metallic = True
+                break
+        if is_metallic == True:
+            print("The system is metallic!\n")
+            return
+        # is_metallic == False:
+        homo = 0
+        lumo = 0
+        valence = []
+        conduction = []
+        for i in range(nbnd):
+            band_energies = list(data[i*nks:(i+1)*nks, 1])
+            if max(band_energies) <= self.efermi:
+                valence.append(i)
+                continue
+            elif min(band_energies) >= self.efermi:
+                conduction.append(i)
+                continue
+            else:
+                print("WARNING: band %d can not be classified to valence or conduction\n" % (i))
+        homo = max(valence)
+        lumo = min(conduction)
+        
+        
+        top_energy = max(data[homo*nks:(homo+1)*nks, 1])
+        low_energy = min(data[lumo*nks:(lumo+1)*nks, 1])
+        for k in range(nks):
+            if data[homo*nks:(lumo+1)*nks, 1][k] == top_energy:
+                top_peak_k = k
+        for k in range(nks):
+            if data[lumo*nks:(lumo+1)*nks, 1][k] == low_energy:
+                low_valley_k = k
+        # now interpolate datas around top_peak_k and low_valley_k
+        # on the left we choose num_k_left, on the right we choose num_k_right
+        num_k_left = 5 
+        num_k_right = 5
+        homo_x = [data[homo*nks:(homo+1)*nks, 0][i] for i in range(-num_k_left, +num_k_right+1)]
+        homo_y = [data[homo*nks:(homo+1)*nks, 1][i] for i in range(-num_k_left, +num_k_right+1)]
+        lumo_x = [data[lumo*nks:(lumo+1)*nks, 0][i] for i in range(-num_k_left, +num_k_right+1)]
+        homo_y = [data[homo*nks:(homo+1)*nks, 1][i] for i in range(-num_k_left, +num_k_right+1)]
+        
+        # unit of y is eV
+        # unit of x is 1/a namely 1/Angstrom
+        # we now transfor m unit of y to Hartree and unit of x to bohr-1
+        Bohr = 0.529177208
+        for i in range(len(homo_x)):
+            homo_x[i] =  homo_x[i] * Bohr                
+        for i in range(len(lumo_x)):
+            lumo_x[i] = lumo_x[i] * Bohr
+        Hartree = 27.211396
+        for i in range(len(homo_y)):
+            homo_y[i] = homo_y[i] / Hartree
+        for i in range(len(lumo_y)):
+            lumo_y[i] = lumo_y[i] / Hartree
+            
+        homo_result = np.polyfit(homo_x, homo_y, deg=2) # fit to a quadratic function: y = a * x**2 + b * x + c
+        lumo_result = np.polyfit(lumo_x, lumo_y, deg=2)
+        m_effective_homo = 1 / (2*homo_result[0]) # 1/(2a)
+        m_effective_lumo = 1 / (2*lumo_result[0])
+        
+        print("The system is semiconducting or insulating\n")
+        print("And the effective mass at HOMO is %f\n" % (m_effective_homo))
+        print("the corresponding E-k is %f %f\n" % (top_energy, self.xcoord_k[top_peak_k]))
+        print("And the effective mass at LUMO is %f\n" % (m_effective_lumo))
+        print("the corresponding E-k is %f %f\n" % (low_energy, self.xcoord_k[low_valley_k]))
+        print("The Efermi is: %f\n" % self.efermi)

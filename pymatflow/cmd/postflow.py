@@ -214,7 +214,7 @@ def main():
 
     subparser.add_argument("--fontsize", type=int, default=10,
             help="fontsize for the plot.")
-
+            
     # structure file
     structfile = subparser.add_mutually_exclusive_group() # only one of them can be provided
     structfile.add_argument("--xyz", type=str, default=None,
@@ -252,6 +252,15 @@ def main():
     subparser.add_argument("--opt-out", type=str, default=None,
             help="path of the output file for relax or vc-relax")
 
+
+    subparser.add_argument("--xrange", type=float, nargs=2,
+            default=None,
+            help="x range of the plot")
+
+    subparser.add_argument("--yrange", type=float, nargs=2,
+            default=None,
+            help="y range of the plot")
+            
     # --------------------------------------------------------------------------
     # SIESTA
     # --------------------------------------------------------------------------
@@ -496,9 +505,8 @@ def main():
             from pymatflow.qe.post.pdos import pdos_out
             os.chdir(args.directory)
             task = bands_post(pwxbandsin="static-bands.in", bandsxout="bands.out")
-            task.plot_band(option=args.engine, bandrange=args.bandrange)
+            task.plot_band(option=args.engine, bandrange=args.bandrange, xrange=args.xrange, yrange=args.yrange)
             os.chdir("../")
-
             task = pdos_out()
             task.get_data(directory=args.directory, filpdos="projwfc")
             task.export(directory=args.directory, plotrange=args.plotrange, atomtoproj=args.atomtoproj, fontsize=args.fontsize)
