@@ -37,7 +37,8 @@ class md_run(pwscf):
             all_file = os.listdir()
             for element in self.arts.xyz.specie_labels:
                 for item in all_file:
-                    if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                    #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                    if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
                         shutil.copyfile(item, os.path.join(directory, item))
                         break
             self.arts.pseudo.dir = os.path.abspath(directory)
@@ -81,7 +82,8 @@ class md_run(pwscf):
             all_upfs = [s for s in os.listdir() if s.split(".")[-1] == "UPF"]
             for element in self.arts.xyz.specie_labels:
                 for upf in all_upfs:
-                    if upf.split(".")[0] == element:
+                    #if upf.split(".")[0] == element:
+                    if upf.split(".")[0].lower() == element.lower() or upf.split("_")[0].lower() == element.lower():
                         shutil.copyfile(upf, os.path.join(directory, upf))
                         break
             #

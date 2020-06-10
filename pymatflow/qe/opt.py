@@ -46,7 +46,8 @@ class opt_run(pwscf):
             all_file = os.listdir()
             for element in self.arts.xyz.specie_labels:
                 for item in all_file:
-                    if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                    #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                    if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
                         shutil.copyfile(item, os.path.join(directory, item))
                         break
             self.arts.pseudo.dir = os.path.abspath(directory)
@@ -91,7 +92,8 @@ class opt_run(pwscf):
             all_file = os.listdir()
             for element in self.arts.xyz.specie_labels:
                 for item in all_file:
-                    if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                    #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                    if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
                         shutil.copyfile(item, os.path.join(directory, item))
                         break
             #
@@ -145,7 +147,8 @@ class opt_run(pwscf):
         all_file = os.listdir()
         for element in self.arts.xyz.specie_labels:
             for item in all_file:
-                if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
                     shutil.copyfile(item, os.path.join(directory, item))
                     break
         self.arts.pseudo.dir = os.path.abspath(directory)
@@ -423,7 +426,8 @@ class opt_run(pwscf):
         all_file = os.listdir()
         for element in self.arts.xyz.specie_labels:
             for item in all_file:
-                if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
                     shutil.copyfile(item, os.path.join(directory, item))
                     break
         self.arts.pseudo.dir = os.path.abspath(directory)
@@ -925,7 +929,8 @@ class opt_run(pwscf):
         all_file = os.listdir()
         for element in self.arts.xyz.specie_labels:
             for item in all_file:
-                if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
                     shutil.copyfile(item, os.path.join(directory, item))
                     break
         self.arts.pseudo.dir = os.path.abspath(directory)
@@ -1484,7 +1489,8 @@ class opt_run(pwscf):
             all_file = os.listdir(self.arts.pseudo.dir)
             for element in self.arts.xyz.specie_labels:
                 for item in all_file:
-                    if re.match("(%s)(.*)(upf)" % (element), item, re.IGNORECASE):
+                    #if re.match("(%s)(.*)(upf)" % (element), item, re.IGNORECASE):
+                    if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
                         fout.write("%s %f %s\n" % (element, base.element[element].mass, item))
                         break
             fout.write("\n")
@@ -1590,15 +1596,16 @@ class opt_run(pwscf):
                         fout.write("b_in=%f\n" % b)
                         fout.write("c_in=%f\n" % c)
 
-                        fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
-                        fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
-                        fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
-                        fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
-                        fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
-                        fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
-                        fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
-                        fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
-                        fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
+                        fout.write("a1=%f\n" % self.arts.xyz.cell[0][0])
+                        fout.write("a2=%f\n" % self.arts.xyz.cell[0][1])
+                        fout.write("a3=%f\n" % self.arts.xyz.cell[0][2])
+                        fout.write("b1=%f\n" % self.arts.xyz.cell[1][0])
+                        fout.write("b2=%f\n" % self.arts.xyz.cell[1][1])
+                        fout.write("b3=%f\n" % self.arts.xyz.cell[1][2])
+                        fout.write("c1=%f\n" % self.arts.xyz.cell[2][0])
+                        fout.write("c2=%f\n" % self.arts.xyz.cell[2][1])
+                        fout.write("c3=%f\n" % self.arts.xyz.cell[2][2])
+
 
                         fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
                         fout.write("do\n")
@@ -1633,9 +1640,9 @@ class opt_run(pwscf):
                     
 
                     # gen pbs script
-                    with open("opt-tetragonal-%d-%d-%d.pbs" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
+                    with open("opt-abc-%d-%d-%d.pbs" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
                         fout.write("#!/bin/bash\n")
-                        fout.write("#PBS -N %s-%d-%d\n" % (self.run_params["jobname"], i_batch_a, i_batch_c))
+                        fout.write("#PBS -N %s-%d-%d-%d\n" % (self.run_params["jobname"], i_batch_a, i_batch_b, i_batch_c))
                         fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
                         if "queue" in self.run_params and self.run_params["queue"] != None:
                             fout.write("#PBS -q %s\n" %self.run_params["queue"])            
@@ -1647,15 +1654,15 @@ class opt_run(pwscf):
                         fout.write("b_in=%f\n" % b)
                         fout.write("c_in=%f\n" % c)
 
-                        fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
-                        fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
-                        fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
-                        fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
-                        fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
-                        fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
-                        fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
-                        fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
-                        fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
+                        fout.write("a1=%f\n" % self.arts.xyz.cell[0][0])
+                        fout.write("a2=%f\n" % self.arts.xyz.cell[0][1])
+                        fout.write("a3=%f\n" % self.arts.xyz.cell[0][2])
+                        fout.write("b1=%f\n" % self.arts.xyz.cell[1][0])
+                        fout.write("b2=%f\n" % self.arts.xyz.cell[1][1])
+                        fout.write("b3=%f\n" % self.arts.xyz.cell[1][2])
+                        fout.write("c1=%f\n" % self.arts.xyz.cell[2][0])
+                        fout.write("c2=%f\n" % self.arts.xyz.cell[2][1])
+                        fout.write("c3=%f\n" % self.arts.xyz.cell[2][2])
 
 
                         fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
@@ -1689,22 +1696,23 @@ class opt_run(pwscf):
 
 
                     # gen local bash script
-                    with open("opt-tetragonal.sh", 'w') as fout:
+                    with open("opt-abc-%d-%d-%d.sh" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
                         fout.write("#!/bin/bash\n")
 
                         fout.write("a_in=%f\n" % a)
                         fout.write("b_in=%f\n" % b)
                         fout.write("c_in=%f\n" % c)
 
-                        fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
-                        fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
-                        fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
-                        fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
-                        fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
-                        fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
-                        fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
-                        fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
-                        fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
+                        fout.write("a1=%f\n" % self.arts.xyz.cell[0][0])
+                        fout.write("a2=%f\n" % self.arts.xyz.cell[0][1])
+                        fout.write("a3=%f\n" % self.arts.xyz.cell[0][2])
+                        fout.write("b1=%f\n" % self.arts.xyz.cell[1][0])
+                        fout.write("b2=%f\n" % self.arts.xyz.cell[1][1])
+                        fout.write("b3=%f\n" % self.arts.xyz.cell[1][2])
+                        fout.write("c1=%f\n" % self.arts.xyz.cell[2][0])
+                        fout.write("c2=%f\n" % self.arts.xyz.cell[2][1])
+                        fout.write("c3=%f\n" % self.arts.xyz.cell[2][2])
+
                         
 
                         fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
@@ -1738,7 +1746,7 @@ class opt_run(pwscf):
 
 
                     # gen lsf_sz script
-                    with open("opt-tetragonal-%d-%d.lsf_sz" % (i_batch_a, i_batch_c), 'w') as fout:
+                    with open("opt-abc-%d-%d-%d.lsf_sz" % (i_batch_a,i_batch_b, i_batch_c), 'w') as fout:
                         fout.write("#!/bin/bash\n")
                         fout.write("APP_NAME=intelY_mid\n")
                         fout.write("NP=%d\n" % (self.run_params["nodes"]*self.run_params["ppn"]))
@@ -1761,15 +1769,16 @@ class opt_run(pwscf):
                         fout.write("b_in=%f\n" % b)
                         fout.write("c_in=%f\n" % c)
 
-                        fout.write("a1=%f\n" % self.poscar.xyz.cell[0][0])
-                        fout.write("a2=%f\n" % self.poscar.xyz.cell[0][1])
-                        fout.write("a3=%f\n" % self.poscar.xyz.cell[0][2])
-                        fout.write("b1=%f\n" % self.poscar.xyz.cell[1][0])
-                        fout.write("b2=%f\n" % self.poscar.xyz.cell[1][1])
-                        fout.write("b3=%f\n" % self.poscar.xyz.cell[1][2])
-                        fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
-                        fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
-                        fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
+                        fout.write("a1=%f\n" % self.arts.xyz.cell[0][0])
+                        fout.write("a2=%f\n" % self.arts.xyz.cell[0][1])
+                        fout.write("a3=%f\n" % self.arts.xyz.cell[0][2])
+                        fout.write("b1=%f\n" % self.arts.xyz.cell[1][0])
+                        fout.write("b2=%f\n" % self.arts.xyz.cell[1][1])
+                        fout.write("b3=%f\n" % self.arts.xyz.cell[1][2])
+                        fout.write("c1=%f\n" % self.arts.xyz.cell[2][0])
+                        fout.write("c2=%f\n" % self.arts.xyz.cell[2][1])
+                        fout.write("c3=%f\n" % self.arts.xyz.cell[2][2])
+
 
 
                         fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))

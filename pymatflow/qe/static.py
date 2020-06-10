@@ -65,7 +65,8 @@ class static_run(pwscf):
             all_file = os.listdir()
             for element in self.arts.xyz.specie_labels:
                 for item in all_file:
-                    if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                    #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                    if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
                         shutil.copyfile(item, os.path.join(directory, item))
                         break
                     
@@ -141,7 +142,8 @@ class static_run(pwscf):
             all_file = os.listdir()
             for element in self.arts.xyz.specie_labels:
                 for item in all_file:
-                    if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                    #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                    if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
                         shutil.copyfile(item, os.path.join(directory, item))
                         break
 
@@ -213,7 +215,8 @@ class static_run(pwscf):
             all_file = os.listdir()
             for element in self.arts.xyz.specie_labels:
                 for item in all_file:
-                    if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                    #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                    if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
                         shutil.copyfile(item, os.path.join(directory, item))
                         break
 
@@ -296,7 +299,8 @@ class static_run(pwscf):
             all_file = os.listdir()
             for element in self.arts.xyz.specie_labels:
                 for item in all_file:
-                    if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                    #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                    if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
                         shutil.copyfile(item, os.path.join(directory, item))
                         break
 
@@ -394,7 +398,8 @@ class static_run(pwscf):
             all_file = os.listdir()
             for element in self.arts.xyz.specie_labels:
                 for item in all_file:
-                    if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                    #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                    if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
                         shutil.copyfile(item, os.path.join(directory, item))
                         break
 
@@ -1080,7 +1085,8 @@ class static_run(pwscf):
             all_file = os.listdir()
             for element in self.arts.xyz.specie_labels:
                 for item in all_file:
-                    if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                    #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                    if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
                         shutil.copyfile(item, os.path.join(directory, item))
                         break
                     

@@ -55,7 +55,8 @@ def dielectric_pw(xyz_f, directory="tmp-qe-static", mpi="", runopt="gen", auto=0
         all_file = os.listdir()
         for element in self.arts.xyz.specie_labels:
             for item in all_file:
-                if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
                     shutil.copyfile(item, os.path.join(directory, item))
                     break
         #

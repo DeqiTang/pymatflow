@@ -1346,15 +1346,15 @@ class opt_run(siesta):
                         fout.write("b_in=%f\n" % b)
                         fout.write("c_in=%f\n" % c)
 
-                        fout.write("a1=%f\n" % self.dataset[0].system.xyz.cell[0][0])
-                        fout.write("a2=%f\n" % self.dataset[0].system.xyz.cell[0][1])
-                        fout.write("a3=%f\n" % self.dataset[0].system.xyz.cell[0][2])
-                        fout.write("b1=%f\n" % self.dataset[0].system.xyz.cell[1][0])
-                        fout.write("b2=%f\n" % self.dataset[0].system.xyz.cell[1][1])
-                        fout.write("b3=%f\n" % self.dataset[0].system.xyz.cell[1][2])
-                        fout.write("c1=%f\n" % self.dataset[0].system.xyz.cell[2][0])
-                        fout.write("c2=%f\n" % self.dataset[0].system.xyz.cell[2][1])
-                        fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
+                        fout.write("a1=%f\n" % self.system.xyz.cell[0][0])
+                        fout.write("a2=%f\n" % self.system.xyz.cell[0][1])
+                        fout.write("a3=%f\n" % self.system.xyz.cell[0][2])
+                        fout.write("b1=%f\n" % self.system.xyz.cell[1][0])
+                        fout.write("b2=%f\n" % self.system.xyz.cell[1][1])
+                        fout.write("b3=%f\n" % self.system.xyz.cell[1][2])
+                        fout.write("c1=%f\n" % self.system.xyz.cell[2][0])
+                        fout.write("c2=%f\n" % self.system.xyz.cell[2][1])
+                        fout.write("c3=%f\n" % self.system.xyz.cell[2][2])
 
                         fout.write("lat_vec_begin=`cat optimization.fdf | grep -n \'%block LatticeVectors\' | cut -d \":\" -f 1`\n")
                         fout.write("lat_vec_end=`cat optimization.fdf | grep -n \'%endblock LatticeVectors\' | cut -d \":\" -f 1`\n")
@@ -1393,9 +1393,9 @@ class opt_run(siesta):
 
                     
                     # gen pbs script
-                    with open("opt-tetragonal-%d-%d-%d.pbs" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
+                    with open("opt-abc-%d-%d-%d.pbs" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
                         fout.write("#!/bin/bash\n")
-                        fout.write("#PBS -N %s-%d-%d\n" % (self.run_params["jobname"], i_batch_a, i_batch_c))
+                        fout.write("#PBS -N %s-%d-%d-%d\n" % (self.run_params["jobname"], i_batch_a, i_batch_b, i_batch_c))
                         fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
                         if "queue" in self.run_params and self.run_params["queue"] != None:
                             fout.write("#PBS -q %s\n" %self.run_params["queue"])            
@@ -1413,15 +1413,15 @@ class opt_run(siesta):
                         fout.write("b_in=%f\n" % b)
                         fout.write("c_in=%f\n" % c)
 
-                        fout.write("a1=%f\n" % self.dataset[0].system.xyz.cell[0][0])
-                        fout.write("a2=%f\n" % self.dataset[0].system.xyz.cell[0][1])
-                        fout.write("a3=%f\n" % self.dataset[0].system.xyz.cell[0][2])
-                        fout.write("b1=%f\n" % self.dataset[0].system.xyz.cell[1][0])
-                        fout.write("b2=%f\n" % self.dataset[0].system.xyz.cell[1][1])
-                        fout.write("b3=%f\n" % self.dataset[0].system.xyz.cell[1][2])
-                        fout.write("c1=%f\n" % self.dataset[0].system.xyz.cell[2][0])
-                        fout.write("c2=%f\n" % self.dataset[0].system.xyz.cell[2][1])
-                        fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
+                        fout.write("a1=%f\n" % self.system.xyz.cell[0][0])
+                        fout.write("a2=%f\n" % self.system.xyz.cell[0][1])
+                        fout.write("a3=%f\n" % self.system.xyz.cell[0][2])
+                        fout.write("b1=%f\n" % self.system.xyz.cell[1][0])
+                        fout.write("b2=%f\n" % self.system.xyz.cell[1][1])
+                        fout.write("b3=%f\n" % self.system.xyz.cell[1][2])
+                        fout.write("c1=%f\n" % self.system.xyz.cell[2][0])
+                        fout.write("c2=%f\n" % self.system.xyz.cell[2][1])
+                        fout.write("c3=%f\n" % self.system.xyz.cell[2][2])
 
                         fout.write("lat_vec_begin=`cat optimization.fdf | grep -n \'%block LatticeVectors\' | cut -d \":\" -f 1`\n")
                         fout.write("lat_vec_end=`cat optimization.fdf | grep -n \'%endblock LatticeVectors\' | cut -d \":\" -f 1`\n")
@@ -1460,7 +1460,7 @@ class opt_run(siesta):
 
 
                     # gen local bash script
-                    with open("opt-tetragonal.sh", 'w') as fout:
+                    with open("opt-abc-%d-%d-%d.sh" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
                         fout.write("#!/bin/bash\n")
 
                         fout.write("cat > optimization.fdf<<EOF\n")
@@ -1474,15 +1474,15 @@ class opt_run(siesta):
                         fout.write("b_in=%f\n" % b)
                         fout.write("c_in=%f\n" % c)
 
-                        fout.write("a1=%f\n" % self.dataset[0].system.xyz.cell[0][0])
-                        fout.write("a2=%f\n" % self.dataset[0].system.xyz.cell[0][1])
-                        fout.write("a3=%f\n" % self.dataset[0].system.xyz.cell[0][2])
-                        fout.write("b1=%f\n" % self.dataset[0].system.xyz.cell[1][0])
-                        fout.write("b2=%f\n" % self.dataset[0].system.xyz.cell[1][1])
-                        fout.write("b3=%f\n" % self.dataset[0].system.xyz.cell[1][2])
-                        fout.write("c1=%f\n" % self.dataset[0].system.xyz.cell[2][0])
-                        fout.write("c2=%f\n" % self.dataset[0].system.xyz.cell[2][1])
-                        fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
+                        fout.write("a1=%f\n" % self.system.xyz.cell[0][0])
+                        fout.write("a2=%f\n" % self.system.xyz.cell[0][1])
+                        fout.write("a3=%f\n" % self.system.xyz.cell[0][2])
+                        fout.write("b1=%f\n" % self.system.xyz.cell[1][0])
+                        fout.write("b2=%f\n" % self.system.xyz.cell[1][1])
+                        fout.write("b3=%f\n" % self.system.xyz.cell[1][2])
+                        fout.write("c1=%f\n" % self.system.xyz.cell[2][0])
+                        fout.write("c2=%f\n" % self.system.xyz.cell[2][1])
+                        fout.write("c3=%f\n" % self.system.xyz.cell[2][2])
 
                         fout.write("lat_vec_begin=`cat optimization.fdf | grep -n \'%block LatticeVectors\' | cut -d \":\" -f 1`\n")
                         fout.write("lat_vec_end=`cat optimization.fdf | grep -n \'%endblock LatticeVectors\' | cut -d \":\" -f 1`\n")
@@ -1522,7 +1522,7 @@ class opt_run(siesta):
 
 
                     # gen lsf_sz script
-                    with open("opt-tetragonal-%d-%d.lsf_sz" % (i_batch_a, i_batch_c), 'w') as fout:
+                    with open("opt-abc-%d-%d-%d.lsf_sz" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
                         fout.write("#!/bin/bash\n")
                         fout.write("APP_NAME=intelY_mid\n")
                         fout.write("NP=%d\n" % (self.run_params["nodes"]*self.run_params["ppn"]))
@@ -1552,15 +1552,15 @@ class opt_run(siesta):
                         fout.write("b_in=%f\n" % b)
                         fout.write("c_in=%f\n" % c)
 
-                        fout.write("a1=%f\n" % self.dataset[0].system.xyz.cell[0][0])
-                        fout.write("a2=%f\n" % self.dataset[0].system.xyz.cell[0][1])
-                        fout.write("a3=%f\n" % self.dataset[0].system.xyz.cell[0][2])
-                        fout.write("b1=%f\n" % self.dataset[0].system.xyz.cell[1][0])
-                        fout.write("b2=%f\n" % self.dataset[0].system.xyz.cell[1][1])
-                        fout.write("b3=%f\n" % self.dataset[0].system.xyz.cell[1][2])
-                        fout.write("c1=%f\n" % self.dataset[0].system.xyz.cell[2][0])
-                        fout.write("c2=%f\n" % self.dataset[0].system.xyz.cell[2][1])
-                        fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
+                        fout.write("a1=%f\n" % self.system.xyz.cell[0][0])
+                        fout.write("a2=%f\n" % self.system.xyz.cell[0][1])
+                        fout.write("a3=%f\n" % self.system.xyz.cell[0][2])
+                        fout.write("b1=%f\n" % self.system.xyz.cell[1][0])
+                        fout.write("b2=%f\n" % self.system.xyz.cell[1][1])
+                        fout.write("b3=%f\n" % self.system.xyz.cell[1][2])
+                        fout.write("c1=%f\n" % self.system.xyz.cell[2][0])
+                        fout.write("c2=%f\n" % self.system.xyz.cell[2][1])
+                        fout.write("c3=%f\n" % self.system.xyz.cell[2][2])
 
                         fout.write("lat_vec_begin=`cat optimization.fdf | grep -n \'%block LatticeVectors\' | cut -d \":\" -f 1`\n")
                         fout.write("lat_vec_end=`cat optimization.fdf | grep -n \'%endblock LatticeVectors\' | cut -d \":\" -f 1`\n")

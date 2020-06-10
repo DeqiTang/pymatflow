@@ -89,7 +89,9 @@ if __name__ == "__main__":
             cmd = "cp "
             for element in xyz.specie_labels:
                 for pseudo in all_pseudos:
-                    if re.match(element, pseudo, re.IGNORECASE):
+                    #if re.match(element, pseudo, re.IGNORECASE):
+                    #if re.match(element+".", pseudo, re.IGNORECASE) or re.match(element+"_", pseudo, re.IGNORECASE):
+                    if pseudo.split(".")[0].lower() == element.lower() or pseudo.split("_")[0].lower() == element.lower():
                         cmd = cmd + "%s " % (os.path.join(args.qe_pot_dir, "SSSP_efficiency_pseudos/%s" % pseudo))
                         break
             cmd = cmd + " %s" % args.directory
@@ -101,7 +103,9 @@ if __name__ == "__main__":
             cmd = "cp "
             for element in xyz.specie_labels:
                 for pseudo in all_pseudos:
-                    if re.match(element, pseudo, re.IGNORECASE):
+                    #if re.match(element, pseudo, re.IGNORECASE):
+                    #if re.match(element+".", pseudo, re.IGNORECASE) or re.match(element+"_", pseudo, re.IGNORECASE):
+                    if pseudo.split(".")[0].lower() == element.lower() or pseudo.split("_")[0].lower() == element.lower():
                         cmd = cmd + "%s " % (os.path.join(args.qe_pot_dir, "SSSP_precision_pseudos/%s" % pseudo))
                         break
             cmd = cmd + " %s" % args.directory

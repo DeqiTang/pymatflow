@@ -1498,9 +1498,9 @@ class opt_run(abinit):
                     
 
                     # gen pbs script
-                    with open("opt-tetragonal-%d-%d-%d.pbs" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
+                    with open("opt-abc-%d-%d-%d.pbs" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
                         fout.write("#!/bin/bash\n")
-                        fout.write("#PBS -N %s-%d-%d\n" % (self.run_params["jobname"], i_batch_a, i_batch_c))
+                        fout.write("#PBS -N %s-%d-%d-%d\n" % (self.run_params["jobname"], i_batch_a, i_batch_b, i_batch_c))
                         fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
                         if "queue" in self.run_params and self.run_params["queue"] != None:
                             fout.write("#PBS -q %s\n" %self.run_params["queue"])            
@@ -1576,7 +1576,7 @@ class opt_run(abinit):
 
 
                     # gen local bash script
-                    with open("opt-tetragonal.sh", 'w') as fout:
+                    with open("opt-abc-%d-%d-%d.sh" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
                         fout.write("#!/bin/bash\n")
 
                         fout.write("cat > optimization.in<<EOF\n")
@@ -1647,7 +1647,7 @@ class opt_run(abinit):
 
 
                     # gen lsf_sz script
-                    with open("opt-tetragonal-%d-%d.lsf_sz" % (i_batch_a, i_batch_c), 'w') as fout:
+                    with open("opt-abc-%d-%d-%d.lsf_sz" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
                         fout.write("#!/bin/bash\n")
                         fout.write("APP_NAME=intelY_mid\n")
                         fout.write("NP=%d\n" % (self.run_params["nodes"]*self.run_params["ppn"]))
