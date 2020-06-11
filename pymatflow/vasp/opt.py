@@ -1834,6 +1834,23 @@ class opt_run(vasp):
         for i_batch_a in range(n_batch_a):
             for i_batch_b in range(n_batch_b):
                 for i_batch_c in range(n_batch_c):
+                    range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
+                    range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
+                    # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_a_end  > range_a[1]:
+                        range_a_end = range_a[1]
+
+                    range_b_start = range_b[0] + i_batch_b * self.batch_b * range_b[2]
+                    range_b_end = range_b[0] + (i_batch_b+1) * self.batch_b * range_b[2] - range_b[2] / 2
+                    # - range_b[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_b_end  > range_b[1]:
+                        range_b_end = range_b[1]
+                        
+                    range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
+                    range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
+                    # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_c_end  > range_c[1]:
+                        range_c_end = range_c[1]
                     # gen llhpc script
                     with open("opt-abc-%d-%d-%d.slurm" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
                         fout.write("#!/bin/bash\n")
@@ -1863,25 +1880,6 @@ class opt_run(vasp):
                         fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
                         fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
                         fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
-
-
-                        range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
-                        range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
-                        # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_a_end  > range_a[1]:
-                            range_a_end = range_a[1]
-
-                        range_b_start = range_b[0] + i_batch_b * self.batch_b * range_b[2]
-                        range_b_end = range_b[0] + (i_batch_b+1) * self.batch_b * range_b[2] - range_b[2] / 2
-                        # - range_b[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_b_end  > range_b[1]:
-                            range_b_end = range_b[1]
-                            
-                        range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
-                        range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
-                        # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_c_end  > range_c[1]:
-                            range_c_end = range_c[1]
 
 
                         fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
@@ -1918,9 +1916,9 @@ class opt_run(vasp):
         
 
                     # gen pbs script
-                    with open("opt-tetragonal-%d-%d-%d.pbs" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
+                    with open("opt-abc-%d-%d-%d.pbs" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
                         fout.write("#!/bin/bash\n")
-                        fout.write("#PBS -N %s-%d-%d\n" % (self.run_params["jobname"], i_batch_a, i_batch_c))
+                        fout.write("#PBS -N %s-%d-%d-%d\n" % (self.run_params["jobname"], i_batch_a, i_batch_b, i_batch_c))
                         fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
                         if "queue" in self.run_params and self.run_params["queue"] != None:
                             fout.write("#PBS -q %s\n" %self.run_params["queue"])            
@@ -1948,25 +1946,6 @@ class opt_run(vasp):
                         fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
                         fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
                         fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
-
-
-                        range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
-                        range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
-                        # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_a_end  > range_a[1]:
-                            range_a_end = range_a[1]
-
-                        range_b_start = range_b[0] + i_batch_b * self.batch_b * range_b[2]
-                        range_b_end = range_b[0] + (i_batch_b+1) * self.batch_b * range_b[2] - range_b[2] / 2
-                        # - range_b[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_b_end  > range_b[1]:
-                            range_b_end = range_b[1]
-                            
-                        range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
-                        range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
-                        # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_c_end  > range_c[1]:
-                            range_c_end = range_c[1]
 
 
                         fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
@@ -2003,7 +1982,7 @@ class opt_run(vasp):
 
 
                     # gen local bash script
-                    with open("opt-tetragonal.sh", 'w') as fout:
+                    with open("opt-abc-%d-%d-%d.sh" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
                         fout.write("#!/bin/bash\n")
 
                         fout.write("cat > INCAR<<EOF\n")
@@ -2027,25 +2006,6 @@ class opt_run(vasp):
                         fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
                         fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
                         fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
-
-
-                        range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
-                        range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
-                        # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_a_end  > range_a[1]:
-                            range_a_end = range_a[1]
-
-                        range_b_start = range_b[0] + i_batch_b * self.batch_b * range_b[2]
-                        range_b_end = range_b[0] + (i_batch_b+1) * self.batch_b * range_b[2] - range_b[2] / 2
-                        # - range_b[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_b_end  > range_b[1]:
-                            range_b_end = range_b[1]
-                            
-                        range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
-                        range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
-                        # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_c_end  > range_c[1]:
-                            range_c_end = range_c[1]
 
 
                         fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
@@ -2083,7 +2043,7 @@ class opt_run(vasp):
 
 
                     # gen lsf_sz script
-                    with open("opt-tetragonal-%d-%d.lsf_sz" % (i_batch_a, i_batch_c), 'w') as fout:
+                    with open("opt-abc-%d-%d-%d.lsf_sz" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
                         fout.write("#!/bin/bash\n")
                         fout.write("APP_NAME=intelY_mid\n")
                         fout.write("NP=%d\n" % (self.run_params["nodes"]*self.run_params["ppn"]))
@@ -2125,25 +2085,6 @@ class opt_run(vasp):
                         fout.write("c1=%f\n" % self.poscar.xyz.cell[2][0])
                         fout.write("c2=%f\n" % self.poscar.xyz.cell[2][1])
                         fout.write("c3=%f\n" % self.poscar.xyz.cell[2][2])
-
-
-                        range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
-                        range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
-                        # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_a_end  > range_a[1]:
-                            range_a_end = range_a[1]
-
-                        range_b_start = range_b[0] + i_batch_b * self.batch_b * range_b[2]
-                        range_b_end = range_b[0] + (i_batch_b+1) * self.batch_b * range_b[2] - range_b[2] / 2
-                        # - range_b[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_b_end  > range_b[1]:
-                            range_b_end = range_b[1]
-                            
-                        range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
-                        range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
-                        # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
-                        if range_c_end  > range_c[1]:
-                            range_c_end = range_c[1]
 
 
                         fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
@@ -2192,7 +2133,7 @@ class opt_run(vasp):
 
             fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a[0], range_a[2], a+range_a[1]))
             fout.write("do\n")
-            fout.write("for b in `seq -2 %f %f %f`\n" % (b+range_b[0], range_b[2], b+range_b[1]))
+            fout.write("for b in `seq -w %f %f %f`\n" % (b+range_b[0], range_b[2], b+range_b[1]))
             fout.write("do\n")
             fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c[0], range_c[2], c+range_c[1]))
             fout.write("do\n")
@@ -2201,6 +2142,9 @@ class opt_run(vasp):
             #fout.write("${a} ${c} ${energy:27:-36}\n")
             fout.write("${a} ${b} ${c} ${energy:27:17}\n")
             fout.write("EOF\n")
+            fout.write("done\n")
+            fout.write("done\n")
+            fout.write("done\n")
             
             #fout.write("cat > energy-latconst.gp<<EOF\n")
             #fout.write("set term gif\n")

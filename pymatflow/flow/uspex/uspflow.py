@@ -6,76 +6,6 @@ import argparse
 
 
 
-def get_kpath(kpath_manual=None, kpath_file=None):
-    """
-    :param kpath_manual: manual input kpath like --kpath-manual '0.000000 0.000000 0.000000 GAMMA 5' '0.500000 0.000000 0.000000 X 5' '0.0000 0.000 0.50000 A |' '0.5 0.5 0.5 R '
-    :param kpath_file: manual input kpath read from the file
-    :return kpath or None(when kpath_manual and kpath_file are both None)
-    """
-    # dealing with standard kpath
-    kpath = None
-    if kpath_manual != None:
-        # kpath from script argument args.kpath
-        kpath = []
-        for kpoint in kpath_manual:
-            if kpoint.split()[4] != "|":
-                kpath.append([
-                    float(kpoint.split()[0]),
-                    float(kpoint.split()[1]),
-                    float(kpoint.split()[2]),
-                    kpoint.split()[3].upper(),
-                    int(kpoint.split()[4]),
-                    ])
-            elif kpoint.split()[4] == "|":
-                kpath.append([
-                    float(kpoint.split()[0]),
-                    float(kpoint.split()[1]),
-                    float(kpoint.split()[2]),
-                    kpoint.split()[3].upper(),
-                    "|",
-                    ])
-        return kpath
-    elif kpath_file != None:
-        # kpath read from file specified by kpath_file
-        # file is in format like this
-        """
-        5
-        0.0 0.0 0.0 #GAMMA 15
-        x.x x.x x.x #XXX |
-        x.x x.x x.x #XXX 10
-        x.x x.x x.x #XXX 15
-        x.x x.x x.x #XXX 20
-        """
-        # if there is a '|' behind the label it means the path is
-        # broken after that point!!!
-        kpath = []
-        with open(kpath_file, 'r') as fin:
-            lines = fin.readlines()
-        nk = int(lines[0])
-        for i in range(nk):
-            if lines[i+1].split("\n")[0].split()[4] != "|":
-                kpath.append([
-                    float(lines[i+1].split()[0]),
-                    float(lines[i+1].split()[1]),
-                    float(lines[i+1].split()[2]),
-                    lines[i+1].split()[3].split("#")[1].upper(),
-                    int(lines[i+1].split()[4]),
-                    ])
-            elif lines[i+1].split("\n")[0].split()[4] == "|":
-                kpath.append([
-                    float(lines[i+1].split()[0]),
-                    float(lines[i+1].split()[1]),
-                    float(lines[i+1].split()[2]),
-                    lines[i+1].split()[3].split("#")[1].upper(),
-                    '|',
-                    ])
-        return kpath
-    else:
-        pass
-    # -------------------------------------------------------------------
-
-
-
 def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="driver", title="subcommands", description="choose one and only one calculator")
@@ -89,11 +19,19 @@ def main():
             description="control the overall running parameters")
 
     gp.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8],
-            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-opt; 3->hexagonal-opt; 4->tetragonal-opt; 5->dfpt-elastic-piezo-dielec; 6->dfpt-phonon; 7->phonopy; 8->abc")
+            choices=[0, 1, 2, 3, 4, 5, 6, 7],
+            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-opt; 3->hexagonal-opt; 4->tetragonal-opt; 5->dfpt-elastic-piezo-dielec; 6->dfpt-phonon; 7->phonopy")
 
     gp.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory to do the calculation")
+            
+    # USPEX INPUT.txt template
+    gp = subparser.add_argument_group(title="template", 
+            description="read in Calypso input.dat template")
+
+    gp.add_argument("--input-txt", type=str, default=None,
+            help="specify USPEX INPUT.txt template to set parameters")
+    
     # run params
     # -----------------------------------------------------------------
     # run option
@@ -293,36 +231,6 @@ def main():
             default=[1, 1, 1],
             help="supercell build for phonopy.")
 
-    # range_a range_b range_c
-    # ----------------------------------------------
-    gp = subparser.add_argument_group(title="cell optimization",
-            description="cubic, hexagonal, tetragonal cell or general abc optimization parameters")
-
-    gp.add_argument("--range-a", type=float, nargs=3,
-            default=[-0.1, 0.1, 0.01],
-            help="test range for a")
-
-    gp.add_argument("--range-b", type=float, nargs=3,
-            default=[-0.1, 0.1, 0.01], 
-            help="test range for b")
-            
-    gp.add_argument("--range-c", type=float, nargs=3,
-            default=[-0.1, 0.1, 0.01],
-            help="test range for c")
-
-    gp.add_argument("--batch-a", type=int,
-            default=None,
-            help="number of structure each batch a")
-    
-    gp.add_argument("--batch-b", type=int, 
-            default=None,
-            help="number of structure each batch b")
-            
-    gp.add_argument("--batch-c", type=int,
-            default=None,
-            help="number of structure each batch c")
-            
-
     # --------------------------------------------------------------------------
     # CP2K
     # --------------------------------------------------------------------------
@@ -331,11 +239,19 @@ def main():
     gp = subparser.add_argument_group(title="overall running control")
 
     gp.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4 ,5, 6, 7, 8, 9, 10, 11],
-            help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6-neb; 7->phonopy; 8->vibrational_analysis; 9->converge test; 10->aimd; 11->abc")
+            choices=[0, 1, 2, 3, 4 ,5, 6, 7, 8, 9, 10],
+            help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6-neb; 7->phonopy; 8->vibrational_analysis; 9->converge test; 10->aimd")
 
     gp.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory to do the calculation")
+    
+    # USPEX INPUT.txt template
+    gp = subparser.add_argument_group(title="template", 
+            description="read in Calypso input.dat template")
+
+    gp.add_argument("--input-txt", type=str, default=None,
+            help="specify USPEX INPUT.txt template to set parameters")
+
 
     # run option
     gp.add_argument("--runopt", type=str, default="gen",
@@ -707,35 +623,6 @@ def main():
     gp.add_argument("--stepc", type=float, default=0.05,
             help="c step")
 
-    # range_a range_b range_c
-    # ----------------------------------------------
-    gp = subparser.add_argument_group(title="cell optimization",
-            description="cubic, hexagonal, tetragonal cell or general abc optimization parameters")
-
-    gp.add_argument("--range-a", type=float, nargs=3,
-            default=[-0.1, 0.1, 0.01],
-            help="test range for a")
-
-    gp.add_argument("--range-b", type=float, nargs=3,
-            default=[-0.1, 0.1, 0.01], 
-            help="test range for b")
-            
-    gp.add_argument("--range-c", type=float, nargs=3,
-            default=[-0.1, 0.1, 0.01],
-            help="test range for c")
-
-    gp.add_argument("--batch-a", type=int,
-            default=None,
-            help="number of structure each batch a")
-    
-    gp.add_argument("--batch-b", type=int, 
-            default=None,
-            help="number of structure each batch b")
-            
-    gp.add_argument("--batch-c", type=int,
-            default=None,
-            help="number of structure each batch c")
-
     # converge test
     gp = subparser.add_argument_group(title="converge test",
             description="setting of parameters needed in converge test")
@@ -764,8 +651,8 @@ def main():
     gp = subparser.add_argument_group(title="overall running control")
 
     gp.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-            help="choices of runtype. 0->static_run; 1->relax; 2->vc-relax; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->neb; 7->dfpt; 8->phonopy; 9->pp.x; 10->abc")
+            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            help="choices of runtype. 0->static_run; 1->relax; 2->vc-relax; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->neb; 7->dfpt; 8->phonopy; 9->pp.x")
 
     gp.add_argument("--static", type=str, default="all",
             choices=["all", "scf"],
@@ -774,6 +661,13 @@ def main():
 
     gp.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory for the running.")
+
+    # USPEX INPUT.txt template
+    gp = subparser.add_argument_group(title="template", 
+            description="read in Calypso input.dat template")
+
+    gp.add_argument("--input-txt", type=str, default=None,
+            help="specify USPEX INPUT.txt template to set parameters")
 
     # run option
     gp.add_argument("--runopt", type=str, default="gen",
@@ -1110,35 +1004,6 @@ def main():
             choices=[0, 1, 2, 3, 4, 5, 6, 7],
             help="output file format for visualization. 0: gnuplot(1D), 1: no longer supported, 2: plotrho(2D), 3: XCRYSDEN(2d), 4: no longer supported, 5: XCRYSDEN(3D), 6: gaussian cube(3D), 7: gnuplot(2D)")
 
-    # range_a range_c
-    # ----------------------------------------------
-    gp = subparser.add_argument_group(title="cell optimization",
-            description="cubic, hexagonal, tetragonal cell or general abc optimization parameters")
-
-    gp.add_argument("--range-a", type=float, nargs=3,
-            default=[-0.1, 0.1, 0.01],
-            help="test range for a")
-
-    gp.add_argument("--range-b", type=float, nargs=3,
-            default=[-0.1, 0.1, 0.01], 
-            help="test range for b")
-            
-    gp.add_argument("--range-c", type=float, nargs=3,
-            default=[-0.1, 0.1, 0.01],
-            help="test range for c")
-
-    gp.add_argument("--batch-a", type=int,
-            default=None,
-            help="number of structure each batch a")
-    
-    gp.add_argument("--batch-b", type=int, 
-            default=None,
-            help="number of structure each batch b")
-            
-    gp.add_argument("--batch-c", type=int,
-            default=None,
-            help="number of structure each batch c")
-
     # --------------------------------------------------------------------------
     # SIESTA
     # --------------------------------------------------------------------------
@@ -1147,8 +1012,8 @@ def main():
     gp = subparser.add_argument_group(title="overall running control:")
 
     gp.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5, 6, 7],
-            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->phonopy; 6->molecular dynamics; 7->abc")
+            choices=[0, 1, 2, 3, 4, 5],
+            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->phonopy; 6->molecular dynamics")
 
     gp.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory for the running.")
@@ -1160,6 +1025,13 @@ def main():
     gp.add_argument("--auto", type=int, default=3,
             choices=[0, 1, 2, 3],
             help="auto:0 nothing, 1: copying files to server, 2: copying and executing, 3: pymatflow run inserver with direct submit,  in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|llhpc].conf")
+
+    # USPEX INPUT.txt template
+    gp = subparser.add_argument_group(title="template", 
+            description="read in Calypso input.dat template")
+
+    gp.add_argument("--input-txt", type=str, default=None,
+            help="specify USPEX INPUT.txt template to set parameters")
 
     # -----------------------------------------------------------------
     #                      run params
@@ -1358,34 +1230,7 @@ def main():
             default=[1, 1,1],
             help="supercell option for phonopy, like '2 2 2'")
 
-    # range_a range_c
-    # ----------------------------------------------
-    gp = subparser.add_argument_group(title="cell optimization",
-            description="cubic, hexagonal, tetragonal cell or general abc optimization parameters")
 
-    gp.add_argument("--range-a", type=float, nargs=3,
-            default=[-0.1, 0.1, 0.01],
-            help="test range for a")
-
-    gp.add_argument("--range-b", type=float, nargs=3,
-            default=[-0.1, 0.1, 0.01], 
-            help="test range for b")
-            
-    gp.add_argument("--range-c", type=float, nargs=3,
-            default=[-0.1, 0.1, 0.01],
-            help="test range for c")
-
-    gp.add_argument("--batch-a", type=int,
-            default=None,
-            help="number of structure each batch a")
-    
-    gp.add_argument("--batch-b", type=int, 
-            default=None,
-            help="number of structure each batch b")
-            
-    gp.add_argument("--batch-c", type=int,
-            default=None,
-            help="number of structure each batch c")
 
 
     # --------------------------------------------------------------------------
@@ -1401,9 +1246,18 @@ def main():
             help="directory to generate all the files, do not specify the current directory")
 
     gp.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->neb; 6->vasp-phonon; 7->phonopy; 8->surf pes; 9->abc")
+            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8],
+            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->neb; 6->vasp-phonon; 7->phonopy; 8->surf pes")
 
+
+    # USPEX INPUT.txt template
+    gp = subparser.add_argument_group(title="template", 
+            description="read in Calypso input.dat template")
+
+    gp.add_argument("--input-txt", type=str, default=None,
+            help="specify USPEX INPUT.txt template to set parameters")
+            
+            
     # run option
     gp.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
@@ -1469,11 +1323,12 @@ def main():
 
     gp.add_argument("--pot", type=str, default="./",
             help="specify the path to the POTCAR, default is ./. if you pass 'auto' to it, matflow will build the POTCAR foryou(need simple configuration, see manual)")
-        
+
     gp.add_argument("--pot-type", type=str, default="PAW_PBE",
             choices=["PAW_PBE", "PAW_LDA", "PAW_PW91", "paw_pbe", "paw_lda", "paw_pw91"],
             help="choose type of POT for POTCAR")
-
+            
+            
     # --------------------------------------------------------
     #                   INCAR PARAMETERS
     # --------------------------------------------------------
@@ -1511,13 +1366,16 @@ def main():
             default=[1, 1, 1, 0, 0, 0],
             help="set kpoints like -k 1 1 1 0 0 0")
 
+    gp.add_argument("--kspacing", type=float, default=None,
+            help="determines the number of k-points if the KPOINTS file is not present. default is 0.5")
+            
     #gp.add_argument("--kpoints-mp-scf", type=int, nargs="+",
     #        default=[1, 1, 1, 0, 0, 0],
     #        help="set kpoints like -k 1 1 1 0 0 0")
 
-    gp.add_argument("--kpoints-mp-nscf", type=int, nargs="+",
-            default=None,
-            help="set kpoints like -k 1 1 1 0 0 0")
+    #gp.add_argument("--kpoints-mp-nscf", type=int, nargs="+",
+    #        default=[3, 3, 3, 0, 0, 0],
+    #        help="set kpoints like -k 1 1 1 0 0 0")
 
     gp.add_argument("--kpath-manual", type=str, nargs="+", default=None,
             help="set kpoints for band structure calculation manually")
@@ -1723,19 +1581,15 @@ def main():
             help="supercell for phonopy, like [2, 2, 2]")
 
 
-    # range_a range_b range_c
+    # range_a range_c
     # ----------------------------------------------
     gp = subparser.add_argument_group(title="cell optimization",
-            description="cubic, hexagonal, tetragonal cell or general abc optimization parameters")
+            description="cubic, hexagonal, tetragonal cell optimization parameters")
 
     gp.add_argument("--range-a", type=float, nargs=3,
             default=[-0.1, 0.1, 0.01],
             help="test range for a")
 
-    gp.add_argument("--range-b", type=float, nargs=3,
-            default=[-0.1, 0.1, 0.01], 
-            help="test range for b")
-            
     gp.add_argument("--range-c", type=float, nargs=3,
             default=[-0.1, 0.1, 0.01],
             help="test range for c")
@@ -1743,11 +1597,7 @@ def main():
     gp.add_argument("--batch-a", type=int,
             default=None,
             help="number of structure each batch a")
-    
-    gp.add_argument("--batch-b", type=int, 
-            default=None,
-            help="number of structure each batch b")
-            
+
     gp.add_argument("--batch-c", type=int,
             default=None,
             help="number of structure each batch c")
@@ -1790,7 +1640,7 @@ def main():
     gp = subparser.add_argument_group(title="fix atoms",
             description="specify atoms to fix in optimization, only used when --runtype=1")
 
-    gp.add_argument("--fix", help="list of fixed atoms, index start from 1", nargs='+', type=int)
+    gp.add_argument("--fix", help="list of fixed atoms", nargs='+', type=int)
 
 
     # static calc related setting
@@ -1798,7 +1648,7 @@ def main():
             description="setting type of static calculation when -r 0")
 
     gp.add_argument("--static", type=str, default="band",
-            choices=["scf", "band", "dos", "optics", "bse"],
+            choices=["scf", "band", "optics", "bse"],
             help="in case of band(default), run scf, nscf(bands) in a single run; in case of scf, run scf only, in case of optics, run scf and optics calc in a single run")
 
     gp.add_argument("--hse-in-scf", type=str, default="false",
@@ -1825,6 +1675,12 @@ def main():
 
     gp.add_argument("--bmix", type=float, default=None,
             help="sets the cutoff wave vector for Kerker mixing scheme")            
+
+    # USPEX General
+    gp = subparser.add_argument_group(title="USPEX General", 
+            description="USPEX INPUT.txt parameters")
+            
+
 
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
@@ -1899,6 +1755,59 @@ def main():
             os.system("vasp-potcar-from-xyz.py --type %s -i %s -o ./POTCAR" % (args.pot_type, xyzfile))
     else:
         os.system("cp %s/* ./" % args.pot)
+
+
+
+    # deal with USPEX INPUT.txt template specified by --input-txt
+    input_txt_params = {}
+    if args.input_txt == None:
+        pass
+    else:
+        if not os.path.exists(args.input_txt):
+            print("====================================================\n")
+            print("                  Warning !!!!\n")
+            print("----------------------------------------------------\n")
+            print("uspflow:\n")
+            print("the specified INPUT.txt file by --input-txt doesn't exist\n")
+            print("go and check it\n")
+            sys.exit(1)
+        with open(args.input_txt, 'r') as fin:
+            lines = fin.readlines()
+        for i in range(len(lines)):
+            if len(lines[i].split()) == 0:
+                continue
+            if lines[i][0] == "#":
+                continue
+            if lines[i].split()[0][0] == "@" and lines[i].split()[0] != "@End":
+                key = lines[i].split("\n")[0].split("#")[0].split("@")[1]
+                value = []
+                nrow = 1
+                while lines[i+nrow+1].split()[0] != "@End":
+                    nrow += 1
+                ncol = len(lines[i+1].split("\n")[0].split())
+                for row in range(nrow):
+                    vec = []
+                    for col in range(ncol):
+                        vec.append(lines[i+row+1].split("\n")[0].split()[col])
+                    value.append(vec)
+                input_txt_params[key] = value
+            elif "@" not in lines[i] and "=" not in lines[i]:
+                continue
+            elif len(lines[i].split("\n")[0].split("#")[0].split("=")) == 2:
+                # in case of single value input parameters
+                key = lines[i].split("=")[0].split()[0]
+                value = lines[i].split("\n")[0].split("#")[0].split("=")[1].split()[0]
+                input_txt_params[key] = value
+            elif len(lines[i].split("\n")[0].split("#")[0].split("=")) > 2:
+                key = lines[i].split("=")[0].split()[0]
+                value = lines[i].split("\n")[0].split("#")[0].split("=")[1].split()
+                input_txt_params[key] = value
+            else:
+                pass
+        #
+        # if xxx is alraedy in input_txt_params(set from --input_txt) and args.xxx is None
+        # input_txt_params[xxx] will not be control by args.xxx
+        # input_txt_params["SystemName"] = args.systemname if "SystemName" not in input_txt_params or args.systemname != None else input_txt_params["SystemName"]
 
 
     if args.driver == "abinit":
@@ -2023,21 +1932,6 @@ def main():
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
-        elif args.runtype == 8:
-            # abc opt
-            params["optcell"] = 0 # must be 0
-            params["ionmov"] = args.ionmov
-            from pymatflow.abinit.opt import opt_run
-            task = opt_run()
-            task.get_xyz(xyzfile)
-            task.set_params(params=params)
-            task.set_kpoints(kpoints=kpoints)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
-            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.batch_a = args.batch_a     
-            task.batch_b = args.batch_b
-            task.batch_c = args.batch_c     
-            task.abc(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_b=args.range_b, range_c=args.range_c)
         else:
             pass
 # ==============================================================================
@@ -2247,19 +2141,6 @@ def main():
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.aimd(directory=args.directory, runopt=args.runopt, auto=args.auto)
-        elif args.runtype == 11:
-            # abc cell opt
-            from pymatflow.cp2k.opt import opt_run
-            task = opt_run()
-            task.get_xyz(xyzfile)
-            task.set_geo_opt()
-            task.set_params(params=params)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
-            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.batch_a = args.batch_a     
-            task.batch_b = args.batch_b
-            task.batch_c = args.batch_c     
-            task.abc(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_b=args.range_b, range_c=args.range_c)
         else:
             pass
 # ==============================================================================
@@ -2463,20 +2344,7 @@ def main():
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.pp(directory=args.directory, runopt=args.runopt, auto=args.auto)
-        elif args.runtype == 10:
-            # abc cell opt
-            from pymatflow.qe.opt import opt_run
-            task = opt_run()
-            task.get_xyz(xyzfile)
-            task.set_relax()
-            task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
-            task.set_params(control=control, system=system, electrons=electrons, ions=ions)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
-            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.batch_a = args.batch_a     
-            task.batch_b = args.batch_b
-            task.batch_c = args.batch_c     
-            task.abc(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_b=args.range_b, range_c=args.range_c)
+
         else:
             pass
 
@@ -2604,20 +2472,6 @@ def main():
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.md(directory=args.directory, runopt=args.runopt, auto=args.auto)
-        elif args.runtype == 7:
-            # abc cell opt
-            from pymatflow.siesta.opt import opt_run
-            task = opt_run()
-            task.get_xyz(xyzfile)
-            task.set_relax()
-            task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
-            task.set_params(control=control, system=system, electrons=electrons, ions=ions)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
-            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.batch_a = args.batch_a     
-            task.batch_b = args.batch_b
-            task.batch_c = args.batch_c     
-            task.abc(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_b=args.range_b, range_c=args.range_c)
         else:
             pass
     elif args.driver == "vasp":
@@ -2656,6 +2510,7 @@ def main():
         params["EDIFF"] = args.ediff if "EDIFF" not in params or args.ediff != None else params["EDIFF"]
         params["NELM"] = args.nelm if "NELM" not in params or args.nelm != None else params["NELM"]
         params["NFREE"] = args.nfree if "NFREE" not in params or args.nfree != None else params["NFREE"]
+        params["KSPACING"] = args.kspacing if "KSPACING" not in params or args.kspacing != None else params["KSPACING"]
         params["ISMEAR"] = args.ismear if "ISMEAR" not in params or args.ismear != None else params["ISMEAR"]
         params["SIGMA"] = args.sigma if "SIGMA" not in params or args.sigma != None else params["SIGMA"]
         params["IVDW"] = args.ivdw if "IVDW" not in params or args.ivdw != None else params["IVDW"]
@@ -2701,46 +2556,10 @@ def main():
         params["AMIX"] = args.amix if "AMIX" not in params or args.amix != None else params["AMIX"]
         params["BMIX"] = args.bmix if "BMIX" not in params or args.bmix != None else params["BMIX"]
         if args.runtype == 0:
-            # static
-            from pymatflow.vasp.static import static_run
-            task = static_run()
-            task.get_xyz(xyzfile)
-            task.set_params(params, runtype="static")
-            task.set_kpoints(kpoints_mp=args.kpoints_mp)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
-            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            if params["LNONCOLLINEAR"] != None:
-                if params["LNONCOLLINEAR"].upper() == ".TRUE." or params["LNONCOLLINEAR"].upper() == "T":
-                    task.magnetic_status = "non-collinear"
-
-            if args.static == "scf":
-                task.set_kpoints(kpoints_mp=args.kpoints_mp)
-                task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto)
-            elif args.static == "band":
-                if args.hse_in_scf.lower() == "true":
-                    hse_in_scf = True
-                elif args.hse_in_scf.lower() == "false":
-                    hse_in_scf = False
-                task.band(directory=args.directory, runopt=args.runopt, auto=args.auto, kpath=get_kpath(args.kpath_manual, args.kpath_file), hse_in_scf=hse_in_scf)                
-            elif args.static == "dos":
-                if args.hse_in_scf.lower() == "true":
-                    hse_in_scf = True
-                elif args.hse_in_scf.lower() == "false":
-                    hse_in_scf = False
-                if args.kpoints_mp_nscf == None:
-                    kpoints_mp_nscf = args.kpoints_mp #[2*k for k in args.kpoints_mp]
-                else:
-                    kpoints_mp_nscf = args.kpoints_mp_nscf
-                task.dos(directory=args.directory, runopt=args.runopt, auto=args.auto, hse_in_scf=hse_in_scf, kpoints_mp_nscf=kpoints_mp_nscf)
-            elif args.static == "optics":
-                task.set_kpoints(kpoints_mp=args.kpoints_mp)                    
-                task.optics(directory=args.directory, runopt=args.runopt, auto=args.auto)
-            elif args.static == "bse":
-                task.set_kpoints(kpoints_mp=args.kpoints_mp)
-                task.bse(directory=args.directory, runopt=args.runopt, auto=args.auto, bse_level=args.bse_level, algo_gw=args.algo_gw)
+            pass
         elif args.runtype == 1:
             # optimization
-            from pymatflow.vasp.opt import opt_run
+            from pymatflow.flow.uspex.uspex import uspex
             #
             if args.fix != None:
                 fix_str = ""
@@ -2749,130 +2568,29 @@ def main():
                 os.system("xyz-fix-atoms.py -i %s -o %s --fix %s" % (xyzfile, xyzfile, fix_str))
                 args.selective_dynamics = "T"
             #            
-            task = opt_run()
-            task.get_xyz(xyzfile)
-            task.set_params(params=params, runtype="opt")
-            task.set_kpoints(kpoints_mp=args.kpoints_mp)
-            task.poscar.selective_dynamics = True if args.selective_dynamics.upper()[0] == "T" else False
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
-            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.optimize(directory=args.directory, runopt=args.runopt, auto=args.auto)
+            usp = uspex()
+            usp.set_params(params=input_txt_params)
+            usp.vasp.get_xyz(xyzfile)
+            usp.vasp.set_params(params=params, runtype="opt")
+            usp.vasp.set_kpoints(kpoints_mp=args.kpoints_mp)
+            usp.vasp.poscar.selective_dynamics = True if args.selective_dynamics.upper()[0] == "T" else False
+            usp.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            usp.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            usp.run_vasp(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 2:
-            # cubic cell
-            from pymatflow.vasp.opt import opt_run
-            # some must set parameters 
-            if params["IBRION"] == None:
-                params["IBRION"] = 2
-            params["ISIF"] = 2
-            if params["NSW"] == None:
-                params["NSW"] = 100
-            task = opt_run()
-            task.get_xyz(xyzfile)
-            task.set_params(params=params, runtype="opt")
-            task.set_kpoints(kpoints_mp=args.kpoints_mp)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
-            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.batch_a = args.batch_a
-            task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a)
+            pass
         elif args.runtype == 3:
-            # hexagonal cell
-            from pymatflow.vasp.opt import opt_run
-            task = opt_run()
-            task.get_xyz(xyzfile)
-            task.set_params(params=params, runtype="opt")
-            task.set_kpoints(kpoints_mp=args.kpoints_mp)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
-            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.batch_a = args.batch_a
-            task.batch_c = args.batch_c            
-            task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_c=args.range_c)
+            pass
         elif args.runtype == 4:
-            # tetragonal cell
-            from pymatflow.vasp.opt import opt_run
-            task = opt_run()
-            task.get_xyz(xyzfile)
-            task.set_params(params=params, runtype="opt")
-            task.set_kpoints(kpoints_mp=args.kpoints_mp)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
-            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.batch_a = args.batch_a     
-            task.batch_c = args.batch_c            
-            task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_c=args.range_c)
+            pass
         elif args.runtype == 5:
-            # neb
-            # we better set NSW manually in VTST neb calc. 
-            # if not set, pymatflow.vasp.neb will set it to 100 automatically
-            from pymatflow.vasp.neb import neb_run
-            task = neb_run()
-            task.get_images(images)
-            task.set_params(params=params, runtype="neb")
-            task.set_kpoints(kpoints_mp=args.kpoints_mp)
-            task.nimage = args.nimage
-            if args.nebmake == 1 and args.moving_atom == None:
-                print("============================================\n")
-                print("when using nebmake.py to generate inter image\n")
-                print("you have to specify the moving atoms.\n")
-                print("index start from 0\n")
-                sys.exit(1)
-            task.nebmake = "nebmake.pl" if args.nebmake == 0 else "nebmake.py"
-            task.moving_atom = args.moving_atom
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
-            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.neb(directory=args.directory, runopt=args.runopt, auto=args.auto)
-            # move the OUTCAR for initial stucture and final structure to the corresponding dir
-            # if they are specified
-            if args.outcars != None and len(args.outcars) > 0:
-                os.system("cp %s %s" % (args.outcars[0], os.path.join(args.directory, "00/")))
-                os.system("cp %s %s" % (args.outcars[-1], os.path.join(args.directory, "%.2d/" % (args.nimage+1))))                
+            pass        
         elif args.runtype == 6:
-            # vasp phonon
-            from pymatflow.vasp.phonon import phonon_run
-            task = phonon_run() 
-            task.get_xyz(xyzfile)
-            task.set_params(params=params, runtype="phonon")
-            task.set_kpoints(kpoints_mp=args.kpoints_mp)
-            task.supercell_n = args.supercell_n
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
-            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.phonon(directory=args.directory, runopt=args.runopt, auto=args.auto)
+            pass
         elif args.runtype == 7:
-            # phonopy
-            from pymatflow.vasp.phonopy import phonopy_run
-            task = phonopy_run()
-            task.get_xyz(xyzfile)
-            task.set_params(params=params, runtype="phonopy")
-            task.set_kpoints(kpoints_mp=args.kpoints_mp)
-            task.supercell_n = args.supercell_n
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
-            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
+            pass
         elif args.runtype == 8:
-            # sur pes
-            from pymatflow.flow.surface_pes import vasp_run
-            task = vasp_run()
-            task.get_xyz(xyzfile)
-            task.set_params(params=params, runtype="opt")
-            task.set_kpoints(kpoints_mp=args.kpoints_mp)
-            #task.poscar.selective_dynamics = True if args.selective_dynamics.upper()[0] == "T" else False
-            task.poscar.selective_dynamics = True # always use selective_dynamics            
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
-            #task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.batch_x_y = args.batch_x_y
-            task.set_pes(move_atom=args.move_atom, xrange=args.xrange, yrange=args.yrange, zshift=args.zshift, fix_z=args.fix_z)            
-            task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
-        elif args.runtype == 9:
-            # abc cell
-            from pymatflow.vasp.opt import opt_run
-            task = opt_run()
-            task.get_xyz(xyzfile)
-            task.set_params(params=params, runtype="opt")
-            task.set_kpoints(kpoints_mp=args.kpoints_mp)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
-            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.batch_a = args.batch_a     
-            task.batch_b = args.batch_b
-            task.batch_c = args.batch_c            
-            task.abc(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_b=args.range_b, range_c=args.range_c)
+            pass
     # --------------------------------------------------------------------------
 
 

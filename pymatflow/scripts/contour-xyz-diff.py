@@ -4,7 +4,10 @@ import os
 import sys
 import copy
 import argparse
-
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.tri as tri
+    
 from pymatflow.cmd.structflow import read_structure
 
 def main():
@@ -33,8 +36,8 @@ def main():
         help="ngridy to plot the contour for irregularly spaced data")        
 
     parser.add_argument("--diff", type=str, default="z",
-        choices=["x", "y", "z"],
-        help="choose to plot the diff of x or y or z")
+        choices=["x", "y", "z", "xyz"],
+        help="choose to plot the diff of x or y or z, or xyz which means displacement")
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
     # ==========================================================
@@ -75,7 +78,7 @@ def main():
         final_data.append([final_structure.atoms[i-1].x, final_structure.atoms[i-1].y, final_structure.atoms[i-1].z])
 
 
-    # data: [x, y, z, diff(x|y|z)]
+    # data: [x, y, z, diff(x|y|z|xyz)]
     data = copy.deepcopy(final_data)
     for i in range(len(final_data)):
         if args.diff == "x":
@@ -84,6 +87,8 @@ def main():
             diff = final_data[i][1] - initial_data[i][1]   
         elif args.diff == "z":
             diff = final_data[i][2] - initial_data[i][2]
+        elif args.diff == "xyz":
+            diff =  np.sqrt((final_data[i][0] - initial_data[i][0])**2 + (final_data[i][1] - initial_data[i][1])**2 + (final_data[i][2] - initial_data[i][2])**2)
         else:
             pass
         data[i].append(diff)
@@ -102,9 +107,7 @@ def main():
     # data is irregularly spaced data
     # we can refer to https://matplotlib.org/3.2.1/gallery/images_contours_and_fields/irregulardatagrid.html
     # to see how to build contour plot of such kind of data
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import matplotlib.tri as tri
+
     
     data_np = np.array(data)
 
