@@ -1826,6 +1826,9 @@ def main():
     gp.add_argument("--bmix", type=float, default=None,
             help="sets the cutoff wave vector for Kerker mixing scheme")            
 
+    gp.add_argument("--nelect", type=int, default=None,
+            help="sets the number of electrons")
+            
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
     # ==========================================================
@@ -2700,6 +2703,7 @@ def main():
         params["FDSTEP"] = args.fdstep if "FDSTEP" not in params or args.fdstep != None else params["FDSTEP"]
         params["AMIX"] = args.amix if "AMIX" not in params or args.amix != None else params["AMIX"]
         params["BMIX"] = args.bmix if "BMIX" not in params or args.bmix != None else params["BMIX"]
+        params["NELECT"] = args.nelect if "NELECT" not in params or args.nelect != None else params["NELECT"]
         if args.runtype == 0:
             # static
             from pymatflow.vasp.static import static_run

@@ -52,7 +52,7 @@ class vasp:
             "IVDW", "LORBIT", "LOPTICS", "CSHIFT", "NEDOS", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "LSORBIT","SAXIS", "LMAXMIX", "LHFCALC", "HFSCREEN", "AEXX", "LSUBROT", "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG", "LELF",
-            "AMIX", "BMIX",
+            "AMIX", "BMIX", "NELECT",
             "KSPACING",
         ]
         opt_allowed = [
