@@ -356,7 +356,7 @@ class static_run(vasp):
             gen    -> generate a new calculation but do not run
             run    -> run a calculation on the previously generated files
             genrun -> generate a calculation and run it
-        Note: scf nscf(pdos, bands) in a single run
+        Note: scf nscf(bands) in a single run
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
@@ -389,10 +389,10 @@ class static_run(vasp):
                 incar_scf = self.incar.to_string()
                 kpoints_scf = self.kpoints.to_string()
 
-            # nscf: pdos + bands
+            # nscf: bands
             self.incar.set_params({
                 "ICHARG": 11,
-                "LORBIT": 11,
+                #"LORBIT": 11,
                 })            
 
             incar_nscf = self.incar.to_string()
