@@ -279,10 +279,13 @@ def main():
 
     gp.add_argument("--na", type=int, default=10,
             help="number of a to run")
+    
     gp.add_argument("--stepa", type=float, default=0.05,
             help="step of a in unit of Angstrom")
+    
     gp.add_argument("--nc", type=int, default=10,
             help="number of c to run")
+            
     gp.add_argument("--stepc", type=float, default=0.05,
             help="step of c in unit of Angstrom")
 
@@ -848,6 +851,7 @@ def main():
             help="specify the path to the dir containing all the needed pseudopotential, default behavior is find them in the current directory automatically. if you pass 'auto' to it, matflow will get the pots automatically(need simple configuration, see manual)")
 
     gp.add_argument("--pot-type", type=str, default="sssp_efficiency",
+            choices=["paw_pbe", "PAW_PBE", "sssp_efficiency", "SSSP_EFFICIENCY", "sssp_precision", "SSSP_PRECISION"],
             help="specify type of pseudo potentials to prepare, when --pot auto")
 
     # -------------------------------------------------------------------

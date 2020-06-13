@@ -26,7 +26,7 @@ def main():
     parser.add_argument("-i", "--input", type=str, required=True,
         help="input structure file")
 
-    parser.add_argument("-o", "--output", type=str, default="./contour",
+    parser.add_argument("-o", "--output", type=str, default="output.xsd",
         help="prefix of the output image file name")
       
     parser.add_argument("--levels", type=int, default=3, 
