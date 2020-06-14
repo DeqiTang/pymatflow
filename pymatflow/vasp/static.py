@@ -48,7 +48,7 @@ class static_run(vasp):
             # gen local bash script
             self.gen_bash(directory=directory, mpi=self.run_params["mpi"], cmd="$PMF_VASP_STD", scriptname="static-scf.sh")
             # gen lsf_sz script
-            self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-scf.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
+            self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-scf.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -85,7 +85,7 @@ class static_run(vasp):
             # gen local bash script
             self.gen_bash(directory=directory, mpi=self.run_params["mpi"], cmd="$PMF_VASP_STD", scriptname="static-nscf.sh")
             # gen lsf_sz script
-            self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-nscf.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
+            self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-nscf.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
 
 
         if runopt == "run" or runopt == "genrun":
@@ -125,7 +125,7 @@ class static_run(vasp):
             # gen local bash script
             self.gen_bash(directory=directory, cmd="%s %PMF_VASP_STD" % self.run_params["mpi"], scriptname="static-bands.sh")
             # gen lsf_sz script
-            self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-bands.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
+            self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-bands.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -620,7 +620,7 @@ class static_run(vasp):
             # gen lsf_sz script
             with open(os.path.join(directory, "static.lsf_sz"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("APP_NAME=intelY_mid\n")
+                fout.write("APP_NAME=%s\n" % self.run_params["queue"])
                 fout.write("NP=%d\n" % (self.run_params["nodes"] * self.run_params["ppn"]))
                 fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
                 fout.write("RUN=\"RAW\"\n")
@@ -900,7 +900,7 @@ class static_run(vasp):
             # gen lsf_sz script
             with open(os.path.join(directory, "static.lsf_sz"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("APP_NAME=intelY_mid\n")
+                fout.write("APP_NAME=%s\n" % self.run_params["queue"])
                 fout.write("NP=%d\n" % (self.run_params["nodes"] * self.run_params["ppn"]))
                 fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
                 fout.write("RUN=\"RAW\"\n")
@@ -1154,7 +1154,7 @@ class static_run(vasp):
             # gen lsf_sz script
             with open(os.path.join(directory, "static-optics.lsf_sz"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("APP_NAME=intelY_mid\n")
+                fout.write("APP_NAME=%s\n" % self.run_params["queue"])
                 fout.write("NP=%d\n" % (self.run_params["nodes"] * self.run_params["ppn"]))
                 fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
                 fout.write("RUN=\"RAW\"\n")
@@ -1528,7 +1528,7 @@ class static_run(vasp):
             # gen lsf_sz script
             with open(os.path.join(directory, "static-bse.lsf_sz"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("APP_NAME=intelY_mid\n")
+                fout.write("APP_NAME=%s\n" % self.run_params["queue"])
                 fout.write("NP=%d\n" % (self.run_params["nodes"] * self.run_params["ppn"]))
                 fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
                 fout.write("RUN=\"RAW\"\n")

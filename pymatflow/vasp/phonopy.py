@@ -133,7 +133,7 @@ class phonopy_run(vasp):
             # generate lsf_sz bash script
             with open(os.path.join(directory, "phonopy-job.lsf_sz"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("APP_NAME=intelY_mid\n")
+                fout.write("APP_NAME=%s\n" % self.run_params["queue"])
                 fout.write("NP=%d\n" % self.run_params["nodes"]*self.run_params["ppn"]) #np)
                 fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"]) #np_per_node)
                 fout.write("RUN=\"RAW\"\n")

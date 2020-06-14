@@ -77,7 +77,7 @@ class dfpt_run(vasp):
             # gen local bash script
             self.gen_bash(directory=directory, cmd="$PMF_VASP_STD", scriptname="dfpt.sh")
             # gen lsf_sz script
-            self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="dfpt.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
+            self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="dfpt.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

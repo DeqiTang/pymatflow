@@ -223,13 +223,13 @@ class vasp:
             fout.write("EOF\n")
             fout.write("%s %s\n" % (mpi, cmd))
 
-    def gen_lsf_sz(self, directory, cmd="vasp_std", scriptname="vasp.lsf_sz", np=24, np_per_node=12):
+    def gen_lsf_sz(self, directory, cmd="vasp_std", scriptname="vasp.lsf_sz", np=24, np_per_node=12, queue="intelY_mid"):
         """
         generating lsf job script for calculation on ShenZhen supercomputer
         """
         with open(os.path.join(directory, scriptname), 'w') as fout:
             fout.write("#!/bin/bash\n")
-            fout.write("APP_NAME=intelY_mid\n")
+            fout.write("APP_NAME=%s\n" % queue)
             fout.write("NP=%d\n" % np)
             fout.write("NP_PER_NODE=%d\n" % np_per_node)
             fout.write("RUN=\"RAW\"\n")

@@ -1649,7 +1649,7 @@ class opt_run(abinit):
                     # gen lsf_sz script
                     with open("opt-abc-%d-%d-%d.lsf_sz" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
                         fout.write("#!/bin/bash\n")
-                        fout.write("APP_NAME=intelY_mid\n")
+                        fout.write("APP_NAME=%s\n" % self.run_params["queue"])
                         fout.write("NP=%d\n" % (self.run_params["nodes"]*self.run_params["ppn"]))
                         fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
                         fout.write("RUN=\"RAW\"\n")
