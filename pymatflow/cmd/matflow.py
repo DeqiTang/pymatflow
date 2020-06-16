@@ -424,7 +424,7 @@ def main():
     # FORCE_EVAL/DFT
     gp = subparser.add_argument_group(title="FORCE_EVAL/DFT")
 
-    gp.add_argument("--qs-method", type=str, default="gpw",
+    gp.add_argument("--qs-method", type=str, default=None, #"gpw",
             choices=["am1", "dftb", "gapw", "gapw_xc", "gpw", "lrigpw", "mndo", "mndod",
                 "ofgpw", "pdg", "pm3", "pm6", "pm6-fm", "pnnl", "rigpw", "rm1"],
             help="specify the electronic structure method that should be employed, default is gpw")
@@ -432,25 +432,25 @@ def main():
     # FORCE_EVAL/DFT/SCF
     gp = subparser.add_argument_group(title="FORCE_EVAL/DFT/SCF")
 
-    gp.add_argument("--eps-scf", type=float, default=1.0e-6,
+    gp.add_argument("--eps-scf", type=float, default=None, #1.0e-6,
             help="target accuracy for the scf convergence, default is 1.0e-6")
 
-    gp.add_argument("--xc-functional", type=str, default="pbe",
+    gp.add_argument("--xc-functional", type=str, default=None, #"pbe",
             choices=["B3LYP", "BEEFVDW", "BLYP", "BP", "LDA", "PBE", "PADE", "PBE0", "TPSS",
                 "b3lyp", "beefvdw", "blyp", "bp", "lda", "pbe", "pade", "pbe0", "tpss"],
             help="shortcut for the most common functional combinations, default is PBE")
 
-    gp.add_argument("--cutoff", type=int, default=100,
+    gp.add_argument("--cutoff", type=int, default=None, #100,
             help="The cutoff of the finest grid level, default value: 100 Ry")
 
-    gp.add_argument("--rel-cutoff", type=int, default=60,
+    gp.add_argument("--rel-cutoff", type=int, default=None, #60,
             help="determines the grid at which a Gaussian is mapped, giving the cutoff used for a gaussian with alpha=1. A value 50+-10Ry might be required for highly accurate results, Or for simulations with a variable cell, default value: 60 Ry")
 
-    gp.add_argument("--ngrids", type=int, default=4,
+    gp.add_argument("--ngrids", type=int, default=None, #4,
             help="The number of multigrids to use, default is 4")
 
     gp.add_argument("--kpoints-scheme", type=str,
-            default="GAMMA",
+            default=None, #"GAMMA",
             help="kpoint scheme to be used, can be NONE, GAMMA, MONKHORST-PACK, MACDONALD, GENERAL. when you set MONKHORST-PACK, you should also add the three integers like 'monkhorst-pack 3 3 3'")
 
     gp.add_argument("--kpath-manual", type=str, nargs="+", default=None,
@@ -467,41 +467,41 @@ def main():
             choices=["TRUE", "FALSE", "true", "false"],
             help="whether choosing orbital transformation for SCF")
 
-    gp.add_argument("--mixing-alpha", type=float, default=0.4,
+    gp.add_argument("--mixing-alpha", type=float, default=None, #0.4,
             help="fraction of new density to be included, default is 0.4")
 
-    gp.add_argument("--smear", type=str, default="FALSE",
+    gp.add_argument("--smear", type=str, default=None, #"FALSE",
             choices=["TRUE", "FALSE", "true", "false"],
             help="controls the activation of smearing")
 
-    gp.add_argument("--smear-method", type=str, default="FERMI_DIRAC",
+    gp.add_argument("--smear-method", type=str, default=None, #"FERMI_DIRAC",
             help="Smearing method to be applied, can be fermi_dirac(default) or energy_window")
 
-    gp.add_argument("--added-mos", type=int, default=0,
+    gp.add_argument("--added-mos", type=int, default=None, #0,
             help="Number of additional MOS added for each spin")
 
-    gp.add_argument("--electronic-temp", type=float, default=300,
+    gp.add_argument("--electronic-temp", type=float, default=None, #300,
             help="Electronic temperature in the case of Fermi-Dirac smearing in unit of [K], default is 300")
 
-    gp.add_argument("--window-size", type=float, default=0,
+    gp.add_argument("--window-size", type=float, default=None, #0,
             help="size of the energy window centred at the Fermi level for energy_window type smearing")
 
-    gp.add_argument("--ls-scf", type=str, default="false",
+    gp.add_argument("--ls-scf", type=str, default=None, #"false",
             choices=["true", "false", "true", "false"],
             help="use linear scaling scf method")
 
     # vdw correction related
     gp = subparser.add_argument_group(title="FORCE_EVAL/DFT/XC")
 
-    gp.add_argument("--vdw-potential-type", type=str, default="NONE",
+    gp.add_argument("--vdw-potential-type", type=str, default=None, #"NONE",
             choices=["PAIR_POTENTIAL", "NON_LOCAL", "NONE", "pair_potential", "non_local", "none"],
             help="Type of dispersion/vdW functional or potential to use")
 
-    gp.add_argument("--pair-type", type=str, default="DFTD3",
+    gp.add_argument("--pair-type", type=str, default=None, #"DFTD3",
             choices=["DFTD2", "DFTD3", "DFTD3(BJ)"],
             help="Type of potential(VDW)")
 
-    gp.add_argument("--r-cutoff", type=float, default=1.05835442E+001,
+    gp.add_argument("--r-cutoff", type=float, default=None, #1.05835442E+001,
             help="Range of potential. The cutoff will be 2 times this value")
 
     # printout option
@@ -530,56 +530,56 @@ def main():
            """)
 
     gp.add_argument("--dft-print-elf-cube-stride", type=int, nargs="+",
-            default=[1, 1, 1],
+            default=None, #[1, 1, 1],
             help="The stride (X,Y,Z) used to write the cube file (larger values result in smaller cube files). You can provide 3 numbers (for X,Y,Z) or 1 number valid for all components.")
 
     gp.add_argument("--dft-print-e-density-cube-stride", type=int, nargs="+",
-            default=[1, 1, 1],
+            default=None, #[1, 1, 1],
             help="The stride (X,Y,Z) used to write the cube file (larger values result in smaller cube files). You can provide 3 numbers (for X,Y,Z) or 1 number valid for all components.")
 
     # FORCE_EVAL/PROPERTIES
     gp = subparser.add_argument_group(title="FORCE_EVAL/PROPERTIES")
 
     gp.add_argument("--properties-resp-slab-sampling-range", type=float, nargs="+",
-            default=[0.3, 3.0],
+            default=None, #[0.3, 3.0],
             help="Range where the fitting points are sampled. A range of 3 to 5 Angstroms means that the fitting points are sampled in the region of 3 to 5 Angstroms above the surface which is defined by atom indexes given in ATOM_LIST.")
 
-    gp.add_argument("--properties-resp-slab-sampling-surf-direction", type=str, default="Z",
+    gp.add_argument("--properties-resp-slab-sampling-surf-direction", type=str, default=None, #"Z",
             choices=["X", "Y", "Z", "x", "y", "z", "-X", "-Y", "-Z", "-x", "-y", "-z"],
             help="Specifies what above the surface means. Defines the direction")
 
     gp.add_argument("--properties-resp-slab-sampling-atom-list", type=int, nargs="+",
-            default=[1],
+            default=None, #[1],
             help="Specifies the list of indexes of atoms used to define the region for the RESP fitting. The list should contain indexes of atoms of the first surface layer")
 
     # MOTION/CELL_OPT related parameters
     # --------------------------------------------------------------------------
     gp = subparser.add_argument_group(title="MOTION/CELL_OPT")
 
-    gp.add_argument("--cell-opt-optimizer", type=str, default="BFGS",
+    gp.add_argument("--cell-opt-optimizer", type=str, default=None, #"BFGS",
             choices=["BFGS", "CG", "LBFGS"],
             help="Specify which method to use to perform a geometry optimization, can be: BFGS(default), CG, LBFGS")
 
-    gp.add_argument("--cell-opt-max-iter", type=int, default=200,
+    gp.add_argument("--cell-opt-max-iter", type=int, default=None, #200,
             help="	Specifies the maximum number of geometry optimization steps. One step might imply several force evaluations for the CG and LBFGS optimizers")
 
-    gp.add_argument("--cell-opt-type", type=str, default="DIRECT_CELL_OPT",
+    gp.add_argument("--cell-opt-type", type=str, default=None, #"DIRECT_CELL_OPT",
             choices=["DIRECT_CELL_OPT", "GEO_OPT", "MD"],
             help="Specify which kind of method to use for the optimization of the simulation cell, can be: DIRECT_CELL_OPT(default), GEO_OPT, MD")
 
-    gp.add_argument("--cell-opt-max-dr", type=float, default=3e-3,
+    gp.add_argument("--cell-opt-max-dr", type=float, default=None, #3e-3,
             help="Convergence criterion for the maximum geometry change between the current and the last optimizer iteration in unit of bohr, default is 3.e-3")
 
-    gp.add_argument("--cell-opt-max-force", type=float, default=4.50000000E-004,
+    gp.add_argument("--cell-opt-max-force", type=float, default=None, #4.50000000E-004,
             help="Convergence criterion for the maximum force component of the current configuration in unit of bohr^-1*hartree")
 
-    gp.add_argument("--cell-opt-rms-dr", type=float, default=1.50000000E-003,
+    gp.add_argument("--cell-opt-rms-dr", type=float, default=None, #1.50000000E-003,
             help="Convergence criterion for the root mean square (RMS) geometry change between the current and the last optimizer iteration in unit of bohr, default is 1.5e-3")
 
-    gp.add_argument("--cell-opt-rms-force", type=float, default=3.00000000E-004,
+    gp.add_argument("--cell-opt-rms-force", type=float, default=None, #3.00000000E-004,
             help="Convergence criterion for the root mean square (RMS) force of the current configuration, default is 3.e-4")
 
-    gp.add_argument("--cell-opt-pressure-tolerance", type=float, default=1.00000000E+002,
+    gp.add_argument("--cell-opt-pressure-tolerance", type=float, default=None, #1.00000000E+002,
             help="Specifies the Pressure tolerance (compared to the external pressure) to achieve during the cell optimization, default is 1.0e2")
         
     gp.add_argument("--cell-opt-keep-angles", type=str, default=None,
@@ -593,70 +593,70 @@ def main():
     # --------------------------------------------------------------------------
     gp = subparser.add_argument_group(title="MOTION/GEO_OPT")
 
-    gp.add_argument("--geo-opt-optimizer", type=str, default="BFGS",
+    gp.add_argument("--geo-opt-optimizer", type=str, default=None, #"BFGS",
             choices=["BFGS", "CG", "LBFGS", "bfgs", "cg", "lbfgs", "cg"],
             help="Specify which method to use to perform a geometry optimization, can be: BFGS, CG, LBFGS")
 
-    gp.add_argument("--geo-opt-max-iter", type=int, default=200,
+    gp.add_argument("--geo-opt-max-iter", type=int, default=None, #200,
             help="Specifies the maximum number of geometry optimization steps. One step might imply several force evaluations for the CG and LBFGS optimizers, default is 200")
 
-    gp.add_argument("--geo-opt-type", type=str, default="MINIMIZATION",
+    gp.add_argument("--geo-opt-type", type=str, default=None, #"MINIMIZATION",
             choices=["MINIMIZATION", "TRANSITION_STATE", "minimization", "transition_state"],
             help="Specify which kind of geometry optimization to perform, default is MINIMIZATION")
 
-    gp.add_argument("--geo-opt-max-dr", type=float, default=3e-3,
+    gp.add_argument("--geo-opt-max-dr", type=float, default=None, #3e-3,
             help="Convergence criterion for the maximum geometry change between the current and the last optimizer iteration, default is 3e-3")
 
-    gp.add_argument("--geo-opt-max-force", type=float, default=4.50000000E-004,
+    gp.add_argument("--geo-opt-max-force", type=float, default=None, #4.50000000E-004,
             help="Convergence criterion for the maximum force component of the current configuration, default is 4.0e-4")
 
-    gp.add_argument("--geo-opt-rms-dr", type=float, default=1.50000000E-003,
+    gp.add_argument("--geo-opt-rms-dr", type=float, default=None, #1.50000000E-003,
             help="Convergence criterion for the root mean square (RMS) geometry change between the current and the last optimizer iteration, default is 1.5e-3")
 
-    gp.add_argument("--geo-opt-rms-force", type=float, default=3.00000000E-004,
+    gp.add_argument("--geo-opt-rms-force", type=float, default=None, #3.00000000E-004,
             help="Convergence criterion for the root mean square (RMS) force of the current configuration.")
 
     # MOTION/MD 
     # --------------------------------------------------------------------------
     gp = subparser.add_argument_group(title="MOTION/MD")
 
-    gp.add_argument("--md-steps", type=int, default=1000,
+    gp.add_argument("--md-steps", type=int, default=None, #1000,
             help="The number of MD steps to perform")
 
-    gp.add_argument("--timestep", type=float, default=5.0e-1,
+    gp.add_argument("--timestep", type=float, default=None, #5.0e-1,
             help="The length of an integration step (in case RESPA the large TIMESTEP), default and also recommended is 0.5 fs.")
 
-    gp.add_argument("--ensemble", type=str, default="NVE",
+    gp.add_argument("--ensemble", type=str, default=None, #"NVE",
             choices=["NVE",  "NVT","HYDROSTATICSHOCK", "ISOKIN", "LANGEVIN", "MSST", "MSST_DAMPED"],
             help="The ensemble/integrator that you want to use for MD propagation")
 
-    gp.add_argument("--temperature", type=str, default=300,
+    gp.add_argument("--temperature", type=str, default=None, #300,
             help="The temperature in K used to initialize the velocities with init and pos restart, and in the NPT/NVT simulations")
 
-    gp.add_argument("--temp-tol", type=float, default=0.0,
+    gp.add_argument("--temp-tol", type=float, default=None, #0.0,
             help="The maximum accepted deviation of the (global) temperaturefrom the desired target temperature before a rescaling of the velocites is performed. If it is 0 no rescaling is performed. NOTE: This keyword is obsolescent; Using a CSVR thermostat with a short timeconstant is recommended as a better alternative")
 
-    gp.add_argument("--traj-format", type=str, default="XMOL",
+    gp.add_argument("--traj-format", type=str, default=None, #"XMOL",
             help="type of output trajectory for MOTION, note: DCD format can be visualized by vmd")
 
     # MOTION/BAND
     # --------------------------------
     gp = subparser.add_argument_group(title="MOTION/BAND")
 
-    gp.add_argument("--band-type", type=str, default="CI-NEB",
+    gp.add_argument("--band-type", type=str, default=None, #"CI-NEB",
             help="specify the type of band calculation")
 
-    gp.add_argument("--number-of-replica", type=int, default=5,
+    gp.add_argument("--number-of-replica", type=int, default=None, #5,
             help="number of replicas")
 
-    gp.add_argument("--k-spring", type=float, default=2.0e-2,
+    gp.add_argument("--k-spring", type=float, default=None, #2.0e-2,
             help="value of the spring constant")
 
-    gp.add_argument("--align-frames", type=str, default="TRUE",
+    gp.add_argument("--align-frames", type=str, default=None, #"TRUE",
             choices=["TRUE", "FALSE", "true", "false"],
             help="Enables the alignment of the frames at the beginning of a BAND calculation. This keyword does not affect the rotation of the replicas during a BAND calculation.")
 
-    gp.add_argument("--rotate-frames", type=str, default="TRUE",
+    gp.add_argument("--rotate-frames", type=str, default=None, #"TRUE",
             choices=["TRUE", "FALSE", "true", "false"],
             help="Compute at each BAND step the RMSD and rotate the frames in order to minimize it.")
 
@@ -664,25 +664,25 @@ def main():
     # ---------------------------------------------------------------
     gp = subparser.add_argument_group(title="VIBRATIONAL_ANALYSIS")
 
-    gp.add_argument("--dx", type=float, default=1.0e-2,
+    gp.add_argument("--dx", type=float, default=None, #1.0e-2,
             help="specify the increment to be used to construct the HESSIAN with finite difference method")
 
-    gp.add_argument("--fully-periodic", type=str, default="FALSE",
+    gp.add_argument("--fully-periodic", type=str, default=None, #"FALSE",
             choices=["TRUE", "FALSE", "true", "false"],
             help="avoids to clean rotations from the Hessian matrix")
 
-    gp.add_argument("intensities", type=str, default="FALSE",
+    gp.add_argument("--intensities", type=str, default=None, #"FALSE",
             choices=["TRUE", "FALSE", "true", "false"],
             help="Calculation of the IR-Intensities. Calculation of dipoles has to be specified explicitly"
             )
 
-    gp.add_argument("--tc-pressure", type=float, default=1.01325000E+005,
+    gp.add_argument("--tc-pressure", type=float, default=None, #1.01325000E+005,
             help="Pressure for the calculation of the thermochemical data in unit of [Pa]")
 
-    gp.add_argument("--tc-temperature", type=float, default=2.73150000E+002,
+    gp.add_argument("--tc-temperature", type=float, default=None, #2.73150000E+002,
             help="Temperature for the calculation of the thermochemical data in unit of [K]")
 
-    gp.add_argument("--thermochemistry", type=str, default="FALSE",
+    gp.add_argument("--thermochemistry", type=str, default=None, #"FALSE",
             help="Calculation of the thermochemical data. Valid for molecules in the gas phase.")
 
     #                   PHONOPY related parameters
@@ -2059,12 +2059,12 @@ def main():
 # ==============================================================================
     elif args.driver == "cp2k":
         from pymatflow.cmd.cp2k_parser import read_inp
-        #params = {}
         if args.inp == None:
             params = {}
         else:
             params = read_inp(args.inp)
                 
+        #print(params)
         params["GLOBAL-PRINT_LEVEL"] = args.print_level if "GLOBAL-PRINT_LEVEL" not in params or args.print_level != None else params["GLOBAL-PRINT_LEVEL"]
         
         params["FORCE_EVAL-SUBSYS-CELL-SYMMETRY"] = args.cell_symmetry if "FORCE_EVAL-SUBSYS-CELL-SYMMETRY" not in params or args.cell_symmetry != None else params["FORCE_EVAL-SUBSYS-CELL-SYMMETRY"]
@@ -2073,65 +2073,65 @@ def main():
         params["FORCE_EVAL-DFT-QS-METHOD"] = args.qs_method if "FORCE_EVAL-DFT-QS-METHOD" not in params or args.qs_method != None else params["FORCE_EVAL-DFT-QS-METHOD"]
         params["FORCE_EVAL-DFT-MGRID-CUTOFF"] = args.cutoff if "FORCE_EVAL-DFT-MGRID-CUTOFF" not in params or args.cutoff != None else params["FORCE_EVAL-DFT-MGRID-CUTOFF"]
         params["FORCE_EVAL-DFT-MGRID-REL_CUTOFF"] = args.rel_cutoff if "FORCE_EVAL-DFT-MGRID-REL_CUTOFF" not in params or args.rel_cutoff != None else params["FORCE_EVAL-DFT-MGRID-REL_CUTOFF"]
-        params["FORCE_EVAL-DFT-MGRID-NGRIDS"] = args.ngrids if "FORCE_EVAL-DFT-MGRID-NGRIDS" not in params or  args.ngrids!= None else params["FORCE_EVAL-DFT-MGRID-NGRIDS"]
-        params["FORCE_EVAL-DFT-XC-XC_FUNCTIONAL"] = args.xc_functional if "FORCE_EVAL-DFT-XC-XC_FUNCTIONAL" not in params or  args.xc_functional!= None else params["FORCE_EVAL-DFT-XC-XC_FUNCTIONAL"]
-        params["FORCE_EVAL-DFT-SCF-EPS_SCF"] = args.eps_scf if "FORCE_EVAL-DFT-SCF-EPS_SCF" not in params or  args.eps_scf!= None else params["FORCE_EVAL-DFT-SCF-EPS_SCF"]
-        params["FORCE_EVAL-DFT-SCF-ADDED_MOS"] = args.added_mos if "FORCE_EVAL-DFT-SCF-ADDED_MOS" not in params or  args.added_mos!= None else params["FORCE_EVAL-DFT-SCF-ADDED_MOS"]
-        params["FORCE_EVAL-DFT-SCF-SMEAR"] = args.smear if "FORCE_EVAL-DFT-SCF-SMEAR" not in params or  args.smear!= None else params["FORCE_EVAL-DFT-SCF-SMEAR"]
-        params["FORCE_EVAL-DFT-SCF-SMEAR-METHOD"] = args.smear_method if "FORCE_EVAL-DFT-SCF-SMEAR-METHOD" not in params or  args.smear_method!= None else params["FORCE_EVAL-DFT-SCF-SMEAR-METHOD"]
-        params["FORCE_EVAL-DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE"] = args.electronic_temp if "FORCE_EVAL-DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE" not in params or  args.electronic_temp!= None else params["FORCE_EVAL-DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE"]
-        params["FORCE_EVAL-DFT-SCF-SMEAR-WINDOW_SIZE"] = args.window_size if "FORCE_EVAL-DFT-SCF-SMEAR-WINDOW_SIZE" not in params or  args.window_size!= None else params["FORCE_EVAL-DFT-SCF-SMEAR-WINDOW_SIZE"]
-        params["FORCE_EVAL-DFT-SCF-DIAGONALIZATION"] = args.diag if "FORCE_EVAL-DFT-SCF-DIAGONALIZATION" not in params or  args.diag!= None else params["FORCE_EVAL-DFT-SCF-DIAGONALIZATION"]
-        params["FORCE_EVAL-DFT-SCF-OT"] = args.ot if "FORCE_EVAL-DFT-SCF-OT" not in params or  args.ot!= None else params["FORCE_EVAL-DFT-SCF-OT"]
-        params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"] = args.mixing_alpha if "FORCE_EVAL-DFT-SCF-MIXING-ALPHA" not in params or  args.mixing_alpha!= None else params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"]
-        params["FORCE_EVAL-DFT-KPOINTS-SCHEME"] = args.kpoints_scheme if "FORCE_EVAL-DFT-KPOINTS-SCHEME" not in params or  args.kpoints_scheme!= None else params["FORCE_EVAL-DFT-KPOINTS-SCHEME"]
-        params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"] = args.vdw_potential_type if "FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE" not in params or  args.vdw_potential_type!= None else params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"]
-        params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-TYPE"] = args.pair_type if "FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-TYPE" not in params or  args.pair_type!= None else params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-TYPE"]
-        params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-R_CUTOFF"] = args.r_cutoff if "FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-R_CUTOFF" not in params or  args.r_cutoff!= None else params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-R_CUTOFF"]
-        params["FORCE_EVAL-DFT-PRINT-ELF_CUBE-STRIDE"] = args.dft_print_elf_cube_stride if "FORCE_EVAL-DFT-PRINT-ELF_CUBE-STRIDE" not in params or  args.dft_print_elf_cube_stride!= None else params["FORCE_EVAL-DFT-PRINT-ELF_CUBE-STRIDE"]
-        params["FORCE_EVAL-DFT-PRINT-E_DENSITY_CUBE-STRIDE"] = args.dft_print_e_density_cube_stride if "FORCE_EVAL-DFT-PRINT-E_DENSITY_CUBE-STRIDE" not in params or  args.dft_print_e_density_cube_stride!= None else params["FORCE_EVAL-DFT-PRINT-E_DENSITY_CUBE-STRIDE"]
-        params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-RANGE"] = args.properties_resp_slab_sampling_range if "FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-RANGE" not in params or  args.properties_resp_slab_sampling_range!= None else params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-RANGE"]
-        params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-SURF_DIRECTION"] = args.properties_resp_slab_sampling_surf_direction if "FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-SURF_DIRECTION" not in params or  args.properties_resp_slab_sampling_surf_direction!= None else params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-SURF_DIRECTION"]
-        params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST"] = args.properties_resp_slab_sampling_atom_list if "FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST" not in params or  args.properties_resp_slab_sampling_atom_list!= None else params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST"]
+        params["FORCE_EVAL-DFT-MGRID-NGRIDS"] = args.ngrids if "FORCE_EVAL-DFT-MGRID-NGRIDS" not in params or  args.ngrids != None else params["FORCE_EVAL-DFT-MGRID-NGRIDS"]
+        params["FORCE_EVAL-DFT-XC-XC_FUNCTIONAL"] = args.xc_functional if "FORCE_EVAL-DFT-XC-XC_FUNCTIONAL" not in params or  args.xc_functional != None else params["FORCE_EVAL-DFT-XC-XC_FUNCTIONAL"]
+        params["FORCE_EVAL-DFT-SCF-EPS_SCF"] = args.eps_scf if "FORCE_EVAL-DFT-SCF-EPS_SCF" not in params or  args.eps_scf != None else params["FORCE_EVAL-DFT-SCF-EPS_SCF"]
+        params["FORCE_EVAL-DFT-SCF-ADDED_MOS"] = args.added_mos if "FORCE_EVAL-DFT-SCF-ADDED_MOS" not in params or  args.added_mos != None else params["FORCE_EVAL-DFT-SCF-ADDED_MOS"]
+        params["FORCE_EVAL-DFT-SCF-SMEAR"] = args.smear if "FORCE_EVAL-DFT-SCF-SMEAR" not in params or  args.smear != None else params["FORCE_EVAL-DFT-SCF-SMEAR"]
+        params["FORCE_EVAL-DFT-SCF-SMEAR-METHOD"] = args.smear_method if "FORCE_EVAL-DFT-SCF-SMEAR-METHOD" not in params or  args.smear_method != None else params["FORCE_EVAL-DFT-SCF-SMEAR-METHOD"]
+        params["FORCE_EVAL-DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE"] = args.electronic_temp if "FORCE_EVAL-DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE" not in params or  args.electronic_temp != None else params["FORCE_EVAL-DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE"]
+        params["FORCE_EVAL-DFT-SCF-SMEAR-WINDOW_SIZE"] = args.window_size if "FORCE_EVAL-DFT-SCF-SMEAR-WINDOW_SIZE" not in params or  args.window_size != None else params["FORCE_EVAL-DFT-SCF-SMEAR-WINDOW_SIZE"]
+        params["FORCE_EVAL-DFT-SCF-DIAGONALIZATION"] = args.diag if "FORCE_EVAL-DFT-SCF-DIAGONALIZATION" not in params or  args.diag != None else params["FORCE_EVAL-DFT-SCF-DIAGONALIZATION"]
+        params["FORCE_EVAL-DFT-SCF-OT"] = args.ot if "FORCE_EVAL-DFT-SCF-OT" not in params or  args.ot != None else params["FORCE_EVAL-DFT-SCF-OT"]
+        params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"] = args.mixing_alpha if "FORCE_EVAL-DFT-SCF-MIXING-ALPHA" not in params or  args.mixing_alpha != None else params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"]
+        params["FORCE_EVAL-DFT-KPOINTS-SCHEME"] = args.kpoints_scheme if "FORCE_EVAL-DFT-KPOINTS-SCHEME" not in params or  args.kpoints_scheme != None else params["FORCE_EVAL-DFT-KPOINTS-SCHEME"]
+        params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"] = args.vdw_potential_type if "FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE" not in params or  args.vdw_potential_type != None else params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"]
+        params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-TYPE"] = args.pair_type if "FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-TYPE" not in params or  args.pair_type != None else params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-TYPE"]
+        params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-R_CUTOFF"] = args.r_cutoff if "FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-R_CUTOFF" not in params or  args.r_cutoff != None else params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-R_CUTOFF"]
+        params["FORCE_EVAL-DFT-PRINT-ELF_CUBE-STRIDE"] = args.dft_print_elf_cube_stride if "FORCE_EVAL-DFT-PRINT-ELF_CUBE-STRIDE" not in params or  args.dft_print_elf_cube_stride != None else params["FORCE_EVAL-DFT-PRINT-ELF_CUBE-STRIDE"]
+        params["FORCE_EVAL-DFT-PRINT-E_DENSITY_CUBE-STRIDE"] = args.dft_print_e_density_cube_stride if "FORCE_EVAL-DFT-PRINT-E_DENSITY_CUBE-STRIDE" not in params or  args.dft_print_e_density_cube_stride != None else params["FORCE_EVAL-DFT-PRINT-E_DENSITY_CUBE-STRIDE"]
+        params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-RANGE"] = args.properties_resp_slab_sampling_range if "FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-RANGE" not in params or  args.properties_resp_slab_sampling_range != None else params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-RANGE"]
+        params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-SURF_DIRECTION"] = args.properties_resp_slab_sampling_surf_direction if "FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-SURF_DIRECTION" not in params or  args.properties_resp_slab_sampling_surf_direction != None else params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-SURF_DIRECTION"]
+        params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST"] = args.properties_resp_slab_sampling_atom_list if "FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST" not in params or  args.properties_resp_slab_sampling_atom_list != None else params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST"]
 
-        params["MOTION-GEO_OPT-MAX_ITER"] = args.geo_opt_max_iter if "MOTION-GEO_OPT-MAX_ITER" not in params or  args.geo_opt_max_iter!= None else params["MOTION-GEO_OPT-MAX_ITER"]
-        params["MOTION-GEO_OPT-OPTIMIZER"] = args.geo_opt_optimizer if "MOTION-GEO_OPT-OPTIMIZER" not in params or  args.geo_opt_optimizer!= None else params["MOTION-GEO_OPT-OPTIMIZER"]
-        params["MOTION-GEO_OPT-TYPE"] = args.geo_opt_type if "MOTION-GEO_OPT-TYPE" not in params or  args.geo_opt_type!= None else params["MOTION-GEO_OPT-TYPE"]
-        params["MOTION-GEO_OPT-MAX_DR"] = args.geo_opt_max_dr if "MOTION-GEO_OPT-MAX_DR" not in params or  args.geo_opt_max_dr!= None else params["MOTION-GEO_OPT-MAX_DR"]
-        params["MOTION-GEO_OPT-MAX_FORCE"] = args.geo_opt_max_force if "MOTION-GEO_OPT-MAX_FORCE" not in params or  args.geo_opt_max_force!= None else params["MOTION-GEO_OPT-MAX_FORCE"]
-        params["MOTION-GEO_OPT-RMS_DR"] = args.geo_opt_rms_dr if "MOTION-GEO_OPT-RMS_DR" not in params or  args.geo_opt_rms_dr!= None else params["MOTION-GEO_OPT-RMS_DR"]
-        params["MOTION-GEO_OPT-RMS_FORCE"] = args.geo_opt_rms_force if "MOTION-GEO_OPT-RMS_FORCE" not in params or  args.geo_opt_rms_force!= None else params["MOTION-GEO_OPT-RMS_FORCE"]
+        params["MOTION-GEO_OPT-MAX_ITER"] = args.geo_opt_max_iter if "MOTION-GEO_OPT-MAX_ITER" not in params or  args.geo_opt_max_iter != None else params["MOTION-GEO_OPT-MAX_ITER"]
+        params["MOTION-GEO_OPT-OPTIMIZER"] = args.geo_opt_optimizer if "MOTION-GEO_OPT-OPTIMIZER" not in params or  args.geo_opt_optimizer != None else params["MOTION-GEO_OPT-OPTIMIZER"]
+        params["MOTION-GEO_OPT-TYPE"] = args.geo_opt_type if "MOTION-GEO_OPT-TYPE" not in params or  args.geo_opt_type != None else params["MOTION-GEO_OPT-TYPE"]
+        params["MOTION-GEO_OPT-MAX_DR"] = args.geo_opt_max_dr if "MOTION-GEO_OPT-MAX_DR" not in params or  args.geo_opt_max_dr != None else params["MOTION-GEO_OPT-MAX_DR"]
+        params["MOTION-GEO_OPT-MAX_FORCE"] = args.geo_opt_max_force if "MOTION-GEO_OPT-MAX_FORCE" not in params or  args.geo_opt_max_force != None else params["MOTION-GEO_OPT-MAX_FORCE"]
+        params["MOTION-GEO_OPT-RMS_DR"] = args.geo_opt_rms_dr if "MOTION-GEO_OPT-RMS_DR" not in params or  args.geo_opt_rms_dr != None else params["MOTION-GEO_OPT-RMS_DR"]
+        params["MOTION-GEO_OPT-RMS_FORCE"] = args.geo_opt_rms_force if "MOTION-GEO_OPT-RMS_FORCE" not in params or  args.geo_opt_rms_force != None else params["MOTION-GEO_OPT-RMS_FORCE"]
 
-        params["MOTION-CELL_OPT-MAX_ITER"] = args.cell_opt_max_iter if "MOTION-CELL_OPT-MAX_ITER" not in params or  args.cell_opt_max_iter!= None else params["MOTION-CELL_OPT-MAX_ITER"]
-        params["MOTION-CELL_OPT-OPTIMIZER"] = args.cell_opt_optimizer if "MOTION-CELL_OPT-OPTIMIZER" not in params or  args.cell_opt_optimizer!= None else params["MOTION-CELL_OPT-OPTIMIZER"]
-        params["MOTION-CELL_OPT-TYPE"] = args.cell_opt_type if "MOTION-CELL_OPT-TYPE" not in params or  args.cell_opt_type!= None else params["MOTION-CELL_OPT-TYPE"]
-        params["MOTION-CELL_OPT-MAX_DR"] = args.cell_opt_max_dr if "MOTION-CELL_OPT-MAX_DR" not in params or  args.cell_opt_max_dr!= None else params["MOTION-CELL_OPT-MAX_DR"]
-        params["MOTION-CELL_OPT-MAX_FORCE"] = args.cell_opt_max_force if "MOTION-CELL_OPT-MAX_FORCE" not in params or  args.cell_opt_max_force!= None else params["MOTION-CELL_OPT-MAX_FORCE"]
-        params["MOTION-CELL_OPT-RMS_DR"] = args.cell_opt_rms_dr if "MOTION-CELL_OPT-RMS_DR" not in params or  args.cell_opt_rms_dr!= None else params["MOTION-CELL_OPT-RMS_DR"]
-        params["MOTION-CELL_OPT-RMS_FORCE"] = args.cell_opt_rms_force if "MOTION-CELL_OPT-RMS_FORCE" not in params or  args.cell_opt_rms_force!= None else params["MOTION-CELL_OPT-RMS_FORCE"]
-        params["MOTION-CELL_OPT-PRESSURE_TOLERANCE"] = args.cell_opt_pressure_tolerance if "MOTION-CELL_OPT-PRESSURE_TOLERANCE" not in params or  args.cell_opt_pressure_tolerance!= None else params["MOTION-CELL_OPT-PRESSURE_TOLERANCE"]
-        params["MOTION-CELL_OPT-KEEP_ANGLES"] = args.cell_opt_keep_angles if "MOTION-CELL_OPT-KEEP_ANGLES" not in params or  args.cell_opt_keep_angles!= None else params["MOTION-CELL_OPT-KEEP_ANGLES"]
-        params["MOTION-CELL_OPT-KEEP_SYMMETRY"] = args.cell_opt_keep_symmetry if "MOTION-CELL_OPT-KEEP_SYMMETRY" not in params or  args.cell_opt_keep_symmetry!= None else params["MOTION-CELL_OPT-KEEP_SYMMETRY"]
+        params["MOTION-CELL_OPT-MAX_ITER"] = args.cell_opt_max_iter if "MOTION-CELL_OPT-MAX_ITER" not in params or  args.cell_opt_max_iter != None else params["MOTION-CELL_OPT-MAX_ITER"]
+        params["MOTION-CELL_OPT-OPTIMIZER"] = args.cell_opt_optimizer if "MOTION-CELL_OPT-OPTIMIZER" not in params or  args.cell_opt_optimizer != None else params["MOTION-CELL_OPT-OPTIMIZER"]
+        params["MOTION-CELL_OPT-TYPE"] = args.cell_opt_type if "MOTION-CELL_OPT-TYPE" not in params or  args.cell_opt_type != None else params["MOTION-CELL_OPT-TYPE"]
+        params["MOTION-CELL_OPT-MAX_DR"] = args.cell_opt_max_dr if "MOTION-CELL_OPT-MAX_DR" not in params or  args.cell_opt_max_dr != None else params["MOTION-CELL_OPT-MAX_DR"]
+        params["MOTION-CELL_OPT-MAX_FORCE"] = args.cell_opt_max_force if "MOTION-CELL_OPT-MAX_FORCE" not in params or  args.cell_opt_max_force != None else params["MOTION-CELL_OPT-MAX_FORCE"]
+        params["MOTION-CELL_OPT-RMS_DR"] = args.cell_opt_rms_dr if "MOTION-CELL_OPT-RMS_DR" not in params or  args.cell_opt_rms_dr != None else params["MOTION-CELL_OPT-RMS_DR"]
+        params["MOTION-CELL_OPT-RMS_FORCE"] = args.cell_opt_rms_force if "MOTION-CELL_OPT-RMS_FORCE" not in params or  args.cell_opt_rms_force != None else params["MOTION-CELL_OPT-RMS_FORCE"]
+        params["MOTION-CELL_OPT-PRESSURE_TOLERANCE"] = args.cell_opt_pressure_tolerance if "MOTION-CELL_OPT-PRESSURE_TOLERANCE" not in params or  args.cell_opt_pressure_tolerance != None else params["MOTION-CELL_OPT-PRESSURE_TOLERANCE"]
+        params["MOTION-CELL_OPT-KEEP_ANGLES"] = args.cell_opt_keep_angles if "MOTION-CELL_OPT-KEEP_ANGLES" not in params or  args.cell_opt_keep_angles != None else params["MOTION-CELL_OPT-KEEP_ANGLES"]
+        params["MOTION-CELL_OPT-KEEP_SYMMETRY"] = args.cell_opt_keep_symmetry if "MOTION-CELL_OPT-KEEP_SYMMETRY" not in params or  args.cell_opt_keep_symmetry != None else params["MOTION-CELL_OPT-KEEP_SYMMETRY"]
 
-        params["MOTION-BAND-BAND_TYPE"] = args.band_type if "MOTION-BAND-BAND_TYPE" not in params or  args.band_type!= None else params["MOTION-BAND-BAND_TYPE"]
-        params["MOTION-BAND-NUMBER_OF_REPLICA"] = args.number_of_replica if "MOTION-BAND-NUMBER_OF_REPLICA" not in params or  args.number_of_replica!= None else params["MOTION-BAND-NUMBER_OF_REPLICA"]
-        params["MOTION-BAND-ALIGN_FRAMES"] = args.align_frames if "MOTION-BAND-ALIGN_FRAMES" not in params or  args.align_frames!= None else params["MOTION-BAND-ALIGN_FRAMES"]
-        params["MOTION-BAND-ROTATE-FRAMES"] = args.rotate_frames if "MOTION-BAND-ROTATE-FRAMES" not in params or  args.rotate_frames!= None else params["MOTION-BAND-ROTATE-FRAMES"]
-        params["MOTION-BAND-K_SPRING"] = args.k_spring if "MOTION-BAND-K_SPRING" not in params or  args.k_spring!= None else params["MOTION-BAND-K_SPRING"]
+        params["MOTION-BAND-BAND_TYPE"] = args.band_type if "MOTION-BAND-BAND_TYPE" not in params or  args.band_type != None else params["MOTION-BAND-BAND_TYPE"]
+        params["MOTION-BAND-NUMBER_OF_REPLICA"] = args.number_of_replica if "MOTION-BAND-NUMBER_OF_REPLICA" not in params or  args.number_of_replica != None else params["MOTION-BAND-NUMBER_OF_REPLICA"]
+        params["MOTION-BAND-ALIGN_FRAMES"] = args.align_frames if "MOTION-BAND-ALIGN_FRAMES" not in params or  args.align_frames != None else params["MOTION-BAND-ALIGN_FRAMES"]
+        params["MOTION-BAND-ROTATE-FRAMES"] = args.rotate_frames if "MOTION-BAND-ROTATE-FRAMES" not in params or  args.rotate_frames != None else params["MOTION-BAND-ROTATE-FRAMES"]
+        params["MOTION-BAND-K_SPRING"] = args.k_spring if "MOTION-BAND-K_SPRING" not in params or  args.k_spring != None else params["MOTION-BAND-K_SPRING"]
 
-        params["MOTION-MD-STEPS"] = args.md_steps if "MOTION-MD-STEPS" not in params or  args.md_steps!= None else params["MOTION-MD-STEPS"]
-        params["MOTION-MD-TIMESTEP"] = args.timestep if "MOTION-MD-TIMESTEP" not in params or  args.timestep!= None else params["MOTION-MD-TIMESTEP"]
-        params["MOTION-MD-ENSEMBLE"] = args.ensemble if "MOTION-MD-ENSEMBLE" not in params or  args.ensemble!= None else params["MOTION-MD-ENSEMBLE"]
-        params["MOTION-MD-TEMPERATURE"] = args.temperature if "MOTION-MD-TEMPERATURE" not in params or  args.temperature!= None else params["MOTION-MD-TEMPERATURE"]
-        params["MOTION-MD-TEMP_TOL"] = args.temp_tol if "MOTION-MD-TEMP_TOL" not in params or  args.temp_tol!= None else params["MOTION-MD-TEMP_TOL"]
-        params["MOTION-PRINT-TRAJECTORY-FORMAT"] = args.traj_format if "MOTION-PRINT-TRAJECTORY-FORMAT" not in params or  args.traj_format!= None else params["MOTION-PRINT-TRAJECTORY-FORMAT"]
+        params["MOTION-MD-STEPS"] = args.md_steps if "MOTION-MD-STEPS" not in params or  args.md_steps != None else params["MOTION-MD-STEPS"]
+        params["MOTION-MD-TIMESTEP"] = args.timestep if "MOTION-MD-TIMESTEP" not in params or  args.timestep != None else params["MOTION-MD-TIMESTEP"]
+        params["MOTION-MD-ENSEMBLE"] = args.ensemble if "MOTION-MD-ENSEMBLE" not in params or  args.ensemble != None else params["MOTION-MD-ENSEMBLE"]
+        params["MOTION-MD-TEMPERATURE"] = args.temperature if "MOTION-MD-TEMPERATURE" not in params or  args.temperature != None else params["MOTION-MD-TEMPERATURE"]
+        params["MOTION-MD-TEMP_TOL"] = args.temp_tol if "MOTION-MD-TEMP_TOL" not in params or  args.temp_tol != None else params["MOTION-MD-TEMP_TOL"]
+        params["MOTION-PRINT-TRAJECTORY-FORMAT"] = args.traj_format if "MOTION-PRINT-TRAJECTORY-FORMAT" not in params or  args.traj_format != None else params["MOTION-PRINT-TRAJECTORY-FORMAT"]
 
-        params["VIBRATIONAL_ANALYSIS-DX"] = args.dx if "VIBRATIONAL_ANALYSIS-DX" not in params or  args.dx!= None else params["VIBRATIONAL_ANALYSIS-DX"]
-        params["VIBRATIONAL_ANALYSIS-FULLY_PERIODIC"] = args.fully_periodic if "VIBRATIONAL_ANALYSIS-FULLY_PERIODIC" not in params or  args.fully_periodic!= None else params["VIBRATIONAL_ANALYSIS-FULLY_PERIODIC"]
-        params["VIBRATIONAL_ANALYSIS-INTENSITIES"] = args.intensities if "VIBRATIONAL_ANALYSIS-INTENSITIES" not in params or  args.intensities!= None else params["VIBRATIONAL_ANALYSIS-INTENSITIES"]
-        params["VIBRATIONAL_ANALYSIS-TC_PRESSURE"] = args.tc_pressure if "VIBRATIONAL_ANALYSIS-TC_PRESSURE" not in params or  args.tc_pressure!= None else params["VIBRATIONAL_ANALYSIS-TC_PRESSURE"]
-        params["VIBRATIONAL_ANALYSIS-TC_TEMPERATURE"] = args.tc_temperature if "VIBRATIONAL_ANALYSIS-TC_TEMPERATURE" not in params or  args.tc_temperature!= None else params["VIBRATIONAL_ANALYSIS-TC_TEMPERATURE"]
-        params["VIBRATIONAL_ANALYSIS-THERMOCHEMISTRY"] = args.thermochemistry if "VIBRATIONAL_ANALYSIS-THERMOCHEMISTRY" not in params or  args.thermochemistry!= None else params["VIBRATIONAL_ANALYSIS-THERMOCHEMISTRY"]
+        params["VIBRATIONAL_ANALYSIS-DX"] = args.dx if "VIBRATIONAL_ANALYSIS-DX" not in params or  args.dx != None else params["VIBRATIONAL_ANALYSIS-DX"]
+        params["VIBRATIONAL_ANALYSIS-FULLY_PERIODIC"] = args.fully_periodic if "VIBRATIONAL_ANALYSIS-FULLY_PERIODIC" not in params or  args.fully_periodic != None else params["VIBRATIONAL_ANALYSIS-FULLY_PERIODIC"]
+        params["VIBRATIONAL_ANALYSIS-INTENSITIES"] = args.intensities if "VIBRATIONAL_ANALYSIS-INTENSITIES" not in params or  args.intensities != None else params["VIBRATIONAL_ANALYSIS-INTENSITIES"]
+        params["VIBRATIONAL_ANALYSIS-TC_PRESSURE"] = args.tc_pressure if "VIBRATIONAL_ANALYSIS-TC_PRESSURE" not in params or  args.tc_pressure != None else params["VIBRATIONAL_ANALYSIS-TC_PRESSURE"]
+        params["VIBRATIONAL_ANALYSIS-TC_TEMPERATURE"] = args.tc_temperature if "VIBRATIONAL_ANALYSIS-TC_TEMPERATURE" not in params or  args.tc_temperature != None else params["VIBRATIONAL_ANALYSIS-TC_TEMPERATURE"]
+        params["VIBRATIONAL_ANALYSIS-THERMOCHEMISTRY"] = args.thermochemistry if "VIBRATIONAL_ANALYSIS-THERMOCHEMISTRY" not in params or  args.thermochemistry != None else params["VIBRATIONAL_ANALYSIS-THERMOCHEMISTRY"]
 
 
         # do some check

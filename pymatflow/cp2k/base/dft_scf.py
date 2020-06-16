@@ -1248,6 +1248,7 @@ class cp2k_dft_scf_print:
             elif item.split("-")[3] == "TOTAL_DENSITIES":
                 self.total_densities.set_params({item: params[item]})
 
+
 class cp2k_dft_scf:
     def __init__(self):
         self.params = {
@@ -1294,7 +1295,7 @@ class cp2k_dft_scf:
             print("or ORBITAL TRANSFORMATION for SCF\n")
             print("======================================\n")
             sys.exit(1)
-        if self.smear.section.upper() == "TRUE":
+        if self.smear.section != None and self.smear.section.upper() == "TRUE":
             if self.params["ADDED_MOS"] == None or self.params["ADDED_MOS"] == 0:
                 print("==========================================================\n")
                 print("                      Warning !!!\n")
