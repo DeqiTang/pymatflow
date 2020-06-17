@@ -147,3 +147,10 @@ def inverse_cell_center(structure):
         cartesian = list(convmat.dot(np.array([atom[1], atom[2], atom[3]])))
         structure.atoms.append(Atom(name=atom[0], x=cartesian[0], y=cartesian[1], z=cartesian[2]))
     #
+
+def rotate_along_axis(structure, rotate_atoms=[], axis=[]):
+    """
+    rotate the specified atoms along the specified axis
+    :param structure: an instance of pymatflow.structure.crystal.crystal()
+    """
+    pass

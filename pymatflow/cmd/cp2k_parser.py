@@ -170,7 +170,7 @@ def read_inp(filepath):
                                             while len(lines[i+j+k+l+m].split()) > 0 and lines[i+j+k+l+m].split()[0].upper() != "&END %s" % (arg.split("-")[3]):
                                                 if lines[i+j+k+l+m].split()[0].upper() == ("&" + arg.split("-")[4]):
                                                     n = 1
-                                                    while len(lines[i+j+k+l+m+n].split()) > 0 and lines[i+j+k+l+m+n].split()[0].upper() != "&END %s" (arg.split("-")[4]):
+                                                    while len(lines[i+j+k+l+m+n].split()) > 0 and lines[i+j+k+l+m+n].split()[0].upper() != "&END %s" % (arg.split("-")[4]):
                                                         if lines[i+j+k+l+m+n].split()[0].upper() == arg.split("-")[5] or lines[i+j+k+l+m+n].split()[0].upper() == ("&" + arg.split("-")[5]):
                                                             out[arg] = lines[i+j+k+l+m+n].split()[1].upper()
                                                             break
@@ -203,7 +203,7 @@ def read_inp(filepath):
                                             while len(lines[i+j+k+l+m].split()) > 0 and lines[i+j+k+l+m].split()[0].upper() != "&END %s" % (arg.split("-")[3]):
                                                 if lines[i+j+k+l+m].split()[0].upper() == ("&" + arg.split("-")[4]):
                                                     n = 1
-                                                    while len(lines[i+j+k+l+m+n].split()) > 0 and lines[i+j+k+l+m+n].split()[0].upper() != "&END %s" (arg.split("-")[4]):
+                                                    while len(lines[i+j+k+l+m+n].split()) > 0 and lines[i+j+k+l+m+n].split()[0].upper() != "&END %s" % (arg.split("-")[4]):
                                                         if lines[i+j+k+l+m+n].split()[0].upper() == ("&" + arg.split("-")[5]):
                                                             o = 1
                                                             while len(lines[i+j+k+l+m+n+o].split()) > 0 and lines[i+j+k+l+m+n+o].split()[0].upper() != "&END %s" % (arg.split("-")[5]):
