@@ -1150,6 +1150,19 @@ def main():
             default=None,
             help="number of structure each batch c")
 
+    # inp template
+    gp = subparser.add_argument_group(title="template input",
+            description="read template input")
+            
+    gp.add_argument("--pwin", type=str, default=None,
+            help="read parameters from pwscf input template")
+
+    gp.add_argument("--nebin", type=str, default=None,
+            help="read parameters from neb.x input template")
+            
+    gp.add_argument("--phin", type=str, default=None,
+            help="read parameters from ph.x input template")            
+
     # --------------------------------------------------------------------------
     # SIESTA
     # --------------------------------------------------------------------------
@@ -2286,49 +2299,54 @@ def main():
 # Quantum ESPERSSO Quantum ESPERSSO Quantum ESPERSSO Quantum ESPERSSO Quantum ESPERSSO
 # ==============================================================================
     elif args.driver == "qe":
+        from pymatflow.cmd.qe_parser import read_pwscf_in, read_neb_in, read_ph_in
         control = {}
         electrons = {}
         system = {}
         ions = {}
 
-        control["tstress"] = args.tstress
-        control["nstep"] = args.nstep
-        control["etot_conv_thr"] = args.etot_conv_thr
-        control["forc_conv_thr"] = args.forc_conv_thr
-        system["ecutwfc"] = args.ecutwfc
-        system["ecutrho"] = args.ecutrho
-        system["occupations"] = args.occupations
-        system["smearing"] = args.smearing
-        system["degauss"] = args.degauss
-        system["vdw_corr"] = args.vdw_corr
-        system["nbnd"] = args.nbnd
-        electrons["conv_thr"] = args.conv_thr
+        control, electrons, system, ions, cell = read_pwscf_in(args.pwin)
+        
+        control["tstress"] = args.tstress if "tstress" not in control or args.tstress != None else control["tstress"]
+        control["nstep"] = args.nstep if "nstep" not in contorl or args.nstep != None else control["nstep"]
+        control["etot_conv_thr"] = args.etot_conv_thr if "etot_conv_thr" not in control or args.etot_conv_thr != None else control["etot_conv_thr"]
+        control["forc_conv_thr"] = args.forc_conv_thr if "forc_conv_thr" not in control or args.forc_conv_thr != None else control["forc_conv_thr"]
+        system["ecutwfc"] = args.ecutwfc if "ecutwfc" not in system or args.ecutwfc != None else system["ecutwfc"]
+        system["ecutrho"] = args.ecutrho if "ecutrho" not in system or args.ecutrho != None else system["ecutrho"]
+        system["occupations"] = args.occupations if "occupations" not in system or args.occupations != None else system["occupations"]
+        system["smearing"] = args.smearing if "smearing" not in system or args.smearing != None else system["smearing"]
+        system["degauss"] = args.degauss if "degauss" not in system or args.degauss != None else system["degauss"]
+        system["vdw_corr"] = args.vdw_corr if "vde_corr" not in system or args.vdw_corr != None  else system["vdw_corr"]
+        system["nbnd"] = args.nbnd if "nbnd" not in system or args.nbnd != None else system["nbnd"]
+        electrons["conv_thr"] = args.conv_thr if "conv_thr" not in electrons or args.conv_thr != None else electrons["conv_thr"]
 
-        system["nspin"] = args.nspin
-        system["starting_magnetization"] = args.starting_magnetization
-        system["noncolin"] = args.noncolin
+        system["nspin"] = args.nspin if "nspin" not in system or args.nspin != None else system["nspin"]
+        system["starting_magnetization"] = args.starting_magnetization if "starting_magnetization" not in system or args.starting_magnetization != None else system["starting_magnetization"]
+        system["noncolin"] = args.noncolin if "noncolin" not in system or args.nnoncolin != None else system["noncolin"]
 
         path = {}
-        path["string_method"] = args.string_method
-        path["nstep_path"] = args.nstep_path
-        path["opt_scheme"] = args.opt_scheme
-        path["num_of_images"] = args.num_of_images
-        path["k_max"] = args.k_max
-        path["k_min"] = args.k_min
-        path["CI_scheme"] = args.ci_scheme
-        path["path_thr"] = args.path_thr
-        path["ds"] = args.ds
-        path["first_last_opt"] = args.first_last_opt
+        path = read_neb_in(args.nebin)
+        path["string_method"] = args.string_method if "string_method" not in path or args.string_method != None else path["string_method"]
+        path["nstep_path"] = args.nstep_path if "nstep_path" not in path or args.nstep_path != None else path["nstep_path"]
+        path["opt_scheme"] = args.opt_scheme if "opt_scheme" not in path or args.opt_scheme != None else path["opt_scheme"]
+        path["num_of_images"] = args.num_of_images if "num_of_images" not in path or args.num_of_images != None else path["num_of_images"]
+        path["k_max"] = args.k_max if "k_max" not in path or args.k_max != None else path["k_max"]
+        path["k_min"] = args.k_min if "k_min" not in path or args.k_min != None else path["k_min"]
+        path["CI_scheme"] = args.ci_scheme if "CI_scheme" not in path or args.ci_scheme != None else path["CI_scheme"]
+        path["path_thr"] = args.path_thr if "path_thr" not in path or args.path_thr != None else path["path_thr"]
+        path["ds"] = args.ds if "ds" not in path or args.ds != None else path["ds"]
+        path["first_last_opt"] = args.first_last_opt if "first_last_opt" not in path or args.first_last_opt != None else path["first_last_opt"]
 
         # for ph.x
         inputph = {}
-        inputph["tr2_ph"] = args.tr2_ph
-        inputph["lraman"] = args.lraman
-        inputph["epsil"] = args.epsil
-        inputph["nq1"] = args.nq[0]
-        inputph["nq2"] = args.nq[1]
-        inputph["nq3"] = args.nq[2]
-        inputph["search_sym"] = args.search_sym
+        inputph = read_ph_in(args.phin)
+        inputph["tr2_ph"] = args.tr2_ph if "tr2_ph" not in inputph or args.tr2_ph != None else inputph["tr2_ph"]
+        inputph["lraman"] = args.lraman if "lraman" not in inputph or args.lraman != None else inputph["lraman"]
+        inputph["epsil"] = args.epsil if "epsil" not in inputph or args.epsil != None else inputph["epsil"]
+        inputph["nq1"] = args.nq[0] if "nq1" not in inputph or args.nq[0] != None else inputph["nq1"]
+        inputph["nq2"] = args.nq[1] if "nq2" not in inputph or args.nq[1] != None else inputph["nq2"]
+        inputph["nq3"] = args.nq[2] if "nq3" not in inputph or args.nq[2] != None else inputph["nq3"]
+        inputph["search_sym"] = args.search_sym if "search_sym" not in inputph or args.search_sysm != None else inputph["search_sym"]
 
 
         if args.runtype == 0:
