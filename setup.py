@@ -173,6 +173,7 @@ setup(
         "pymatflow/scripts/contour-xyz-diff.py",
         "pymatflow/scripts/ldos-xyz.py",  
         "pymatflow/scripts/xsd-color-bond.py",
+        "pymatflow/scripts/stm-vasp.py",
         "pymatflow/remote/scripts/thq.py",
         "pymatflow/remote/scripts/thcancel.py",
         "pymatflow/remote/scripts/thpull.py",

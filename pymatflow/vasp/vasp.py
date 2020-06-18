@@ -53,7 +53,7 @@ class vasp:
             "LSORBIT","SAXIS", "LMAXMIX", "LHFCALC", "HFSCREEN", "AEXX", "LSUBROT", "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG", "LELF",
             "AMIX", "BMIX", "NELECT",
-            "KSPACING",
+            "KSPACING", "LPARD", "LSEPK", "LSEPB", "NBMOD", "EINT",
         ]
         opt_allowed = [
             "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",

@@ -1822,7 +1822,7 @@ def main():
             description="setting type of static calculation when -r 0")
 
     gp.add_argument("--static", type=str, default="band",
-            choices=["scf", "band", "dos", "optics", "bse"],
+            choices=["scf", "band", "dos", "optics", "bse", "stm"],
             help="in case of band(default), run scf, nscf(bands) in a single run; in case of scf, run scf only, in case of optics, run scf and optics calc in a single run")
 
     gp.add_argument("--hse-in-scf", type=str, default="false",
@@ -1837,6 +1837,28 @@ def main():
             choices=["EVGW", "GW", "GW0", "QPGW0", "QPGW"],
             help="ALGO used for GW")
 
+    # VASP STM
+    gp = subparser.add_argument_group(title="STM related",
+            description="STM calc related parameters")
+            
+    gp.add_argument("--lpard", type=str, default=None,
+            choices=[".TRUE.", "T", "F", ".FALSE."],
+            help="Determines whether partial (band or k-point decomposed) charge densities are evaluated.")
+            
+    gp.add_argument("--lsepk", type=str, default=None,
+            choices=[".TRUE.", "T", "F", ".FALSE."],
+            help="Specifies whether the charge density of every k-point is write to the files PARCHG.*.nk (LSEPK=.TRUE.) or whether it is merged to a single file.")
+            
+    gp.add_argument("--lsepb", type=str, default=None,
+            choices=[".TRUE.", "T", "F", ".FALSE."],
+            help="Specifies whether the charge density is calculated for every band separately and written to a file PARCHG.nb.* (LSEPB=.TRUE.) or whether charge density is merged for all selected bands and written to the files PARCHG.ALLB.* or PARCHG.")
+
+    gp.add_argument("--nbmod", type=int, default=None,
+            help="Controls which bands are used in the calculation of Band decomposed charge densities.")
+            
+    gp.add_argument("--eint", type=float, nargs=2,
+            help="Specifies the energy range of the bands that are used for the evaluation of the partial charge density needed in Band decomposed charge densities.")
+            
     # miscellaneous
     gp = subparser.add_argument_group(title="miscellaneous",
             description="miscallaneous setting")
@@ -2739,6 +2761,12 @@ def main():
         params["AMIX"] = args.amix if "AMIX" not in params or args.amix != None else params["AMIX"]
         params["BMIX"] = args.bmix if "BMIX" not in params or args.bmix != None else params["BMIX"]
         params["NELECT"] = args.nelect if "NELECT" not in params or args.nelect != None else params["NELECT"]
+        params["LPARD"] = args.lpard if "LPARD" not in params or args.lpard != None else params["LPARD"]
+        params["LSEPK"] = args.lsepk if "LSEPK" not in params or args.lsepk != None else params["LSEPK"]
+        params["LSEPB"] = args.lsepb if "LSEPB" not in params or args.lsepb != None else params["LSEPB"]
+        params["NBMOD"] = args.nbmod if "NBMOD" not in params or args.nbmod != None else params["NBMOD"]
+        params["EINT"] = args.eint if "EINT" not in params or args.eint != None else params["EINT"]
+        
         if args.runtype == 0:
             # static
             from pymatflow.vasp.static import static_run
@@ -2777,6 +2805,13 @@ def main():
             elif args.static == "bse":
                 task.set_kpoints(kpoints_mp=args.kpoints_mp)
                 task.bse(directory=args.directory, runopt=args.runopt, auto=args.auto, bse_level=args.bse_level, algo_gw=args.algo_gw)
+            elif args.static == "stm":
+                if args.hse_in_scf.lower() == "true":
+                    hse_in_scf = True
+                elif args.hse_in_scf.lower() == "false":
+                    hse_in_scf = False            
+                task.set_kpoints(kpoints_mp=args.kpoints_mp)
+                task.stm(directory=args.directory, runopt=args.runopt, auto=args.auto, hse_in_scf=hse_in_scf)                
         elif args.runtype == 1:
             # optimization
             from pymatflow.vasp.opt import opt_run
