@@ -175,8 +175,6 @@ class cp2k_dft:
             n_electrons += base.element[atom.name].number
         if n_electrons % 2 == 1:
             self.params["LSD"] = ".TRUE."
-        else:
-            self.params["LSD"] = None
 
     def set_params(self, params):
         for item in params:

@@ -139,6 +139,9 @@ def main():
             choices=[0, 1, 2, 3, 4 ,5, 6, 7, 8, 9, 10],
             help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->neb; 7->phonopy; 8->vibrational_analysis; 9:converge test; 10->aimd")
 
+    subparser.add_argument("--static", type=str, default="scf",
+            choices=["scf", "band"],
+            help="type of static calc, like band")
 
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory for the running.")
@@ -149,6 +152,22 @@ def main():
 
     subparser.add_argument("--kpath-file", type=str,
             help="file to read the kpath for band structure calculation")
+
+    subparser.add_argument("--bandrange", type=float, nargs="+",
+            default=[0, 1.0],
+            help="band range to plot. in percentage")
+
+    subparser.add_argument("--xrange", type=float, nargs=2,
+            default=None,
+            help="x range of the plot")
+
+    subparser.add_argument("--yrange", type=float, nargs=2,
+            default=None,
+            help="y range of the plot")
+
+    subparser.add_argument("--engine", type=str, default="matplotlib",
+            choices=["matplotlib", "gnuplot"],
+            help="plot engine, matplotlib or gnuplot")
 
     # structure file
     structfile = subparser.add_mutually_exclusive_group() # only one of them can be provided
@@ -396,6 +415,7 @@ def main():
 
 
 
+
 # ==============================================================================
 # Abinit Abinit Abinit Abinit Abinit Abinit Abinit Abinit Abinit Abinit Abinit
 # ==============================================================================
@@ -448,10 +468,21 @@ def main():
     elif args.driver == "cp2k":
         if args.runtype == 0:
             # static
-            from pymatflow.cp2k.post.scf import scf_out
-            task = scf_out()
-            task.get_info(os.path.join(args.directory, "static-scf.out"))
-            task.export(args.directory)
+            if args.static == "scf":
+                from pymatflow.cp2k.post.scf import scf_out
+                task = scf_out()
+                task.get_info(os.path.join(args.directory, "static-scf.out"))
+                task.export(args.directory)
+            elif args.static == "band":
+                from pymatflow.cp2k.post.bands import bands_post
+                from pymatflow.cmd.structflow import read_structure
+                structure = read_structure(xyzfile)
+                task = bands_post()
+                task.get_efermi(static_out=os.path.join(args.directory, "static-scf.out"))
+                task.get_kpath_and_bands(kpath=get_kpath(kpath_manual=args.kpath_manual, kpath_file=args.kpath_file), cell=structure.cell, bands=os.path.join(args.directory, "bands.bs"))
+                task.export(directory=args.directory, engine=args.engine, bandrange=args.bandrange, xrange=args.xrange, yrange=args.yrange)
+                task.print_gap()
+                task.print_effective_mass()
         elif args.runtype == 1:
             from pymatflow.cp2k.post.opt import opt_out 
             task = opt_out()

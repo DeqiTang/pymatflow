@@ -428,6 +428,10 @@ def main():
             choices=["am1", "dftb", "gapw", "gapw_xc", "gpw", "lrigpw", "mndo", "mndod",
                 "ofgpw", "pdg", "pm3", "pm6", "pm6-fm", "pnnl", "rigpw", "rm1"],
             help="specify the electronic structure method that should be employed, default is gpw")
+            
+    gp.add_argument("--lsd", type=str, default=None,
+            choices=["TRUE", "FALSE", "true", "false"],
+            help="Requests a spin-polarized calculation using alpha and beta orbitals, i.e. no spin restriction is applied.Alias names for this keyword: UNRESTRICTED_KOHN_SHAM, UKS, SPIN_POLARIZED")
 
     # FORCE_EVAL/DFT/SCF
     gp = subparser.add_argument_group(title="FORCE_EVAL/DFT/SCF")
@@ -493,7 +497,7 @@ def main():
     # vdw correction related
     gp = subparser.add_argument_group(title="FORCE_EVAL/DFT/XC")
 
-    gp.add_argument("--vdw-potential-type", type=str, default=None, #"NONE",
+    gp.add_argument("--vdw-potential-type", type=str, default="NONE",
             choices=["PAIR_POTENTIAL", "NON_LOCAL", "NONE", "pair_potential", "non_local", "none"],
             help="Type of dispersion/vdW functional or potential to use")
 
@@ -2105,6 +2109,7 @@ def main():
         params["FORCE_EVAL-SUBSYS-CELL-SYMMETRY"] = args.cell_symmetry if "FORCE_EVAL-SUBSYS-CELL-SYMMETRY" not in params or args.cell_symmetry != None else params["FORCE_EVAL-SUBSYS-CELL-SYMMETRY"]
 
         params["FORCE_EVAL-DFT-LS_SCF"] = args.ls_scf if "FORCE_EVAL-DFT-LS_SCF" not in params or args.ls_scf != None else params["FORCE_EVAL-DFT-LS_SCF"]
+        params["FORCE_EVAL-DFT-LSD"] = args.lsd if "FORCE_EVAL-DFT-LSD" not in params or args.lsd != None else params["FORCE_EVAL-DFT-LSD"]
         params["FORCE_EVAL-DFT-QS-METHOD"] = args.qs_method if "FORCE_EVAL-DFT-QS-METHOD" not in params or args.qs_method != None else params["FORCE_EVAL-DFT-QS-METHOD"]
         params["FORCE_EVAL-DFT-MGRID-CUTOFF"] = args.cutoff if "FORCE_EVAL-DFT-MGRID-CUTOFF" not in params or args.cutoff != None else params["FORCE_EVAL-DFT-MGRID-CUTOFF"]
         params["FORCE_EVAL-DFT-MGRID-REL_CUTOFF"] = args.rel_cutoff if "FORCE_EVAL-DFT-MGRID-REL_CUTOFF" not in params or args.rel_cutoff != None else params["FORCE_EVAL-DFT-MGRID-REL_CUTOFF"]
@@ -2113,7 +2118,7 @@ def main():
         params["FORCE_EVAL-DFT-SCF-EPS_SCF"] = args.eps_scf if "FORCE_EVAL-DFT-SCF-EPS_SCF" not in params or  args.eps_scf != None else params["FORCE_EVAL-DFT-SCF-EPS_SCF"]
         params["FORCE_EVAL-DFT-SCF-ADDED_MOS"] = args.added_mos if "FORCE_EVAL-DFT-SCF-ADDED_MOS" not in params or  args.added_mos != None else params["FORCE_EVAL-DFT-SCF-ADDED_MOS"]
         params["FORCE_EVAL-DFT-SCF-SMEAR"] = args.smear if "FORCE_EVAL-DFT-SCF-SMEAR" not in params or  args.smear != None else params["FORCE_EVAL-DFT-SCF-SMEAR"]
-        params["FORCE_EVAL-DFT-SCF-SMEAR-METHOD"] = args.smear_method if "FORCE_EVAL-DFT-SCF-SMEAR-METHOD" not in params or  args.smear_method != None else params["FORCE_EVAL-DFT-SCF-SMEAR-METHOD"]
+        params["FORCE_EVAL-DFT-SCF-SMEAR-METHOD"] = args.smear_method if "FORCE_EVAL-DFT-SCF-SMEAR-METHOD" not in params or args.smear_method != None else params["FORCE_EVAL-DFT-SCF-SMEAR-METHOD"]
         params["FORCE_EVAL-DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE"] = args.electronic_temp if "FORCE_EVAL-DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE" not in params or  args.electronic_temp != None else params["FORCE_EVAL-DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE"]
         params["FORCE_EVAL-DFT-SCF-SMEAR-WINDOW_SIZE"] = args.window_size if "FORCE_EVAL-DFT-SCF-SMEAR-WINDOW_SIZE" not in params or  args.window_size != None else params["FORCE_EVAL-DFT-SCF-SMEAR-WINDOW_SIZE"]
         params["FORCE_EVAL-DFT-SCF-DIAGONALIZATION"] = args.diag if "FORCE_EVAL-DFT-SCF-DIAGONALIZATION" not in params or  args.diag != None else params["FORCE_EVAL-DFT-SCF-DIAGONALIZATION"]
@@ -2188,7 +2193,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_params(params=params)
             task.set_printout(option=args.printout_option)
-            if 2 in args.printout_option and kpath != None:
+            if 2 in args.printout_option:
                 task.force_eval.dft.printout.band_structure.set_band(kpath=get_kpath(args.kpath_manual, args.kpath_file))
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)

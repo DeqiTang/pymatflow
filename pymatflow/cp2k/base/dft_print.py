@@ -52,7 +52,7 @@ class cp2k_dft_print_band_structure:
                 fout.write("\t\t\t\t\tUNITS B_VECTOR\n")
                 fout.write("\t\t\t\t\tSPECIAL_POINT %s %f %f %f\n" % (self.kpath[i][3], self.kpath[i][0], self.kpath[i][1], self.kpath[i][2]))
                 fout.write("\t\t\t\t\tSPECIAL_POINT %s %f %f %f\n" % (self.kpath[i+1][3], self.kpath[i+1][0], self.kpath[i+1][1], self.kpath[i+1][2]))
-                fout.write("\t\t\t\t\tNPOINTS %d\n" % self.kpath[i][4])
+                fout.write("\t\t\t\t\tNPOINTS %d\n" % (self.kpath[i][4]-1))
                 fout.write("\t\t\t\t&END KPOINT_SET\n")
         fout.write("\t\t\t&END BAND_STRUCTURE\n")
 

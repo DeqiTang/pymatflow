@@ -7,7 +7,8 @@ def read_inp(filepath):
     args_all = [
         "GLOBAL-PRINT_LEVEL",                                                                            
         "FORCE_EVAL-SUBSYS-CELL-SYMMETRY",                                                               
-        "FORCE_EVAL-DFT-LS_SCF",                                                                         
+        "FORCE_EVAL-DFT-LS_SCF",                           
+        "FORCE_EVAL-DFT-LSD",
         "FORCE_EVAL-DFT-QS-METHOD",                                                                      
         "FORCE_EVAL-DFT-MGRID-CUTOFF",                                                                   
         "FORCE_EVAL-DFT-MGRID-REL_CUTOFF",                                                               
