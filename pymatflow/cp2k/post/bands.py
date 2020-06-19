@@ -168,9 +168,8 @@ class bands_post:
                                 eigen["energy"].append(float(self.bands_bs[i+j].split()[k]))
                         j += 1
                     self.eigenval["spin_1"].append(eigen)
-        elif self.magnetic_statu == "spin-polarized":
-            self.eigenval = {"spin_1": []}
-            self.eigenval = {"spin_2": []}
+        elif self.magnetic_status == "spin-polarized":
+            self.eigenval = {"spin_1": [], "spin_2": []}
             for i in range(len(self.bands_bs)):
                 if "Nr." in self.bands_bs[i] and "Spin 1" in self.bands_bs[i]:
                     eigen = {"energy": []}
