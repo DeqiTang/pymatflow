@@ -7,6 +7,7 @@ import argparse
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.transforms as mtransforms
 
 from pymatflow.cmd.structflow import read_structure
 from pymatflow.cmd.structflow import write_structure
@@ -22,12 +23,15 @@ def main():
     parser.add_argument("--output-structure", type=str, default="parchg.cif",
         help="output stucture contained in PARCHG")
 
-    parser.add_argument("-o", "--output", type=str, default="./contour-ldos",
+    parser.add_argument("-o", "--output", type=str, default="./stm",
         help="prefix of the output image file name")
 
     parser.add_argument("--dgrid3d", type=int, nargs=3,
         default=[100, 100, 4],
         help="used by gnuplot to set dgrid3d int, int, int")
+    
+    parser.add_argument("--levels", type=int, default=10,
+        help="levels of the color map or color bar")
 
 
     # ==========================================================
@@ -57,32 +61,63 @@ def main():
     ngzf = int(parchg[first_blank_line+1].split()[2])    
     
     data = np.loadtxt(parchg[first_blank_line+2:])
+    data = data.reshape(ngzf, ngyf, ngxf)
     
-    with open("parchg.data", "w") as fout:
-        for i in range(first_blank_line+2, len(parchg)):
-            fout.write(parchg[i])
-
-    with open("plot.gnuplot", "w") as fout:
-        fout.write("set term gif\n")
-        fout.write("set dgrid3d %d, %d, %d\n" % (args.dgrid3d[0], args.dgrid3d[1], args.dgrid3d[2]))
-        fout.write("set contour base\n")
-        fout.write("unset key\n")
-        fout.write("set autoscale\n")
-        fout.write("set xlabel \"X\"\n")
-        fout.write("set ylabel \"Y\"\n")
-        fout.write("set zlabel \"Z\"\n")
-        #fout.write("set output \"%s\"\n" % (args.output+".gif"))
-        #fout.write("set multiplot layout 1, 2\n")
-
-        #fout.write("set origin 0, 0\n")
-        fout.write("\n\n")
-        fout.write("\n\n")
-        fout.write("set pm3d map\n")
-        fout.write("set surface\n")
-        fout.write("set output \"controur.gif\"\n")
-        fout.write("splot \"parchg.data\" u 1:2:10 w pm3d")        
-        #fout.write("splot '%s' u 1:2:3 w pm3d\n" % (args.output+".data"))        
-    os.system("gnuplot plot.gnuplot")
     
+    # ----------------
+    # gray scale image
+    # ----------------
+    
+    os.system("mkdir -p tmp-stm-images")
+    for i in range(data.shape[0]):
+        img = data[i, ::-1, ::]
+        img = (img-img.min()) / (img.max() - img.min()) * 255
+        # need to do a transform when the cell is not Orthorhombic
+        # skew the image
+        ax = plt.axes() #plt.figure()
+        im = ax.imshow(img, cmap="gray")
+        #im = plt.imshow(data[i, :, :], cmap="gray")
+        a = np.array(structure.cell[0])
+        b = np.array(structure.cell[1])
+        cosangle = a.dot(b)/(np.linalg.norm(a) * np.linalg.norm(b))
+        angle = np.arccos(cosangle) * 180 / np.pi
+        trans_data = ax.transData + mtransforms.Affine2D().skew_deg(90-angle, 0)
+        im.set_transform(trans_data)
+        plt.colorbar(im)
+        ax.autoscale()
+        plt.tight_layout()
+        plt.savefig("tmp-stm-images/"+args.output+"%d.gray.png" % i)
+        plt.close()
+        
+    # ----------------
+    # 2D contour plot
+    #-----------------
+    
+    nx = np.linspace(0, 1, ngxf)
+    ny = np.linspace(0, 1, ngyf)
+    X, Y = np.meshgrid(nx, ny) # now this Mesh grid cannot be used directly, we have to calc the real x y for it
+    for xi in range(len(nx)):
+        for yi in range(len(ny)):
+            X[yi, xi] = structure.cell[0][0] * nx[xi] + structure.cell[1][0] * ny[yi]
+            Y[yi, xi] = structure.cell[0][1] * nx[xi] + structure.cell[1][1] * ny[yi]
+    
+    Z = data[0, :, :]
+    Z = (Z-Z.min()) / (Z.max() - Z.min()) * 255
+    # fill color, three color are divided into three layer(6)
+    # cmap = plt.cm.hot means using thermostat plot(graduated red yellow)
+    #cset = plt.contourf(X, Y, Z, levels=args.levels, cmap=plt.cm.hot)
+    cset = plt.contourf(X, Y, Z, levels=args.levels, cmap=plt.cm.gray)
+    contour = plt.contour(X, Y, Z, levels=[20, 40], colors='k')
+    plt.colorbar(cset)
+    plt.autoscale()
+    plt.tight_layout()
+    #plt.show()
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.savefig(args.output+".2d-contour.png")
+    plt.close()
+        
+    
+
 if __name__ == "__main__":
     main()

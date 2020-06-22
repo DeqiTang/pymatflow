@@ -410,7 +410,7 @@ def main():
         os.system("structflow convert -i %s -o %s.xyz" % (args.xsd, args.xsd))
         xyzfile = "%s.xyz" % args.xsd
     elif args.xsf != None:
-        os.sytem("structflow convert -i % -o %s.xyz" % (args.xsf, args.xsf))
+        os.system("structflow convert -i % -o %s.xyz" % (args.xsf, args.xsf))
         xyzfile = "%s.xyz" % args.xsf
 
 

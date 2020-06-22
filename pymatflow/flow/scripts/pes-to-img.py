@@ -78,7 +78,8 @@ if __name__ == "__main__":
     #plt.show()
     plt.xlabel('x')
     plt.ylabel('y')
-    plt.savefig(args.output+".2d-contour.png")
+    os.system("mkdir -p tmp-stm-images")
+    plt.savefig("tmp-stm-images/"+args.output+".2d-contour.png")
     plt.close()
     
     # -----------------
