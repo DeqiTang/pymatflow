@@ -104,6 +104,8 @@ Notes:
    export PMF_VASP_STD=/path/to/your/vasp_std
    export PMF_VASP_NCL=/path/to/your/vasp_ncl
    export PMF_VASP_GAM=/path/to/your/vasp_gam
+   export PMF_CP2K=/path/to/your/cp2k.[popt|psmp...]
+   export CP2K_DATA_DIR=/path/to/your/cp2k/data
 
 然后通过下面的命令使其立即生效:
 

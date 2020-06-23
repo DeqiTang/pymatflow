@@ -174,6 +174,7 @@ setup(
         "pymatflow/scripts/ldos-xyz.py",  
         "pymatflow/scripts/xsd-color-bond.py",
         "pymatflow/scripts/stm-vasp.py",
+        "pymatflow/scripts/chg-vasp.py",
         "pymatflow/remote/scripts/thq.py",
         "pymatflow/remote/scripts/thcancel.py",
         "pymatflow/remote/scripts/thpull.py",

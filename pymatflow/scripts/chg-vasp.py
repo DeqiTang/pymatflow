@@ -18,12 +18,12 @@ def main():
     parser = argparse.ArgumentParser()
     
     parser.add_argument("-i", "--input", type=str, required=True,
-        help="input PARCHG file")
+        help="input vasp *CHG* file")
 
-    parser.add_argument("--output-structure", type=str, default="parchg.cif",
+    parser.add_argument("--output-structure", type=str, default="chg.cif",
         help="output stucture contained in PARCHG")
 
-    parser.add_argument("-o", "--output", type=str, default="stm",
+    parser.add_argument("-o", "--output", type=str, default="chg",
         help="prefix of the output image file name")
     
     parser.add_argument("--levels", type=int, default=10,
@@ -34,36 +34,35 @@ def main():
         
     parser.add_argument("--cmap", type=str, default="gray",
         choices=["gray", "hot", "afmhot", "Spectral", "plasma", "magma", "hsv", "rainbow", "brg"])
-        
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
     # ==========================================================
 
     args = parser.parse_args()
     
-    parchg_filepath = args.input
+    chg_filepath = args.input
     
-    with open(parchg_filepath, "r") as fin:
-        parchg = fin.readlines()
+    with open(chg_filepath, "r") as fin:
+        chg = fin.readlines()
         
-    for i in range(len(parchg)):
-        if len(parchg[i].split()) == 0:
+    for i in range(len(chg)):
+        if len(chg[i].split()) == 0:
             first_blank_line = i
             break
             
     os.system("mkdir -p /tmp/pymatflow/")
     with open("/tmp/pymatflow/POSCAR", "w") as fout:
         for i in range(first_blank_line):
-            fout.write(parchg[i])
+            fout.write(chg[i])
             
     structure = read_structure("/tmp/pymatflow/POSCAR")
     write_structure(structure=structure, filepath=args.output_structure)
     
-    ngxf = int(parchg[first_blank_line+1].split()[0])
-    ngyf = int(parchg[first_blank_line+1].split()[1])
-    ngzf = int(parchg[first_blank_line+1].split()[2])    
+    ngxf = int(chg[first_blank_line+1].split()[0])
+    ngyf = int(chg[first_blank_line+1].split()[1])
+    ngzf = int(chg[first_blank_line+1].split()[2])    
     
-    data = np.loadtxt(parchg[first_blank_line+2:])
+    data = np.loadtxt(chg[first_blank_line+2:])
     data = data.reshape(ngzf, ngyf, ngxf)
     
     
@@ -122,6 +121,7 @@ def main():
     # fill color, three color are divided into three layer(6)
     # cmap = plt.cm.hot means using thermostat plot(graduated red yellow)
     #cset = plt.contourf(X, Y, Z, levels=args.levels, cmap=plt.cm.hot)
+    #cset = plt.contourf(X, Y, Z, levels=args.levels, cmap=plt.cm.gray)
     cset = plt.contourf(X, Y, Z, levels=args.levels, cmap=args.cmap)
     contour = plt.contour(X, Y, Z, levels=[20, 40], colors='k')
     plt.colorbar(cset)
