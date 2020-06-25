@@ -49,7 +49,13 @@ def main():
         if len(chg[i].split()) == 0:
             first_blank_line = i
             break
-            
+    
+    first_augmentation_line = None
+    for i in range(len(chg)):
+        if "augmentation" in chg[i]:
+            first_augmentation_line = i
+            break
+                
     os.system("mkdir -p /tmp/pymatflow/")
     with open("/tmp/pymatflow/POSCAR", "w") as fout:
         for i in range(first_blank_line):
@@ -62,7 +68,15 @@ def main():
     ngyf = int(chg[first_blank_line+1].split()[1])
     ngzf = int(chg[first_blank_line+1].split()[2])    
     
-    data = np.loadtxt(chg[first_blank_line+2:])
+    if first_augmentation_line == None:
+        #data = np.loadtxt(chg[first_blank_line+2:])
+        tmp_str = "".join(chg[first_blank_line+2:])
+        data = np.fromstring(tmp_str, sep="\n")
+    else:
+        #data = np.loadtxt(chg[first_blank_line+2:first_augmentation_line])
+        tmp_str = "".join(chg[first_blank_line+2:first_augmentation_line])
+        data = np.fromstring(tmp_str, sep="\n")
+        
     data = data.reshape(ngzf, ngyf, ngxf)
     
     

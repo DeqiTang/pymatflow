@@ -23,81 +23,21 @@ class octopus:
     def get_xyz(self, xyzfile):
         self.inp.system.xyz.get_xyz(xyzfile)
 
-    def set_params(self, params, runtype):
+    def set_params(self, params, runtype=None):
         """
         :param runtype: one onf 'static', 'opt', 'phonopy', 'phonon', 'neb', 'md'
         """
-        static_allowed = [
-            "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
-            "IVDW", "LORBIT", "LOPTICS", "CSHIFT", "NEDOS", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
-            "LSORBIT","SAXIS", "LMAXMIX", "LHFCALC", "HFSCREEN", "AEXX", "LSUBROT", "ALGO", "IALGO", "ADDGRID",
-            "ISYM", "LREAL", "LWAVE", "LCHARG", "LELF",
-        ]
-        opt_allowed = [
-            "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
-            "IVDW", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
-            "ALGO", "IALGO", "ADDGRID",
-            "ISYM", "LREAL", "LWAVE", "LCHARG",
-            "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG",
-        ]
-        phonopy_allowed = [
-            "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
-            "IVDW", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
-            "ALGO", "IALGO", "ADDGRID",
-            "ISYM", "LREAL", "LWAVE", "LCHARG",
-        ]
-        neb_allowed = [
-            "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
-            "IVDW", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
-            "ALGO", "IALGO", "ADDGRID",
-            "ISYM", "LREAL", "LWAVE", "LCHARG",
-            "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG",
-            "IOPT", "LCLIMB", "SPRING", "IMAGES"
-        ]
-        md_allowed = [
-            "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
-            "IVDW", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
-            "ALGO", "IALGO", "ADDGRID",
-            "ISYM", "LREAL", "LWAVE", "LCHARG",
-            "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG",
-        ]
-        phonon_allowed = [
-            "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
-            "IVDW", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
-            "ALGO", "IALGO", "ADDGRID",
-            "ISYM", "LREAL", "LWAVE", "LCHARG",
-            "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG",
-        ]
-        if runtype == "static":
-            for item in params:
-                if item in static_allowed:
-                    self.incar.set_params({item: params[item]})
-        elif runtype == "opt":
-            for item in params:
-                if item in opt_allowed:
-                    self.incar.set_params({item: params[item]})
-        elif runtype == "phonopy":
-            for item in params:
-                if item in phonopy_allowed:
-                    self.incar.set_params({item: params[item]})
-        elif runtype == "phonon":
-            for item in params:
-                if item in phonon_allowed:
-                    self.incar.set_params({item: params[item]})
-        elif runtype == "neb":
-            for item in params:
-                if item in neb_allowed:
-                    self.incar.set_params({item: params[item]})
-        elif runtype == "md":
-            for item in params:
-                if item in md_allowed:
-                    self.incar.set_params({item: params[item]})
-        else:
-            pass
+        self.inp.set_params(params=params)
 
     def set_kpoints(self, kpoints_mp=[1, 1, 1, 0, 0, 0], option="mp",
             kpath=None):
-        self.kpoints.set_kpoints(kpoints_mp=kpoints_mp, option=option, kpath=kpath)
+        #self.kpoints.set_kpoints(kpoints_mp=kpoints_mp, option=option, kpath=kpath)
+        self.inp.mesh.kpoints.params["KPointsGrid"] = kpoints_mp
+        self.inp.mesh.kpoints.params["KPointsPath"] = kpath
+        if option == "mp":
+            self.inp.mesh.kpoints.params["KPointsPath"] = None
+        else:
+            self.inp.mesh.kpoints.params["KPointsGrid"] = None
 
     def set_run(self, mpi="", server="pbs", jobname="octopus", nodes=1, ppn=32, queue=None):
         """ used to set  the parameters controlling the running of the task

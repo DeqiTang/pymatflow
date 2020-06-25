@@ -1337,37 +1337,37 @@ def main():
     gp = subparser.add_argument_group(title="incar->start parameters",
             description="start parameters to be set in INCAR")
 
-    gp.add_argument("--nwrite", type=int, default=None,
+    gp.add_argument("--nwrite", type=int, nargs="+", default=None,
             help=" This flag determines how much will be written to the file OUTCAR (verbosity flag)")
 
-    gp.add_argument("--prec", type=str, default=None,
+    gp.add_argument("--prec", type=str, nargs="+", default=None,
             choices=["Normal", "Accurate", "A", "N"],
             help="PREC, default value: Normal")
 
-    gp.add_argument("--ncore", type=int, default=None,
+    gp.add_argument("--ncore", type=int, nargs="+", default=None,
             help="NCORE determines the number of compute cores that work on an individual orbital ")
 
     # incar->electrons
     gp = subparser.add_argument_group(title="incar->electron",
             description="electrons calculation related parameters")
 
-    gp.add_argument("--encut", type=int, default=None,
+    gp.add_argument("--encut", type=int, nargs="+", default=None,
             help="ENCUT, default value: 300 eV")
 
-    gp.add_argument("--ediff", type=float, default=None,
+    gp.add_argument("--ediff", type=float, nargs="+", default=None,
             help="EDIFF, default value: 1.0e-4")
 
-    gp.add_argument("--nelm", type=int, default=None,
+    gp.add_argument("--nelm", type=int, nargs="+", default=None,
             help="NELM sets the maximum number of electronic SC (selfconsistency) steps which may be performed")
 
-    gp.add_argument("--nfree", type=int, default=None,
+    gp.add_argument("--nfree", type=int, nargs="+", default=None,
             help="NFREE specifies the number of remembered steps in the history of ionic convergence runs, or the number of ionic displacements in frozen phonon calculations")
 
-    gp.add_argument("--kpoints-mp", type=int, nargs=6,
+    gp.add_argument("--kpoints-mp", type=int, nargs="+",
             default=[1, 1, 1, 0, 0, 0],
             help="set kpoints like -k 1 1 1 0 0 0")
 
-    gp.add_argument("--kspacing", type=float, default=None,
+    gp.add_argument("--kspacing", type=float, nargs="+", default=None,
             help="determines the number of k-points if the KPOINTS file is not present. default is 0.5")
             
     #gp.add_argument("--kpoints-mp-scf", type=int, nargs="+",
@@ -1381,98 +1381,98 @@ def main():
     gp.add_argument("--kpath-manual", type=str, nargs="+", default=None,
             help="set kpoints for band structure calculation manually")
 
-    gp.add_argument("--kpath-file", type=str, default="kpath.txt",
+    gp.add_argument("--kpath-file", type=str, nargs="+", default="kpath.txt",
             help="set kpoints for band structure calculation manually from file")
 
-    gp.add_argument("--kpath-intersections", type=int, default=15,
+    gp.add_argument("--kpath-intersections", type=int, nargs="+", default=15,
             help="intersection of the line mode kpoint for band calculation")
 
-    gp.add_argument("--ismear", type=int, default=None,
+    gp.add_argument("--ismear", type=int, nargs="+", default=None,
             help="smearing type(methfessel-paxton(>0), gaussian(0), fermi-dirac(-1), tetra(-4), tetra-bloch-dorrected(-5)), default: 0")
 
-    gp.add_argument("--sigma", type=float, default=None,
+    gp.add_argument("--sigma", type=float, nargs="+", default=None,
             help="determines the width of the smearing in eV.")
 
-    gp.add_argument("--ivdw", type=int, default=None,
+    gp.add_argument("--ivdw", type=int, nargs="+", default=None,
             choices=[0, 11, 12, 21, 202, 4],
             help="IVDW = 0(no correction), 1(dft-d2), 11(dft-d3 Grimme), 12(dft-d3 Becke-Jonson), default: None which means 0, no correction")
     # -----------------------------------------------------------------
 
-    gp.add_argument("--lorbit", type=int, default=None,
+    gp.add_argument("--lorbit", type=int, nargs="+", default=None,
             choices=[0, 1, 2, 5, 10, 11, 12],
             help="together with an appropriate RWIGS, determines whether the PROCAR or PROOUT files are written")
 
     # optics related
-    gp.add_argument("--loptics", type=str, default=None,
+    gp.add_argument("--loptics", type=str, nargs="+", default=None,
             choices=["TRUE", "FALSE"],
             help="calculates the frequency dependent dielectric matrix after the electronic ground state has been determined.")
 
-    gp.add_argument("--cshift", type=float, default=None,
+    gp.add_argument("--cshift", type=float, nargs="+", default=None,
             help="CSHIFT sets the (small) complex shift η in the Kramers-Kronig transformation")
 
-    gp.add_argument("--nedos", type=int, default=None,
+    gp.add_argument("--nedos", type=int, nargs="+", default=None,
             help="NEDOS specifies number of gridpoints on which the DOS is evaluated")
             
     # magnetic related
-    gp.add_argument("--ispin", type=int, default=None,
+    gp.add_argument("--ispin", type=int, nargs="+", default=None,
             choices=[1, 2],
             help="specifies spin polarization: 1->no spin polarized, 2->spin polarized(collinear). combine SIPIN with MAGMOM to study collinear magnetism.")
 
     gp.add_argument("--magmom", type=float, nargs="+", default=None,
             help="Specifies the initial magnetic moment for each atom, if and only if ICHARG=2, or if ICHARG=1 and the CHGCAR file contains no magnetisation density.")
 
-    gp.add_argument("--lnoncollinear", type=str, default=None,
+    gp.add_argument("--lnoncollinear", type=str, nargs="+", default=None,
             choices=["T", "F", ".TRUE.", ".FALSE."],
             help="specifies whether fully non-collinear magnetic calculations are performed")
 
-    gp.add_argument("--lsorbit", type=str, default=None,
+    gp.add_argument("--lsorbit", type=str, nargs="+", default=None,
             choices=["T", "F", ".TRUE.", ".FALSE."],
             help="specifies whether spin-orbit coupling is taken into account.")
 
-    gp.add_argument("--saxis", type=float, nargs=3, default=None,
+    gp.add_argument("--saxis", type=float, nargs="+", default=None,
             help="SAXIS specifies the quantisation axis for noncollinear spins")
 
-    gp.add_argument("--lmaxmix", type=int, default=None,
+    gp.add_argument("--lmaxmix", type=int, nargs="+", default=None,
             help="LMAXMIX controls up to which l-quantum number the one-center PAW charge densities are passed through the charge density mixer and written to the CHGCAR file.")
 
     # hybrid functional
     gp = subparser.add_argument_group(title="incar->Exchange correlation")
-    gp.add_argument("--lhfcalc", type=str, default=None,
+    gp.add_argument("--lhfcalc", type=str, nargs="+", default=None,
             choices=["T", "F", ".TRUE.", ".FALSE."],
             help=" specifies whether Hartree-Fock/DFT hybrid functional type calculations are performed")
 
-    gp.add_argument("--hfscreen", type=float, default=None,
+    gp.add_argument("--hfscreen", type=float, nargs="+", default=None,
             choices=[0.3, 0.2],
             help=" specifies the range-separation parameter in range separated hybrid functionals: HSE03->0.3, HSE06->0.2, must also set LHFCALC=.TRUE.")
 
-    gp.add_argument("--aexx", type=float, default=None,
+    gp.add_argument("--aexx", type=float, nargs="+", default=None,
             help="AEXX specifies the fraction of exact exchange in a Hartree-Fock/DFT hybrid functional type calculation")
 
-    gp.add_argument("--lsubrot", type=str, default=None,
+    gp.add_argument("--lsubrot", type=str, nargs="+", default=None,
             choices=["T", "F", ".TRUE.", ".FALSE."],
             help="This flag can be set for hybrid functionals (HF-type calculations).")
 
-    gp.add_argument("--nsw", type=int, default=None,
+    gp.add_argument("--nsw", type=int, nargs="+", default=None,
             help="NSW sets the maximum number of ionic steps")
 
-    gp.add_argument("--ediffg", type=float, default=None,
+    gp.add_argument("--ediffg", type=float, nargs="+", default=None,
             help="EDIFFG, default value: 10*EDIFF")
 
     gp = subparser.add_argument_group(title="incar->ions",
             description="setting ions related parameters")
 
-    gp.add_argument("--ibrion", type=int, default=None,
+    gp.add_argument("--ibrion", type=int, nargs="+", default=None,
             choices=[-1, 0, 1, 2, 3, 5, 6, 7, 8, 44],
             help="IBRION = refer to https://cms.mpi.univie.ac.at/wiki/index.php/IBRION for how to set the algorithm of optimization you need!")
 
-    gp.add_argument("--isif", type=int, default=None,
+    gp.add_argument("--isif", type=int, nargs="+", default=None,
             choices=[0, 1, 2, 3, 4, 5, 6, 7],
             help="ISIF = 0-7: refer to https://cms.mpi.univie.ac.at/wiki/index.php/ISIF for how to set the type of Geometri Optimization you need!")
 
-    gp.add_argument("--potim", type=float, default=None,
+    gp.add_argument("--potim", type=float, nargs="+", default=None,
             help="step width scaling (ionic relaxations), default: None = 0.015 in phonon calculation")
 
-    gp.add_argument("--selective-dynamics", type=str, default="False",
+    gp.add_argument("--selective-dynamics", type=str, nargs="+", default="False",
             choices=["True", "False", "T", "F"],
             help="whether use selective dyanmics")
 
@@ -1480,28 +1480,31 @@ def main():
     gp = subparser.add_argument_group(title="incar-miscellaneous",
             description="miscellaneous input parameters")
 
-    gp.add_argument("--algo", type=str, default=None,
+    gp.add_argument("--algo", type=str, nargs="+", default=None,
             choices=["N", "D", "V", "F"],  #"Exact", "G0W0", "GW0", "GW"],
             help=" a convenient option to specify the electronic minimisation algorithm (as of VASP.4.5) and/or to select the type of GW calculations")
 
-    gp.add_argument("--ialgo", type=int, default=None,
+    gp.add_argument("--ialgo", type=int, nargs="+", default=None,
             choices=[5, 6, 7, 8, 38, 44, 46, 48],
             help="IALGO selects the algorithm used to optimize the orbitals.Mind: We strongly urge the users to select the algorithms via ALGO. Algorithms other than those available via ALGO are subject to instabilities.")
 
-    gp.add_argument("--addgrid", type=str, default=None,
+    gp.add_argument("--addgrid", type=str, nargs="+", default=None,
             choices=[".TRUE.", ".FALSE.", "T", "F"],
             help="ADDGRID determines whether an additional support grid is used for the evaluation of the augmentation charges.")
 
-    gp.add_argument("--isym", type=int, default=None,
+    gp.add_argument("--isym", type=int, nargs="+", default=None,
             choices=[-1, 0, 1, 2, 3],
             help=" ISYM determines the way VASP treats symmetry.")
 
-    gp.add_argument('--lreal', type=str, default=None,
+    gp.add_argument('--lreal', type=str, nargs="+", default=None,
             choices=["T", "F", ".TRUE.", ".FALSE.", "O", "On", "A", "Auto"],
             help="LREAL determines whether the projection operators are evaluated in real-space or in reciprocal space.")
 
+    gp.add_argument("--pstress", type=float, nargs="+", default=None,
+            help="controls whether Pulay corrections are added to the stress tensor or not.")
+
     # properties parameters
-    gp.add_argument("--lelf", type=str, default=None,
+    gp.add_argument("--lelf", type=str, nargs="+", default=None,
             choices=["T", "F", ".TRUE.", ".FALSE."],
             help="LELF determines whether to create an ELFCAR file or not.")
 
@@ -1509,133 +1512,33 @@ def main():
     gp = subparser.add_argument_group(title="incar->write parameters",
             description="set writing parameters")
 
-    gp.add_argument("--lwave", type=str, default=None,
+    gp.add_argument("--lwave", type=str, nargs="+", default=None,
             choices=['T', 'F', ".TRUE.", '.FALSE.'],
             help="LWAVE determines whether the wavefunctions are written to the WAVECAR file at the end of a run.")
 
-    gp.add_argument("--lcharg", type=str, default=None,
+    gp.add_argument("--lcharg", type=str, nargs="+", default=None,
             choices=['T', 'F', ".TRUE.", '.FALSE.'],
             help="LCHARG determines whether the charge densities (files CHGCAR and CHG) are written.")
 
 
     #                     neb related PARAMETERS
     # --------------------------------------------------------------------------
-    gp = subparser.add_argument_group(title="incar->neb",
-            description="nudged elastic band related setting")
 
-    gp.add_argument("--iopt", type=int, default=None,
-            choices=[0, 1, 2, 3],
-            help="chioce for optimizer: 0->vasp, 1, 2->vtst")
-
-    gp.add_argument("--lclimb", type=str, default=None,
-            choices=["T", "F"],
-            help="whether use climbing image")
-
-    gp.add_argument("--lnebcell", type=str, default=None,
-            choices=["T", "F"],
-            help="flag to turn on SS-NEB, used with ISIF=3 and IOPT=3")
-
-    gp.add_argument("--spring", type=int, default=None,
-            help="gives the spring constant between the images as used in the elastic band method")
-
-    gp.add_argument("--maxmove", type=float, default=None,
-            help="maximum allowed step size for translation, default is None which means 0.2")
-
-    gp.add_argument("--lglobal", type=str, default=None,
-            choices=["T", "F"],
-            help="optimize the NEB globally instead of image-by-image, default is None which means .TRUE.")
-
-    gp.add_argument("--lautoscale", type=str, default=None,
-            choices=["T", "F"],
-            help="automatically determines INVCURV, default is T")
-
-    gp.add_argument("--invcurv", type=float, default=None,
-            help="initial inverse curvature, used to construct the inverse Hessian matrix. default is None which means 0.01")
-
-    gp.add_argument("--llineopt", type=str, default=None,
-            choices=["T", "F"],
-            help="use a force based line minimizer for translation. default is None(means F)")
-
-    gp.add_argument("--fdstep", type=float, default=None,
-            help="finite difference step size for line optimizer, default is None(5E-3)")
-
-    gp.add_argument("--nimage", type=int, default=None,
-            help="number of image to interpolate. total image will be nimage+2.")
-
-    gp.add_argument("--outcars", type=str, nargs="+",
-            help="OUTCAR for the initial and final structure in neb calc")
-
-    gp.add_argument("--nebmake", type=int, default=0,
-            choices=[0, 1],
-            help="0(default): use nebmake.pl, 1: use nebmake.py")
-    
-    gp.add_argument("--moving-atom", type=int, nargs="+",
-            help="spedifying moving atoms, only needed when --nebmake=1 using nebmake.py. index start from 0")
 
     # PHONOPY parameters
     # ----------------------------------------
-    gp = subparser.add_argument_group(title="phonopy parameters",
-            description="setting of parameters needed by phonopy")
 
-    gp.add_argument("--supercell-n", type=int, nargs="+",
-            default=[1, 1, 1],
-            help="supercell for phonopy, like [2, 2, 2]")
 
 
     # range_a range_c
     # ----------------------------------------------
-    gp = subparser.add_argument_group(title="cell optimization",
-            description="cubic, hexagonal, tetragonal cell optimization parameters")
-
-    gp.add_argument("--range-a", type=float, nargs=3,
-            default=[-0.1, 0.1, 0.01],
-            help="test range for a")
-
-    gp.add_argument("--range-c", type=float, nargs=3,
-            default=[-0.1, 0.1, 0.01],
-            help="test range for c")
-
-    gp.add_argument("--batch-a", type=int,
-            default=None,
-            help="number of structure each batch a")
-
-    gp.add_argument("--batch-c", type=int,
-            default=None,
-            help="number of structure each batch c")
 
     # incar template
     gp = subparser.add_argument_group(title="template", 
             description="read in INCAR template")
 
-    gp.add_argument("--incar", type=str, default=None,
+    gp.add_argument("--incar", type=str, nargs="+", default=None,
             help="specify incar template to set parameters")
-
-    # surf pes
-    gp = subparser.add_argument_group(title="surf pes",
-            description="surf pes")
-
-    gp.add_argument("--move-atom", type=int, nargs="+",
-            default=[-1],
-            help="specify the atoms to move, index starts from 0")
-
-    gp.add_argument("--xrange", type=float, nargs="+",
-            default=[1, 3, 0.5],
-            help="x range for moving the specified moving atoms.")
-
-    gp.add_argument("--yrange", type=float, nargs="+",
-            default=[3, 5, 0.5],
-            help="y range for moving the specified moving atoms.")
-
-    gp.add_argument("--zshift", type=float,
-            default=0.0,
-            help="z shift for the moving atoms, will shift the z of specified moving atoms by value of zshift")
-
-    gp.add_argument("--fix-z", type=int, default=1,
-            choices=[0, 1, 2],
-            help="0 -> do not fix any z of the atoms, 1: only fix z of the buttom atoms, 2: fix z of both the buttom and the moving atoms. note x y are all fixed")
-
-    gp.add_argument("--batch-x-y", type=int, nargs=2, default=None,
-            help="number of structures to calculate each batch x and y, default is all in one batch")
 
     # fix atoms
     gp = subparser.add_argument_group(title="fix atoms",
@@ -1676,6 +1579,12 @@ def main():
 
     gp.add_argument("--bmix", type=float, default=None,
             help="sets the cutoff wave vector for Kerker mixing scheme")            
+
+    gp = subparser.add_argument_group(title="psoflow control",
+            description="psoflow controlled setting")
+
+    gp.add_argument("--gen-incar-n", type=int, default=1,
+            help="control number of INCAR_* to generate")
 
     # Calypso General
     gp = subparser.add_argument_group(title="Calypso General", 
@@ -2624,86 +2533,129 @@ def main():
         else:
             pass
     elif args.driver == "vasp":
-        params = {}
         # deal with INCAR template specified by --incar
         if args.incar == None:
             pass
         else:
-            if not os.path.exists(args.incar):
-                print("====================================================\n")
-                print("                  Warning !!!!\n")
-                print("----------------------------------------------------\n")
-                print("matflow vasp:\n")
-                print("the specified incar file by --incar doesn't exist\n")
-                print("go and check it\n")
-                sys.exit(1)
-            with open(args.incar, 'r') as fin:
-                incar = fin.readlines()
-            for line in incar:
-                if len(line.split()) == 0:
-                    continue
-                if line[0] == "#":
-                    continue
-                if len(line.split("\n")[0].split("#")[0].split("=")) == 2:
-                    # in case of single value INCAR variable
-                    params[line.split("=")[0].split()[0].upper()] = line.split("\n")[0].split("#")[0].split("=")[1].split()[0]
-                else:
-                    params[line.split("=")[0].split()[0].upper()] = line.split("\n")[0].split("#")[0].split("=")[1].split()
-        #
-        # if xxx is alraedy in params(set from --incar) and args.xxx is None
-        # params[xxx] will not be control by args.xxx
-        params["NWRITE"] = args.nwrite if "NWRITE" not in params or args.nwrite != None else params["NWRITE"]
-        params["PREC"] = args.prec if "PREC" not in params or args.prec != None else params["PREC"]
-        params["NCORE"] = args.ncore if "NCORE" not in params or args.ncore != None else params["NCORE"]
-        params["ENCUT"] = args.encut if "ENCUT" not in params or args.encut != None else params["ENCUT"]
-        params["EDIFF"] = args.ediff if "EDIFF" not in params or args.ediff != None else params["EDIFF"]
-        params["NELM"] = args.nelm if "NELM" not in params or args.nelm != None else params["NELM"]
-        params["NFREE"] = args.nfree if "NFREE" not in params or args.nfree != None else params["NFREE"]
-        params["KSPACING"] = args.kspacing if "KSPACING" not in params or args.kspacing != None else params["KSPACING"]
-        params["ISMEAR"] = args.ismear if "ISMEAR" not in params or args.ismear != None else params["ISMEAR"]
-        params["SIGMA"] = args.sigma if "SIGMA" not in params or args.sigma != None else params["SIGMA"]
-        params["IVDW"] = args.ivdw if "IVDW" not in params or args.ivdw != None else params["IVDW"]
-        params["EDIFFG"] = args.ediffg if "EDIFFG" not in params or args.ediffg != None else params["EDIFFG"]
-        params["NSW"] = args.nsw if "NSW" not in params or args.nsw != None else params["NSW"]
-        params["IBRION"] = args.ibrion if "IBRION" not in params or args.ibrion != None else params["IBRION"]
-        params["ISIF"] = args.isif if "ISIF" not in params or args.isif != None else params["ISIF"]
-        params["POTIM"] = args.potim if "POTIM" not in params or args.potim != None else params["POTIM"]
-        params["LORBIT"] = args.lorbit if "LORBIT" not in params or args.potim != None else params["LORBIT"]
-        params["LOPTICS"] = args.loptics if "LOPTICS" not in params or args.loptics != None else params["LOPTICS"]
-        params["CSHIFT"] = args.cshift if "CSHIFT" not in params or args.cshift != None else params["CSHIFT"]
-        params["NEDOS"] = args.nedos if "NEDOS"  not in params or args.nedos != None else params["NEDOS"]
-        params["LSUBROT"] = args.lsubrot if "LSUBROT" not in params or args.lsubrot != None else params["LSUBROT"]
-        params["SAXIS"] = args.saxis if "SAXIS" not in params or args.saxis != None else params["SAXIS"]
-        params["LMAXMIX"] = args.lmaxmix if "LMAXMIX" not in params or args.lmaxmix != None else params["LMAXMIX"]
-        params["ALGO"] = args.algo if "ALGO" not in params or args.algo != None else params["ALGO"]
-        params["IALGO"] = args.ialgo if "IALGO" not in params or args.ialgo != None else params["IALGO"]
-        params["ADDGRID"] = args.addgrid if "ADDGRID" not in params or args.addgrid != None else params["ADDGRID"]
-        params["ISYM"] = args.isym if "ISYM" not in params or args.isym != None else params["ISYM"]
-        params["LREAL"] = args.lreal if "LREAL" not in params or args.lreal != None else params["LREAL"]
-        params["LWAVE"] = args.lwave if "LWAVE" not in params or args.lwave != None else params["LWAVE"]
-        params["LCHARG"] = args.lcharg if "LCHARG" not in params or args.lcharg != None else params["LCHARG"]
-        params["ISPIN"] = args.ispin if "ISPIN" not in params or args.ispin != None else params["ISPIN"]
-        params["MAGMOM"] = args.magmom if "MAGMOM" not in params or args.magmom != None else params["MAGMOM"] # magmom can be a list that can be automatically dealt with by base.incar.to_incar()
-        params["LNONCOLLINEAR"] = args.lnoncollinear if "LNONCOLLINEAR" not in params or args.lnoncollinear != None else params["LNONCOLLINEAR"]
-        params["LSORBIT"] = args.lsorbit if "LSORBIT" not in params or args.lsorbit != None else params["LSORBIT"]
-        params["ALGO"] = args.algo if "ALGO" not in params or args.algo != None else params["ALGO"]
-        params["LHFCALC"] = args.lhfcalc if "LHFCALC" not in params or args.lhfcalc != None else params["LHFCALC"]
-        params["HFSCREEN"] = args.hfscreen if "HFSCREEN" not in params or args.hfscreen != None else params["HFSCREEN"]
-        params["AEXX"] = args.aexx if "AEXX" not in params or args.aexx != None else params["AEXX"]
-        params["LELF"] = args.lelf if "LELF" not in params or args.lelf != None else params["LELF"]
-        params["IOPT"] = args.iopt if "IOPT" not in params or args.iopt != None else params["IOPT"]
-        params["LCLIMB"] = args.lclimb if "LCLIMB" not in params or args.lclimb != None else params["LCLIMB"]
-        params["LNEBCELL"] = args.lnebcell if "LNEBCELL" not in params or args.lnebcell != None else params["LNEBCELL"]
-        params["SPRING"] = args.spring if "SPRING" not in params or args.spring != None else params["SPRING"]
-        params["MAXMOVE"] = args.maxmove if "MAXMOVE" not in params or args.maxmove != None else params["MAXMOVE"]
-        params["LGLOBAL"] = args.lglobal if "LGLOBAL" not in params or args.lglobal != None else params["LGLOBAL"]
-        params["LAUTOSCALE"] = args.lautoscale if "LAUTOSCALE" not in params or args.lautoscale != None else params["LAUTOSCALE"]
-        params["INVCURV"] = args.invcurv if "INVCURV" not in params or args.invcurv != None else params["INVCURV"]
-        params["IMAGES"] = args.nimage if "IMAGES" not in params or args.images != None else params["IMAGES"]
-        params["LLINEOPT"] = args.llineopt if "LLINEOPT" not in params or args.llineopt != None else params["LLINEOPT"]
-        params["FDSTEP"] = args.fdstep if "FDSTEP" not in params or args.fdstep != None else params["FDSTEP"]
-        params["AMIX"] = args.amix if "AMIX" not in params or args.amix != None else params["AMIX"]
-        params["BMIX"] = args.bmix if "BMIX" not in params or args.bmix != None else params["BMIX"]
+            params_all = []
+            for i in range(len(args.incar)):
+                if not os.path.exists(args.incar[i]):
+                    print("====================================================\n")
+                    print("                  Warning !!!!\n")
+                    print("----------------------------------------------------\n")
+                    print("matflow vasp:\n")
+                    print("the specified incar file by --incar doesn't exist\n")
+                    print("go and check it\n")
+                    sys.exit(1)
+                with open(args.incar[i], 'r') as fin:
+                    incar = fin.readlines()
+                params = {}                        
+                for line in incar:
+                    if len(line.split()) == 0:
+                        continue
+                    if line[0] == "#":
+                        continue
+                    if len(line.split("\n")[0].split("#")[0].split("=")) == 2:
+                        # in case of single value INCAR variable
+                        params[line.split("=")[0].split()[0].upper()] = line.split("\n")[0].split("#")[0].split("=")[1].split()[0]
+                    else:
+                        params[line.split("=")[0].split()[0].upper()] = line.split("\n")[0].split("#")[0].split("=")[1].split()
+                params_all.append(params)
+                #
+                # if xxx is alraedy in params(set from --incar) and args.xxx is None
+                # params[xxx] will not be control by args.xxx
+        # if number of specified incar is less than args.gen_incar_n, make an supplement of params by copying the last params
+        while len(args.incar) < args.gen_incar_n:
+            params_all.append(params[-1])
+        
+        # if number of specified value is less than args.gen_incar_n, make an summplement of params by copying the last value
+        args.nwrite = [args.nwrite[i] if i < len(args.nwrite) else args.nwrite[-1] for i in range(args.gen_incar_n)] if args.nwrite != None else [None for i in range(args.gen_incar_n)]
+        args.prec = [args.prec[i] if i < len(args.prec) else args.prec[-1] for i in range(args.gen_incar_n)] if args.prec != None else [None for i in range(args.gen_incar_n)]
+        args.ncore = [args.ncore[i] if i < len(args.ncore) else args.ncore[-1] for i in range(args.gen_incar_n)] if args.ncore != None else [None for i in range(args.gen_incar_n)]
+        args.encut = [args.encut[i] if i < len(args.encut) else args.encut[-1] for i in range(args.gen_incar_n)] if args.encut != None else [None for i in range(args.gen_incar_n)]
+        args.ediff = [args.ediff[i] if i < len(args.ediff) else args.ediff[-1] for i in range(args.gen_incar_n)] if args.ediff != None else [None for i in range(args.gen_incar_n)]
+        args.nelm = [args.nelm[i] if i < len(args.nelm) else args.nelm[-1] for i in range(args.gen_incar_n)] if args. nelm != None else [None for i in range(args.gen_incar_n)]
+        args.nfree = [args.nfree[i] if i < len(args.nfree) else args.nfree[-1] for i in range(args.gen_incar_n)] if args.nfree != None else [None for i in range(args.gen_incar_n)]
+        args.kspacing = [args.kspacing[i] if i < len(args.kspacing) else args.kspacing[-1] for i in range(args.gen_incar_n)] if args.kspacing != None else [None for i in range(args.gen_incar_n)]
+        args.ismear = [args.ismear[i] if i < len(args.ismear) else args.ismear[-1] for i in range(args.gen_incar_n)] if args.ismear != None else [None for i in range(args.gen_incar_n)]
+        args.sigma = [args.sigma[i] if i < len(args.sigma) else args.sigma[-1] for i in range(args.gen_incar_n)] if args.sigma != None else [None for i in range(args.gen_incar_n)]
+        args.ivdw = [args.ivdw[i] if i < len(args.ivdw) else args.ivdw[-1] for i in range(args.gen_incar_n)] if args.ivdw != None else [None for i in range(args.gen_incar_n)]
+        args.ediffg = [args.ediffg[i] if i < len(args.ediffg) else args.ediffg[-1] for i in range(args.gen_incar_n)] if args.ediffg != None else [None for i in range(args.gen_incar_n)]
+        args.nsw = [args.nsw[i] if i < len(args.nsw) else args.nsw[-1] for i in range(args.gen_incar_n)] if args.nsw != None else [None for i in range(args.gen_incar_n)]
+        args.ibrion = [args.ibrion[i] if i < len(args.ibrion) else args.ibrion[-1] for i in range(args.gen_incar_n)] if args.ibrion != None else [None for i in range(args.gen_incar_n)]
+        args.isif = [args.isif[i] if i < len(args.isif) else args.isif[-1] for i in range(args.gen_incar_n)] if args.isif != None else [None for i in range(args.gen_incar_n)]
+        args.potim = [args.potim[i] if i < len(args.potim) else args.potim[-1] for i in range(args.gen_incar_n)] if args.potim != None else [None for i in range(args.gen_incar_n)]
+        args.lorbit = [args.lorbit[i] if i < len(args.lorbit) else args.lorbit[-1] for i in range(args.gen_incar_n)] if args.lorbit != None else [None for i in range(args.gen_incar_n)]
+        args.loptics = [args.loptics[i] if i < len(args.loptics) else args.loptics[-1] for i in range(args.gen_incar_n)] if args.loptics != None else [None for i in range(args.gen_incar_n)]
+        args.cshift = [args.cshift[i] if i < len(args.cshift) else args.cshift[-1] for i in range(args.gen_incar_n)] if args.cshift != None else [None for i in range(args.gen_incar_n)]
+        args.nedos = [args.nedos[i] if i < len(args.nedos) else args.nedos[-1] for i in range(args.gen_incar_n)] if args.nedos != None else [None for i in range(args.gen_incar_n)]
+        args.lsubrot = [args.lsubrot[i] if i < len(args.lsubrot) else args.lsubrot[-1] for i in range(args.gen_incar_n)] if args.lsubrot != None else [None for i in range(args.gen_incar_n)]
+        args.saxis = [args.saxis[i] if i < len(args.saxis) else args.saxis[-1] for i in range(args.gen_incar_n)] if args.saxis != None else [None for i in range(args.gen_incar_n)]
+        args.lmaxmix = [args.lmaxmix[i] if i < len(args.lmaxmix) else args.lmaxmix[-1] for i in range(args.gen_incar_n)] if args.lmaxmix != None else [None for i in range(args.gen_incar_n)]
+        args.algo = [args.algo[i] if i < len(args.algo) else args.algo[-1] for i in range(args.gen_incar_n)] if args.algo != None else [None for i in range(args.gen_incar_n)]
+        args.ialgo = [args.ialgo[i] if i < len(args.ialgo) else args.ialgo[-1] for i in range(args.gen_incar_n)] if args.ialgo != None else [None for i in range(args.gen_incar_n)]
+        args.addgrid = [args.addgrid[i] if i < len(args.addgrid) else args.addgrid[-1] for i in range(args.gen_incar_n)] if args.addgrid != None else [None for i in range(args.gen_incar_n)]
+        args.isym = [args.isym[i] if i < len(args.isym) else args.isym[-1] for i in range(args.gen_incar_n)] if args.isym != None else [None for i in range(args.gen_incar_n)]
+        args.lreal = [args.lreal[i] if i < len(args.lreal) else args.lreal[-1] for i in range(args.gen_incar_n)] if args.lreal != None else [None for i in range(args.gen_incar_n)]
+        args.pstress = [args.pstress[i] if i < len(args.pstress) else args.pstress[-1] for i in range(args.gen_incar_n)] if args.pstress != None else [None for i in range(args.gen_incar_n)]
+        args.lwave = [args.lwave[i] if i < len(args.lwave) else args.lwave[-1] for i in range(args.gen_incar_n)] if args.lwave != None else [None for i in range(args.gen_incar_n)]
+        args.lcharg = [args.lcharg[i] if i < len(args.lcharg) else args.lcharg[-1] for i in range(args.gen_incar_n)] if args.lcharg != None else [None for i in range(args.gen_incar_n)]
+        args.ispin = [args.ispin[i] if i < len(args.ispin) else args.ispin[-1] for i in range(args.gen_incar_n)] if args.ispin != None else [None for i in range(args.gen_incar_n)]
+        args.magmom = [args.magmom[i] if i < len(args.magmom) else args.magmom[-1] for i in range(args.gen_incar_n)] if args.magmom != None else [None for i in range(args.gen_incar_n)]
+        args.lnoncollinear = [args.lnoncollinear[i] if i < len(args.lnoncollinear) else args.nwrite[-1] for i in range(args.gen_incar_n)] if args.lnoncollinear != None else [None for i in range(args.gen_incar_n)]
+        args.lsorbit = [args.lsorbit[i] if i < len(args.lsorbit) else args.lsorbit[-1] for i in range(args.gen_incar_n)] if args.lsorbit != None else [None for i in range(args.gen_incar_n)]
+        args.algo = [args.algo[i] if i < len(args.algo) else args.algo[-1] for i in range(args.gen_incar_n)] if args.algo != None else [None for i in range(args.gen_incar_n)]
+        args.lhfcalc = [args.lhfcalc[i] if i < len(args.lhfcalc) else args.lhfcalc[-1] for i in range(args.gen_incar_n)] if args.lhfcalc != None else [None for i in range(args.gen_incar_n)]
+        args.hfscreen = [args.hfscreen[i] if i < len(args.hfscreen) else args.hfscreen[-1] for i in range(args.gen_incar_n)] if args.hfscreen != None else [None for i in range(args.gen_incar_n)]
+        args.aexx = [args.aexx[i] if i < len(args.aexx) else args.aexx[-1] for i in range(args.gen_incar_n)] if args.aexx != None else [None for i in range(args.gen_incar_n)]
+        args.lelf = [args.lelf[i] if i < len(args.lelf) else args.lelf[-1] for i in range(args.gen_incar_n)] if args.lelf != None else [None for i in range(args.gen_incar_n)]
+        args.amix = [args.amix[i] if i < len(args.amix) else args.amix[-1] for i in range(args.gen_incar_n)] if args.amix != None else [None for i in range(args.gen_incar_n)]
+        args.bmix = [args.bmix[i] if i < len(args.bmix) else args.bmix[-1] for i in range(args.gen_incar_n)] if args.bmix != None else [None for i in range(args.gen_incar_n)]
+        
+        for i in range(args.gen_incar_n):
+            params_all[i]["NWRITE"] = args.nwrite[i] if "NWRITE" not in params_all[i] or args.nwrite[i] != None else params_all[i]["NWRITE"]
+            params_all[i]["PREC"] = args.prec[i] if "PREC" not in params_all[i] or args.prec[i] != None else params_all[i]["PREC"]
+            params_all[i]["NCORE"] = args.ncore[i] if "NCORE" not in params_all[i] or args.ncore[i] != None else params_all[i]["NCORE"]
+            params_all[i]["ENCUT"] = args.encut[i] if "ENCUT" not in params_all[i] or args.encut[i] != None else params_all[i]["ENCUT"]
+            params_all[i]["EDIFF"] = args.ediff[i] if "EDIFF" not in params_all[i] or args.ediff[i] != None else params_all[i]["EDIFF"]
+            params_all[i]["NELM"] = args.nelm[i] if "NELM" not in params_all[i] or args.nelm[i] != None else params_all[i]["NELM"]
+            params_all[i]["NFREE"] = args.nfree[i] if "NFREE" not in params_all[i] or args.nfree[i] != None else params_all[i]["NFREE"]
+            params_all[i]["KSPACING"] = args.kspacing[i] if "KSPACING" not in params_all[i] or args.kspacing[i] != None else params_all[i]["KSPACING"]
+            params_all[i]["ISMEAR"] = args.ismear[i] if "ISMEAR" not in params_all[i] or args.ismear[i] != None else params_all[i]["ISMEAR"]
+            params_all[i]["SIGMA"] = args.sigma[i] if "SIGMA" not in params_all[i] or args.sigma[i] != None else params_all[i]["SIGMA"]
+            params_all[i]["IVDW"] = args.ivdw[i] if "IVDW" not in params_all[i] or args.ivdw[i] != None else params_all[i]["IVDW"]
+            params_all[i]["EDIFFG"] = args.ediffg[i] if "EDIFFG" not in params_all[i] or args.ediffg[i] != None else params_all[i]["EDIFFG"]
+            params_all[i]["NSW"] = args.nsw[i] if "NSW" not in params_all[i] or args.nsw[i] != None else params_all[i]["NSW"]
+            params_all[i]["IBRION"] = args.ibrion[i] if "IBRION" not in params_all[i] or args.ibrion[i] != None else params_all[i]["IBRION"]
+            params_all[i]["ISIF"] = args.isif[i] if "ISIF" not in params_all[i] or args.isif[i] != None else params_all[i]["ISIF"]
+            params_all[i]["POTIM"] = args.potim[i] if "POTIM" not in params_all[i] or args.potim[i] != None else params_all[i]["POTIM"]
+            params_all[i]["LORBIT"] = args.lorbit[i] if "LORBIT" not in params_all[i] or args.potim[i] != None else params_all[i]["LORBIT"]
+            params_all[i]["LOPTICS"] = args.loptics[i] if "LOPTICS" not in params_all[i] or args.loptics[i] != None else params_all[i]["LOPTICS"]
+            params_all[i]["CSHIFT"] = args.cshift[i] if "CSHIFT" not in params_all[i] or args.cshift[i] != None else params_all[i]["CSHIFT"]
+            params_all[i]["NEDOS"] = args.nedos[i] if "NEDOS"  not in params_all[i] or args.nedos[i] != None else params_all[i]["NEDOS"]
+            params_all[i]["LSUBROT"] = args.lsubrot[i] if "LSUBROT" not in params_all[i] or args.lsubrot[i] != None else params_all[i]["LSUBROT"]
+            params_all[i]["SAXIS"] = args.saxis[i] if "SAXIS" not in params_all[i] or args.saxis[i] != None else params_all[i]["SAXIS"]
+            params_all[i]["LMAXMIX"] = args.lmaxmix[i] if "LMAXMIX" not in params_all[i] or args.lmaxmix[i] != None else params_all[i]["LMAXMIX"]
+            params_all[i]["ALGO"] = args.algo[i] if "ALGO" not in params_all[i] or args.algo[i] != None else params_all[i]["ALGO"]
+            params_all[i]["IALGO"] = args.ialgo[i] if "IALGO" not in params_all[i] or args.ialgo[i] != None else params_all[i]["IALGO"]
+            params_all[i]["ADDGRID"] = args.addgrid[i] if "ADDGRID" not in params_all[i] or args.addgrid[i] != None else params_all[i]["ADDGRID"]
+            params_all[i]["ISYM"] = args.isym[i] if "ISYM" not in params_all[i] or args.isym[i] != None else params_all[i]["ISYM"]
+            params_all[i]["PSTRESS"] = args.pstress[i] if "PSTRESS" not in params_all[i] or args.pstress[i] != None else params_all[i]["PSTRESS"]
+            params_all[i]["LREAL"] = args.lreal[i] if "LREAL" not in params_all[i] or args.lreal[i] != None else params_all[i]["LREAL"]
+            params_all[i]["LWAVE"] = args.lwave[i] if "LWAVE" not in params_all[i] or args.lwave[i] != None else params_all[i]["LWAVE"]
+            params_all[i]["LCHARG"] = args.lcharg[i] if "LCHARG" not in params_all[i] or args.lcharg[i] != None else params_all[i]["LCHARG"]
+            params_all[i]["ISPIN"] = args.ispin[i] if "ISPIN" not in params_all[i] or args.ispin[i] != None else params_all[i]["ISPIN"]
+            params_all[i]["MAGMOM"] = args.magmom[i] if "MAGMOM" not in params_all[i] or args.magmom[i] != None else params_all[i]["MAGMOM"] # magmom can be a list that can be automatically dealt with by base.incar.to_incar()
+            params_all[i]["LNONCOLLINEAR"] = args.lnoncollinear[i] if "LNONCOLLINEAR" not in params_all[i] or args.lnoncollinear[i] != None else params_all[i]["LNONCOLLINEAR"]
+            params_all[i]["LSORBIT"] = args.lsorbit[i] if "LSORBIT" not in params_all[i] or args.lsorbit[i] != None else params_all[i]["LSORBIT"]
+            params_all[i]["ALGO"] = args.algo[i] if "ALGO" not in params_all[i] or args.algo[i] != None else params_all[i]["ALGO"]
+            params_all[i]["LHFCALC"] = args.lhfcalc[i] if "LHFCALC" not in params_all[i] or args.lhfcalc[i] != None else params_all[i]["LHFCALC"]
+            params_all[i]["HFSCREEN"] = args.hfscreen[i] if "HFSCREEN" not in params_all[i] or args.hfscreen[i] != None else params_all[i]["HFSCREEN"]
+            params_all[i]["AEXX"] = args.aexx[i] if "AEXX" not in params_all[i] or args.aexx[i] != None else params_all[i]["AEXX"]
+            params_all[i]["LELF"] = args.lelf[i] if "LELF" not in params_all[i] or args.lelf[i] != None else params_all[i]["LELF"]
+            params_all[i]["AMIX"] = args.amix[i] if "AMIX" not in params_all[i] or args.amix[i] != None else params_all[i]["AMIX"]
+            params_all[i]["BMIX"] = args.bmix[i] if "BMIX" not in params_all[i] or args.bmix[i] != None else params_all[i]["BMIX"]
+        
         if args.runtype == 0:
             pass
         elif args.runtype == 1:
@@ -2720,7 +2672,9 @@ def main():
             pso = calypso()
             pso.set_params(params=input_dat_params)
             pso.vasp.get_xyz(xyzfile)
-            pso.vasp.set_params(params=params, runtype="opt")
+            #pso.vasp.set_params(params=params, runtype="opt")
+            pso.gen_incar_n = args.gen_incar_n
+            pso.multi_incar_params = params_all
             pso.vasp.set_kpoints(kpoints_mp=args.kpoints_mp)
             pso.vasp.poscar.selective_dynamics = True if args.selective_dynamics.upper()[0] == "T" else False
             pso.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)

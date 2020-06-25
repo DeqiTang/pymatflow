@@ -1669,6 +1669,9 @@ def main():
             choices=["T", "F", ".TRUE.", ".FALSE.", "O", "On", "A", "Auto"],
             help="LREAL determines whether the projection operators are evaluated in real-space or in reciprocal space.")
 
+    gp.add_argument("--pstress", type=float, default=None,
+            help="controls whether Pulay corrections are added to the stress tensor or not.")
+
     # properties parameters
     gp.add_argument("--lelf", type=str, default=None,
             choices=["T", "F", ".TRUE.", ".FALSE."],
@@ -2741,6 +2744,7 @@ def main():
         params["ADDGRID"] = args.addgrid if "ADDGRID" not in params or args.addgrid != None else params["ADDGRID"]
         params["ISYM"] = args.isym if "ISYM" not in params or args.isym != None else params["ISYM"]
         params["LREAL"] = args.lreal if "LREAL" not in params or args.lreal != None else params["LREAL"]
+        params["PSTRESS"] = args.pstress if "PSTRESS" not in params or args.pstress != None else params["PSTRESS"]
         params["LWAVE"] = args.lwave if "LWAVE" not in params or args.lwave != None else params["LWAVE"]
         params["LCHARG"] = args.lcharg if "LCHARG" not in params or args.lcharg != None else params["LCHARG"]
         params["ISPIN"] = args.ispin if "ISPIN" not in params or args.ispin != None else params["ISPIN"]

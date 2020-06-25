@@ -1,6 +1,6 @@
 import sys
 
-class gs:
+class geometry_optimization:
     def __init__(self):
         self.params = {}
 
@@ -14,182 +14,14 @@ class gs:
     def basic_setting(self):
         pass
 
+    def set_params(self, params):
+        """
+        """
+        for item in params:
+            if len(item.split("/")) == 3:
+                self.params[item.split("/")[-1]] = params[item]
+                continue
 
-class unocc:
-    def __init__(self):
-        self.params = {}
-
-    def to_string(self):
-        out = ""
-        for item in self.params:
-            out += "%s = %s\n" % (item, self.params[item])
-            out += "\n"
-        return out
-
-    def basic_setting(self):
-        pass
-
-
-class td:
-    def __init__(self):
-        self.params = {}
-
-    def to_string(self):
-        out = ""
-        for item in self.params:
-            out += "%s = %s\n" % (item, self.params[item])
-            out += "\n"
-        return out
-
-    def basic_setting(self):
-        pass
-
-
-class go:
-    def __init__(self):
-        self.params = {}
-
-    def to_string(self):
-        out = ""
-        for item in self.params:
-            out += "%s = %s\n" % (item, self.params[item])
-            out += "\n"
-        return out
-
-    def basic_setting(self):
-        pass
-
-class opt_control:
-    def __init__(self):
-        self.params = {}
-
-    def to_string(self):
-        out = ""
-        for item in self.params:
-            out += "%s = %s\n" % (item, self.params[item])
-            out += "\n"
-        return out
-
-    def basic_setting(self):
-        pass
-
-
-class em_resp:
-    def __init__(self):
-        self.params = {}
-
-    def to_string(self):
-        out = ""
-        for item in self.params:
-            out += "%s = %s\n" % (item, self.params[item])
-            out += "\n"
-        return out
-
-    def basic_setting(self):
-        pass
-
-
-class casida:
-    def __init__(self):
-        self.params = {}
-
-    def to_string(self):
-        out = ""
-        for item in self.params:
-            out += "%s = %s\n" % (item, self.params[item])
-            out += "\n"
-        return out
-
-    def basic_setting(self):
-        pass
-
-class vdw:
-    def __init__(self):
-        self.params = {}
-
-    def to_string(self):
-        out = ""
-        for item in self.params:
-            out += "%s = %s\n" % (item, self.params[item])
-            out += "\n"
-        return out
-
-    def basic_setting(self):
-        pass
-
-
-class vib_modes:
-    def __init__(self):
-        self.params = {}
-
-    def to_string(self):
-        out = ""
-        for item in self.params:
-            out += "%s = %s\n" % (item, self.params[item])
-            out += "\n"
-        return out
-
-    def basic_setting(self):
-        pass
-
-
-class one_shot:
-    def __init__(self):
-        self.params = {}
-
-    def to_string(self):
-        out = ""
-        for item in self.params:
-            out += "%s = %s\n" % (item, self.params[item])
-            out += "\n"
-        return out
-
-    def basic_setting(self):
-        pass
-
-
-class kdotp:
-    def __init__(self):
-        self.params = {}
-
-    def to_string(self):
-        out = ""
-        for item in self.params:
-            out += "%s = %s\n" % (item, self.params[item])
-            out += "\n"
-        return out
-
-    def basic_setting(self):
-        pass
-
-
-class dummy:
-    def __init__(self):
-        self.params = {}
-
-    def to_string(self):
-        out = ""
-        for item in self.params:
-            out += "%s = %s\n" % (item, self.params[item])
-            out += "\n"
-        return out
-
-    def basic_setting(self):
-        pass
-
-class dummy:
-    def __init__(self):
-        self.params = {}
-
-    def to_string(self):
-        out = ""
-        for item in self.params:
-            out += "%s = %s\n" % (item, self.params[item])
-            out += "\n"
-        return out
-
-    def basic_setting(self):
-        pass
 
 class invert_ks:
     def __init__(self):
@@ -205,7 +37,15 @@ class invert_ks:
     def basic_setting(self):
         pass        
 
-class recipe:
+    def set_params(self, params):
+        """
+        """
+        for item in params:
+            if len(item.split("/")) == 3:
+                self.params[item.split("/")[-1]] = params[item]
+                continue
+
+class optimal_control:
     def __init__(self):
         self.params = {}
 
@@ -219,29 +59,50 @@ class recipe:
     def basic_setting(self):
         pass
 
+    def set_params(self, params):
+        """
+        """
+        for item in params:
+            if len(item.split("/")) == 3:
+                self.params[item.split("/")[-1]] = params[item]
+                continue
+                
+                
 
+class unoccupied_states:
+    def __init__(self):
+        self.params = {}
 
-class calculation_mode:
+    def to_string(self):
+        out = ""
+        for item in self.params:
+            out += "%s = %s\n" % (item, self.params[item])
+            out += "\n"
+        return out
+
+    def basic_setting(self):
+        pass
+
+    def set_params(self, params):
+        """
+        """
+        for item in params:
+            if len(item.split("/")) == 3:
+                self.params[item.split("/")[-1]] = params[item]
+                continue
+                
+
+class calculation_modes:
     """
     """
     def __init__(self):
         self.params = {
             "CalculationMode": None,
         }
-        self.gs = gs()
-        self.unocc = unocc()
-        self.td = td()
-        self.go = go()
-        self.opt_control =opt_control()
-        self.em_resp = em_resp()
-        self.casida = casida()
-        self.vdw = vdw()
-        self.vib_modes = vib_modes()
-        self.one_shot = one_shot()
-        self.kdotp = kdotp()
-        self.dummy = dummy()
+        self.geometry_optimization = geometry_optimization()
         self.invert_ks = invert_ks()
-        self.recipe = recipe()
+        self.optimal_contorl = optimal_control()
+        self.unoccupied_states = unoccupied_states()
 
     def to_string(self):
         out  = ""
@@ -279,7 +140,7 @@ class calculation_mode:
             out += self.recipe.to_string()
 
 
-    def basic_setting(self, mode):
+    def set_default(self, mode):
         """
         :param: mode-> gs, unocc, td, go, opt_control, em_resp,
                 casida, vdw, vib_modes, one_shot, kdotp, dummy,
@@ -325,3 +186,20 @@ class calculation_mode:
             self.invert_ks.basic_setting()
         elif mode == "recipe":
             self.recipe.basic_setting()
+
+    def set_params(self, params):
+        """
+        """
+        for item in params:
+            if len(item.split("/")) == 2:
+                self.params[item.split("/")[-1]] = params[item]
+                continue
+            if item.split("/")[1] == "Geometry Optimization":
+                self.geometry_optimization.set_params({item: params[item]})
+            elif item.split("/")[1] == "Invert KS":
+                self.invert_ks.set_params({item: params[item]})
+            elif item.split("/")[1] == "Optimal Control":
+                self.optimal_contorl.set_params({item: params[item]})
+            elif item.split("/")[1] == "Unoccupied States":
+                slef.unoccupied_states.set_params({item: params[item]})
+            

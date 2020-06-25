@@ -124,3 +124,18 @@ class system:
         self.ifstatic = ifstatic
 
     #
+    def set_params(self, params):
+        """
+        """
+        # do not do anything
+        """
+        for item in params:
+            if len(item.split("/")) == 2:
+                self.params[item.split("/")[-1]] = params[item]
+                continue
+            if item.split("/")[1] == "Coordinates":
+                self.coordinates.set_params({item: params[item]})
+            else:
+                pass
+        """
+        return

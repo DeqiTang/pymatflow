@@ -1,5 +1,5 @@
 
-from pymatflow.octopus.base.calculation_mode import calculation_mode
+from pymatflow.octopus.base.calculation_modes import calculation_modes
 from pymatflow.octopus.base.execution import execution
 from pymatflow.octopus.base.hamiltonian import hamiltonian
 from pymatflow.octopus.base.linear_response import linear_response
@@ -17,7 +17,7 @@ class inp:
     """
     """
     def __init__(self):
-        self.calculation_mode = calculation_mode()
+        self.calculation_modes = calculation_modes()
         self.execution = execution()
         self.hamiltonian = hamiltonian()
         self.linear_response = linear_response()
@@ -58,3 +58,49 @@ class inp:
         out += self.system.to_string()
         out += self.time_dependent.to_string()
         out += self.utilities.to_string()
+
+    def set_runtype(self, runtype="static"):
+        """
+        self.runtype: static | opt | md | dfpt | phonon | neb
+        """
+        self.runtype = runtype
+        self.set_calculation_mode_default(mode="gs")
+        
+    def set_calculation_mode_default(self, mode="gs"):
+        """
+        self.calculation_mode: gs | unocc | td | go | opt_control | em_resp | casida | vdw | vib_modes | one_shot | kdotp | dummy | invert_ks | recipe
+        Note:
+            set the default parameters for the chosen CalculationMode
+        """
+        self.calculation_mode.set_default(mode=mode)
+
+    def set_params(self, params):
+        """
+        """
+        for item in params:
+            if item.split("/")[0] == "Calculation Modes":
+                self.calculation_modes.set_params({item: params[item]})
+            elif item.split("/")[0] == "Execution":
+                self.execution.set_params({item: params[item]})
+            elif item.split("/")[0] == "Hamiltonian":
+                self.hamiltonian.set_params({item: params[item]})
+            elif item.split("/")[0] == "LinearResponse":
+                self.linear_response.set_params({item: params[item]})
+            elif item.split("/")[0] == "Math":
+                self.math.set_params({item: params[item]})
+            elif item.split("/")[0] == "Mesh":
+                self.mesh.set_params({item: params[item]})
+            elif item.split("/")[0] == "Output":
+                self.output.set_params({item: params[item]})
+            elif item.split("/")[0] == "SCF":
+                self.scf.set_params({item: params[item]})
+            elif item.split("/")[0] == "States":
+                self.states.set_params({item: params[item]})
+            elif item.split("/")[0] == "System":
+                self.system.set_params({item: params[item]})
+            elif item.split("/")[0] == "Time-Dependent":
+                self.time_dependent.set_params({item: params[item]})
+            elif item.split("/")[0] == "Utilitites":
+                self.utilities.set_params({item: params[item]})
+            else:
+                pass

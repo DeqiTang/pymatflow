@@ -51,7 +51,7 @@ class vasp:
             "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
             "IVDW", "LORBIT", "LOPTICS", "CSHIFT", "NEDOS", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "LSORBIT","SAXIS", "LMAXMIX", "LHFCALC", "HFSCREEN", "AEXX", "LSUBROT", "ALGO", "IALGO", "ADDGRID",
-            "ISYM", "LREAL", "LWAVE", "LCHARG", "LELF",
+            "ISYM", "LREAL", "LWAVE", "LCHARG", "LELF", "PSTRESS",
             "AMIX", "BMIX", "NELECT",
             "KSPACING", "LPARD", "LSEPK", "LSEPB", "NBMOD", "EINT",
         ]
@@ -60,7 +60,7 @@ class vasp:
             "IVDW", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG",
-            "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG",
+            "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG", "PSTRESS",
             "AMIX", "BMIX",
             "KSPACING",
         ]
@@ -88,7 +88,7 @@ class vasp:
             "IVDW", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG",
-            "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG",
+            "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG", "PSTRESS",
             "AMIX", "BMIX",
             "KSPACING",
         ]

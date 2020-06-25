@@ -1,10 +1,151 @@
 
 
+class curvilinear:
+    """
+    """
+    def __init__(self):
+        self.params = {}
+        
+
+    def to_string(self):
+        out  = ""
+        for item in self.params:
+            out += "%s = %s\n" % (item, self.params[item])
+            out += "\n"
+        return out
+        
+    def set_params(self, params):
+        """
+        """
+        for item in params:
+            if len(item.split("/")) == 3:
+                self.params[item.split("/")[-1]] = params[item]
+                continue        
+        
+class derivatives:
+    """
+    """
+    def __init__(self):
+        self.params = {}
+        
+
+    def to_string(self):
+        out  = ""
+        for item in self.params:
+            out += "%s = %s\n" % (item, self.params[item])
+            out += "\n"
+        return out
+
+    def set_params(self, params):
+        """
+        """
+        for item in params:
+            if len(item.split("/")) == 3:
+                self.params[item.split("/")[-1]] = params[item]
+                continue
+                
+                
+class ffts:
+    """
+    """
+    def __init__(self):
+        self.params = {}
+        
+
+    def to_string(self):
+        out  = ""
+        for item in self.params:
+            out += "%s = %s\n" % (item, self.params[item])
+            out += "\n"
+        return out
+
+    def set_params(self, params):
+        """
+        """
+        for item in params:
+            if len(item.split("/")) == 3:
+                self.params[item.split("/")[-1]] = params[item]
+                continue
+                
+                
+                
+class kpoints:
+    """
+    """
+    def __init__(self):
+        self.params = {}
+        self.kpath = None
+        
+        self.option = "mp" # mp or kpath
+
+    def to_string(self):
+        out  = ""
+        for item in self.params:
+            if self.params[item] == None:
+                continue
+            if item == "KPointsGrid":
+                out += "%KPointsGrid\n":
+                out += "  %d | %d | %d\n" % (self.params[item][0], self.params[item][1], self.params[item][2])
+                out += "%\n"
+            elif item == "KPointsPath":
+                kpath = self.params[item]
+                out += "%KPointsPath\n":
+                out += "  %d" % kpath[0][4]
+                for i in range(1, len(kpath)):
+                    if kpath[i][4] == "|":
+                        out += " | %d" % (0)
+                    else:
+                        out += " | %d" % (kpath[i][4])
+                for point in kpath:
+                    out += "%f | %f | %f #%s\n" % (point[0], point[1], point[2], point[3])
+                out += "%\n"
+            else:
+                out += "%s = %s\n" % (item, self.params[item])
+                out += "\n"
+        return out
+
+    def set_params(self, params):
+        """
+        """
+        for item in params:
+            if len(item.split("/")) == 3:
+                self.params[item.split("/")[-1]] = params[item]
+                continue
+                
+                
+class simulation_box:
+    """
+    """
+    def __init__(self):
+        self.params = {}
+        
+
+    def to_string(self):
+        out  = ""
+        for item in self.params:
+            out += "%s = %s\n" % (item, self.params[item])
+            out += "\n"
+        return out        
+
+    def set_params(self, params):
+        """
+        """
+        for item in params:
+            if len(item.split("/")) == 3:
+                self.params[item.split("/")[-1]] = params[item]
+                continue
+
 class mesh:
     """
     """
     def __init__(self):
         self.params = {}
+                
+        self.curvilinear = curvilinear()
+        self.derivatives = derivatives()
+        self.ffts = ffts()
+        self.kpoints = kpoints()
+        self.simulation_box = simulation_box()
                 
         self.kpoints_option = "mp"
         self.kpoints_mp = [1, 1, 1, 0, 0, 0]
@@ -70,3 +211,23 @@ class mesh:
             self.kpoints_option = option
             self.kpath = kpath
             return
+    
+    def set_params(self, params):
+        """
+        """
+        for item in params:
+            if len(item.split("/")) == 2:
+                self.params[item.split("/")[-1]] = params[item]
+                continue
+            if item.split("/")[1] == "Curvilinear":
+                self.curvilinear.set_params({item: params[item]})
+            elif item.split("/")[1] == "Derivatives":
+                self.derivatives.set_params({item: params[item]})
+            elif item.split("/")[1] == "FFTs":
+                self.ffts.set_params({item: params[item]})
+            elif item.split("/")[1] == "KPoints":
+                self.kpoints.set_params({item: params[item]})
+            elif item.split("/")[1] == "Simulation Box":
+                self.simulation_box.set_params({item: params[item]})
+            else:
+                pass            

@@ -65,15 +65,25 @@ class calypso:
             os.system("sflow convert -i %s -o %s" % (self.vasp.poscar.xyz.file, os.path.join(directory, "input_structure.cif")))
             self.set_params({"CifFilePath": "input_structure.cif"})
             
+            # Parallel and NumberOfParallel are controlled internally here
+            if self.run_params["nodes"] > 1:
+                self.params["Parallel"] = "T"
+                self.params["NumberOfParallel"] = self.run_params["nodes"]
+            else:
+                self.params["Parallel"] = "F"
+                self.params["NumberOfParallel"] = None
             with open(os.path.join(directory, "submit.sh"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("mpiexec -n %d $PMF_VASP_STD > log 2>/dev/null\n" % (self.run_params["ppn"]))
+                #fout.write("mpirun -machinefile snodefile -np %d $PMF_VASP_STD > log 2>/dev/null\n" % (self.run_params["ppn"]))
+                fout.write("mpiexec -machinefile snodefile -n %d $PMF_VASP_STD > log 2>/dev/null\n" % (self.run_params["ppn"]))
         
-            #with open(os.path.join(directory, "INCAR"), 'w') as fout:
-            #    self.vasp.incar.to_incar(fout)
+            #for i in range(slef.gen_incar_n):
+            #    self.vasp.set_params(self.multi_incar_params[i], runtype="opt")
+            #    with open(os.path.join(directory, "INCAR_%d" % (i+1)), 'w') as fout:
+            #        self.vasp.incar.to_incar(fout)
                 
-            with open(os.path.join(directory, "POSCAR"), 'w') as fout:
-                self.vasp.poscar.to_poscar(fout)
+            #with open(os.path.join(directory, "POSCAR"), 'w') as fout:
+            #    self.vasp.poscar.to_poscar(fout)
             
             #with open(os.path.join(directory, "input.dat"), 'w') as fout:
             #    self.to_input_dat(fout)
@@ -86,9 +96,11 @@ class calypso:
                     fout.write("#PBS -q %s\n" % self.run_params["queue"])            
                 fout.write("\n")
                 fout.write("cd $PBS_O_WORKDIR\n")
-                fout.write("cat > INCAR<<EOF\n")
-                self.vasp.incar.to_incar(fout)
-                fout.write("EOF\n")
+                for i in range(self.gen_incar_n):
+                    fout.write("cat > 'INCAR_%d'<<EOF\n" % (i+1))
+                    self.vasp.set_params(self.multi_incar_params[i], runtype="opt")
+                    self.vasp.incar.to_incar(fout)
+                    fout.write("EOF\n")
                 fout.write("cat > KPOINTS<<EOF\n")
                 self.vasp.kpoints.to_kpoints(fout)
                 fout.write("EOF\n")
