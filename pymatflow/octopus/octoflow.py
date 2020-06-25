@@ -102,10 +102,30 @@ def main():
     #                   inp parameters
     # --------------------------------------------------------
     
+    gp = parser.add_argument_group(title="Special",
+            description="Special parameters")
+            
+    gp.add_argument("--kpoints-mp", type=int, nargs=6,
+            default=[1, 1, 1, 0, 0, 0],
+            help="set kpoints like -k 1 1 1 0 0 0")
+
+    gp.add_argument("--kpoints-mp-nscf", type=int, nargs="+",
+            default=None,
+            help="set kpoints like -k 1 1 1 0 0 0")
+
+    gp.add_argument("--kpath-manual", type=str, nargs="+", default=None,
+            help="set kpoints for band structure calculation manually")
+
+    gp.add_argument("--kpath-file", type=str, default="kpath.txt",
+            help="set kpoints for band structure calculation manually from file")
+    
     # Calculation Modes
     gp = parser.add_argument_group(title="Calculation Modes",
             description="Calculation Modes related parameters")
 
+    gp.add_argument("--calculationmode", type=str, default=None,
+            help="Decides what kind of calculation is to be performed.")
+            
     gp.add_argument("--geocenter", type=str, default=None,
             help="If set to yes, Octopus centers the geometry at every optimization step.")
 
@@ -223,7 +243,7 @@ def main():
 
     gp.add_argument("--tdfunctions", type=str, default=None,
             choices=["tdf_cw", "tdf_gaussian", "tdf_cosinoidal", "tdf_trapezoidal", "tdf_from_file", "tdf_from_expr"],
-            help="This block specifies the shape of a "time-dependent function", such as the envelope needed when using the TDExternalFields block.")
+            help="This block specifies the shape of a \"time-dependent function\", such as the envelope needed when using the TDExternalFields block.")
 
     # Utilities
     gp = parser.add_argument_group(title="Utilities",
@@ -400,6 +420,7 @@ def main():
     #
     # if xxx is alraedy in params(set from --inp) and args.xxx is None
     # params[xxx] will not be control by args.xxx
+    params["Calculation Modes/CalculationMode"] = args.calculationmode
     params["Calculation Modes/Geometry Optimization/GOCenter"] = args.geocenter
     params["Calculation Modes/Geometry Optimization/GOFireIntegrator"] = args.gofireintegrator
     params["Calculation Modes/Geometry Optimization/GOLineTol"] = args.golinetol
@@ -426,7 +447,7 @@ def main():
     
     if args.runtype == 0:
         # static
-        from pymatflow.octopus import static_run
+        from pymatflow.octopus.static import static_run
         task = static_run()
         task.get_xyz(xyzfile)
         task.set_params(params, runtype="static")

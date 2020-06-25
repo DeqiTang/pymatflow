@@ -187,7 +187,7 @@ class linear_response:
         self.solver = solver()
         self.static_polarization = static_polarization()
         self.sternheimer = sternheimer()
-        self.vibrational_modes = vibrationl_modes()
+        self.vibrational_modes = vibrational_modes()
 
     def to_string(self):
         out  = ""

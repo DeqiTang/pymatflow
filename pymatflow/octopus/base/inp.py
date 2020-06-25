@@ -72,7 +72,7 @@ class inp:
         Note:
             set the default parameters for the chosen CalculationMode
         """
-        self.calculation_mode.set_default(mode=mode)
+        self.calculation_modes.set_default(mode=mode)
 
     def set_params(self, params):
         """

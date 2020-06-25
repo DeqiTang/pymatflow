@@ -157,35 +157,7 @@ class calculation_modes:
             print("dummy, invert_ks, recipe\n")
             sys.exit(1)
         self.params["CalculationMode"] = mode
-
-        if mode == "gs":
-            self.gs.basic_setting()
-        elif mode == "unocc":
-            self.unocc.basic_setting()
-        elif mode == "td":
-            self.td.basic_setting()
-        elif mode == "go":
-            self.go.basic_setting()
-        elif mode == "opt_control":
-            self.opt_control.basic_setting()
-        elif mode == "em_resp":
-            self.em_resp.basic_setting()
-        elif mode == "casida":
-            self.casida.basic_setting()
-        elif mode == "vdw":
-            self.vdw.basic_setting()
-        elif mode == "vib_modes":
-            self.vib_modes.basic_setting()
-        elif mode == "one_shot":
-            self.one_shot.basic_setting()
-        elif mode == "kdotp":
-            self.kdotp.basic_setting()
-        elif mode == "dummy":
-            self.dummy.basic_setting()
-        elif mode == "invert_ks":
-            self.invert_ks.basic_setting()
-        elif mode == "recipe":
-            self.recipe.basic_setting()
+        pass
 
     def set_params(self, params):
         """

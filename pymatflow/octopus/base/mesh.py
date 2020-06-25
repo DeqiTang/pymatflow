@@ -76,7 +76,6 @@ class kpoints:
         self.params = {}
         self.kpath = None
         
-        self.option = "mp" # mp or kpath
 
     def to_string(self):
         out  = ""
@@ -84,12 +83,12 @@ class kpoints:
             if self.params[item] == None:
                 continue
             if item == "KPointsGrid":
-                out += "%KPointsGrid\n":
+                out += "%KPointsGrid\n"
                 out += "  %d | %d | %d\n" % (self.params[item][0], self.params[item][1], self.params[item][2])
                 out += "%\n"
             elif item == "KPointsPath":
                 kpath = self.params[item]
-                out += "%KPointsPath\n":
+                out += "%KPointsPath\n"
                 out += "  %d" % kpath[0][4]
                 for i in range(1, len(kpath)):
                     if kpath[i][4] == "|":

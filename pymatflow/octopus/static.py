@@ -95,7 +95,7 @@ class static_run(octopus):
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="static-nscf", server=self.run_params["server"])
 
-    def bands(self, directory="tmp-vasp-static", runopt="gen", auto=0):
+    def band(self, directory="tmp-vasp-static", runopt="gen", auto=0):
         """
         directory: a place for all the generated files
 

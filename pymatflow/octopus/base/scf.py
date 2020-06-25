@@ -112,7 +112,7 @@ class scf:
 
         self.convergence = convergence()
         self.eigensolver = eigensolver()
-        self.lcao = lcalo()
+        self.lcao = lcao()
         self.mixing = mixing()
         self.rdmft = rdmft()
 
