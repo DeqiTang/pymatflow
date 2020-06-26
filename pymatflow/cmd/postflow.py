@@ -359,9 +359,9 @@ def main():
             help="The xsf structure file")
 
 
-    subparser.add_argument("--efermi", type=str, default="nscf",
+    subparser.add_argument("--efermi", type=str, default="scf",
             choices=["scf", "nscf"],
-            help="choose to read the efermi from nscf or scf")
+            help="choose to read the efermi from nscf or scf, default is scf")
 
     subparser.add_argument("--plotrange", type=float, nargs="+",
             default=[0, 1.0],
