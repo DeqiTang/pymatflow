@@ -9,6 +9,8 @@ class berkeleygw:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue       
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -31,8 +33,11 @@ class output:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue    
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
+        out += self.berkeleygw.to_string()
         return out
         
     def set_params(self, params):

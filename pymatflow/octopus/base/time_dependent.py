@@ -1,5 +1,5 @@
 
-class adsorbing_boundaries:
+class absorbing_boundaries:
     """
     """
     def __init__(self):
@@ -8,6 +8,8 @@ class adsorbing_boundaries:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue              
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -29,6 +31,8 @@ class photoelectronspectrum:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue              
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -50,6 +54,8 @@ class propagation:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue              
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -71,6 +77,8 @@ class response:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue              
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -92,6 +100,8 @@ class td_output:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue              
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -110,12 +120,25 @@ class time_dependent:
     """
     def __init__(self):
         self.params = {}
+        
+        self.absorbing_boundaries = absorbing_boundaries()
+        self.photoelectronspectrum = photoelectronspectrum()
+        self.propagation = propagation()
+        self.response = response()
+        self.td_output = td_output()
 
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue              
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
+        out += self.absorbing_boundaries.to_string()
+        out += self.photoelectronspectrum.to_string()
+        out += self.propagation.to_string()
+        out += self.response.to_string()
+        out += self.td_output.to_string()
         return out
         
     def set_params(self, params):

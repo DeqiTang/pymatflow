@@ -3,6 +3,7 @@
 
 import os
 import sys
+import copy
 import shutil
 
 from pymatflow.remote.server import server_handle
@@ -18,7 +19,7 @@ class static_run(octopus):
     def __init__(self):
         super().__init__()
 
-        self.inp.set_runtype(runtype="static")
+        #self.inp.set_runtype(runtype="static")
         self.magnetic_status = "spin-unpolarized" # "spin-polarized" "non-collinear"
 
     def scf(self, directory="tmp-octopus-static", runopt="gen", auto=0):
@@ -35,20 +36,20 @@ class static_run(octopus):
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
-            shutil.copyfile("POTCAR", os.path.join(directory, "POTCAR"))
-            os.system("cp %s %s/" % (self.poscar.xyz.file, directory))
+            #shutil.copyfile("POTCAR", os.path.join(directory, "POTCAR"))
+            os.system("cp %s %s/" % (self.inp[0].system.xyz.file, directory))
 
-            with open(os.path.join(directory, "POSCAR"), 'w') as fout:
-                self.poscar.to_poscar(fout)
+            #with open(os.path.join(directory, "POSCAR"), 'w') as fout:
+            #    self.poscar.to_poscar(fout)
 
             # gen llhpc script
-            self.gen_llhpc(directory=directory, scriptname="static-scf.slurm", cmd="$PMF_VASP_STD")
+            self.gen_llhpc(directory=directory, scriptname="static-scf.slurm", cmd="$PMF_OCTOPUS")
             # gen pbs script
-            self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-scf.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            self.gen_pbs(directory=directory, cmd="$PMF_OCTOPUS", scriptname="static-scf.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
             # gen local bash script
-            self.gen_bash(directory=directory, mpi=self.run_params["mpi"], cmd="$PMF_VASP_STD", scriptname="static-scf.sh")
+            self.gen_bash(directory=directory, mpi=self.run_params["mpi"], cmd="$PMF_OCTOPUS", scriptname="static-scf.sh")
             # gen lsf_sz script
-            self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-scf.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
+            self.gen_lsf_sz(directory=directory, cmd="$PMF_OCTOPUS", scriptname="static-scf.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -58,7 +59,7 @@ class static_run(octopus):
         server_handle(auto=auto, directory=directory, jobfilebase="static-scf", server=self.run_params["server"])
 
 
-    def nscf(self, directory="tmp-vasp-static", runopt="gen", auto=0):
+    def nscf(self, directory="tmp-octopus-static", runopt="gen", auto=0):
         """
         directory: a place for all the generated files
 
@@ -79,13 +80,13 @@ class static_run(octopus):
         if runopt == "gen" or runopt == "genrun":
 
             # gen llhpc script
-            self.gen_llhpc(directory=directory, scriptname="static-nscf.slurm", cmd="$PMF_VASP_STD")
+            self.gen_llhpc(directory=directory, scriptname="static-nscf.slurm", cmd="$PMF_OCTOPUS")
             # gen pbs script
-            self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-nscf.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, cmd="$PMF_OCTOPUS", scriptname="static-nscf.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # gen local bash script
-            self.gen_bash(directory=directory, mpi=self.run_params["mpi"], cmd="$PMF_VASP_STD", scriptname="static-nscf.sh")
+            self.gen_bash(directory=directory, mpi=self.run_params["mpi"], cmd="$PMF_OCTOPUS", scriptname="static-nscf.sh")
             # gen lsf_sz script
-            self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-nscf.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
+            self.gen_lsf_sz(directory=directory, cmd="$PMF_OCTOPUS", scriptname="static-nscf.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
 
 
         if runopt == "run" or runopt == "genrun":
@@ -95,7 +96,7 @@ class static_run(octopus):
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="static-nscf", server=self.run_params["server"])
 
-    def band(self, directory="tmp-vasp-static", runopt="gen", auto=0):
+    def bands(self, directory="tmp-octopus-static", runopt="gen", auto=0):
         """
         directory: a place for all the generated files
 
@@ -105,8 +106,7 @@ class static_run(octopus):
             genrun -> generate a calculation and run it
         """
         self.set_params({
-            "ICHARG": 11,
-            "LORBIT": 11,
+            "Calculation Modes/CalculationMode": "unocc",
             })
         if not os.path.exists(directory):
             print("===================================================\n")
@@ -119,13 +119,13 @@ class static_run(octopus):
         if runopt == "gen" or runopt == "genrun":
 
             # gen llhpc script
-            self.gen_llhpc(directory=directory, scriptname="static-bands.slurm", cmd="$PMF_VASP_STD")
+            self.gen_llhpc(directory=directory, scriptname="static-bands.slurm", cmd="$PMF_OCTOPUS")
             # gen pbs script
-            self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-bands.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
+            self.gen_pbs(directory=directory, cmd="$PMF_OCTOPUS", scriptname="static-bands.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"])
             # gen local bash script
-            self.gen_bash(directory=directory, cmd="%s %PMF_VASP_STD" % self.run_params["mpi"], scriptname="static-bands.sh")
+            self.gen_bash(directory=directory, cmd="%s %PMF_OCTOPUS" % self.run_params["mpi"], scriptname="static-bands.sh")
             # gen lsf_sz script
-            self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-bands.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
+            self.gen_lsf_sz(directory=directory, cmd="$PMF_OCTOPUS", scriptname="static-bands.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -134,7 +134,10 @@ class static_run(octopus):
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="static-bands", server=self.run_params["server"])
 
-    def converge_encut(self, emin, emax, step, directory="tmp-vasp-encut", runopt="gen", auto=0, restart=0):
+    def converge_spacing(self, spacing_range=[], directory="tmp-octopus-encut", runopt="gen", auto=0, restart=0):
+        """
+        spacing_range: [[spacing_x, spacing_y, spacing_z], [spacing_x, spacing_y, spacing_z],...]
+        """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -169,7 +172,7 @@ class static_run(octopus):
                 for i in range(n_test + 1):
                     encut = int(emin + i * step)
                     fout.write("cd ./encut-%d\n" % encut)
-                    fout.write("yhrun $PMF_VASP_STD\n")
+                    fout.write("yhrun $PMF_OCTOPUS\n")
                     fout.write("cd ../\n")
                     fout.write("\n")
             # gen pbs running script
@@ -185,7 +188,7 @@ class static_run(octopus):
                 for i in range(n_test + 1):
                     encut = int(emin + i * step)
                     fout.write("cd ./encut-%d\n" % encut)
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("$PMF_VASP_STD"))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("$PMF_OCTOPUS"))
                     fout.write("cd ../\n")
                     fout.write("\n")
             os.chdir("../")
@@ -201,7 +204,7 @@ class static_run(octopus):
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="converge-encut", server=self.run_params["server"])
 
-    def converge_kpoints(self, kmin, kmax, step, directory="tmp-vasp-kpoints", runopt="gen", auto=0):
+    def converge_kpoints(self, kmin, kmax, step, directory="tmp-octopus-kpoints", runopt="gen", auto=0):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -237,7 +240,7 @@ class static_run(octopus):
                 for i in range(n_test + 1):
                     kpoints = int(kmin + i * step)
                     fout.write("cd ./kpoints-%d\n" % kpoints)
-                    fout.write("yhrun $PMF_VASP_STD\n")
+                    fout.write("yhrun $PMF_OCTOPUS\n")
                     fout.write("cd ../\n")
                     fout.write("\n")
             # gen pbs running script
@@ -253,7 +256,7 @@ class static_run(octopus):
                 for i in range(n_test + 1):
                     kpoints = int(kmin + i * step)
                     fout.write("cd ./kpoints-%d\n" % kpoints)
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("$PMF_VASP_STD"))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("$PMF_OCTOPUS"))
                     fout.write("cd ../\n")
                     fout.write("\n")
             os.chdir("../")
@@ -269,7 +272,7 @@ class static_run(octopus):
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="converge-kpoints", server=self.run_params["server"])
 
-    def converge_sigma(self, sigma_min, sigma_max, step, directory="tmp-vasp-sigma", runopt="gen", auto=0):
+    def converge_sigma(self, sigma_min, sigma_max, step, directory="tmp-octopus-sigma", runopt="gen", auto=0):
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -305,7 +308,7 @@ class static_run(octopus):
                 for i in range(n_test + 1):
                     sigma = sigma_min + i * step
                     fout.write("cd ./sigma-%.6f\n" % sigma)
-                    fout.write("yhrun %PMF_VASP_STD\n")
+                    fout.write("yhrun %PMF_OCTOPUS\n")
                     fout.write("cd ../\n")
                     fout.write("\n")
             # gen pbs running script
@@ -321,7 +324,7 @@ class static_run(octopus):
                 for i in range(n_test + 1):
                     sigma = sigma_min + i * step
                     fout.write("cd ./sigma-%.6f\n" % sigma)
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("$PMF_VASP_STD"))
+                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s\n" % ("$PMF_OCTOPUS"))
                     fout.write("cd ../\n")
                     fout.write("\n")
             os.chdir("../")
@@ -342,51 +345,32 @@ class static_run(octopus):
     def set_scf(self, params):
         pass
 
-    def run(self, directory="tmp-vasp-static", runopt="gen", auto=0, kpath=None):
+    def band(self, directory="tmp-octopus-static", runopt="gen", auto=0, kpath=None):
         """
         directory: a place for all the generated files
-
         runopt:
             gen    -> generate a new calculation but do not run
             run    -> run a calculation on the previously generated files
             genrun -> generate a calculation and run it
-        Note: scf nscf(pdos, bands) in a single run
+        Note: scf nscf(bands) in a single run
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
-            shutil.copyfile("POTCAR", os.path.join(directory, "POTCAR"))
-            os.system("cp %s %s/" % (self.poscar.xyz.file, directory))
+            #shutil.copyfile("POTCAR", os.path.join(directory, "POTCAR"))
+            os.system("cp %s %s/" % (self.inp[0].system.xyz.file, directory))
 
-            self.incar.set_params({
-                "IBRION": -1,
-            })
             # scf
-            #self.set_kpoints(option="automatic", kpoints_mp=kpoints_mp_scf)
-            if (self.incar.params["LHFCALC"] == "T" or self.incar.params["LHFCALC"] == ".TRUE.") and (self.incar.params["HFSCREEN"] == 0.2 or self.incar.params["HFSCREEN"].split()[0] == "0.2"):
-                # trying to do HSE calculation
-                # acoording to tutorials on VASP Wiki, HSE is included in nscf calc, and is not needed in scf
-                self.incar.params["LHFCALC"] = None
-                self.incar.params["HFSCREEN"] = None
-                incar_scf = self.incar.to_string()
-                kpoints_scf = self.kpoints.to_string()
-                # now we set back the value for HSE so that they can be used in nscf
-                self.incar.params["LHFCALC"] = "T"
-                self.incar.params["HFSCREEN"] = 0.2
-            else:
-                incar_scf = self.incar.to_string()
-                kpoints_scf = self.kpoints.to_string()
+            self.inp[0].set_params({
+                "Calculation Modes/CalculationMode": "gs",
+            })
 
-            # nscf: pdos + bands
-            self.incar.set_params({
-                "ICHARG": 11,
-                "LORBIT": 11,
+
+            # nscf: bands
+            self.inp[1].set_params({
+                "Calculation Modes/CalculationMode": "unocc",
                 })            
-
-            incar_nscf = self.incar.to_string()
-            self.set_kpoints(option="bands", kpath=kpath)
-            kpoints_nscf = self.kpoints.to_string()
 
             # gen llhpc script
             with open(os.path.join(directory, "static.slurm"), 'w') as fout:
@@ -397,68 +381,18 @@ class static_run(octopus):
                 fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
                 fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
                 fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
-                fout.write("cat >POSCAR<<EOF\n")
-                self.poscar.to_poscar(fout)
-                fout.write("EOF\n")
-                fout.write("# scf\n")
-                fout.write("cat > INCAR<<EOF\n")
-                fout.write(incar_scf)
-                fout.write("EOF\n")
-                fout.write("cat >KPOINTS<<EOF\n")
-                #self.kpoints.to_kpoints(fout)
-                fout.write(kpoints_scf)
-                fout.write("EOF\n")
-
-                if self.magnetic_status == "non-collinear":
-                    fout.write("yhrun $PMF_VASP_NCL\n")
-                else:
-                    fout.write("yhrun $PMF_VASP_STD \n")
-                fout.write("cp OUTCAR OUTCAR.scf\n")
-                fout.write("cp vasprun.xml vasprun.xml.scf\n")
-
-                fout.write("# nscf\n")
-                fout.write("cat > INCAR<<EOF\n")
-                #self.incar.to_incar(fout)
-                fout.write(incar_nscf)
-                fout.write("EOF\n")
-                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and float(self.incar.params["HFSCREEN"]) == 0.2:
-                    fout.write("nk=`cat IBZKPT | head -n 2 | tail -n -1`\n")
-                    nkpoint = 0
-                    for i in range(len(kpath)-1):
-                        if kpath[i][4] != "|":
-                            nkpoint += kpath[i][4]
-                    fout.write("nk=`echo \"${nk}+%d\" | bc`\n" % nkpoint)
-                    fout.write("cat >KPOINTS<<EOF\n")
-                    fout.write("Kpoint for HSE band structure\n")
-                    fout.write("${nk}\n")
-                    fout.write("EOF\n")
-                    fout.write("cat IBZKPT | tail -n +3 >> KPOINTS\n")
-                    fout.write("cat >> KPOINTS<<EOF\n")
-                    #for kpoint in kpath:
-                    #    fout.write("%f %f %f 0.0 !%s\n" % (kpoint[0], kpoint[1], kpoint[2], kpoint[3]))
-                    for i in range(len(kpath)-1):
-                        if kpath[i][4] != "|":
-                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i][0], kpath[i][1], kpath[i][2], kpath[i][3]))
-                            for j in range(kpath[i][4]-2):
-                                x = (kpath[i+1][0] - kpath[i][0]) / (kpath[i][4]-1) * (j+1) + kpath[i][0]
-                                y = (kpath[i+1][1] - kpath[i][1]) / (kpath[i][4]-1) * (j+1) + kpath[i][1]
-                                z = (kpath[i+1][2] - kpath[i][2]) / (kpath[i][4]-1) * (j+1) + kpath[i][2]
-                                fout.write("%f %f %f 0.0\n" % (x, y, z))
-                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i+1][0], kpath[i+1][1], kpath[i+1][2], kpath[i+1][3]))
-                        else:
-                            continue
-                    fout.write("EOF\n")
-                else:
-                    fout.write("cat >KPOINTS<<EOF\n")
-                    fout.write(kpoints_nscf)
-                    fout.write("EOF\n")
                 
-                if self.magnetic_status == "non-collinear":
-                    fout.write("yhrun $PMF_VASP_NCL\n")
-                else:
-                    fout.write("yhrun $PMF_VASP_STD \n")
-                fout.write("cp OUTCAR OUTCAR.nscf\n")
-                fout.write('cp vasprun.xml vasprun.xml.nscf\n')
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
+                fout.write("EOF\n")
+                fout.write("yhrun $PMF_OCTOPUS > output.scf\n")
+                
+                fout.write("# nscf\n")
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")                
+                fout.write("yhrun $PMF_OCTOPUS > output.nscf\n")
 
 
             # gen pbs script
@@ -471,141 +405,41 @@ class static_run(octopus):
                 fout.write("\n")
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
-                fout.write("cat >POSCAR<<EOF\n")
-                self.poscar.to_poscar(fout)
-                fout.write("EOF\n")
-                fout.write("# scf\n")
-                fout.write("cat > INCAR<<EOF\n")
-                #self.incar.to_incar(fout)
-                fout.write(incar_scf)
-                fout.write("EOF\n")
-                fout.write("cat > KPOINTS<<EOF\n")
-                #self.kpoints.to_kpoints(fout)
-                fout.write(kpoints_scf)
-                fout.write("EOF\n")
-                if self.magnetic_status == "non-collinear":
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_NCL \n")
-                else:
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
-                fout.write("cp OUTCAR OUTCAR.scf\n")
-                fout.write("cp vasprun.xml vasprun.xml.scf\n")
 
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
+                fout.write("EOF\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_OCTOPUS > output.scf\n")
+                
                 fout.write("# nscf\n")
-                fout.write("cat > INCAR<<EOF\n")
-                #self.incar.to_incar(fout)
-                fout.write(incar_nscf)
-                fout.write("EOF\n")
-                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and float(self.incar.params["HFSCREEN"]) == 0.2:
-                    fout.write("nk=`cat IBZKPT | head -n 2 | tail -n -1`\n")
-                    nkpoint = 0
-                    for i in range(len(kpath)-1):
-                        if kpath[i][4] != "|":
-                            nkpoint += kpath[i][4]
-                    fout.write("nk=`echo \"${nk}+%d\" | bc`\n" % nkpoint)
-                    fout.write("cat >KPOINTS<<EOF\n")
-                    fout.write("Kpoint for HSE band structure\n")
-                    fout.write("${nk}\n")
-                    fout.write("EOF\n")
-                    fout.write("cat IBZKPT | tail -n +3 >> KPOINTS\n")
-                    fout.write("cat >> KPOINTS<<EOF\n")
-                    #for kpoint in kpath:
-                    #    fout.write("%f %f %f 0.0 !%s\n" % (kpoint[0], kpoint[1], kpoint[2], kpoint[3]))
-                    for i in range(len(kpath)-1):
-                        if kpath[i][4] != "|":
-                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i][0], kpath[i][1], kpath[i][2], kpath[i][3]))                            
-                            for j in range(kpath[i][4]-2):
-                                x = (kpath[i+1][0] - kpath[i][0]) / (kpath[i][4]-1) * (j+1) + kpath[i][0]
-                                y = (kpath[i+1][1] - kpath[i][1]) / (kpath[i][4]-1) * (j+1) + kpath[i][1]
-                                z = (kpath[i+1][2] - kpath[i][2]) / (kpath[i][4]-1) * (j+1) + kpath[i][2]
-                                fout.write("%f %f %f 0.0\n" % (x, y, z))
-                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i+1][0], kpath[i+1][1], kpath[i+1][2], kpath[i+1][3]))
-                        else:
-                            continue
-                    fout.write("EOF\n")          
-                else:
-                    fout.write("cat >KPOINTS<<EOF\n")
-                    fout.write(kpoints_nscf)
-                    fout.write("EOF\n")
-
-                if self.magnetic_status == "non-collinear":
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_NCL \n")
-                else:
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
-                fout.write("cp OUTCAR OUTCAR.nscf\n")
-                fout.write("cp vasprun.xml vasprun.xml.nscf\n")
-
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")        
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_OCTOPUS > output.nscf\n")                
+                
 
             # gen local bash script
             with open(os.path.join(directory, "static.sh"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("cat >POSCAR<<EOF\n")
-                self.poscar.to_poscar(fout)
-                fout.write("EOF\n")
-                fout.write("# scf\n")
-                fout.write("cat > INCAR<<EOF\n")
-                #self.incar.to_incar(fout)
-                fout.write(incar_scf)
-                fout.write("EOF\n")
-                fout.write("cat > KPOINTS<<EOF\n")
-                #self.kpoints.to_kpoints(fout)
-                fout.write(kpoints_scf)
-                fout.write("EOF\n")
-                if self.magnetic_status == "non-collinear":
-                    fout.write("%s $PMF_VASP_NCL \n" % self.run_params["mpi"])
-                else:
-                    fout.write("%s $PMF_VASP_STD \n" % self.run_params["mpi"])
-                fout.write("cp OUTCAR OUTCAR.scf\n")
-                fout.write("cp vasprun.xml vasprun.xml.scf\n")
 
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
+                fout.write("EOF\n")
+                fout.write("%s $PMF_OCTOPUS > output.scf\n" % self.run_params["mpi"])
+                
                 fout.write("# nscf\n")
-                fout.write("cat > INCAR<<EOF\n")
-                #self.incar.to_incar(fout)
-                fout.write(incar_nscf)
-                fout.write("EOF\n")
-                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and float(self.incar.params["HFSCREEN"]) == 0.2:
-                    fout.write("nk=`cat IBZKPT | head -n 2 | tail -n -1`\n")
-                    nkpoint = 0
-                    for i in range(len(kpath)-1):
-                        if kpath[i][4] != "|":
-                            nkpoint += kpath[i][4]
-                    fout.write("nk=`echo \"${nk}+%d\" | bc`\n" % nkpoint)
-                    fout.write("cat >KPOINTS<<EOF\n")
-                    fout.write("Kpoint for HSE band structure\n")
-                    fout.write("${nk}\n")
-                    fout.write("EOF\n")
-                    fout.write("cat IBZKPT | tail -n +3 >> KPOINTS\n")
-                    fout.write("cat >> KPOINTS<<EOF\n")
-                    #for kpoint in kpath:
-                    #    fout.write("%f %f %f 0.0 !%s\n" % (kpoint[0], kpoint[1], kpoint[2], kpoint[3]))
-                    for i in range(len(kpath)-1):
-                        if kpath[i][4] != "|":
-                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i][0], kpath[i][1], kpath[i][2], kpath[i][3]))                            
-                            for j in range(kpath[i][4]-2):
-                                x = (kpath[i+1][0] - kpath[i][0]) / (kpath[i][4]-1) * (j+1) + kpath[i][0]
-                                y = (kpath[i+1][1] - kpath[i][1]) / (kpath[i][4]-1) * (j+1) + kpath[i][1]
-                                z = (kpath[i+1][2] - kpath[i][2]) / (kpath[i][4]-1) * (j+1) + kpath[i][2]
-                                fout.write("%f %f %f 0.0\n" % (x, y, z))
-                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i+1][0], kpath[i+1][1], kpath[i+1][2], kpath[i+1][3]))
-                        else:
-                            continue
-                    fout.write("EOF\n")        
-                else:
-                    fout.write("cat >KPOINTS<<EOF\n")
-                    fout.write(kpoints_nscf)
-                    fout.write("EOF\n")
-
-                if self.magnetic_status == "non-collinear":
-                    fout.write("%s $PMF_VASP_NCL \n" % self.run_params["mpi"])
-                else:
-                    fout.write("%s $PMF_VASP_STD \n" % self.run_params["mpi"])
-                fout.write("cp OUTCAR OUTCAR.nscf\n")
-                fout.write("cp vasprun.xml vasprun.xml.nscf\n")
-
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")        
+                fout.write("%s $PMF_OCTOPUS > output.nscf\n" % self.run_params["mpi"])
+                
 
             # gen lsf_sz script
             with open(os.path.join(directory, "static.lsf_sz"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("APP_NAME=intelY_mid\n")
+                fout.write("APP_NAME=%s\n" % self.run_params["queue"])
                 fout.write("NP=%d\n" % (self.run_params["nodes"] * self.run_params["ppn"]))
                 fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
                 fout.write("RUN=\"RAW\"\n")
@@ -622,67 +456,18 @@ class static_run(octopus):
                 fout.write("done\n")
                 fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\n\' \',\')\n")
 
-                fout.write("cat >POSCAR<<EOF\n")
-                self.poscar.to_poscar(fout)
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
                 fout.write("EOF\n")
-                fout.write("# scf\n")
-                fout.write("cat > INCAR<<EOF\n")
-                #self.incar.to_incar(fout)
-                fout.write(incar_scf)
-                fout.write("EOF\n")
-                fout.write("cat > KPOINTS<<EOF\n")
-                #self.kpoints.to_kpoints(fout)
-                fout.write(kpoints_scf)
-                fout.write("EOF\n")
-                if self.magnetic_status == "non-collinear":
-                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_NCL\n")
-                else:
-                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
-                fout.write("cp OUTCAR OUTCAR.scf\n")
-                fout.write("cp vasprun.xml vasprun.xml.scf\n")
+                fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_OCTOPUS > output.scf\n")
+                
                 fout.write("# nscf\n")
-                fout.write("cat > INCAR<<EOF\n")
-                #self.incar.to_incar(fout)
-                fout.write(incar_nscf)
-                fout.write("EOF\n")
-                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and float(self.incar.params["HFSCREEN"]) == 0.2:
-                    fout.write("nk=`cat IBZKPT | head -n 2 | tail -n -1`\n")
-                    nkpoint = 0
-                    for i in range(len(kpath)-1):
-                        if kpath[i][4] != "|":
-                            nkpoint += kpath[i][4]
-                    fout.write("nk=`echo \"${nk}+%d\" | bc`\n" % nkpoint)
-                    fout.write("cat >KPOINTS<<EOF\n")
-                    fout.write("Kpoint for HSE band structure\n")
-                    fout.write("${nk}\n")
-                    fout.write("EOF\n")
-                    fout.write("cat IBZKPT | tail -n +3 >> KPOINTS\n")
-                    fout.write("cat >> KPOINTS<<EOF\n")
-                    #for kpoint in kpath:
-                    #    fout.write("%f %f %f 0.0 !%s\n" % (kpoint[0], kpoint[1], kpoint[2], kpoint[3]))
-                    for i in range(len(kpath)-1):
-                        if kpath[i][4] != "|":
-                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i][0], kpath[i][1], kpath[i][2], kpath[i][3]))                            
-                            for j in range(kpath[i][4]-2):
-                                x = (kpath[i+1][0] - kpath[i][0]) / (kpath[i][4]-1) * (j+1) + kpath[i][0]
-                                y = (kpath[i+1][1] - kpath[i][1]) / (kpath[i][4]-1) * (j+1) + kpath[i][1]
-                                z = (kpath[i+1][2] - kpath[i][2]) / (kpath[i][4]-1) * (j+1) + kpath[i][2]
-                                fout.write("%f %f %f 0.0\n" % (x, y, z))
-                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i+1][0], kpath[i+1][1], kpath[i+1][2], kpath[i+1][3]))
-                        else:
-                            continue
-                    fout.write("EOF\n")           
-                else:
-                    fout.write("cat >KPOINTS<<EOF\n")
-                    fout.write(kpoints_nscf)
-                    fout.write("EOF\n")
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")        
+                fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_OCTOPUS > output.nscf\n")
 
-                if self.magnetic_status == "non-collinear":
-                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_NCL\n")
-                else:
-                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
-                fout.write("cp OUTCAR OUTCAR.nscf\n")
-                fout.write("cp vasprun.xml vasprun.xml.nscf\n")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -691,7 +476,148 @@ class static_run(octopus):
         server_handle(auto=auto, directory=directory, jobfilebase="static", server=self.run_params["server"])
 
 
-    def optics(self, directory="tmp-vasp-static", runopt="gen", auto=0):
+    def dos(self, directory="tmp-octopus-static", runopt="gen", auto=0):
+        """
+        directory: a place for all the generated files
+
+        runopt:
+            gen    -> generate a new calculation but do not run
+            run    -> run a calculation on the previously generated files
+            genrun -> generate a calculation and run it
+        Note: scf nscf(dos) in a single run
+        """
+        """
+        directory: a place for all the generated files
+        runopt:
+            gen    -> generate a new calculation but do not run
+            run    -> run a calculation on the previously generated files
+            genrun -> generate a calculation and run it
+        Note: scf nscf(bands) in a single run
+        """
+        if runopt == "gen" or runopt == "genrun":
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
+            #shutil.copyfile("POTCAR", os.path.join(directory, "POTCAR"))
+            os.system("cp %s %s/" % (self.inp[0].system.xyz.file, directory))
+
+            # scf
+            self.inp[0].set_params({
+                "Calculation Modes/CalculationMode": "gs",
+            })
+
+
+            # nscf: bands
+            self.inp[1].set_params({
+                "Calculation Modes/CalculationMode": "unocc",
+                })            
+            
+
+            # gen llhpc script
+            with open(os.path.join(directory, "static.slurm"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
+                fout.write("EOF\n")
+                fout.write("yhrun $PMF_OCTOPUS > output.scf\n")
+                
+                fout.write("# nscf\n")
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")                
+                fout.write("yhrun $PMF_OCTOPUS \n")
+
+
+            # gen pbs script
+            with open(os.path.join(directory, "static.pbs"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+                if "queue" in self.run_params and self.run_params["queue"] != None:
+                    fout.write("#PBS -q %s\n" %self.run_params["queue"])                
+                fout.write("\n")
+                fout.write("cd $PBS_O_WORKDIR\n")
+                fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
+                fout.write("EOF\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_OCTOPUS > output.scf\n")
+                
+                fout.write("# nscf\n")
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")        
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_OCTOPUS > output.nscf\n")                
+                
+
+            # gen local bash script
+            with open(os.path.join(directory, "static.sh"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
+                fout.write("EOF\n")
+                fout.write("%s $PMF_OCTOPUS > output.scf\n" % self.run_params["mpi"])
+                
+                fout.write("# nscf\n")
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")        
+                fout.write("%s $PMF_OCTOPUS > output.nscf\n" % self.run_params["mpi"])
+                
+
+            # gen lsf_sz script
+            with open(os.path.join(directory, "static.lsf_sz"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("APP_NAME=%s\n" % self.run_params["queue"])
+                fout.write("NP=%d\n" % (self.run_params["nodes"] * self.run_params["ppn"]))
+                fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
+                fout.write("RUN=\"RAW\"\n")
+                fout.write("CURDIR=$PWD\n")
+                fout.write("#VASP=/home-yg/Soft/Vasp5.4/vasp_std\n")
+                fout.write("source /home-yg/env/intel-12.1.sh\n")
+                fout.write("source /home-yg/env/openmpi-1.6.5-intel.sh\n")
+                fout.write("cd $CURDIR\n")
+                fout.write("# starting creating ./nodelist\n")
+                fout.write("rm -rf $CURDIR/nodelist >& /dev/null\n")
+                fout.write("for i in `echo $LSB_HOSTS`\n")
+                fout.write("do\n")
+                fout.write("  echo \"$i\" >> $CURDIR/nodelist \n")
+                fout.write("done\n")
+                fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\n\' \',\')\n")
+
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
+                fout.write("EOF\n")
+                fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_OCTOPUS > output.scf\n")
+                
+                fout.write("# nscf\n")
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")        
+                fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_OCTOPUS > output.nscf\n")
+
+
+        if runopt == "run" or runopt == "genrun":
+            os.chdir(directory)
+            os.system("bash static.sh")
+            os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="static", server=self.run_params["server"])
+
+
+    def optics(self, directory="tmp-octopus-static", runopt="gen", auto=0):
         """
         directory: a place for all the generated files
 
@@ -701,54 +627,34 @@ class static_run(octopus):
             genrun -> generate a calculation and run it
         Note: scf nscf(pdos, bands) in a single run
         """
+        """
+        directory: a place for all the generated files
+        runopt:
+            gen    -> generate a new calculation but do not run
+            run    -> run a calculation on the previously generated files
+            genrun -> generate a calculation and run it
+        Note: scf nscf(bands) in a single run
+        """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
-            shutil.copyfile("POTCAR", os.path.join(directory, "POTCAR"))
-            os.system("cp %s %s/" % (self.poscar.xyz.file, directory))
+            #shutil.copyfile("POTCAR", os.path.join(directory, "POTCAR"))
+            os.system("cp %s %s/" % (self.inp[0].system.xyz.file, directory))
 
-            self.incar.set_params({
-                "IBRION": -1,
-            })
             # scf
-            """
-            if (self.incar.params["LHFCALC"] == "T" or self.incar.params["LHFCALC"] == ".TRUE.") and (self.incar.params["HFSCREEN"] == 0.2 or self.incar.params["HFSCREEN"].split()[0] == "0.2"):
-                # trying to do HSE calculation
-                # acoording to tutorials on VASP Wiki, HSE is included in nscf calc, and is not needed in scf
-                self.incar.params["LHFCALC"] = None
-                self.incar.params["HFSCREEN"] = None
-                incar_scf = self.incar.to_string()
-                kpoints_scf = self.kpoints.to_string()
-                # now we set back the value for HSE so that they can be used in nscf
-                self.incar.params["LHFCALC"] = "T"
-                self.incar.params["HFSCREEN"] = 0.2
-            else:
-                incar_scf = self.incar.to_string()
-                kpoints_scf = self.kpoints.to_string()
-            """
-            optics_params = {}
-            if "LOPTICS" in self.incar.params:
-                optics_params["LOPTICS"] = self.incar.params["LOPTICS"]
-                self.incar.params["LOPTICS"] = None
-            if "CSHIFT" in self.incar.params:
-                optics_params["CSHIFT"] = self.incar.params["CSHIFT"]
-                self.incar.params["CSHIFT"] = None
-            if "NEDOS" in self.incar.params:
-                optics_params["NEDOS"] = self.incar.params["NEDOS"]
-                self.incar.params["NEDOS"] = None
-            incar_scf = self.incar.to_string()
-            kpoints_scf = self.kpoints.to_string()
-            # nscf: LOPTICS
-            self.incar.set_params(optics_params)
-            #self.incar.set_params({
-            #    "ICHARG": 11,
-            #})
-            incar_nscf = self.incar.to_string()
-            kpoints_nscf = self.kpoints.to_string()
+            self.inp[0].set_params({
+                "Calculation Modes/CalculationMode": "gs",
+            })
+
+
+            # nscf: bands
+            self.inp[1].set_params({
+                "Calculation Modes/CalculationMode": "unocc",
+                })            
 
             # gen llhpc script
-            with open(os.path.join(directory, "static-optics.slurm"), 'w') as fout:
+            with open(os.path.join(directory, "static.slurm"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
                 fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
@@ -756,44 +662,22 @@ class static_run(octopus):
                 fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
                 fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
                 fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
-                fout.write("cat >POSCAR<<EOF\n")
-                self.poscar.to_poscar(fout)
-                fout.write("EOF\n")
-                fout.write("# scf\n")
-                fout.write("cat > INCAR<<EOF\n")
-                fout.write(incar_scf)
-                fout.write("EOF\n")
-                fout.write("cat >KPOINTS<<EOF\n")
-                #self.kpoints.to_kpoints(fout)
-                fout.write(kpoints_scf)
-                fout.write("EOF\n")
-
-                if self.magnetic_status == "non-collinear":
-                    fout.write("yhrun $PMF_VASP_NCL\n")
-                else:
-                    fout.write("yhrun $PMF_VASP_STD \n")
-                fout.write("cp OUTCAR OUTCAR.scf\n")
-                fout.write("cp vasprun.xml vasprun.xml.scf\n")
-
-                fout.write("# nscf\n")
-                fout.write("cat > INCAR<<EOF\n")
-                #self.incar.to_incar(fout)
-                fout.write(incar_nscf)
-                fout.write("EOF\n")
-                fout.write("cat >KPOINTS<<EOF\n")
-                fout.write(kpoints_nscf)
-                fout.write("EOF\n")
                 
-                if self.magnetic_status == "non-collinear":
-                    fout.write("yhrun $PMF_VASP_NCL\n")
-                else:
-                    fout.write("yhrun $PMF_VASP_STD \n")
-                fout.write("cp OUTCAR OUTCAR.nscf\n")
-                fout.write('cp vasprun.xml vasprun.xml.nscf\n')
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
+                fout.write("EOF\n")
+                fout.write("yhrun $PMF_OCTOPUS > output.scf\n")
+                
+                fout.write("# nscf\n")
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")                
+                fout.write("yhrun $PMF_OCTOPUS > output.nscf\n")
 
 
             # gen pbs script
-            with open(os.path.join(directory, "static-optics.pbs"), 'w') as fout:
+            with open(os.path.join(directory, "static.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 fout.write("#PBS -N %s\n" % self.run_params["jobname"])
                 fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
@@ -802,87 +686,41 @@ class static_run(octopus):
                 fout.write("\n")
                 fout.write("cd $PBS_O_WORKDIR\n")
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
-                fout.write("cat >POSCAR<<EOF\n")
-                self.poscar.to_poscar(fout)
-                fout.write("EOF\n")
-                fout.write("# scf\n")
-                fout.write("cat > INCAR<<EOF\n")
-                #self.incar.to_incar(fout)
-                fout.write(incar_scf)
-                fout.write("EOF\n")
-                fout.write("cat > KPOINTS<<EOF\n")
-                #self.kpoints.to_kpoints(fout)
-                fout.write(kpoints_scf)
-                fout.write("EOF\n")
-                if self.magnetic_status == "non-collinear":
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_NCL \n")
-                else:
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
-                fout.write("cp OUTCAR OUTCAR.scf\n")
-                fout.write("cp vasprun.xml vasprun.xml.scf\n")
 
-                fout.write("# nscf\n")
-                fout.write("cat > INCAR<<EOF\n")
-                #self.incar.to_incar(fout)
-                fout.write(incar_nscf)
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
                 fout.write("EOF\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_OCTOPUS > output.scf\n")
                 
-                fout.write("cat >KPOINTS<<EOF\n")
-                fout.write(kpoints_nscf)
-                fout.write("EOF\n")
-
-                if self.magnetic_status == "non-collinear":
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_NCL \n")
-                else:
-                    fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
-                fout.write("cp OUTCAR OUTCAR.nscf\n")
-                fout.write("cp vasprun.xml vasprun.xml.nscf\n")
-
+                fout.write("# nscf\n")
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")        
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_OCTOPUS > output.nscf\n")                
+                
 
             # gen local bash script
-            with open(os.path.join(directory, "static-optics.sh"), 'w') as fout:
+            with open(os.path.join(directory, "static.sh"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("cat >POSCAR<<EOF\n")
-                self.poscar.to_poscar(fout)
-                fout.write("EOF\n")
-                fout.write("# scf\n")
-                fout.write("cat > INCAR<<EOF\n")
-                #self.incar.to_incar(fout)
-                fout.write(incar_scf)
-                fout.write("EOF\n")
-                fout.write("cat > KPOINTS<<EOF\n")
-                #self.kpoints.to_kpoints(fout)
-                fout.write(kpoints_scf)
-                fout.write("EOF\n")
-                if self.magnetic_status == "non-collinear":
-                    fout.write("%s $PMF_VASP_NCL \n" % self.run_params["mpi"])
-                else:
-                    fout.write("%s $PMF_VASP_STD \n" % self.run_params["mpi"])
-                fout.write("cp OUTCAR OUTCAR.scf\n")
-                fout.write("cp vasprun.xml vasprun.xml.scf\n")
 
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
+                fout.write("EOF\n")
+                fout.write("%s $PMF_OCTOPUS > output.scf\n" % self.run_params["mpi"])
+                
                 fout.write("# nscf\n")
-                fout.write("cat > INCAR<<EOF\n")
-                #self.incar.to_incar(fout)
-                fout.write(incar_nscf)
-                fout.write("EOF\n")
-
-                fout.write("cat >KPOINTS<<EOF\n")
-                fout.write(kpoints_nscf)
-                fout.write("EOF\n")
-
-                if self.magnetic_status == "non-collinear":
-                    fout.write("%s $PMF_VASP_NCL \n" % self.run_params["mpi"])
-                else:
-                    fout.write("%s $PMF_VASP_STD \n" % self.run_params["mpi"])
-                fout.write("cp OUTCAR OUTCAR.nscf\n")
-                fout.write("cp vasprun.xml vasprun.xml.nscf\n")
-
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")        
+                fout.write("%s $PMF_OCTOPUS > output.nscf\n" % self.run_params["mpi"])
+                
 
             # gen lsf_sz script
-            with open(os.path.join(directory, "static-optics.lsf_sz"), 'w') as fout:
+            with open(os.path.join(directory, "static.lsf_sz"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
-                fout.write("APP_NAME=intelY_mid\n")
+                fout.write("APP_NAME=%s\n" % self.run_params["queue"])
                 fout.write("NP=%d\n" % (self.run_params["nodes"] * self.run_params["ppn"]))
                 fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
                 fout.write("RUN=\"RAW\"\n")
@@ -899,43 +737,317 @@ class static_run(octopus):
                 fout.write("done\n")
                 fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\n\' \',\')\n")
 
-                fout.write("cat >POSCAR<<EOF\n")
-                self.poscar.to_poscar(fout)
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
                 fout.write("EOF\n")
-                fout.write("# scf\n")
-                fout.write("cat > INCAR<<EOF\n")
-                #self.incar.to_incar(fout)
-                fout.write(incar_scf)
-                fout.write("EOF\n")
-                fout.write("cat > KPOINTS<<EOF\n")
-                #self.kpoints.to_kpoints(fout)
-                fout.write(kpoints_scf)
-                fout.write("EOF\n")
-                if self.magnetic_status == "non-collinear":
-                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_NCL\n")
-                else:
-                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
-                fout.write("cp OUTCAR OUTCAR.scf\n")
-                fout.write("cp vasprun.xml vasprun.xml.scf\n")
+                fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_OCTOPUS > outpu.scf\n")
+                
                 fout.write("# nscf\n")
-                fout.write("cat > INCAR<<EOF\n")
-                #self.incar.to_incar(fout)
-                fout.write(incar_nscf)
-                fout.write("EOF\n")
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")        
+                fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_OCTOPUS > output.nscf\n")
 
-                fout.write("cat >KPOINTS<<EOF\n")
-                fout.write(kpoints_nscf)
-                fout.write("EOF\n")
-
-                if self.magnetic_status == "non-collinear":
-                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_NCL\n")
-                else:
-                    fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
-                fout.write("cp OUTCAR OUTCAR.nscf\n")
-                fout.write("cp vasprun.xml vasprun.xml.nscf\n")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            os.system("bash static-optics.sh")
+            os.system("bash static.sh")
             os.chdir("../")
-        server_handle(auto=auto, directory=directory, jobfilebase="static-optics", server=self.run_params["server"])
+        server_handle(auto=auto, directory=directory, jobfilebase="static", server=self.run_params["server"])
+
+
+    def bse(self, directory="tmp-octopus-static", runopt="gen", auto=0, bse_level=0, algo_gw="EVGW"):
+        """
+        directory: a place for all the generated files
+
+        runopt:
+            gen    -> generate a new calculation but do not run
+            run    -> run a calculation on the previously generated files
+            genrun -> generate a calculation and run it
+        bse_level:    
+            0 -> bse on standard DFT
+            1 -> bse on hybrid functional 
+            2 -> bse on GW            
+        Note:
+        Reference:
+            https://www.vasp.at/wiki/index.php/Practical_guide_to_GW_calculations
+            https://www.vasp.at/wiki/index.php/BSE_calculations
+            https://www.vasp.at/wiki/index.php/Dielectric_properties_of_Si_using_BSE
+            https://www.vasp.at/wiki/index.php/Plotting_the_BSE_fatband_structure_of_Si
+            https://www.vasp.at/wiki/index.php/Bandgap_of_Si_in_GW
+            https://www.vasp.at/wiki/index.php/Bandstructure_of_Si_in_GW_(VASP2WANNIER90)
+            https://www.vasp.at/wiki/index.php/Bandstructure_of_SrVO3_in_GW
+            https://www.vasp.at/wiki/index.php/Improving_the_dielectric_function
+        """
+        """
+        directory: a place for all the generated files
+        runopt:
+            gen    -> generate a new calculation but do not run
+            run    -> run a calculation on the previously generated files
+            genrun -> generate a calculation and run it
+        Note: scf nscf(bands) in a single run
+        """
+        if runopt == "gen" or runopt == "genrun":
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
+            #shutil.copyfile("POTCAR", os.path.join(directory, "POTCAR"))
+            os.system("cp %s %s/" % (self.inp[0].system.xyz.file, directory))
+
+            # scf
+            self.inp[0].set_params({
+                "Calculation Modes/CalculationMode": "gs",
+            })
+
+
+            # nscf: bands
+            self.inp[1].set_params({
+                "Calculation Modes/CalculationMode": "unocc",
+                })            
+
+            # gen llhpc script
+            with open(os.path.join(directory, "static.slurm"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
+                fout.write("EOF\n")
+                fout.write("yhrun $PMF_OCTOPUS > output.scf\n")
+                
+                fout.write("# nscf\n")
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")                
+                fout.write("yhrun $PMF_OCTOPUS > output.nscf\n")
+
+
+            # gen pbs script
+            with open(os.path.join(directory, "static.pbs"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+                if "queue" in self.run_params and self.run_params["queue"] != None:
+                    fout.write("#PBS -q %s\n" %self.run_params["queue"])                
+                fout.write("\n")
+                fout.write("cd $PBS_O_WORKDIR\n")
+                fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
+                fout.write("EOF\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_OCTOPUS > output.scf\n")
+                
+                fout.write("# nscf\n")
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")        
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_OCTOPUS > output.nscf\n")                
+                
+
+            # gen local bash script
+            with open(os.path.join(directory, "static.sh"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
+                fout.write("EOF\n")
+                fout.write("%s $PMF_OCTOPUS > output.scf\n" % self.run_params["mpi"])
+                
+                fout.write("# nscf\n")
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")        
+                fout.write("%s $PMF_OCTOPUS > output.nscf\n" % self.run_params["mpi"])
+                
+
+            # gen lsf_sz script
+            with open(os.path.join(directory, "static.lsf_sz"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("APP_NAME=%s\n" % self.run_params["queue"])
+                fout.write("NP=%d\n" % (self.run_params["nodes"] * self.run_params["ppn"]))
+                fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
+                fout.write("RUN=\"RAW\"\n")
+                fout.write("CURDIR=$PWD\n")
+                fout.write("#VASP=/home-yg/Soft/Vasp5.4/vasp_std\n")
+                fout.write("source /home-yg/env/intel-12.1.sh\n")
+                fout.write("source /home-yg/env/openmpi-1.6.5-intel.sh\n")
+                fout.write("cd $CURDIR\n")
+                fout.write("# starting creating ./nodelist\n")
+                fout.write("rm -rf $CURDIR/nodelist >& /dev/null\n")
+                fout.write("for i in `echo $LSB_HOSTS`\n")
+                fout.write("do\n")
+                fout.write("  echo \"$i\" >> $CURDIR/nodelist \n")
+                fout.write("done\n")
+                fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\n\' \',\')\n")
+
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
+                fout.write("EOF\n")
+                fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_OCTOPUS > output.scf\n")
+                
+                fout.write("# nscf\n")
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")        
+                fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_OCTOPUS > output.nscf\n")
+
+
+        if runopt == "run" or runopt == "genrun":
+            os.chdir(directory)
+            os.system("bash static.sh")
+            os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="static", server=self.run_params["server"])
+
+
+    def stm(self, directory="tmp-octopus-static", runopt="gen", auto=0, hse_in_scf=True):
+        """
+        directory: a place for all the generated files
+
+        hse_in_scf:
+            if HSE is used, choose whether to use HSE in both scf and nscf or only in nscf.
+            if HSE is not used, hse_in_scf will do nothing
+        runopt:
+            gen    -> generate a new calculation but do not run
+            run    -> run a calculation on the previously generated files
+            genrun -> generate a calculation and run it
+        Note: scf stm in a single run
+        """
+        """
+        directory: a place for all the generated files
+        runopt:
+            gen    -> generate a new calculation but do not run
+            run    -> run a calculation on the previously generated files
+            genrun -> generate a calculation and run it
+        Note: scf nscf(bands) in a single run
+        """
+        if runopt == "gen" or runopt == "genrun":
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
+            #shutil.copyfile("POTCAR", os.path.join(directory, "POTCAR"))
+            os.system("cp %s %s/" % (self.inp[0].system.xyz.file, directory))
+
+            # scf
+            self.inp[0].set_params({
+                "Calculation Modes/CalculationMode": "gs",
+            })
+
+
+            # nscf: bands
+            self.inp[1].set_params({
+                "Calculation Modes/CalculationMode": "unocc",
+                })            
+
+            # gen llhpc script
+            with open(os.path.join(directory, "static.slurm"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
+                fout.write("EOF\n")
+                fout.write("yhrun $PMF_OCTOPUS > output.scf\n")
+                
+                fout.write("# nscf\n")
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")                
+                fout.write("yhrun $PMF_OCTOPUS > output.nscf\n")
+
+
+            # gen pbs script
+            with open(os.path.join(directory, "static.pbs"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#PBS -N %s\n" % self.run_params["jobname"])
+                fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
+                if "queue" in self.run_params and self.run_params["queue"] != None:
+                    fout.write("#PBS -q %s\n" %self.run_params["queue"])                
+                fout.write("\n")
+                fout.write("cd $PBS_O_WORKDIR\n")
+                fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
+
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
+                fout.write("EOF\n")
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_OCTOPUS > output.scf\n")
+                
+                fout.write("# nscf\n")
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")        
+                fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_OCTOPUS > output.nscf\n")                
+                
+
+            # gen local bash script
+            with open(os.path.join(directory, "static.sh"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
+                fout.write("EOF\n")
+                fout.write("%s $PMF_OCTOPUS > output.scf\n" % self.run_params["mpi"])
+                
+                fout.write("# nscf\n")
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")        
+                fout.write("%s $PMF_OCTOPUS > output.nscf\n" % self.run_params["mpi"])
+                
+
+            # gen lsf_sz script
+            with open(os.path.join(directory, "static.lsf_sz"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("APP_NAME=%s\n" % self.run_params["queue"])
+                fout.write("NP=%d\n" % (self.run_params["nodes"] * self.run_params["ppn"]))
+                fout.write("NP_PER_NODE=%d\n" % self.run_params["ppn"])
+                fout.write("RUN=\"RAW\"\n")
+                fout.write("CURDIR=$PWD\n")
+                fout.write("#VASP=/home-yg/Soft/Vasp5.4/vasp_std\n")
+                fout.write("source /home-yg/env/intel-12.1.sh\n")
+                fout.write("source /home-yg/env/openmpi-1.6.5-intel.sh\n")
+                fout.write("cd $CURDIR\n")
+                fout.write("# starting creating ./nodelist\n")
+                fout.write("rm -rf $CURDIR/nodelist >& /dev/null\n")
+                fout.write("for i in `echo $LSB_HOSTS`\n")
+                fout.write("do\n")
+                fout.write("  echo \"$i\" >> $CURDIR/nodelist \n")
+                fout.write("done\n")
+                fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\n\' \',\')\n")
+
+                fout.write("#scf\n")
+                fout.write("cat >inp<<EOF\n")
+                fout.write(self.inp[0].to_string())
+                fout.write("EOF\n")
+                fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_OCTOPUS > output.scf\n")
+                
+                fout.write("# nscf\n")
+                fout.write("cat > inp<<EOF\n")
+                fout.write(self.inp[1].to_string())
+                fout.write("EOF\n")        
+                fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_OCTOPUS > output.nscf\n")
+
+
+        if runopt == "run" or runopt == "genrun":
+            os.chdir(directory)
+            os.system("bash static.sh")
+            os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="static", server=self.run_params["server"])

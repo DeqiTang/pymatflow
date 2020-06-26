@@ -10,6 +10,8 @@ class curvilinear:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue    
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -18,6 +20,8 @@ class curvilinear:
         """
         """
         for item in params:
+            if self.params[item] == None:
+                pass        
             if len(item.split("/")) == 3:
                 self.params[item.split("/")[-1]] = params[item]
                 continue        
@@ -32,6 +36,8 @@ class derivatives:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue        
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -55,6 +61,8 @@ class ffts:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue     
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -90,14 +98,16 @@ class kpoints:
                 kpath = self.params[item]
                 out += "%KPointsPath\n"
                 out += "  %d" % kpath[0][4]
-                for i in range(1, len(kpath)):
+                for i in range(1, len(kpath)-1):
                     if kpath[i][4] == "|":
                         out += " | %d" % (0)
                     else:
                         out += " | %d" % (kpath[i][4])
+                out += "\n"
                 for point in kpath:
                     out += "%f | %f | %f #%s\n" % (point[0], point[1], point[2], point[3])
                 out += "%\n"
+                out += "\n"
             else:
                 out += "%s = %s\n" % (item, self.params[item])
                 out += "\n"
@@ -122,6 +132,8 @@ class simulation_box:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue       
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out        
@@ -152,8 +164,21 @@ class mesh:
     def to_string(self):
         out  = ""
         for item in self.params:
-            out += "%s = %s\n" % (item, self.params[item])
-            out += "\n"
+            if self.params[item] == None:
+                continue
+            if item == "Spacing":
+                out += "%Spacing\n"
+                out += " %s | %s | %s\n" % (self.params[item][0], self.params[item][1], self.params[item][2])
+                out += "%\n"
+                out += "\n"
+            else:
+                out += "%s = %s\n" % (item, self.params[item])
+                out += "\n"
+        out += self.curvilinear.to_string()
+        out += self.derivatives.to_string()
+        out += self.ffts.to_string()
+        out += self.kpoints.to_string()
+        out += self.simulation_box.to_string()
         return out
 
     def write_kpoints(self, fout):
@@ -161,19 +186,19 @@ class mesh:
         :param fout: a file stream for writing
         """
         if self.kpoints_option == "mp":
-            fout.write("\%KPointsGrid\n")
+            fout.write("%KPointsGrid\n")
             fout.write("%d | %d | %d\n" % (
                 self.kpoints_mp[0],
                 self.kpoints_mp[1],
                 self.kpoints_mp[2],
                 ))
-            fout.write("\%\n")                
+            fout.write("%\n")                
         elif self.kpoints_option == "kpath":
             # there is a trick:
             # when self.kpath[i][4] == "|"
             # we set the number of k point to connect to the next high symmetry kpoint to 0
             # this is very fantastic !!!
-            fout.write("\%KPointsPath\n")
+            fout.write("%KPointsPath\n")
             for i in range(len(self.kpath)-2):
                 if self.kpath[i][4] == "|":
                     fout.write("0 | ")
@@ -185,7 +210,7 @@ class mesh:
                 fout.write("%f | %f | %f #%s\n" % sefl.kpath[i][3])
             #
             #fout.write("KPointsUseSymmetries = no\n")
-            fout.write("\%\n")      
+            fout.write("%\n")      
 
     def set_kpoints(self, kpoints_mp=[1, 1, 1, 0, 0, 0], option="mp", kpath=None):
         """

@@ -31,7 +31,7 @@ class inp:
         self.utilities = utilities()
 
     def to_inp(self, fout):
-        fout.write(self.calculation_mode.to_string())
+        fout.write(self.calculation_modes.to_string())
         fout.write(self.execution.to_string())
         fout.write(self.hamiltonian.to_string())
         fout.write(self.linear_response.to_string())
@@ -46,7 +46,7 @@ class inp:
 
     def to_string(self):
         out = ""
-        out += self.calculation_mode.to_string()
+        out += self.calculation_modes.to_string()
         out += self.execution.to_string()
         out += self.hamiltonian.to_string()
         out += self.linear_response.to_string()
@@ -58,6 +58,7 @@ class inp:
         out += self.system.to_string()
         out += self.time_dependent.to_string()
         out += self.utilities.to_string()
+        return out
 
     def set_runtype(self, runtype="static"):
         """

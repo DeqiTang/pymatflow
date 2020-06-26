@@ -8,6 +8,8 @@ class dft_u:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue         
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -29,6 +31,8 @@ class pcm:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue        
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -50,6 +54,8 @@ class poisson:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue      
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -71,6 +77,8 @@ class xc:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue      
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -98,8 +106,14 @@ class hamiltonian:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue       
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
+        out += self.dft_u.to_string()
+        out += self.pcm.to_string()
+        out += self.poisson.to_string()
+        out += self.xc.to_string()
         return out
         
     def set_params(self, params):

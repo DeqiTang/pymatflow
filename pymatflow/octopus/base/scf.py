@@ -8,6 +8,8 @@ class convergence:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue       
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -29,6 +31,8 @@ class eigensolver:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue       
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -50,6 +54,8 @@ class lcao:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue     
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -71,6 +77,8 @@ class mixing:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue        
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -92,6 +100,8 @@ class rdmft:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue       
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -119,8 +129,15 @@ class scf:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue        
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
+        out += self.convergence.to_string()
+        out += self.eigensolver.to_string()
+        out += self.lcao.to_string()
+        out += self.mixing.to_string()
+        out += self.rdmft.to_string()
         return out
         
     def set_params(self, params):

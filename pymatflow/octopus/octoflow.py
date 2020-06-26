@@ -196,7 +196,7 @@ def main():
     gp = parser.add_argument_group(title="Mesh",
             description="Mesh related parameters")
 
-    gp.add_argument("--spacing", type=float, default=None,
+    gp.add_argument("--spacing", type=float, nargs="+", default=None,
             help="The spacing between the points in the mesh. This controls the quality of the discretization: smaller spacing gives more precise results but increased computational cost.")
 
     # Output
@@ -222,6 +222,9 @@ def main():
     gp = parser.add_argument_group(title="States",
             description="States related parameters")
 
+    gp.add_argument("--extrastates", type=int, default=None,
+            help="The number of states is in principle calculated considering the minimum numbers of states necessary to hold the electrons present in the system.")
+
     gp.add_argument("--smearing", type=float, default=None,
             help="If Occupations is not set, Smearing is the smearing width used in the SmearingFunction to distribute the electrons among the existing states.")
             
@@ -229,6 +232,10 @@ def main():
             choices=["semiconducting", "fermi_dirac", "cold_smearing", "methfessel_paxton", "spline_smearing"],
             help="This is the function used to smear the electronic occupations. It is ignored if the Occupations block is set.")
 
+    gp.add_argument("--spincomponents", type=str, default=None,
+            choices=["unpolarized", "spin_polarized", "spinors"]
+            help="The calculations may be done in three different ways: spin-restricted (TD)DFT (i.e., doubly occupied \"closed shells\"), spin-unrestricted or \"spin-polarized\" (TD)DFT")
+    
     # System
     gp = parser.add_argument_group(title="System",
             description="System related parameters")
@@ -236,6 +243,9 @@ def main():
     gp.add_argument("--dimensions", type=int, default=None,
             choices=[0, 1, 2, 3],
             help="Octopus can run in 1, 2 or 3 dimensions, depending on the value of this variable (or more, if configured with --with-max-dim=4 or higher). ")
+
+    gp.add_argument("--periodicdimensions", type=int, default=None,
+            help="Define how many directions are to be considered periodic. It has to be a number between zero and Dimensions.")
 
     # Time-Dependent
     gp = parser.add_argument_group(title="Time-Dependent",
@@ -438,9 +448,12 @@ def main():
     params["Mesh/Spacing"] = args.spacing
     params["Output/OutputFormat"] = args.outputformat
     params["SCF/SCFCalculateDipole"] = args.scfcalculatedipole
+    params["States/ExtraStates"] = args.extrastates
     params["States/Smearing"] = args.smearing
     params["States/SmearingFunction"] = args.smearingfunction
+    params["States/SpinComponents"] = args.spincomponents
     params["System/Dimensions"] = args.dimensions
+    params["System/PeriodicDimensions"] = args.periodicdimensions
     params["Time-Dependent/TDFunctions"] = args.tdfunctions
     params["Utilities/Volume"] = args.volume
 
@@ -449,43 +462,58 @@ def main():
         # static
         from pymatflow.octopus.static import static_run
         task = static_run()
-        task.get_xyz(xyzfile)
-        task.set_params(params, runtype="static")
-        task.set_kpoints(kpoints_mp=args.kpoints_mp)
         task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
         task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
         
         if args.static == "scf":
+            task.set_inp_num(2)
+            task.get_xyz(xyzfile)
+            task.set_params(params=params, n="all", runtype="static")
+            task.set_kpoints(n=0, kpoints_mp=args.kpoints_mp)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.static == "band":
-            if args.hse_in_scf.lower() == "true":
-                hse_in_scf = True
-            elif args.hse_in_scf.lower() == "false":
-                hse_in_scf = False
-            task.band(directory=args.directory, runopt=args.runopt, auto=args.auto, kpath=get_kpath(args.kpath_manual, args.kpath_file), hse_in_scf=hse_in_scf)                
+            task.set_inp_num(2)
+            task.get_xyz(xyzfile)
+            task.set_params(params=params, n="all", runtype="static")
+            task.set_kpoints(n=0, kpoints_mp=args.kpoints_mp)        
+            task.set_kpoints(n=1, kpoints_mp=None, kpath=get_kpath(args.kpath_manual, args.kpath_file))
+            task.band(directory=args.directory, runopt=args.runopt, auto=args.auto)                
         elif args.static == "dos":
-            if args.hse_in_scf.lower() == "true":
-                hse_in_scf = True
-            elif args.hse_in_scf.lower() == "false":
-                hse_in_scf = False
+            task.set_inp_num(2)
+            task.get_xyz(xyzfile)
+            task.set_params(params=params, n="all", runtype="static")
+            task.set_kpoints(n=0, kpoints_mp=args.kpoints_mp)                
             if args.kpoints_mp_nscf == None:
                 kpoints_mp_nscf = args.kpoints_mp #[2*k for k in args.kpoints_mp]
             else:
                 kpoints_mp_nscf = args.kpoints_mp_nscf
-            task.dos(directory=args.directory, runopt=args.runopt, auto=args.auto, hse_in_scf=hse_in_scf, kpoints_mp_nscf=kpoints_mp_nscf)
+            task.set_kpoints(kpoints_mp=kpoints_mp_nscf, n=1)
+            task.dos(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.static == "optics":
-            task.set_kpoints(kpoints_mp=args.kpoints_mp)                    
+            task.set_inp_num(2)
+            task.get_xyz(xyzfile)
+            task.set_params(params=params, n="all", runtype="static")
+            task.set_kpoints(n=0, kpoints_mp=args.kpoints_mp)                
+            task.set_kpoints(kpoints_mp=args.kpoints_mp, n="all")                    
             task.optics(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.static == "bse":
-            task.set_kpoints(kpoints_mp=args.kpoints_mp)
+            task.set_inp_num(2)
+            task.get_xyz(xyzfile)
+            task.set_params(params=params, n="all", runtype="static")
+            task.set_kpoints(n=0, kpoints_mp=args.kpoints_mp)               
+            task.set_kpoints(kpoints_mp=args.kpoints_mp, n="all")
             task.bse(directory=args.directory, runopt=args.runopt, auto=args.auto, bse_level=args.bse_level, algo_gw=args.algo_gw)
         elif args.static == "stm":
+            task.set_inp_num(2)
+            task.get_xyz(xyzfile)
+            task.set_params(params=params, n="all", runtype="static")
+            task.set_kpoints(n=0, kpoints_mp=args.kpoints_mp)               
             if args.hse_in_scf.lower() == "true":
                 hse_in_scf = True
             elif args.hse_in_scf.lower() == "false":
                 hse_in_scf = False            
-            task.set_kpoints(kpoints_mp=args.kpoints_mp)
+            task.set_kpoints(kpoints_mp=args.kpoints_mp, n="all")
             task.stm(directory=args.directory, runopt=args.runopt, auto=args.auto, hse_in_scf=hse_in_scf)                
     elif args.runtype == 1:
         # optimization
@@ -500,8 +528,8 @@ def main():
         #            
         task = opt_run()
         task.get_xyz(xyzfile)
-        task.set_params(params=params, runtype="opt")
-        task.set_kpoints(kpoints_mp=args.kpoints_mp)
+        task.set_params(params=params, n="all", runtype="opt")
+        task.set_kpoints(kpoints_mp=args.kpoints_mp, n="all")
         task.poscar.selective_dynamics = True if args.selective_dynamics.upper()[0] == "T" else False
         task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
         task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -517,8 +545,8 @@ def main():
             params["NSW"] = 100
         task = opt_run()
         task.get_xyz(xyzfile)
-        task.set_params(params=params, runtype="opt")
-        task.set_kpoints(kpoints_mp=args.kpoints_mp)
+        task.set_params(params=params, n="all", runtype="opt")
+        task.set_kpoints(kpoints_mp=args.kpoints_mp, n="all")
         task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
         task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
         task.batch_a = args.batch_a
@@ -528,8 +556,8 @@ def main():
         from pymatflow.octopus.opt import opt_run
         task = opt_run()
         task.get_xyz(xyzfile)
-        task.set_params(params=params, runtype="opt")
-        task.set_kpoints(kpoints_mp=args.kpoints_mp)
+        task.set_params(params=params, n="all", runtype="opt")
+        task.set_kpoints(kpoints_mp=args.kpoints_mp, n="all")
         task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
         task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
         task.batch_a = args.batch_a
@@ -540,8 +568,8 @@ def main():
         from pymatflow.octopus.opt import opt_run
         task = opt_run()
         task.get_xyz(xyzfile)
-        task.set_params(params=params, runtype="opt")
-        task.set_kpoints(kpoints_mp=args.kpoints_mp)
+        task.set_params(params=params, n="all", runtype="opt")
+        task.set_kpoints(kpoints_mp=args.kpoints_mp, n="all")
         task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
         task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
         task.batch_a = args.batch_a     
@@ -554,8 +582,8 @@ def main():
         from pymatflow.octopus.neb import neb_run
         task = neb_run()
         task.get_images(images)
-        task.set_params(params=params, runtype="neb")
-        task.set_kpoints(kpoints_mp=args.kpoints_mp)
+        task.set_params(params=params, n="all", runtype="neb")
+        task.set_kpoints(kpoints_mp=args.kpoints_mp, n="all")
         task.nimage = args.nimage
         if args.nebmake == 1 and args.moving_atom == None:
             print("============================================\n")
@@ -578,8 +606,8 @@ def main():
         from pymatflow.octopus.phonon import phonon_run
         task = phonon_run() 
         task.get_xyz(xyzfile)
-        task.set_params(params=params, runtype="phonon")
-        task.set_kpoints(kpoints_mp=args.kpoints_mp)
+        task.set_params(params=params, n="all", runtype="phonon")
+        task.set_kpoints(kpoints_mp=args.kpoints_mp, n="all")
         task.supercell_n = args.supercell_n
         task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
         task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -589,8 +617,8 @@ def main():
         from pymatflow.octopus.phonopy import phonopy_run
         task = phonopy_run()
         task.get_xyz(xyzfile)
-        task.set_params(params=params, runtype="phonopy")
-        task.set_kpoints(kpoints_mp=args.kpoints_mp)
+        task.set_params(params=params, n="all", runtype="phonopy")
+        task.set_kpoints(kpoints_mp=args.kpoints_mp, n="all")
         task.supercell_n = args.supercell_n
         task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
         task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -603,8 +631,8 @@ def main():
         from pymatflow.octopus.opt import opt_run
         task = opt_run()
         task.get_xyz(xyzfile)
-        task.set_params(params=params, runtype="opt")
-        task.set_kpoints(kpoints_mp=args.kpoints_mp)
+        task.set_params(params=params, n="all", runtype="opt")
+        task.set_kpoints(kpoints_mp=args.kpoints_mp, n="all")
         task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
         task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
         task.batch_a = args.batch_a     

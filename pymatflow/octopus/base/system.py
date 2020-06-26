@@ -14,6 +14,80 @@ from pymatflow.base.xyz import base_xyz
 usage:
 """
 
+class coordinates:
+    """
+    """
+    def __init__(self):
+        self.params = {}
+        
+
+    def to_string(self):
+        out  = ""
+        for item in self.params:
+            if self.params[item] == None:
+                continue     
+            out += "%s = %s\n" % (item, self.params[item])
+            out += "\n"
+        return out
+
+    def set_params(self, params):
+        """
+        """
+        for item in params:
+            if len(item.split("/")) == 3:
+                self.params[item.split("/")[-1]] = params[item]
+                continue
+                
+class species:
+    """
+    """
+    def __init__(self):
+        self.params = {}
+        
+
+    def to_string(self):
+        out  = ""
+        for item in self.params:
+            if self.params[item] == None:
+                continue     
+            out += "%s = %s\n" % (item, self.params[item])
+            out += "\n"
+        return out
+
+    def set_params(self, params):
+        """
+        """
+        for item in params:
+            if len(item.split("/")) == 3:
+                self.params[item.split("/")[-1]] = params[item]
+                continue
+                                
+class velocities:
+    """
+    """
+    def __init__(self):
+        self.params = {}
+        
+
+    def to_string(self):
+        out  = ""
+        for item in self.params:
+            if self.params[item] == None:
+                continue     
+            out += "%s = %s\n" % (item, self.params[item])
+            out += "\n"
+        return out
+
+    def set_params(self, params):
+        """
+        """
+        for item in params:
+            if len(item.split("/")) == 3:
+                self.params[item.split("/")[-1]] = params[item]
+                continue
+                                                
+
+
 class octopus_pseudo:
     def __init__(self):
         self.dir = os.path.abspath("./") # default dir to put pseudo files
@@ -33,6 +107,12 @@ class system:
         an abstraction of part of input block for octopus
     """
     def __init__(self):
+        self.params = {}
+        
+        self.coordinates = coordinates()
+        self.species = species()
+        self.velocities = velocities()
+        
         self.xyz = base_xyz()
         #self.pseudo = qe_pseudo()
         
@@ -48,20 +128,26 @@ class system:
         :return out -> the string
         """
         out = ""
+        for item in self.params:
+            if self.params[item] == None:
+                continue
+            else:
+                out += "%s = %s\n" % (item, self.params[item])
+                out += "\n"
         #self.pseudo.to_in(fout=fout, xyz=self.xyz)
         out += "\n"
         cell = self.xyz.cell
-        out += "\%LatticeVectors\n"
+        out += "%LatticeVectors\n"
         for i in range(3):
             out += "%.9f | %.9f | %.9f\n" % (cell[i][0], cell[i][1], cell[i][2])
-        out += "\%\n"
+        out += "%\n"
         out += "\n"
-        out += "\%LatticeParameters\n"
+        out += "%LatticeParameters\n"
         out += "1 | 1 | 1\n"
-        out += "\%\n"
+        out += "%\n"
         out += "\n"
         if coordtype == "angstrom":
-            out += "\%Coordinates\n"
+            out += "%Coordinates\n"
             if self.ifstatic == True:
                 for atom in self.xyz.atoms:
                     out += "\"%s\" | %.9f | %.9f | %.9f\n" % (atom.name, atom.x, atom.y, atom.z)
@@ -90,7 +176,7 @@ class system:
             for i in range(self.xyz.natom):
                 crystal_coord[i] = convmat.dot(np.array([self.xyz.atoms[i].x, self.xyz.atoms[i].y, self.xyz.atoms[i].z]))
             #
-            out += "\%ReducedCoordinates\n"
+            out += "%ReducedCoordinates\n"
             if self.ifstatic == True:
                 for k in range(self.xyz.natom):
                     # minus 0.5 here because  in Octopus the origin of coordinates is in the center of the cell, 
@@ -117,6 +203,7 @@ class system:
                 print("arts.ifstatic could only be True or False\n")
                 sys.exit(1)
             out += "\n"
+            out += "%\n"
         # end reduced
         return out
 
@@ -128,14 +215,15 @@ class system:
         """
         """
         # do not do anything
-        """
         for item in params:
             if len(item.split("/")) == 2:
                 self.params[item.split("/")[-1]] = params[item]
                 continue
             if item.split("/")[1] == "Coordinates":
                 self.coordinates.set_params({item: params[item]})
+            elif item.split("/")[1] == "Species":
+                self.species.set_params({item: params[item]})
+            elif item.split("/")[1] == "Velocities":
+                self.velocities.set_params({item: params[item]})
             else:
                 pass
-        """
-        return

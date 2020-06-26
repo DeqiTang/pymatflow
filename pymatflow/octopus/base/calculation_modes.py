@@ -7,6 +7,8 @@ class geometry_optimization:
     def to_string(self):
         out = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue      
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -30,6 +32,8 @@ class invert_ks:
     def to_string(self):
         out = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue       
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -52,6 +56,8 @@ class optimal_control:
     def to_string(self):
         out = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue       
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -63,6 +69,8 @@ class optimal_control:
         """
         """
         for item in params:
+            if self.params[item] == None:
+                pass        
             if len(item.split("/")) == 3:
                 self.params[item.split("/")[-1]] = params[item]
                 continue
@@ -76,6 +84,8 @@ class unoccupied_states:
     def to_string(self):
         out = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue      
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -101,44 +111,22 @@ class calculation_modes:
         }
         self.geometry_optimization = geometry_optimization()
         self.invert_ks = invert_ks()
-        self.optimal_contorl = optimal_control()
+        self.optimal_control = optimal_control()
         self.unoccupied_states = unoccupied_states()
 
     def to_string(self):
         out  = ""
-        #for item in self.params:
-        #    out += "%s = %s\n" % (item, self.params[item])
-        #    out += "\n"
-        #return out
-        if self.params["CalculationMode"] == "gs":
-            out += self.gs.to_string()
-        elif self.params["CalclationMode"] == "unocc":
-            out += self.unocc.to_string()
-        elif self.params["CalclationMode"] == "td":
-            out += self.td.to_string()
-        elif self.params["CalclationMode"] == "go":
-            out += self.go.to_string()
-        elif self.params["CalclationMode"] == "opt_control":
-            out += self.opt_control.to_string()
-        elif self.params["CalclationMode"] == "em_resp":
-            out += self.em_resp.to_string()
-        elif self.params["CalclationMode"] == "casida":
-            out += self.casida.to_string()
-        elif self.params["CalclationMode"] == "vdw":
-            out += self.vdw.to_string()
-        elif self.params["CalclationMode"] == "vib_modes":
-            out += self.vib_modes.to_string()
-        elif self.params["CalclationMode"] == "one_shot":
-            out += self.one_shot.to_string()
-        elif self.params["CalclationMode"] == "kdotp":
-            out += self.kdotp.to_string()
-        elif self.params["CalclationMode"] == "dummy":
-            out += self.dummy.to_string()
-        elif self.params["CalclationMode"] == "invert_ks":
-            out += self.invert_ks.to_string()
-        elif self.params["CalclationMode"] == "recipe":
-            out += self.recipe.to_string()
-
+        for item in self.params:
+            if self.params[item] == None:
+                continue            
+            out += "%s = %s\n" % (item, self.params[item])
+            out += "\n"
+        
+        out += self.geometry_optimization.to_string()
+        out += self.invert_ks.to_string()
+        out += self.optimal_control.to_string()
+        out += self.unoccupied_states.to_string()
+        return out
 
     def set_default(self, mode):
         """
@@ -171,7 +159,7 @@ class calculation_modes:
             elif item.split("/")[1] == "Invert KS":
                 self.invert_ks.set_params({item: params[item]})
             elif item.split("/")[1] == "Optimal Control":
-                self.optimal_contorl.set_params({item: params[item]})
+                self.optimal_control.set_params({item: params[item]})
             elif item.split("/")[1] == "Unoccupied States":
                 slef.unoccupied_states.set_params({item: params[item]})
             

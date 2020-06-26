@@ -9,6 +9,8 @@ class accel:
     def to_string(self):
         out = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue    
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -31,6 +33,8 @@ class debug:
     def to_string(self):
         out = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue     
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -53,6 +57,8 @@ class io:
     def to_string(self):
         out = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue        
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -75,6 +81,8 @@ class optimization:
     def to_string(self):
         out = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue       
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -97,6 +105,8 @@ class parallelization:
     def to_string(self):
         out = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue          
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -119,6 +129,8 @@ class symmetries:
     def to_string(self):
         out = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue     
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -141,6 +153,8 @@ class units:
     def to_string(self):
         out = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue        
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -174,8 +188,17 @@ class execution:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue        
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
+        out += self.accel.to_string()
+        out += self.debug.to_string()
+        out += self.io.to_string()
+        out += self.optimization.to_string()
+        out += self.parallelization.to_string()
+        out += self.symmetries.to_string()
+        out += self.units.to_string()
         return out
         
     def set_params(self, params):

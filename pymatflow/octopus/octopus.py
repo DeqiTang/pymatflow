@@ -11,8 +11,13 @@ class octopus:
     """
     """
     def __init__(self):
-        self.inp = inp()
+        self.inp = []
+        self.inp.append(inp())
         self._initialize()
+
+    def set_inp_num(self, num):
+        while len(self.inp) < num:
+            self.inp.append(inp())
 
     def _initialize(self):
         """ initialize the current object, do some default setting
@@ -21,23 +26,34 @@ class octopus:
         self.set_run()
 
     def get_xyz(self, xyzfile):
-        self.inp.system.xyz.get_xyz(xyzfile)
+        self.inp[0].system.xyz.get_xyz(xyzfile)
+        for i in range(1, len(self.inp)):
+            self.inp[i].system = self.inp[0].system
 
-    def set_params(self, params, runtype=None):
+    def set_params(self, params, n, runtype=None):
         """
+        :param n: set the params for self.inp[n], n can be integer or "all" for all self,inp
         :param runtype: one onf 'static', 'opt', 'phonopy', 'phonon', 'neb', 'md'
         """
-        self.inp.set_params(params=params)
-
-    def set_kpoints(self, kpoints_mp=[1, 1, 1, 0, 0, 0], option="mp",
-            kpath=None):
-        #self.kpoints.set_kpoints(kpoints_mp=kpoints_mp, option=option, kpath=kpath)
-        self.inp.mesh.kpoints.params["KPointsGrid"] = kpoints_mp
-        self.inp.mesh.kpoints.params["KPointsPath"] = kpath
-        if option == "mp":
-            self.inp.mesh.kpoints.params["KPointsPath"] = None
+        if n == "all":
+            for i in range(len(self.inp)):
+                self.inp[i].set_params(params=params)
         else:
-            self.inp.mesh.kpoints.params["KPointsGrid"] = None
+            self.inp[n].set_params(params=params)
+
+    def set_kpoints(self, n, kpoints_mp=[1, 1, 1, 0, 0, 0], kpath=None):
+        """
+        :param n: set the params for self.inp[n], n can be integer or "all" for all self,inp        
+        """
+        #self.kpoints.set_kpoints(kpoints_mp=kpoints_mp, option=option, kpath=kpath)
+        if n == "all":
+            for i in range(len(self.inp)):
+                self.inp[i].mesh.kpoints.params["KPointsGrid"] = kpoints_mp
+                self.inp[i].mesh.kpoints.params["KPointsPath"] = kpath
+        else:
+            self.inp[n].mesh.kpoints.params["KPointsGrid"] = kpoints_mp
+            self.inp[n].mesh.kpoints.params["KPointsPath"] = kpath
+
 
     def set_run(self, mpi="", server="pbs", jobname="octopus", nodes=1, ppn=32, queue=None):
         """ used to set  the parameters controlling the running of the task

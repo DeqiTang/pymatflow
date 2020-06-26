@@ -8,6 +8,8 @@ class oct_casida_spectrum:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue              
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -30,6 +32,8 @@ class oct_center_geom:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue              
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -52,6 +56,8 @@ class oct_conductivity_spectrum:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue              
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -74,6 +80,8 @@ class oct_convert:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue              
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -96,6 +104,8 @@ class oct_local_multipoles:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue              
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -118,6 +128,8 @@ class oct_photoelectron_spectrum:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue              
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -140,6 +152,8 @@ class oct_propagation_spectrum:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue              
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -162,6 +176,8 @@ class oct_test:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue              
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -184,6 +200,8 @@ class oct_vibrational_spectrum:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue              
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -206,6 +224,8 @@ class oct_xyz_anim:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue              
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -230,7 +250,7 @@ class utilities:
         self.oct_center_geom = oct_center_geom()
         self.oct_conductivity_spectrum = oct_conductivity_spectrum()
         self.oct_convert = oct_convert()
-        self.oct_local_mulitipoles = oct_local_multipoles()
+        self.oct_local_multipoles = oct_local_multipoles()
         self.oct_photoelectron_spectrum = oct_photoelectron_spectrum()
         self.oct_propagation_spectrum = oct_propagation_spectrum()
         self.oct_test = oct_test()
@@ -240,8 +260,20 @@ class utilities:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue              
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
+        out += self.oct_casida_spectrum.to_string()
+        out += self.oct_center_geom.to_string()
+        out += self.oct_conductivity_spectrum.to_string()
+        out += self.oct_convert.to_string()
+        out += self.oct_local_multipoles.to_string()
+        out += self.oct_photoelectron_spectrum.to_string()
+        out += self.oct_propagation_spectrum.to_string()
+        out += self.oct_test.to_string()
+        out += self.oct_vibrational_spectrum.to_string()
+        out += self.oct_xyz_anim.to_string()
         return out
         
     def set_params(self, params):

@@ -8,6 +8,8 @@ class casida:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue    
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -30,6 +32,8 @@ class kdotp:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue      
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -52,6 +56,8 @@ class polarizabilities:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue    
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -74,6 +80,8 @@ class scf_in_lr_calculations:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue     
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -96,6 +104,8 @@ class solver:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue     
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -118,6 +128,8 @@ class static_polarization:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue     
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -140,6 +152,8 @@ class sternheimer:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue     
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -161,6 +175,8 @@ class vibrational_modes:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue       
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
         return out
@@ -192,8 +208,18 @@ class linear_response:
     def to_string(self):
         out  = ""
         for item in self.params:
+            if self.params[item] == None:
+                continue    
             out += "%s = %s\n" % (item, self.params[item])
             out += "\n"
+        out += self.casida.to_string()
+        out += self.kdotp.to_string()
+        out += self.polarizabilities.to_string()
+        out += self.scf_in_lr_calculations.to_string()
+        out += self.solver.to_string()
+        out += self.static_polarization.to_string()
+        out += self.sternheimer.to_string()
+        out += self.vibrational_modes.to_string()
         return out
             
     def set_params(self, params):
