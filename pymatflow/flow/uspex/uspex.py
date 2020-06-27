@@ -32,7 +32,7 @@ class uspex:
             "repeatForStatistics": None, "stopFitness": None, "fixRndSeed": None, "collectForces": None,
             "mutationRate": None, "mutationDegree": None, "ordering active": None, "symmetrize": None, "valenceElectr": None,
             "percSliceShift": None, "maxDistHeredity": None, "manyParents": None, "minSlice": None, "maxSlice": None,
-            "numberparents": None, "firstGeneMax": None, "minAt", None, "maxAt": None, "fracTrans": None, "howManyTrans": None,
+            "numberparents": None, "firstGeneMax": None, "minAt": None, "maxAt": None, "fracTrans": None, "howManyTrans": None,
             "specificTrans": None, "BoltzTraP_T_max": None, "BoltzTraP_T_delta": None, "BoltzTraP_T_efcut": None, "TE_T_interest": None,
             "TE_threshold": None, "TE_goal": None, "thicknessS": None, "thicknessB": None, "reconstruct": None, "GaussianWidth": None,
             "GaussianHeight": None, "FullRelax": None, "maxVectorLength": None, "minVectorLength": None, "PSO_softMut": None, "PSO_BestStruc": None,

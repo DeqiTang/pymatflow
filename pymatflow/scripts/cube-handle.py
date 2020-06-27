@@ -88,7 +88,7 @@ def main():
     
     
     # -------------------------------------------------------
-    # gray scale image only for z direction
+    # matrix image only for z direction
     # may not work for triclinic and monoclinic crystal system
     # -------------------------------------------------------
     
@@ -107,8 +107,8 @@ def main():
     n2 = ngridy
     n1_right = n1
     n1_left = -(n2 * np.tan((angle - 90) / 180 * np.pi))
-    #im = ax.imshow(img, cmap="gray", extent=[n1_left, n1_right, 0, n2], interpolation="none", origin="lower", clip_on=True)
-    im = ax.imshow(img, cmap="gray", extent=[0, n1, 0, n2], interpolation="none", origin="lower", clip_on=True)
+    #im = ax.imshow(img, cmap="gray", extent=[0, n1, 0, n2], interpolation="none", origin="lower", clip_on=True)
+    im = ax.imshow(img, cmap=args.cmap, extent=[0, n1, 0, n2], interpolation="none", origin="lower", clip_on=True)
     #im = plt.imshow(data[i, :, :], cmap="gray")
     trans_data = mtransforms.Affine2D().skew_deg(90-angle, 0) + ax.transData
     im.set_transform(trans_data)
@@ -121,7 +121,7 @@ def main():
     plt.colorbar(im)
     ax.autoscale()
     plt.tight_layout()
-    plt.savefig(args.output+"-z-%f.grayscale.png" % args.z)
+    plt.savefig(args.output+"-z-%f.matrix-image.png" % args.z)
     plt.close()
         
     # -----------------------------------------------------------------------------

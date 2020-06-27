@@ -210,6 +210,7 @@ setup(
         "pymatflow/vasp/scripts/vasp-berry.py",
         "pymatflow/vasp/scripts/vasp-time.py",
         "pymatflow/vasp/scripts/vasp-grep-energy.py",
+        "pymatflow/vasp/scripts/xdatcar-to-xyz.py",
         "pymatflow/vasp/post/scripts/post-vasp-opt.py",
         "pymatflow/vasp/post/scripts/post-vasp-md.py",
         "pymatflow/vasp/post/scripts/post-vasp-converge.py",
