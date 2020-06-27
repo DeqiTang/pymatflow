@@ -233,7 +233,7 @@ def main():
             help="This is the function used to smear the electronic occupations. It is ignored if the Occupations block is set.")
 
     gp.add_argument("--spincomponents", type=str, default=None,
-            choices=["unpolarized", "spin_polarized", "spinors"]
+            choices=["unpolarized", "spin_polarized", "spinors"],q
             help="The calculations may be done in three different ways: spin-restricted (TD)DFT (i.e., doubly occupied \"closed shells\"), spin-unrestricted or \"spin-polarized\" (TD)DFT")
     
     # System

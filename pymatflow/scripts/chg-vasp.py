@@ -141,6 +141,7 @@ def main():
     plt.colorbar(cset)
     plt.autoscale()
     plt.tight_layout()
+    plt.axis("equal") # set axis equally spaced
     #plt.show()
     plt.xlabel('x')
     plt.ylabel('y')

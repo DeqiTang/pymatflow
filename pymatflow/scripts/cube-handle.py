@@ -9,6 +9,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.transforms as mtransforms
 
+from pymatflow.base.element import element as elem
+from pymatflow.structure.crystal import crystal
 from pymatflow.cmd.structflow import read_structure
 from pymatflow.cmd.structflow import write_structure
 
@@ -18,12 +20,12 @@ def main():
     parser = argparse.ArgumentParser()
     
     parser.add_argument("-i", "--input", type=str, required=True,
-        help="input PARCHG file")
+        help="input cube file")
 
-    parser.add_argument("--output-structure", type=str, default="parchg.cif",
+    parser.add_argument("--output-structure", type=str, default="cube.cif",
         help="output stucture contained in PARCHG")
 
-    parser.add_argument("-o", "--output", type=str, default="stm",
+    parser.add_argument("-o", "--output", type=str, default="cube",
         help="prefix of the output image file name")
     
     parser.add_argument("--levels", type=int, default=10,
@@ -34,51 +36,55 @@ def main():
         
     parser.add_argument("--cmap", type=str, default="gray",
         choices=["gray", "hot", "afmhot", "Spectral", "plasma", "magma", "hsv", "rainbow", "brg"])
-        
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
     # ==========================================================
 
     args = parser.parse_args()
     
-    parchg_filepath = args.input
+    cube_filepath = args.input
     
-    with open(parchg_filepath, "r") as fin:
-        parchg = fin.readlines()
+    with open(cube_filepath, "r") as fin:
+        cube = fin.readlines()
         
-    for i in range(len(parchg)):
-        if len(parchg[i].split()) == 0:
-            first_blank_line = i
-            break
-    
-    first_augmentation_line = None
-    for i in range(len(parchg)):
-        if "augmentation" in parchg[i]:
-            first_augmentation_line = i
-            break
-            
-    os.system("mkdir -p /tmp/pymatflow/")
-    with open("/tmp/pymatflow/POSCAR", "w") as fout:
-        for i in range(first_blank_line):
-            fout.write(parchg[i])
-            
-    structure = read_structure("/tmp/pymatflow/POSCAR")
+    ngridx = int(cube[3].split()[0])
+    ngridy = int(cube[4].split()[0])
+    ngridz = int(cube[5].split()[0])            
+        
+    # read structure info
+    natom = abs(int(cube[2].split()[0])) # it might be negative, if MO infor are included in cube file
+    bohr_to_angstrom = 0.529177249
+    structure = crystal()
+    structure.cell = []
+    for i in range(3):
+        tmp = []
+        for j in range(3):
+            tmp.append(int(cube[i+3].split()[0]) * float(cube[i+3].split()[j+1]) * bohr_to_angstrom)
+        structure.cell.append(tmp)
+    atoms_list = []
+    for i in range(natom):
+        atomic_number = int(cube[i+6].split()[0])
+        for e in elem:
+            if elem[e].number == atomic_number:
+                label = e
+        atoms_list.append([
+            label,
+            float(cube[i+6].split()[2]) * bohr_to_angstrom,
+            float(cube[i+6].split()[3]) * bohr_to_angstrom,
+            float(cube[i+6].split()[4]) * bohr_to_angstrom,
+        ])
+    structure.get_atoms(atoms_list)
+    # end read structure info
     write_structure(structure=structure, filepath=args.output_structure)
-    
-    ngxf = int(parchg[first_blank_line+1].split()[0])
-    ngyf = int(parchg[first_blank_line+1].split()[1])
-    ngzf = int(parchg[first_blank_line+1].split()[2])    
-    
-    if first_augmentation_line == None:
-        #data = np.loadtxt(chg[first_blank_line+2:])
-        tmp_str = "".join(parchg[first_blank_line+2:])
-        data = np.fromstring(tmp_str, sep="\n")
-    else:
-        #data = np.loadtxt(chg[first_blank_line+2:first_augmentation_line])
-        tmp_str = "".join(parchg[first_blank_line+2:first_augmentation_line])
-        data = np.fromstring(tmp_str, sep="\n")
+
+
+    # read grid value
+    tmp_str = "".join(cube[natom+6:])
+    data = np.fromstring(tmp_str, sep="\n")
         
-    data = data.reshape(ngzf, ngyf, ngxf)
+    #data = data.reshape(ngridz, ngridy, ngridx)
+    # grid data in cube is iterated in different compared to *CHG* of vasp
+    data = data.reshape(ngridx, ngridy, ngridz)
     
     
     # -------------------------------------------------------
@@ -87,9 +93,8 @@ def main():
     # -------------------------------------------------------
     
     
-    zi = int((data.shape[0]-1) * args.z)
-    #img = data[i, ::-1, ::]
-    img = data[zi, ::, ::]
+    zi = int((data.shape[2]-1) * args.z)
+    img = data[::, ::, zi].T #.reshape(ngridy, ngridx) should be transpose here but not reshape
     img = (img-img.min()) / (img.max() - img.min()) * 255
     # need to do a transform when the cell is not Orthorhombic
     # skew the image
@@ -98,8 +103,8 @@ def main():
     cosangle = a.dot(b)/(np.linalg.norm(a) * np.linalg.norm(b))
     angle = np.arccos(cosangle) * 180 / np.pi        
     ax = plt.axes() #plt.figure()
-    n1 = ngxf
-    n2 = ngyf
+    n1 = ngridx
+    n2 = ngridy
     n1_right = n1
     n1_left = -(n2 * np.tan((angle - 90) / 180 * np.pi))
     #im = ax.imshow(img, cmap="gray", extent=[n1_left, n1_right, 0, n2], interpolation="none", origin="lower", clip_on=True)
@@ -123,19 +128,20 @@ def main():
     # 2D contour plot
     #------------------------------------------------------------------------------
     
-    nx = np.linspace(0, 1, ngxf)
-    ny = np.linspace(0, 1, ngyf)
+    nx = np.linspace(0, 1, ngridx)
+    ny = np.linspace(0, 1, ngridy)
     X, Y = np.meshgrid(nx, ny) # now this Mesh grid cannot be used directly, we have to calc the real x y for it
     for xi in range(len(nx)):
         for yi in range(len(ny)):
             X[yi, xi] = structure.cell[0][0] * nx[xi] + structure.cell[1][0] * ny[yi]
             Y[yi, xi] = structure.cell[0][1] * nx[xi] + structure.cell[1][1] * ny[yi]
     
-    Z = data[zi, :, :]
+    Z = data[::, ::, zi].T #.reshape(ngridy, ngridx) should be transpose here but not reshape
     Z = (Z-Z.min()) / (Z.max() - Z.min()) * 255
     # fill color, three color are divided into three layer(6)
     # cmap = plt.cm.hot means using thermostat plot(graduated red yellow)
     #cset = plt.contourf(X, Y, Z, levels=args.levels, cmap=plt.cm.hot)
+    #cset = plt.contourf(X, Y, Z, levels=args.levels, cmap=plt.cm.gray)
     cset = plt.contourf(X, Y, Z, levels=args.levels, cmap=args.cmap)
     contour = plt.contour(X, Y, Z, levels=[20, 40], colors='k')
     plt.colorbar(cset)

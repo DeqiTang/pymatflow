@@ -3,21 +3,21 @@ import os
 import sys
 import shutil
 
-from pymatflow.octopus.base.inp import inp
+from pymatflow.exciting.base.input import input
 """
 """
 
-class octopus:
+class exciting:
     """
     """
     def __init__(self):
-        self.inp = []
-        self.inp.append(inp())
+        self.input = []
+        self.input.append(input())
         self._initialize()
 
-    def set_inp_num(self, num):
-        while len(self.inp) < num:
-            self.inp.append(inp())
+    def set_input_num(self, num):
+        while len(self.input) < num:
+            self.input.append(inp())
 
     def _initialize(self):
         """ initialize the current object, do some default setting
@@ -26,9 +26,9 @@ class octopus:
         self.set_run()
 
     def get_xyz(self, xyzfile):
-        self.inp[0].system.xyz.get_xyz(xyzfile)
+        self.input[0].xyz.get_xyz(xyzfile)
         for i in range(1, len(self.inp)):
-            self.inp[i].system = self.inp[0].system
+            self.input[i].xyz = self.input[0].xyz
 
     def set_params(self, params, n, runtype=None):
         """
@@ -48,11 +48,11 @@ class octopus:
         #self.kpoints.set_kpoints(kpoints_mp=kpoints_mp, option=option, kpath=kpath)
         if n == "all":
             for i in range(len(self.inp)):
-                self.inp[i].mesh.kpoints.params["KPointsGrid"] = kpoints_mp
-                self.inp[i].mesh.kpoints.params["KPointsPath"] = kpath
+                self.input[i].mesh.kpoints.params["KPointsGrid"] = kpoints_mp
+                self.input[i].mesh.kpoints.params["KPointsPath"] = kpath
         else:
-            self.inp[n].mesh.kpoints.params["KPointsGrid"] = kpoints_mp
-            self.inp[n].mesh.kpoints.params["KPointsPath"] = kpath
+            self.input[n].mesh.kpoints.params["KPointsGrid"] = kpoints_mp
+            self.input[n].mesh.kpoints.params["KPointsPath"] = kpath
 
 
     def set_run(self, mpi="", server="pbs", jobname="octopus", nodes=1, ppn=32, queue=None):
@@ -74,7 +74,7 @@ class octopus:
         self.run_params["stdout"] = stdout
         self.run_params["stderr"] = stderr
 
-    def gen_llhpc(self, directory, scriptname="octopus.sub", cmd="$PMF_OCTOPUS"):
+    def gen_llhpc(self, directory, scriptname="octopus.sub", cmd="$PMF_EXCITING"):
         """
         generating yhbatch job script for calculation
         """
@@ -92,7 +92,7 @@ class octopus:
             fout.write("yhrun %s\n" % cmd)
 
 
-    def gen_yh(self, directory, scriptname="octopus.sub", cmd="$PMF_OCTOPUS"):
+    def gen_yh(self, directory, scriptname="octopus.sub", cmd="$PMF_EXCITING"):
         """
         generating yhbatch job script for calculation
         """
@@ -103,7 +103,7 @@ class octopus:
             fout.write("EOF\n")
             fout.write("yhrun -N 1 -n 24 %s\n" % (cmd))
 
-    def gen_pbs(self, directory, cmd="$PMF_OCTOPUS", scriptname="ocotpus.pbs", jobname="vasp", nodes=1, ppn=32, queue=None):
+    def gen_pbs(self, directory, cmd="$PMF_EXCITING", scriptname="ocotpus.pbs", jobname="vasp", nodes=1, ppn=32, queue=None):
         """
         generating pbs job script for calculation
         """
@@ -121,7 +121,7 @@ class octopus:
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
             fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s \n" % (cmd))
 
-    def gen_bash(self, directory, mpi="", cmd="$PMF_OCTOPUS", scriptname="octopus.sh"):
+    def gen_bash(self, directory, mpi="", cmd="$PMF_EXCITING", scriptname="octopus.sh"):
         """
         generating bash script for local calculation
         """
@@ -133,7 +133,7 @@ class octopus:
             fout.write("EOF\n")
             fout.write("%s %s\n" % (mpi, cmd))
 
-    def gen_lsf_sz(self, directory, cmd="$PMF_OCTOPUS", scriptname="octopus.lsf_sz", np=24, np_per_node=12):
+    def gen_lsf_sz(self, directory, cmd="$PMF_EXCITING", scriptname="octopus.lsf_sz", np=24, np_per_node=12):
         """
         generating lsf job script for calculation on ShenZhen supercomputer
         """

@@ -3,11 +3,11 @@ import os
 import sys
 import shutil
 
-from pymatflow.octopus.base.inp import inp
+from pymatflow.elk.base.inp import inp
 """
 """
 
-class octopus:
+class elk:
     """
     """
     def __init__(self):

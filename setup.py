@@ -175,6 +175,7 @@ setup(
         "pymatflow/scripts/xsd-color-bond.py",
         "pymatflow/scripts/stm-vasp.py",
         "pymatflow/scripts/chg-vasp.py",
+        "pymatflow/scripts/cube-handle.py",
         "pymatflow/remote/scripts/thq.py",
         "pymatflow/remote/scripts/thcancel.py",
         "pymatflow/remote/scripts/thpull.py",
@@ -235,6 +236,8 @@ setup(
             'lflow = pymatflow.cmd.lmpflow:main',
             "psoflow = pymatflow.flow.calypso.psoflow:main",
             "octoflow = pymatflow.octopus.octoflow:main",
+            "excitingflow = pymatflow.exciting.excitingflow:main",
+            "elkflow = pymatflow.elk.elkflow:main",
         ]
     },
 

@@ -90,8 +90,31 @@ def read_neb_in(filepath):
                      pass
                 if len(lines[i+j].split("\n")[0].split("#")[0].split("=")) == 2:
                     # in case of single value &PATH variable
-                    contorl[lines[i+j].split("=")[0].split()[0]] = lines[i+j].split("\n")[0].split("#")[0].split("=")[1].split()[0]
+                    path[lines[i+j].split("=")[0].split()[0]] = lines[i+j].split("\n")[0].split("#")[0].split("=")[1].split()[0]
                 else:
-                    control[lines[i+j].split("=")[0].split()[0]] = lines[i+j].split("\n")[0].split("#")[0].split("=")[1].split()
+                    path[lines[i+j].split("=")[0].split()[0]] = lines[i+j].split("\n")[0].split("#")[0].split("=")[1].split()
                 j += 1    
     return path
+    
+def read_ph_in(filepath):
+    """
+    Note: read parameters from neb.x input template
+    """
+    with open(filepath, 'r') as fin:
+        lines = fin.readlines()
+    
+    ph = {}
+    
+    for i in range(len(lines)):
+        if lines[i].split()[0].lower() == "&inputph":       
+            j = 1
+            while lines[i+j].split()[0] != "/":
+                if len(lines[i+j].split()) == 0:
+                     pass
+                if len(lines[i+j].split("\n")[0].split("#")[0].split("=")) == 2:
+                    # in case of single value &INPUTPH variable
+                    ph[lines[i+j].split("=")[0].split()[0]] = lines[i+j].split("\n")[0].split("#")[0].split("=")[1].split()[0]
+                else:
+                    ph[lines[i+j].split("=")[0].split()[0]] = lines[i+j].split("\n")[0].split("#")[0].split("=")[1].split()
+                j += 1    
+    return ph

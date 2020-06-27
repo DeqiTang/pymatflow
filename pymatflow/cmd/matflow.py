@@ -2325,9 +2325,9 @@ def main():
             task.abc(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_b=args.range_b, range_c=args.range_c)
         else:
             pass
-# ==============================================================================
+# ====================================================================================
 # Quantum ESPERSSO Quantum ESPERSSO Quantum ESPERSSO Quantum ESPERSSO Quantum ESPERSSO
-# ==============================================================================
+# ====================================================================================
     elif args.driver == "qe":
         from pymatflow.cmd.qe_parser import read_pwscf_in, read_neb_in, read_ph_in
         control = {}
@@ -2335,10 +2335,11 @@ def main():
         system = {}
         ions = {}
 
-        control, electrons, system, ions, cell = read_pwscf_in(args.pwin)
+        if args.pwin != None:
+            control, electrons, system, ions, cell = read_pwscf_in(args.pwin)
         
         control["tstress"] = args.tstress if "tstress" not in control or args.tstress != None else control["tstress"]
-        control["nstep"] = args.nstep if "nstep" not in contorl or args.nstep != None else control["nstep"]
+        control["nstep"] = args.nstep if "nstep" not in control or args.nstep != None else control["nstep"]
         control["etot_conv_thr"] = args.etot_conv_thr if "etot_conv_thr" not in control or args.etot_conv_thr != None else control["etot_conv_thr"]
         control["forc_conv_thr"] = args.forc_conv_thr if "forc_conv_thr" not in control or args.forc_conv_thr != None else control["forc_conv_thr"]
         system["ecutwfc"] = args.ecutwfc if "ecutwfc" not in system or args.ecutwfc != None else system["ecutwfc"]
@@ -2355,7 +2356,8 @@ def main():
         system["noncolin"] = args.noncolin if "noncolin" not in system or args.nnoncolin != None else system["noncolin"]
 
         path = {}
-        path = read_neb_in(args.nebin)
+        if args.nebin != None:
+            path = read_neb_in(args.nebin)
         path["string_method"] = args.string_method if "string_method" not in path or args.string_method != None else path["string_method"]
         path["nstep_path"] = args.nstep_path if "nstep_path" not in path or args.nstep_path != None else path["nstep_path"]
         path["opt_scheme"] = args.opt_scheme if "opt_scheme" not in path or args.opt_scheme != None else path["opt_scheme"]
@@ -2369,7 +2371,8 @@ def main():
 
         # for ph.x
         inputph = {}
-        inputph = read_ph_in(args.phin)
+        if args.phin != None:
+            inputph = read_ph_in(args.phin)
         inputph["tr2_ph"] = args.tr2_ph if "tr2_ph" not in inputph or args.tr2_ph != None else inputph["tr2_ph"]
         inputph["lraman"] = args.lraman if "lraman" not in inputph or args.lraman != None else inputph["lraman"]
         inputph["epsil"] = args.epsil if "epsil" not in inputph or args.epsil != None else inputph["epsil"]
