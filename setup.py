@@ -223,6 +223,7 @@ setup(
         "pymatflow/vasp/post/scripts/post-vasp-bands.py",
         "pymatflow/vasp/post/scripts/post-vasp-pdos.py",
         "pymatflow/vasp/post/scripts/post-vasp-neb-vtst.py",
+        "pymatflow/vasp/post/scripts/procar-vasp.py",
         "pymatflow/octopus/scripts/octflow.py",
         ],
     entry_points = {
