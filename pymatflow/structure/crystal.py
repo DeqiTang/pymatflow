@@ -157,6 +157,8 @@ class crystal():
                     atoms.append(Atom(atom.name, x, y, z))
         return {"cell": cell, "atoms": [[atom.name, atom.x, atom.y, atom.z] for atom in atoms]}
 
+
+
     def write_xyz(self, filepath):
         """
         :param filepath: output xyz file path

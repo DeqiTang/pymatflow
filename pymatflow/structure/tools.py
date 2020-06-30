@@ -3,7 +3,9 @@ providing tools for structure manipulation
 """
 
 import sys
+import copy
 import numpy as np
+
 
 def move_along(structure, atoms_to_move, direc, disp):
     """
@@ -154,3 +156,104 @@ def rotate_along_axis(structure, rotate_atoms=[], axis=[]):
     :param structure: an instance of pymatflow.structure.crystal.crystal()
     """
     pass
+    
+    
+def enlarge_atoms(structure):
+    """
+    :return out:
+        atoms: [
+                ["C", 0.00000, 0.000000, 0.0000],
+                ["O", 0.00000, 0.500000, 0.0000],
+                ...
+            ]
+    Note: will enlarge the atoms in the unit cell along both a, b, c and -a, -b, -c direction.
+        but the cell is not redefined, the returned atoms is not used to form crystal, but to be 
+        tailored by redefine_lattice function to get atoms for the redfined lattice.
+        The goal is to make sure when the cell rotate in the 3D space, it will always be filled
+        with atoms.
+    """
+    from pymatflow.base.atom import Atom
+    #
+    cell = copy.deepcopy(structure.cell)
+    a = np.linalg.norm(cell[0])
+    b = np.linalg.norm(cell[1])
+    c = np.linalg.norm(cell[2])
+    
+    n1 = np.ceil(np.max([a, b, c]) / a ) * 2 # maybe times 2 is not needed
+    n2 = np.ceil(np.max([a, b, c]) / b ) * 2
+    n3 = np.ceil(np.max([a, b, c]) / c ) * 2
+    n = [int(n1), int(n2), int(n3)]
+    
+    atoms = copy.deepcopy(structure.atoms)
+    # build supercell: replica in three vector one by one
+    for i in range(3):
+        natom_now = len(atoms)
+        for j in range(n[i] - 1):
+            for atom in atoms[:natom_now]:
+                x = atom.x + float(j + 1) * structure.cell[i][0]
+                y = atom.y + float(j + 1) * structure.cell[i][1]
+                z = atom.z + float(j + 1) * structure.cell[i][2]
+                atoms.append(Atom(atom.name, x, y, z))
+        # replicate in the negative direction of structure.cell[i]
+        for atom in atoms[:natom_now*n[i]]:
+            x = atom.x - float(n[i]) * structure.cell[i][0]
+            y = atom.y - float(n[i]) * structure.cell[i][1]
+            z = atom.z - float(n[i]) * structure.cell[i][2]
+            atoms.append(Atom(atom.name, x, y, z))
+    return [[atom.name, atom.x, atom.y, atom.z] for atom in atoms]
+
+def redefine_lattice(structure, a, b, c):
+    """
+    :param a, b, c: new lattice vectors in terms of old.
+        new_a = a[0] * old_a + a[1] * old_b + a[2] * old_c
+        like a=[1, 0, 0], b=[0, 1, 0], c=[0, 0, 1] actually defines the
+        same lattice as old.
+    :return an object of crystal()
+    Method:
+        first make a large enough supercell, which guarantee that all the atoms in the new lattice are inside
+        the supercell.
+        then redfine the cell, and calc the fractional coord of all atoms with regarding the new cell
+        finally remove those atoms who's fractional coord is not within range [0, 1], and we can convert fractional
+        coords to cartesian.
+    """
+    from pymatflow.structure.crystal import crystal
+    from pymatflow.base.atom import Atom
+    old_cell = copy.deepcopy(structure.cell)
+    new_cell = copy.deepcopy(structure.cell)
+    new_cell[0] = list(a[0] * np.array(old_cell[0]) + a[1] * np.array(old_cell[1]) + a[2] * np.array(old_cell[2]))
+    new_cell[1] = list(b[0] * np.array(old_cell[0]) + b[1] * np.array(old_cell[1]) + b[2] * np.array(old_cell[2]))
+    new_cell[2] = list(c[0] * np.array(old_cell[0]) + c[1] * np.array(old_cell[1]) + c[2] * np.array(old_cell[2]))
+    
+    
+    # enlarge the system
+    atoms_container = crystal()
+    atoms_container.get_atoms(enlarge_atoms(structure=structure))
+    
+    # now calc the fractional coordinates of all atoms in atoms_container with new_cell as reference
+    atoms_frac = []
+    latcell_new = np.array(new_cell)
+    convmat_new = np.linalg.inv(latcell_new.T)
+    for i in range(len(atoms_container.atoms)):
+        atom = []
+        atom.append(atoms_container.atoms[i].name)
+        atom = atom + list(convmat_new.dot(np.array([atoms_container.atoms[i].x, atoms_container.atoms[i].y, atoms_container.atoms[i].z])))
+        atoms_frac.append(atom)
+    
+    atoms_frac_within_new_cell = []
+    for atom in atoms_frac:
+        if 0 <= atom[1] < 1 and 0 <= atom[2] < 1 and 0 <= atom[3] < 1:
+            atoms_frac_within_new_cell.append(atom)
+            
+    # now convert coord of atom in atoms_frac_within_new_cell to cartesian
+    out = crystal()
+    out.atoms = []
+    latcell_new = np.array(new_cell)
+    convmat_frac_to_cartesian = latcell_new.T
+    for atom in atoms_frac_within_new_cell:
+        cartesian = list(convmat_frac_to_cartesian.dot(np.array([atom[1], atom[2], atom[3]])))
+        out.atoms.append(Atom(name=atom[0], x=cartesian[0], y=cartesian[1], z=cartesian[2]))
+    #
+    
+    out.cell = new_cell
+    
+    return out

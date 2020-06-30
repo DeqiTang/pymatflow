@@ -215,6 +215,27 @@ def main():
     subparser.add_argument("-c", "--center", type=str, default="cell",
             choices=["geo", "cell"],
             help="inversion center, can geo or cell")
+            
+    # ---------------------------------------------------------------------------------
+    # redefine lattice
+    # ---------------------------------------------------------------------------------
+    subparser = subparsers.add_parser("redefine", help="redefine lattice")
+
+    subparser.add_argument("-i", "--input", type=str, required=True,
+            help="input structure file")
+
+    subparser.add_argument("-o", "--output", type=str, required=True,
+            help="output structure file")
+
+    subparser.add_argument("-a", type=int, nargs=3, default=[1, 0, 0],
+            help="a from old a b c")
+            
+    subparser.add_argument("-b", type=int, nargs=3, default=[0, 1, 0],
+            help="b from old a b c")            
+            
+    subparser.add_argument("-c", type=int, nargs=3, default=[0, 0, 1],
+            help="c from old a b c")            
+            
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
     # ==========================================================
@@ -390,7 +411,22 @@ def main():
             inverse_cell_center(a)
         
         # output structure
-        write_structure(structure=a, filepath=args.output)        
+        write_structure(structure=a, filepath=args.output)      
+    elif args.driver == "redefine":
+        from pymatflow.structure.tools import redefine_lattice
+        a = read_structure(filepath=args.input) 
+        print("=======================================================================\n")
+        print("                       structflow\n")
+        print("-----------------------------------------------------------------------\n")
+        print("you are trying to redefine the lattice\n")            
+        print("from %s\n" % args.input)
+        print("\n")
+        print("the output structure file is -> %s\n" % args.output)
+
+        redefined = redefine_lattice(structure=a, a=args.a, b=args.b, c=args.c)
+        
+        # output structure
+        write_structure(structure=redefined, filepath=args.output)              
     # --------------------------------------------------------------------------
 
 
