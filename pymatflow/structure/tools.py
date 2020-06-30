@@ -167,8 +167,6 @@ def enlarge_atoms(structure):
                 ...
             ]
     Note: will enlarge the atoms in the unit cell along both a, b, c and -a, -b, -c direction.
-        but the cell is not redefined, the returned atoms is not used to form crystal, but to be 
-        tailored by redefine_lattice function to get atoms for the redfined lattice.
         The goal is to make sure when the cell rotate in the 3D space, it will always be filled
         with atoms.
     """
@@ -183,6 +181,7 @@ def enlarge_atoms(structure):
     n2 = np.ceil(np.max([a, b, c]) / b ) * 2
     n3 = np.ceil(np.max([a, b, c]) / c ) * 2
     n = [int(n1), int(n2), int(n3)]
+    print(n)
     
     atoms = copy.deepcopy(structure.atoms)
     # build supercell: replica in three vector one by one
@@ -202,6 +201,55 @@ def enlarge_atoms(structure):
             atoms.append(Atom(atom.name, x, y, z))
     return [[atom.name, atom.x, atom.y, atom.z] for atom in atoms]
 
+def enlarge_atoms_new_cell(structure, new_cell):
+    """
+    :return out:
+        atoms: [
+                ["C", 0.00000, 0.000000, 0.0000],
+                ["O", 0.00000, 0.500000, 0.0000],
+                ...
+            ]
+    Note: will enlarge the atoms in the unit cell along both a, b, c and -a, -b, -c direction of the new_cell !!!
+        but the cell is not redefined, the returned atoms is not used to form crystal, but to be 
+        tailored by redefine_lattice function to get atoms for the redfined lattice.
+        The goal is to make sure when the new cell rotate in the 3D space, it will always be filled
+        with atoms.    
+    """
+    from pymatflow.base.atom import Atom
+    #
+    cell = copy.deepcopy(structure.cell)
+    a = np.linalg.norm(cell[0])
+    b = np.linalg.norm(cell[1])
+    c = np.linalg.norm(cell[2])
+    
+    new_a = np.linalg.norm(new_cell[0])
+    new_b = np.linalg.norm(new_cell[1])
+    new_c = np.linalg.norm(new_cell[2])
+    
+    n1 = np.ceil(np.max([new_a, new_b, new_c]) / a ) * 2 # maybe times 2 is not needed
+    n2 = np.ceil(np.max([new_a, new_b, new_c]) / b ) * 2
+    n3 = np.ceil(np.max([new_a, new_b, new_c]) / c ) * 2
+    n = [int(n1), int(n2), int(n3)]
+    
+    atoms = copy.deepcopy(structure.atoms)
+    # build supercell: replica in three vector one by one
+    for i in range(3):
+        natom_now = len(atoms)
+        for j in range(n[i] - 1):
+            for atom in atoms[:natom_now]:
+                x = atom.x + float(j + 1) * structure.cell[i][0]
+                y = atom.y + float(j + 1) * structure.cell[i][1]
+                z = atom.z + float(j + 1) * structure.cell[i][2]
+                atoms.append(Atom(atom.name, x, y, z))
+        # replicate in the negative direction of structure.cell[i]
+        for atom in atoms[:natom_now*n[i]]:
+            x = atom.x - float(n[i]) * structure.cell[i][0]
+            y = atom.y - float(n[i]) * structure.cell[i][1]
+            z = atom.z - float(n[i]) * structure.cell[i][2]
+            atoms.append(Atom(atom.name, x, y, z))
+    return [[atom.name, atom.x, atom.y, atom.z] for atom in atoms]
+    
+
 def redefine_lattice(structure, a, b, c):
     """
     :param a, b, c: new lattice vectors in terms of old.
@@ -213,8 +261,15 @@ def redefine_lattice(structure, a, b, c):
         first make a large enough supercell, which guarantee that all the atoms in the new lattice are inside
         the supercell.
         then redfine the cell, and calc the fractional coord of all atoms with regarding the new cell
-        finally remove those atoms who's fractional coord is not within range [0, 1], and we can convert fractional
+        finally remove those atoms who's fractional coord is not within range [0, 1), and we can convert fractional
         coords to cartesian.
+    Note:
+        relationship among convertion of coords. the most important point is that all coords actually have one common
+        reference system, namely the General XYZ coordinate system. all the cell are defined with XYZ as reference,
+        and the convmat build from the cell(with XYZ as reference) can be applied only to atoms also with XYZ as ference,
+        finally we convert frac to cartesian using convmat also defined using cell with XYZ as reference, so we get 
+        the cartesian with general XYZ as reference. In the last all the coord of atoms and cell have the general 
+        XYZ  system as reference. So it works!
     """
     from pymatflow.structure.crystal import crystal
     from pymatflow.base.atom import Atom
@@ -227,7 +282,7 @@ def redefine_lattice(structure, a, b, c):
     
     # enlarge the system
     atoms_container = crystal()
-    atoms_container.get_atoms(enlarge_atoms(structure=structure))
+    atoms_container.get_atoms(enlarge_atoms_new_cell(structure=structure, new_cell=new_cell))
     
     # now calc the fractional coordinates of all atoms in atoms_container with new_cell as reference
     atoms_frac = []
