@@ -67,26 +67,35 @@ def vacuum_layer(structure, plane, thickness):
     :param thickness: thickness of the vacuum layer
     """
     if plane == 1:
-        ab = np.cross(structure.cell[0], structure.cell[1])
+        normal_of_ab = np.cross(structure.cell[0], structure.cell[1])
         # get the cos of the angle between c and outer product of ab
-        cos_angle = np.dot(structure.cell[2], ab) / (np.linalg.norm(structure.cell[2]), np.linalg.norm(ab))
-        scale_c = (thickness + np.linalg.norm(structure.cell[2])) / np.linalg.norm(structure.cell[2])
-        for i in range(3):
-            structure.cell[2][i] *= scale_c
+        cosangle = np.dot(np.array(structure.cell[2]), normal_of_ab) / np.linalg.norm(np.array(structure.cell[2])) / np.linalg.norm(normal_of_ab)
+        proj_c_on_ab_normal = np.linalg.norm(np.array(structure.cell[2])) * np.abs(cosangle)
+        z_all = []
+        for atom in structure.atoms:
+            z_all.append(atom.z)
+        factor = (max(z_all) - min(z_all) + thickness)  / proj_c_on_ab_normal * 1.0
+        structure.cell[2] = list(np.array(structure.cell[2]) * factor)
     elif plane == 2:
-        ac = np.cross(structure.cell[0], structure.cell[2])
-        # get the cos of the angle between c and outer product of ab
-        cos_angle = np.dot(structure.cell[1], ac) / (np.linalg.norm(structure.cell[1]), np.linalg.norm(ac))
-        scale_b = (thickness + np.linalg.norm(structure.cell[1])) / np.linalg.norm(structure.cell[1])
-        for i in range(3):
-            structure.cell[1][i] *= scale_b            
+        normal_of_ac = np.cross(structure.cell[0], structure.cell[2])
+        # get the cos of the angle between b and outer product of ac
+        cosangle = np.dot(np.array(structure.cell[1]), normal_of_ac) / np.linalg.norm(np.array(structure.cell[1])) / np.linalg.norm(normal_of_ac)
+        proj_b_on_ac_normal = np.linalg.norm(np.array(structure.cell[1])) * np.abs(cosangle)
+        y_all = []
+        for atom in structure.atoms:
+            y_all.append(atom.y)
+        factor = (max(y_all) - min(y_all) + thickness)  / proj_b_on_ac_normal * 1.0
+        structure.cell[1] = list(np.array(structure.cell[1]) * factor)        
     elif plane == 3:
-        bc = np.cross(structure.cell[1], structure.cell[2])
-        # get the cos of the angle between c and outer product of ab
-        cos_angle = np.dot(structure.cell[0], bc) / (np.linalg.norm(structure.cell[0]), np.linalg.norm(bc))
-        scale_a = (thickness + np.linalg.norm(structure.cell[0])) / np.linalg.norm(structure.cell[0])
-        for i in range(3):
-            structure.cell[0][i] *= scale_a
+        normal_of_bc = np.cross(structure.cell[1], structure.cell[2])
+        # get the cos of the angle between a and outer product of bc
+        cosangle = np.dot(np.array(structure.cell[0]), normal_of_bc) / np.linalg.norm(np.array(structure.cell[0])) / np.linalg.norm(normal_of_bc)
+        proj_a_on_bc_normal = np.linalg.norm(np.array(structure.cell[0])) * np.abs(cosangle)
+        x_all = []
+        for atom in structure.atoms:
+            x_all.append(atom.x)
+        factor = (max(x_all) - min(x_all) + thickness)  / proj_a_on_bc_normal * 1.0
+        structure.cell[0] = list(np.array(structure.cell[0]) * factor)
     else:
         pass
     # end
@@ -395,6 +404,110 @@ def cleave_surface(structure, direction, thickness=10):
     # redefine lattice
     out = redefine_lattice(structure=structure, a=a_from_old, b=b_from_old, c=c_from_old)
     
+    vacuum_layer(structure=out, plane=1, thickness=thickness)
+    
+    return out
+    
+def merge_layers(structure1, structure2, use_cell=None, distance=3.4, thickness=10):
+    """
+    :param structure1: an instance of crystal()
+    :param structure2: an instance of crystal()    
+    :param use_cell: use cell parameter of structure 1 or 2 or None(average) to set the new a b cell parameter
+        attention: c vector is not handled this way
+        
+    :param distance: the distance between layers
+    :param thickness: the vaccum layer thickness of the combined system
+    
+    :return an object of crystal()
+    Note:
+        only merge layers with ab plane as the surface plane
+    """
+    from pymatflow.structure.crystal import crystal
+    from pymatflow.base.atom import Atom                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+    
+    old_cell_1 = copy.deepcopy(structure1.cell)
+    old_cell_2 = copy.deepcopy(structure2.cell)
+    
+    # first transfer to fractional coordinate
+    structure1.natom = len(structure1.atoms)
+    frac_1 = structure1.get_fractional()
+    structure2.natom = len(structure2.atoms)
+    frac_2 = structure2.get_fractional()
+
+    average_cell = []
+    for i in range(3):
+        average_cell.append(list((np.array(old_cell_1[i]) + np.array(old_cell_2[i])) / 2))
+    
+    out = crystal()
+    
+    if use_cell == 1:
+        latcell_frac_to_cart_1 = old_cell_1
+        latcell_frac_to_cart_2 = old_cell_1[0:2]
+        latcell_frac_to_cart_2.append(old_cell_2[2])
+    elif use_cell == 2:
+        latcell_frac_to_cart_2 = old_cell_2
+        latcell_frac_to_cart_1 = old_cell_2[0:2]
+        latcell_frac_to_cart_1.append(old_cell_1[2])
+    else:
+        #average_ab = []
+        #for i in range(2):
+        #    vec = []
+        #    for j in range(3):
+        #        vec.append((old_cell_1[i][j] + old_cell_2[i][j]) / 2 )
+        #    average_ab.append(vec)
+        
+        latcell_frac_to_cart_1 = average_cell
+        latcell_frac_to_cart_1[2] = old_cell_1[2]
+        latcell_frac_to_cart_2= average_cell
+        latcell_frac_to_cart_2[2] = old_cell_2[2]
+        
+        
+
+    # convert frac to cartesian again
+    convmat_1 = np.array(latcell_frac_to_cart_1).T
+    convmat_2 = np.array(latcell_frac_to_cart_2).T
+    
+    cart_1 = []
+    for atom in frac_1:
+        cartesian = list(convmat_1.dot(np.array([atom[1], atom[2], atom[3]])))
+        cart_1.append([atom[0], cartesian[0], cartesian[1], cartesian[2]])
+    
+    cart_2 = []
+    for atom in frac_2:
+        cartesian = list(convmat_2.dot(np.array([atom[1], atom[2], atom[3]])))
+        cart_2.append([atom[0], cartesian[0], cartesian[1], cartesian[2]])
+        
+    # make distance gap between cart_1 and cart_2 is the value of distance
+    z_1 = []
+    for atom in cart_1:
+        z_1.append(atom[3])
+    z_2 = []
+    for atom in cart_2:
+        z_2.append(atom[3])
+    max_z_1 = max(z_1)
+    min_z_2 = min(z_2)
+    
+    for i in range(len(cart_2)):
+        cart_2[i][3] += distance - (min_z_2 - max_z_1)
+    
+    cart_all = cart_1 + cart_2
+    out.atoms = []
+    for atom in cart_all:
+        out.atoms.append(Atom(name=atom[0], x=atom[1], y=atom[2], z=atom[3]))
+    
+    if use_cell == 1:
+        out.cell = old_cell_1
+        factor = (np.linalg.norm(np.array(old_cell_1[2])) + np.linalg.norm(np.array(old_cell_2[2]))) / np.linalg.norm(np.array(old_cell_1[2]))
+        out.cell[2] = list(np.array(old_cell_1[2]) * factor)
+    elif use_cell == 2:
+        out.cell = old_cell_2
+        factor = (np.linalg.norm(np.array(old_cell_1[2])) + np.linalg.norm(np.array(old_cell_2[2]))) / np.linalg.norm(np.array(old_cell_2[2]))
+        out.cell[2] = list(np.array(old_cell_2[2]) * factor)        
+    else:        
+        out.cell = average_cell
+        factor = (np.linalg.norm(np.array(old_cell_1[2])) + np.linalg.norm(np.array(old_cell_2[2]))) / np.linalg.norm(np.array(out.cell[2]))
+        out.cell[2] = list(np.array(out.cell[2]) * factor)
+
     vacuum_layer(structure=out, plane=1, thickness=thickness)
     
     return out

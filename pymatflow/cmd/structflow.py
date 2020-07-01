@@ -198,7 +198,7 @@ def main():
     subparser.add_argument("--plane", type=int, default=1,
             help="on which plane to add vacuum layer. 1: ab, 2: ac, 3: bc")
 
-    subparser.add_argument("--thick", type=float,
+    subparser.add_argument("--thick", type=float, default=10,
             help="thickness of the vacuum layer, in unit of Angstrom, default is 10")
 
     # ---------------------------------------------------------------------------------
@@ -252,6 +252,30 @@ def main():
             
     subparser.add_argument("--thick", type=float,
             help="thickness of the vacuum layer, in unit of Angstrom, default is 10")
+            
+    # ---------------------------------------------------------------------------------
+    # merge layers | ab plane
+    # ---------------------------------------------------------------------------------
+    subparser = subparsers.add_parser("merge", help="merge layers | ab plane")
+
+    subparser.add_argument("-i", "--input", type=str, nargs=2, required=True,
+            help="input structure files")
+
+    subparser.add_argument("-o", "--output", type=str, required=True,
+            help="output structure file")
+
+    #subparser.add_argument("--direction", type=int, nargs=3, default=[0, 0, 1],
+    #        help="direction of the surface plane to cleave")            
+            
+    subparser.add_argument("--usecell", type=str, default="average",
+            choices=["1", "2", "average"],
+            help="use cell of structure 1 or 2 , otherwise average by default")            
+            
+    subparser.add_argument("--thick", type=float,
+            help="thickness of the vacuum layer, in unit of Angstrom, default is 10")
+            
+    subparser.add_argument("--distance", type=float,
+            help="distance between the layer, in unit of Angstrom, default is 3.4")
             
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
@@ -458,7 +482,31 @@ def main():
         cleaved = cleave_surface(structure=a, direction=args.direction, thickness=args.thick if args.thick != None else 10.0)
         
         # output structure
-        write_structure(structure=cleaved, filepath=args.output)                
+        write_structure(structure=cleaved, filepath=args.output)           
+    elif args.driver == "merge":
+        from pymatflow.structure.tools import merge_layers
+        a_list = []
+        for i in range(2):
+            a_list.append(read_structure(filepath=args.input[i]))
+        print("=======================================================================\n")
+        print("                       structflow\n")
+        print("-----------------------------------------------------------------------\n")
+        print("you are trying to merge layers on ab plane\n")            
+        print("from %s\n" % (args.input[0]))
+        print("and %s\n" % (args.input[1]))
+        print("\n")
+        print("the output structure file is -> %s\n" % args.output)
+
+        if args.usecell == "1":
+            usecell = 1
+        elif args.usecell == "2":
+            usecell = 2
+        else:
+            usecell = "average"
+        merged = merge_layers(structure1=a_list[0], structure2=a_list[1], use_cell=usecell, distance=args.distance if args.distance != None else 3.4, thickness=args.thick if args.thick != None else 10.0)
+        
+        # output structure
+        write_structure(structure=merged, filepath=args.output)                   
     # --------------------------------------------------------------------------
 
 
