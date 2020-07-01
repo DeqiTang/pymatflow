@@ -199,7 +199,7 @@ def main():
             help="on which plane to add vacuum layer. 1: ab, 2: ac, 3: bc")
 
     subparser.add_argument("--thick", type=float,
-            help="thickness of the vacuum layer, in unit of Angstrom")
+            help="thickness of the vacuum layer, in unit of Angstrom, default is 10")
 
     # ---------------------------------------------------------------------------------
     # inverse atoms against geometric center
@@ -235,6 +235,23 @@ def main():
             
     subparser.add_argument("-c", type=int, nargs=3, default=[0, 0, 1],
             help="c from old a b c")            
+            
+    # ---------------------------------------------------------------------------------
+    # cleave surface
+    # ---------------------------------------------------------------------------------
+    subparser = subparsers.add_parser("cleave", help="cleave surface")
+
+    subparser.add_argument("-i", "--input", type=str, required=True,
+            help="input structure file")
+
+    subparser.add_argument("-o", "--output", type=str, required=True,
+            help="output structure file")
+
+    subparser.add_argument("--direction", type=int, nargs=3, default=[0, 0, 1],
+            help="direction of the surface plane to cleave")            
+            
+    subparser.add_argument("--thick", type=float,
+            help="thickness of the vacuum layer, in unit of Angstrom, default is 10")
             
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
@@ -386,7 +403,7 @@ def main():
         print("\n")
         print("the output structure file is -> %s\n" % args.output)
 
-        vacuum_layer(a, plane=args.plane, thickness=args.thick)
+        vacuum_layer(a, plane=args.plane, thickness=args.thick if args.thick != None else 10.0)
         
         # output structure
         write_structure(structure=a, filepath=args.output)
@@ -426,7 +443,22 @@ def main():
         redefined = redefine_lattice(structure=a, a=args.a, b=args.b, c=args.c)
         
         # output structure
-        write_structure(structure=redefined, filepath=args.output)              
+        write_structure(structure=redefined, filepath=args.output)        
+    elif args.driver == "cleave":
+        from pymatflow.structure.tools import cleave_surface
+        a = read_structure(filepath=args.input) 
+        print("=======================================================================\n")
+        print("                       structflow\n")
+        print("-----------------------------------------------------------------------\n")
+        print("you are trying to cleave the surface of (%d, %d, %d)\n" % (args.direction[0], args.direction[1], args.direction[2]))            
+        print("from %s\n" % args.input)
+        print("\n")
+        print("the output structure file is -> %s\n" % args.output)
+
+        cleaved = cleave_surface(structure=a, direction=args.direction, thickness=args.thick if args.thick != None else 10.0)
+        
+        # output structure
+        write_structure(structure=cleaved, filepath=args.output)                
     # --------------------------------------------------------------------------
 
 

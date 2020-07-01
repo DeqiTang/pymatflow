@@ -312,3 +312,89 @@ def redefine_lattice(structure, a, b, c):
     out.cell = new_cell
     
     return out
+    
+    
+def cleave_surface(structure, direction, thickness=10):
+    """
+    :param structure: an instance of crystal()
+    :param direction: direction of the surface plane, like [0, 0, 1], the reference of it is three lattice 
+        vector a, b, c
+    
+    :return an object of crystal()
+    
+    Note: make use of redefine_lattice() to cleave surface.
+        we try to find new_a and new_b which form the surface plane (the direction is normal to the plane)
+    """
+    from pymatflow.structure.crystal import crystal
+    #from pymatflow.base.atom import Atom
+    
+    old_cell = copy.deepcopy(structure.cell)
+    direction_xyz_as_ref = list(direction[0] * np.array(old_cell[0]) + direction[1] * np.array(old_cell[1]) + direction[2] * np.array(old_cell[2]))
+    a_from_old = None #[1, 0, 0]
+    b_from_old = None #[0, 1, 0]
+    c_from_old = None #[0, 0, 1]
+    
+    iter_ijk = []
+    iter_ijk.append(0)
+    for i in range(1, 16):
+        iter_ijk.append(i)
+        iter_ijk.append(-i)
+    for i in iter_ijk:
+        if a_from_old != None and b_from_old != None:
+            break
+        for j in iter_ijk:
+            if a_from_old != None and b_from_old != None:
+                break        
+            for k in iter_ijk:
+                if a_from_old != None and b_from_old != None:
+                    break
+                if i == j == k == 0:
+                    continue
+                new_vec = list(i * np.array(old_cell[0]) + j * np.array(old_cell[1]) + k * np.array(old_cell[2]))
+                if np.dot(np.array(new_vec), np.array(direction_xyz_as_ref)) == 0:
+                    if a_from_old == None:
+                        a_from_old = [i, j, k]
+                        new_a = list(a_from_old[0] * np.array(old_cell[0]) + a_from_old[1] * np.array(old_cell[1]) + a_from_old[2] * np.array(old_cell[2]))
+                        continue
+                    elif b_from_old == None:
+                        cosangle = np.dot(np.array(new_vec), np.array(new_a)) / np.linalg.norm(np.array(new_vec)) / np.linalg.norm(np.array(new_a))
+                        sinangle = np.sin(np.arccos(cosangle))
+                        if np.abs(sinangle - 0) < 1.0e-3:
+                            continue
+                        elif 1.0e-5 < cosangle < 1:
+                            # ignore angle between [0, 90) by default
+                            # like we  ignore angle = 60 degree for a and b here, we seek for 120 instead
+                            continue
+                        else:
+                            b_from_old = [i, j, k]
+                            continue
+                
+    #
+    new_c_ijk_sin = []
+    for i in iter_ijk:
+        for j in iter_ijk:
+            for k in iter_ijk:
+                new_c = list(i * np.array(old_cell[0]) + j * np.array(old_cell[1]) + k * np.array(old_cell[2]))
+                cosangle = np.dot(np.array(new_c), np.array(direction_xyz_as_ref)) / np.linalg.norm(np.array(new_c)) / np.linalg.norm(np.array(direction_xyz_as_ref))
+                sinangle = np.sin(np.arccos(cosangle))
+                tmp = [i, j, k, sinangle]
+                new_c_ijk_sin.append(tmp)
+    sin = []
+    for item in new_c_ijk_sin:
+        # sometime item[3] maybe nan, we have to remove it 
+        if not np.isnan(item[3]):
+            sin.append(item[3])
+    min_sin = min(sin)
+    for item in new_c_ijk_sin:
+        if item[3] == min_sin:
+            c_from_old = item[:3]
+            break
+    print("a", a_from_old)
+    print("b", b_from_old)
+    print("c", c_from_old)
+    # redefine lattice
+    out = redefine_lattice(structure=structure, a=a_from_old, b=b_from_old, c=c_from_old)
+    
+    vacuum_layer(structure=out, plane=1, thickness=thickness)
+    
+    return out
