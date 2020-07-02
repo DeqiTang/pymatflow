@@ -305,7 +305,7 @@ def redefine_lattice(structure, a, b, c):
     
     atoms_frac_within_new_cell = []
     for atom in atoms_frac:
-        if 0 <= atom[1] < 1 and 0 <= atom[2] < 1 and 0 <= atom[3] < 1:
+        if 0 <= atom[1] < 0.99999 and 0 <= atom[2] < 0.99999 and 0 <= atom[3] < 0.99999:
             atoms_frac_within_new_cell.append(atom)
             
     # now convert coord of atom in atoms_frac_within_new_cell to cartesian
@@ -511,3 +511,69 @@ def merge_layers(structure1, structure2, use_cell=None, distance=3.4, thickness=
     vacuum_layer(structure=out, plane=1, thickness=thickness)
     
     return out
+    
+    
+def build_nanotube(structure):
+    """
+    :param structure: an instance of crystal()
+    
+    :return an object of crystal()
+    Note:
+        build nanotube along an axis parallel to b axis
+        only apply to film structure with ab as plane and a must be vertical to b.
+        if you want to build along an axis parallel to a axis
+        you can first redfine the lattice to swap a b, then
+        bulid the nanotube.
+    """
+    out = copy.deepcopy(structure)
+    
+    a = np.linalg.norm(out.cell[0])
+    b = np.linalg.norm(out.cell[1])
+    c = np.linalg.norm(out.cell[2])
+    
+    all_x = []
+    all_z = []
+    for atom in out.atoms:
+        all_x.append(atom.x)
+        all_z.append(atom.z)
+    
+    radius = np.sqrt(a / (2 * np.pi))
+    middle_z = min(all_z) + (max(all_z) - min(all_z)) / 2
+    center_x = min(all_x) + a / 2
+    center_z = middle_z + radius
+    
+    for i in range(len(out.atoms)):
+        x = out.atoms[i].x
+        #y = out.atoms[i].y
+        z = out.atoms[i].z
+        if x >= center_x:
+            arc_len = x - center_x
+            # arc_len = radius * arc
+            arc = arc_len / radius
+            new_x = center_x + radius * np.sin(arc)
+            new_z = center_z - radius * np.cos(arc)
+            if z >= middle_z:
+                new_x -= (z - middle_z) * np.cos(arc - np.pi / 2)
+                new_z -= (z - middle_z) * np.cos(np.pi - arc)
+            if z < middle_z:
+                new_x += (z - middle_z) * np.cos(arc - np.pi / 2)
+                new_z += (z - middle_z) * np.cos(np.pi - arc)
+        if x < center_x:
+            arc_len = center_x - x
+            # arc_len = radius * arc
+            arc = arc_len / radius
+            new_x = center_x - radius * np.sin(arc)
+            new_z = center_z - radius * np.cos(arc)            
+            if z >= middle_z:
+                new_x += (z - middle_z) * np.cos(arc - np.pi / 2)
+                new_z -= (z - middle_z) * np.cos(np.pi - arc)
+            if z < middle_z:
+                new_x -= (z - middle_z) * np.cos(arc - np.pi / 2)
+                new_z += (z - middle_z) * np.cos(np.pi - arc)        
+        out.atoms[i].x = new_x
+        out.atoms[i].z = new_z
+    
+    c_factor = 2 * radius / np.linalg.norm(np.array(out.cell[2])) * 1.5
+    out.cell[2] = list(np.array(out.cell[2]) * c_factor)
+    
+    return out    

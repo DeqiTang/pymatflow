@@ -277,6 +277,17 @@ def main():
     subparser.add_argument("--distance", type=float,
             help="distance between the layer, in unit of Angstrom, default is 3.4")
             
+    # ---------------------------------------------------------------------------------
+    # nanotube builder
+    # ---------------------------------------------------------------------------------
+    subparser = subparsers.add_parser("tube", help="nanotube along b direction(a must be perpendicular to b and ab is the surface plane)")
+
+    subparser.add_argument("-i", "--input", type=str, required=True,
+            help="input structure files")
+
+    subparser.add_argument("-o", "--output", type=str, required=True,
+            help="output structure file")
+     
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
     # ==========================================================
@@ -506,7 +517,20 @@ def main():
         merged = merge_layers(structure1=a_list[0], structure2=a_list[1], use_cell=usecell, distance=args.distance if args.distance != None else 3.4, thickness=args.thick if args.thick != None else 10.0)
         
         # output structure
-        write_structure(structure=merged, filepath=args.output)                   
+        write_structure(structure=merged, filepath=args.output)                 
+    elif args.driver == "tube":
+        from pymatflow.structure.tools import build_nanotube
+        a = read_structure(filepath=args.input)
+        print("=======================================================================\n")
+        print("                       structflow\n")
+        print("-----------------------------------------------------------------------\n")
+        print("you are trying to build nanotube of ab plane along b vector\n")            
+        print("from %s\n" % (args.input))
+        print("the output structure file is -> %s\n" % args.output)
+        
+        tube = build_nanotube(structure=a)
+        # output structure
+        write_structure(structure=tube, filepath=args.output)             
     # --------------------------------------------------------------------------
 
 
