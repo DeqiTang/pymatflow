@@ -236,6 +236,9 @@ def main():
     subparser.add_argument("-c", type=int, nargs=3, default=[0, 0, 1],
             help="c from old a b c")            
             
+    subparser.add_argument("--precision", type=float, default=1.0e-8,
+            help="a value that is less than 1 and infinitely close to 1 used to judge whether one atom is in another periodic of the redefined cell")
+            
     # ---------------------------------------------------------------------------------
     # cleave surface
     # ---------------------------------------------------------------------------------
@@ -252,6 +255,9 @@ def main():
             
     subparser.add_argument("--thick", type=float,
             help="thickness of the vacuum layer, in unit of Angstrom, default is 10")
+            
+    subparser.add_argument("--precision", type=float, default=1.0e-8,
+            help="a value that is less than 1 and infinitely close to 1 used to judge whether one atom is in another periodic of the redefined cell used in cleave surface")
             
     # ---------------------------------------------------------------------------------
     # merge layers | ab plane
@@ -287,6 +293,13 @@ def main():
 
     subparser.add_argument("-o", "--output", type=str, required=True,
             help="output structure file")
+            
+    subparser.add_argument("--plane", type=int, default=1,
+            help="on which plane to add vacuum layer. 1: ab, 2: ac, 3: bc")
+            
+    subparser.add_argument("--axis", type=str, default="b",
+            choices=["a", "b", "c"],
+            help="build nanotube along an axis parallel to axis specified")
      
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
@@ -475,7 +488,7 @@ def main():
         print("\n")
         print("the output structure file is -> %s\n" % args.output)
 
-        redefined = redefine_lattice(structure=a, a=args.a, b=args.b, c=args.c)
+        redefined = redefine_lattice(structure=a, a=args.a, b=args.b, c=args.c, precision=args.precision)
         
         # output structure
         write_structure(structure=redefined, filepath=args.output)        
@@ -490,7 +503,7 @@ def main():
         print("\n")
         print("the output structure file is -> %s\n" % args.output)
 
-        cleaved = cleave_surface(structure=a, direction=args.direction, thickness=args.thick if args.thick != None else 10.0)
+        cleaved = cleave_surface(structure=a, direction=args.direction, thickness=args.thick if args.thick != None else 10.0, precision=args.precision)
         
         # output structure
         write_structure(structure=cleaved, filepath=args.output)           
@@ -519,18 +532,45 @@ def main():
         # output structure
         write_structure(structure=merged, filepath=args.output)                 
     elif args.driver == "tube":
-        from pymatflow.structure.tools import build_nanotube
         a = read_structure(filepath=args.input)
+        if args.plane == 1:
+            plane = "ab"
+        elif args.plane == 2:
+            plane = "ac"
+        elif args.plane == 3:
+            plane = "bc"        
         print("=======================================================================\n")
         print("                       structflow\n")
         print("-----------------------------------------------------------------------\n")
-        print("you are trying to build nanotube of ab plane along b vector\n")            
+        print("you are trying to build nanotube of %s plane along %s vector\n" % (plane, args.axis))            
         print("from %s\n" % (args.input))
         print("the output structure file is -> %s\n" % args.output)
-        
-        tube = build_nanotube(structure=a)
+        tube = None
+        if plane == "ab":
+            from pymatflow.structure.tools import build_nanotube_ab        
+            if args.axis not in "ab":
+                print("building nanotube of ab plane along axis parallel to c is unphysical!!!\n")
+                sys.exit()
+            else:
+                tube = build_nanotube_ab(structure=a, axis=args.axis)
+        if plane == "ac":
+            from pymatflow.structure.tools import build_nanotube_ac
+            if args.axis not in "ac":
+                print("building nanotube of ac plane along axis parallel to b is unphysical!!!\n")
+                sys.exit()                
+            else:
+                tube = build_nanotube_ac(structure=a, axis=args.axis)
+        if plane == "bc":
+            from pymatflow.structure.tools import build_nanotube_bc
+            if args.axis not in "bc":
+                print("building nanotube of bc plane along axis parallel to a is unphysical!!!\n")
+                sys.exit()                
+            else:
+                tube = build_nanotube_bc(structure=a, axis=args.axis)
+
         # output structure
-        write_structure(structure=tube, filepath=args.output)             
+        if tube != None:
+            write_structure(structure=tube, filepath=args.output)             
     # --------------------------------------------------------------------------
 
 

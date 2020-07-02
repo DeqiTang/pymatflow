@@ -259,12 +259,14 @@ def enlarge_atoms_new_cell(structure, new_cell):
     return [[atom.name, atom.x, atom.y, atom.z] for atom in atoms]
     
 
-def redefine_lattice(structure, a, b, c):
+def redefine_lattice(structure, a, b, c, precision=1.0e-8):
     """
     :param a, b, c: new lattice vectors in terms of old.
         new_a = a[0] * old_a + a[1] * old_b + a[2] * old_c
         like a=[1, 0, 0], b=[0, 1, 0], c=[0, 0, 1] actually defines the
         same lattice as old.
+    :param precision, a value that is less than 1 and infinitely close to 1
+        used to judge whether one atom is in another periodic of the redefined cell
     :return an object of crystal()
     Method:
         first make a large enough supercell, which guarantee that all the atoms in the new lattice are inside
@@ -305,7 +307,7 @@ def redefine_lattice(structure, a, b, c):
     
     atoms_frac_within_new_cell = []
     for atom in atoms_frac:
-        if 0 <= atom[1] < 0.99999 and 0 <= atom[2] < 0.99999 and 0 <= atom[3] < 0.99999:
+        if 0 <= atom[1] < (1-precision) and 0 <= atom[2] < (1-precision) and 0 <= atom[3] < (1-precision):
             atoms_frac_within_new_cell.append(atom)
             
     # now convert coord of atom in atoms_frac_within_new_cell to cartesian
@@ -323,12 +325,14 @@ def redefine_lattice(structure, a, b, c):
     return out
     
     
-def cleave_surface(structure, direction, thickness=10):
+def cleave_surface(structure, direction, thickness=10, precision=1.0e-8):
     """
     :param structure: an instance of crystal()
     :param direction: direction of the surface plane, like [0, 0, 1], the reference of it is three lattice 
         vector a, b, c
-    
+    :param precision, a value that is less than 1 and infinitely close to 1
+        used to judge whether one atom is in another periodic of the redefined cell used in cleave surface
+        
     :return an object of crystal()
     
     Note: make use of redefine_lattice() to cleave surface.
@@ -402,7 +406,7 @@ def cleave_surface(structure, direction, thickness=10):
     print("b", b_from_old)
     print("c", c_from_old)
     # redefine lattice
-    out = redefine_lattice(structure=structure, a=a_from_old, b=b_from_old, c=c_from_old)
+    out = redefine_lattice(structure=structure, a=a_from_old, b=b_from_old, c=c_from_old, precision=precision)
     
     vacuum_layer(structure=out, plane=1, thickness=thickness)
     
@@ -513,17 +517,15 @@ def merge_layers(structure1, structure2, use_cell=None, distance=3.4, thickness=
     return out
     
     
-def build_nanotube(structure):
+def build_nanotube_ab(structure, axis="b"):
     """
     :param structure: an instance of crystal()
-    
+    :param axis: a or b
     :return an object of crystal()
     Note:
-        build nanotube along an axis parallel to b axis
+        build nanotube along an axis parallel to axis a or b
         only apply to film structure with ab as plane and a must be vertical to b.
-        if you want to build along an axis parallel to a axis
-        you can first redfine the lattice to swap a b, then
-        bulid the nanotube.
+        ab plane must be periodical plane
     """
     out = copy.deepcopy(structure)
     
@@ -532,48 +534,315 @@ def build_nanotube(structure):
     c = np.linalg.norm(out.cell[2])
     
     all_x = []
+    all_y = []
     all_z = []
     for atom in out.atoms:
         all_x.append(atom.x)
+        all_y.append(atom.y)
         all_z.append(atom.z)
     
-    radius = np.sqrt(a / (2 * np.pi))
+    if axis == "b":
+        radius = a / (2 * np.pi)
+    elif axis == "a":
+        radius = b / (2 * np.pi)
+        
     middle_z = min(all_z) + (max(all_z) - min(all_z)) / 2
-    center_x = min(all_x) + a / 2
-    center_z = middle_z + radius
+    if axis == "b":
+        center_x = min(all_x) + a / 2
+        center_z = middle_z + radius
+    elif axis == "a":
+        center_y = min(all_y) + b / 2
+        center_z = middle_z + radius        
     
     for i in range(len(out.atoms)):
         x = out.atoms[i].x
-        #y = out.atoms[i].y
+        y = out.atoms[i].y
         z = out.atoms[i].z
-        if x >= center_x:
-            arc_len = x - center_x
-            # arc_len = radius * arc
-            arc = arc_len / radius
-            new_x = center_x + radius * np.sin(arc)
-            new_z = center_z - radius * np.cos(arc)
-            if z >= middle_z:
-                new_x -= (z - middle_z) * np.cos(arc - np.pi / 2)
-                new_z -= (z - middle_z) * np.cos(np.pi - arc)
-            if z < middle_z:
+        if axis == "b":
+            if x >= center_x:
+                arc_len = x - center_x
+                # arc_len = radius * arc
+                arc = arc_len / radius
+                new_x = center_x + radius * np.sin(arc)
+                new_z = center_z - radius * np.cos(arc)
+                #if z >= middle_z:
+                #    new_x -= (z - middle_z) * np.cos(arc - np.pi / 2)
+                #    new_z -= (z - middle_z) * np.cos(np.pi - arc)
+                #if z < middle_z:
+                #    new_x += (middle_z - z) * np.cos(arc - np.pi / 2)
+                #    new_z += (middle_z - z) * np.cos(np.pi - arc)                
+                new_x += (middle_z - z) * np.cos(arc - np.pi / 2)
+                new_z += (middle_z - z) * np.cos(np.pi - arc)                
+            if x < center_x:
+                arc_len = center_x - x
+                # arc_len = radius * arc
+                arc = arc_len / radius
+                new_x = center_x - radius * np.sin(arc)
+                new_z = center_z - radius * np.cos(arc)            
+                #if z >= middle_z:
+                #    new_x += (z - middle_z) * np.cos(arc - np.pi / 2)
+                #    new_z -= (z - middle_z) * np.cos(np.pi - arc)
+                #if z < middle_z:
+                #    new_x -= (middle_z - z) * np.cos(arc - np.pi / 2)
+                #    new_z += (middle_z - z) * np.cos(np.pi - arc)        
                 new_x += (z - middle_z) * np.cos(arc - np.pi / 2)
-                new_z += (z - middle_z) * np.cos(np.pi - arc)
-        if x < center_x:
-            arc_len = center_x - x
-            # arc_len = radius * arc
-            arc = arc_len / radius
-            new_x = center_x - radius * np.sin(arc)
-            new_z = center_z - radius * np.cos(arc)            
-            if z >= middle_z:
-                new_x += (z - middle_z) * np.cos(arc - np.pi / 2)
-                new_z -= (z - middle_z) * np.cos(np.pi - arc)
-            if z < middle_z:
-                new_x -= (z - middle_z) * np.cos(arc - np.pi / 2)
-                new_z += (z - middle_z) * np.cos(np.pi - arc)        
-        out.atoms[i].x = new_x
-        out.atoms[i].z = new_z
+                new_z -= (z - middle_z) * np.cos(np.pi - arc)                
+            out.atoms[i].x = new_x
+            out.atoms[i].z = new_z
+        elif axis == "a":
+            if y >= center_y:
+                arc_len = y - center_y
+                # arc_len = radius * arc
+                arc = arc_len / radius
+                new_y = center_y + radius * np.sin(arc)
+                new_z = center_z - radius * np.cos(arc)
+                #if z >= middle_z:
+                #    new_y -= (z - middle_z) * np.cos(arc - np.pi / 2)
+                #    new_z -= (z - middle_z) * np.cos(np.pi - arc)
+                #if z < middle_z:
+                #    new_y += (middle_z - z) * np.cos(arc - np.pi / 2)
+                #    new_z += (middle_z - z) * np.cos(np.pi - arc)                
+                new_y += (middle_z - z) * np.cos(arc - np.pi / 2)
+                new_z += (middle_z - z) * np.cos(np.pi - arc)                
+            if y < center_y:
+                arc_len = center_y - y
+                # arc_len = radius * arc
+                arc = arc_len / radius
+                new_y = center_y - radius * np.sin(arc)
+                new_z = center_z - radius * np.cos(arc)            
+                #if z >= middle_z:
+                #    new_y += (z - middle_z) * np.cos(arc - np.pi / 2)
+                #    new_z -= (z - middle_z) * np.cos(np.pi - arc)
+                #if z < middle_z:
+                #    new_y -= (middle_z - z) * np.cos(arc - np.pi / 2)
+                #    new_z += (middle_z - z) * np.cos(np.pi - arc)        
+                new_y += (z - middle_z) * np.cos(arc - np.pi / 2)
+                new_z -= (z - middle_z) * np.cos(np.pi - arc)                
+            out.atoms[i].y = new_y
+            out.atoms[i].z = new_z        
     
-    c_factor = 2 * radius / np.linalg.norm(np.array(out.cell[2])) * 1.5
+    c_factor = 2 * radius / np.linalg.norm(np.array(out.cell[2])) * 2.5
     out.cell[2] = list(np.array(out.cell[2]) * c_factor)
+    
+    return out    
+    
+    
+def build_nanotube_ac(structure, axis="a"):
+    """
+    :param structure: an instance of crystal()
+    :param axis: a or c
+    :return an object of crystal()
+    Note:
+        build nanotube along an axis parallel to axis a or c
+        only apply to film structure with ac as plane and a must be vertical to c.
+        ac plane must be periodical plane        
+    """
+    out = copy.deepcopy(structure)
+    
+    a = np.linalg.norm(out.cell[0])
+    b = np.linalg.norm(out.cell[1])
+    c = np.linalg.norm(out.cell[2])
+    
+    all_x = []
+    all_y = []
+    all_z = []
+    for atom in out.atoms:
+        all_x.append(atom.x)
+        all_y.append(atom.y)
+        all_z.append(atom.z)
+    
+    if axis == "c":
+        radius = a / (2 * np.pi)
+    elif axis == "a":
+        radius = c / (2 * np.pi)
+        
+    middle_y = min(all_y) + (max(all_y) - min(all_y)) / 2
+    if axis == "c":
+        center_x = min(all_x) + a / 2
+        center_y = middle_y + radius
+    elif axis == "a":
+        center_c = min(all_z) + c / 2
+        center_y = middle_y + radius        
+    
+    for i in range(len(out.atoms)):
+        x = out.atoms[i].x
+        y = out.atoms[i].y
+        z = out.atoms[i].z
+        if axis == "c":
+            if x >= center_x:
+                arc_len = x - center_x
+                # arc_len = radius * arc
+                arc = arc_len / radius
+                new_x = center_x + radius * np.sin(arc)
+                new_y = center_y - radius * np.cos(arc)
+                #if y >= middle_y:
+                #    new_x -= (y - middle_y) * np.cos(arc - np.pi / 2)
+                #    new_y -= (y - middle_y) * np.cos(np.pi - arc)
+                #if y < middle_y:
+                #    new_x += (middle_y - y) * np.cos(arc - np.pi / 2)
+                #    new_y += (middle_y - y) * np.cos(np.pi - arc)                
+                new_x += (middle_y - y) * np.cos(arc - np.pi / 2)
+                new_y += (middle_y - y) * np.cos(np.pi - arc)                
+            if x < center_x:
+                arc_len = center_x - x
+                # arc_len = radius * arc
+                arc = arc_len / radius
+                new_x = center_x - radius * np.sin(arc)
+                new_y = center_y - radius * np.cos(arc)            
+                #if y >= middle_y:
+                #    new_x += (y - middle_y) * np.cos(arc - np.pi / 2)
+                #    new_y -= (y - middle_y) * np.cos(np.pi - arc)
+                #if y < middle_y:
+                #    new_x -= (middle_y - y) * np.cos(arc - np.pi / 2)
+                #    new_y += (middle_y - y) * np.cos(np.pi - arc)        
+                new_x += (y - middle_y) * np.cos(arc - np.pi / 2)
+                new_y -= (y - middle_y) * np.cos(np.pi - arc)                
+            out.atoms[i].x = new_x
+            out.atoms[i].y = new_y
+        elif axis == "a":
+            if z >= center_z:
+                arc_len = z - center_z
+                # arc_len = radius * arc
+                arc = arc_len / radius
+                new_z = center_z + radius * np.sin(arc)
+                new_y = center_y - radius * np.cos(arc)
+                #if y >= middle_y:
+                #    new_z -= (y - middle_y) * np.cos(arc - np.pi / 2)
+                #    new_y -= (y - middle_y) * np.cos(np.pi - arc)
+                #if y < middle_y:
+                #    new_z += (middle_y - y) * np.cos(arc - np.pi / 2)
+                #    new_y += (middle_y - y) * np.cos(np.pi - arc)                
+                new_z += (middle_y - y) * np.cos(arc - np.pi / 2)
+                new_y += (middle_y - y) * np.cos(np.pi - arc)                
+            if z < center_z:
+                arc_len = center_z - z
+                # arc_len = radius * arc
+                arc = arc_len / radius
+                new_z = center_z - radius * np.sin(arc)
+                new_y = center_y - radius * np.cos(arc)            
+                #if y >= middle_y:
+                #    new_z += (y - middle_y) * np.cos(arc - np.pi / 2)
+                #    new_y -= (y - middle_y) * np.cos(np.pi - arc)
+                #if y < middle_y:
+                #    new_z -= (middle_y - y) * np.cos(arc - np.pi / 2)
+                #    new_y += (middle_y - y) * np.cos(np.pi - arc)        
+                new_z += (y - middle_y) * np.cos(arc - np.pi / 2)
+                new_y -= (z - middle_y) * np.cos(np.pi - arc)                
+            out.atoms[i].y = new_y
+            out.atoms[i].z = new_z        
+    
+    b_factor = 2 * radius / np.linalg.norm(np.array(out.cell[1])) * 2.5
+    out.cell[1] = list(np.array(out.cell[1]) * b_factor)
+    
+    return out    
+    
+
+
+def build_nanotube_bc(structure, axis="c"):
+    """
+    :param structure: an instance of crystal()
+    :param axis: b or c
+    :return an object of crystal()
+    Note:
+        build nanotube along an axis parallel to axis b or c
+        only apply to film structure with bc as plane and b must be vertical to c.
+        bc plane must be periodical plane        
+    """
+    out = copy.deepcopy(structure)
+    
+    a = np.linalg.norm(out.cell[0])
+    b = np.linalg.norm(out.cell[1])
+    c = np.linalg.norm(out.cell[2])
+    
+    all_x = []
+    all_y = []
+    all_z = []
+    for atom in out.atoms:
+        all_x.append(atom.x)
+        all_y.append(atom.y)
+        all_z.append(atom.z)
+    
+    if axis == "b":
+        radius = c / (2 * np.pi)
+    elif axis == "c":
+        radius = b / (2 * np.pi)
+        
+    middle_x = min(all_x) + (max(all_x) - min(all_x)) / 2
+    if axis == "b":
+        center_z = min(all_z) + c / 2
+        center_x = middle_x + radius
+    elif axis == "c":
+        center_y = min(all_y) + b / 2
+        center_x = middle_x + radius        
+    
+    for i in range(len(out.atoms)):
+        x = out.atoms[i].x
+        y = out.atoms[i].y
+        z = out.atoms[i].z
+        if axis == "b":
+            if z >= center_z:
+                arc_len = z - center_z
+                # arc_len = radius * arc
+                arc = arc_len / radius
+                new_z = center_z + radius * np.sin(arc)
+                new_x = center_x - radius * np.cos(arc)
+                #if x >= middle_x:
+                #    new_z -= (x - middle_x) * np.cos(arc - np.pi / 2)
+                #    new_x -= (x - middle_x) * np.cos(np.pi - arc)
+                #if x < middle_x:
+                #    new_z += (middle_x - x) * np.cos(arc - np.pi / 2)
+                #    new_x += (middle_x - x) * np.cos(np.pi - arc)                
+                new_z += (middle_x - x) * np.cos(arc - np.pi / 2)
+                new_x += (middle_x - x) * np.cos(np.pi - arc)                
+            if z < center_z:
+                arc_len = center_z - z
+                # arc_len = radius * arc
+                arc = arc_len / radius
+                new_z = center_z - radius * np.sin(arc)
+                new_x = center_x - radius * np.cos(arc)            
+                #if x >= middle_x:
+                #    new_z += (x - middle_x) * np.cos(arc - np.pi / 2)
+                #    new_x -= (x - middle_x) * np.cos(np.pi - arc)
+                #if x < middle_x:
+                #    new_z -= (middle_x - x) * np.cos(arc - np.pi / 2)
+                #    new_x += (middle_x - x) * np.cos(np.pi - arc)        
+                new_z += (x - middle_x) * np.cos(arc - np.pi / 2)
+                new_x -= (x - middle_x) * np.cos(np.pi - arc)                
+            out.atoms[i].x = new_x
+            out.atoms[i].z = new_z
+        elif axis == "c":
+            if y >= center_y:
+                arc_len = y - center_y
+                # arc_len = radius * arc
+                arc = arc_len / radius
+                new_y = center_y + radius * np.sin(arc)
+                new_x = center_x - radius * np.cos(arc)
+                #if x >= middle_x:
+                #    new_y -= (x - middle_x) * np.cos(arc - np.pi / 2)
+                #    new_x -= (x - middle_x) * np.cos(np.pi - arc)
+                #if x < middle_x:
+                #    new_y += (middle_x - x) * np.cos(arc - np.pi / 2)
+                #    new_x += (middle_x - x) * np.cos(np.pi - arc)                
+                new_y += (middle_x - x) * np.cos(arc - np.pi / 2)
+                new_x += (middle_x - x) * np.cos(np.pi - arc)                
+            if y < center_y:
+                arc_len = center_y - y
+                # arc_len = radius * arc
+                arc = arc_len / radius
+                new_y = center_y - radius * np.sin(arc)
+                new_x = center_x - radius * np.cos(arc)            
+                #if x >= middle_x:
+                #    new_y += (x - middle_x) * np.cos(arc - np.pi / 2)
+                #    new_x -= (x - middle_x) * np.cos(np.pi - arc)
+                #if x < middle_x:
+                #    new_y -= (middle_x - x) * np.cos(arc - np.pi / 2)
+                #    new_x += (middle_x - x) * np.cos(np.pi - arc)        
+                new_y += (x - middle_x) * np.cos(arc - np.pi / 2)
+                new_x -= (x - middle_x) * np.cos(np.pi - arc)                
+            out.atoms[i].y = new_y
+            out.atoms[i].x = new_x
+    
+    a_factor = 2 * radius / np.linalg.norm(np.array(out.cell[0])) * 2.5
+    out.cell[0] = list(np.array(out.cell[0]) * a_factor)
     
     return out    
