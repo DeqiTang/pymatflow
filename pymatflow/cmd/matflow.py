@@ -1821,8 +1821,14 @@ def main():
     gp = subparser.add_argument_group(title="fix atoms",
             description="specify atoms to fix in optimization, only used when --runtype=1")
 
-    gp.add_argument("--fix", help="list of fixed atoms, index start from 1", nargs='+', type=int)
+    gp.add_argument("--fix", help="list of fixed atoms, index start from 1, have privilege over --fix-around-z", nargs='+', type=int)
 
+    gp.add_argument("--fix-around-z", type=float, nargs=3, default=None,
+        help="select atoms around specified z in Angstrom with tolerance, like this --fix-around-z 10 -0.5 0.5")            
+            
+    gp.add_argument("--color-fix", type=str, default="white",
+        choices=["red", "green", "blue", "white"],
+        help="select color to color the fixed atoms in xsd file, can be: red green blue and white")
 
     # static calc related setting
     gp = subparser.add_argument_group(title="static calc",
@@ -1882,9 +1888,6 @@ def main():
     gp.add_argument("--nelect", type=int, default=None,
             help="sets the number of electrons")
             
-    gp.add_argument("--color-fix", type=str, default="white",
-        choices=["red", "green", "blue", "white"],
-        help="select color to color the fixed atoms in xsd file, can be: red green blue and white")
             
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
@@ -2831,18 +2834,31 @@ def main():
         elif args.runtype == 1:
             # optimization
             from pymatflow.vasp.opt import opt_run
-            #
-            if args.fix != None:
+            #  
+            
+            if args.fix != None or args.fix_around_z != None:
+                # can only write xyz and poscar file
+                from pymatflow.cmd.structflow import read_structure                
+                a = read_structure(filepath=xyzfile)
+                if args.fix != None:
+                    fix = args.fix
+                elif args.around_z != None:
+                    atoms_index_from_1 = []
+                    for i in range(len(a.atoms)):
+                        if a.atoms[i].z > (args.around_z[0] + args.around_z[1]) and a.atoms[i].z < (args.around_z[0] + args.around_z[2]):
+                            atoms_index_from_1.append(i+1)
+                    fix = atoms_index_from_1
+                else:
+                    fix = []                      
+                    
                 fix_str = ""
-                for i in args.fix:
+                for i in fix:
                         fix_str += "%d " % i
                 os.system("xyz-fix-atoms.py -i %s -o %s --fix %s" % (xyzfile, xyzfile, fix_str))
                 args.selective_dynamics = "T"
                 
                 # output an xsd file with fixed atoms colored specifically so that user can check the atoms fixed
                 from xml.etree.ElementTree import parse
-                from pymatflow.cmd.structflow import read_structure
-                a = read_structure(filepath=xyzfile)        
                 os.system("mkdir -p /tmp/structflow/fix")
                 write_structure(a, filepath="/tmp/structflow/fix/tmp.xsd")
                 # read xsd file

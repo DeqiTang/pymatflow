@@ -117,7 +117,7 @@ def main():
     subparser.add_argument("-o", "--output", type=str, required=True,
             help="output structure file")
 
-    subparser.add_argument("--fix", help="list of fixed atoms, index start from 1", nargs='+', type=int, default=None)
+    subparser.add_argument("--fix", help="list of fixed atoms, index start from 1, have privilege over --around-z", nargs='+', type=int, default=None)
 
     subparser.add_argument("--around-z", type=float, nargs=3, default=None,
         help="select atoms around specified z in Angstrom with tolerance, like this --around-z 10 -0.5 0.5")
