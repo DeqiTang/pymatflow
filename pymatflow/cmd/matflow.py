@@ -1882,6 +1882,10 @@ def main():
     gp.add_argument("--nelect", type=int, default=None,
             help="sets the number of electrons")
             
+    gp.add_argument("--color-fix", type=str, default="white",
+        choices=["red", "green", "blue", "white"],
+        help="select color to color the fixed atoms in xsd file, can be: red green blue and white")
+            
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
     # ==========================================================
@@ -2834,6 +2838,37 @@ def main():
                         fix_str += "%d " % i
                 os.system("xyz-fix-atoms.py -i %s -o %s --fix %s" % (xyzfile, xyzfile, fix_str))
                 args.selective_dynamics = "T"
+                
+                # output an xsd file with fixed atoms colored specifically so that user can check the atoms fixed
+                from xml.etree.ElementTree import parse
+                from pymatflow.cmd.structflow import read_structure
+                a = read_structure(filepath=xyzfile)        
+                os.system("mkdir -p /tmp/structflow/fix")
+                write_structure(a, filepath="/tmp/structflow/fix/tmp.xsd")
+                # read xsd file
+                xsd = parse("/tmp/structflow/fix/tmp.xsd")
+    
+                # ID of Atom3D in xsd file start from 4
+                imap = xsd.getroot().find("AtomisticTreeRoot").find("SymmetrySystem").find("MappingSet").find("MappingFamily").find("IdentityMapping")
+                atoms = imap.findall("Atom3d")
+                if args.color_fix == "white":
+                    RGB = [255, 255, 255]
+                elif args.color_fix == "red":
+                    RGB = [255, 0, 0]
+                elif args.color_fix == "green":
+                    RGB = [0, 255, 0]
+                elif args.color_fix == "blue":
+                    RGB = [0, 0, 255]
+                else:
+                    RGB = [255, 255, 255] # default
+            
+                fix = args.fix
+                for i in fix:
+                    atoms[i-1].set("Color", "%f, %f, %f, %f" % (RGB[0], RGB[1], RGB[2], 1))
+                    
+                # write xsd file
+                xsd.write(os.path.join(args.directory, os.path.basename(xyzfile))+".coloring.atoms.fixed.xsd")
+                        
             #            
             task = opt_run()
             task.get_xyz(xyzfile)

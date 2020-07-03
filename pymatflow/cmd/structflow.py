@@ -117,8 +117,14 @@ def main():
     subparser.add_argument("-o", "--output", type=str, required=True,
             help="output structure file")
 
-    subparser.add_argument("--fix", help="list of fixed atoms", nargs='+', type=int)
+    subparser.add_argument("--fix", help="list of fixed atoms, index start from 1", nargs='+', type=int, default=None)
 
+    subparser.add_argument("--around-z", type=float, nargs=3, default=None,
+        help="select atoms around specified z in Angstrom with tolerance, like this --around-z 10 -0.5 0.5")
+
+    subparser.add_argument("--color", type=str, default="white",
+        choices=["red", "green", "blue", "white"],
+        help="select color to color the fix atoms in xsd file, can be: red green blue and white")
 
     # --------------------------------------------------------------------------
     # convert file type
@@ -333,16 +339,26 @@ def main():
 
     elif args.driver == "fix":
         # can only write xyz and poscar file
-        
+        a = read_structure(filepath=args.input)        
+        if args.fix != None:
+            fix = args.fix
+        elif args.around_z != None:
+            atoms_index_from_1 = []
+            for i in range(len(a.atoms)):
+                if a.atoms[i].z > (args.around_z[0] + args.around_z[1]) and a.atoms[i].z < (args.around_z[0] + args.around_z[2]):
+                    atoms_index_from_1.append(i+1)
+            fix = atoms_index_from_1
+        else:
+            fix = []
+            
         if args.output.split(".")[-1] == "xyz":
             fix_str = ""
-            for i in args.fix:
+            for i in fix:
                 fix_str += "%d " % i
             os.system("xyz-fix-atoms.py -i %s -o %s --fix %s" % (args.input, args.output, fix_str))
         elif os.path.basename(args.output) == "POSCAR":
             from pymatflow.vasp.base.poscar import vasp_poscar
-            a = read_structure(filepath=args.input)
-            for i in args.fix:
+            for i in fix:
                 a.atoms[i-1].fix = [True, True, True]
             poscar = vasp_poscar()
             poscar.xyz.cell = a.cell
@@ -358,6 +374,33 @@ def main():
             print("---------------------------------------------------------------\n")
             print("structflow fix now only supports write of xyz and POSCAR\n")
             sys.exit(1)        
+        # output an xsd file with fixed atoms colored specifically so that user can check the atoms fixed
+        from xml.etree.ElementTree import parse
+        os.system("mkdir -p /tmp/structflow/fix")
+        write_structure(a, filepath="/tmp/structflow/fix/tmp.xsd")
+        # read xsd file
+        xsd = parse("/tmp/structflow/fix/tmp.xsd")
+    
+        # ID of Atom3D in xsd file start from 4
+        imap = xsd.getroot().find("AtomisticTreeRoot").find("SymmetrySystem").find("MappingSet").find("MappingFamily").find("IdentityMapping")
+        atoms = imap.findall("Atom3d")
+        if args.color == "white":
+            RGB = [255, 255, 255]
+        elif args.color == "red":
+            RGB = [255, 0, 0]
+        elif args.color == "green":
+            RGB = [0, 255, 0]
+        elif args.color == "blue":
+            RGB = [0, 0, 255]
+        else:
+            RGB = [255, 255, 255] # default
+            
+        for i in fix:
+            atoms[i-1].set("Color", "%f, %f, %f, %f" % (RGB[0], RGB[1], RGB[2], 1))
+
+        # write xsd file
+        xsd.write(args.input+".coloring.atoms.fixed.xsd")    
+        
 
     elif args.driver == "convert":
         # will convert file type according to the suffix of the specified input and output file
