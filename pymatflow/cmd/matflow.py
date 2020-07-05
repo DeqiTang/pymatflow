@@ -2859,6 +2859,7 @@ def main():
                 
                 # output an xsd file with fixed atoms colored specifically so that user can check the atoms fixed
                 from xml.etree.ElementTree import parse
+                from pymatflow.cmd.structflow import write_structure
                 os.system("mkdir -p /tmp/structflow/fix")
                 write_structure(a, filepath="/tmp/structflow/fix/tmp.xsd")
                 # read xsd file
@@ -2883,7 +2884,7 @@ def main():
                     atoms[i-1].set("Color", "%f, %f, %f, %f" % (RGB[0], RGB[1], RGB[2], 1))
                     
                 # write xsd file
-                xsd.write(os.path.join(args.directory, os.path.basename(xyzfile))+".coloring.atoms.fixed.xsd")
+                xsd.write(xyzfile+".coloring.atoms.fixed.xsd")
                         
             #            
             task = opt_run()

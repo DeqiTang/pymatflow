@@ -115,7 +115,8 @@ def main():
     plt.colorbar(im)
     ax.autoscale()
     plt.tight_layout()
-    plt.savefig(args.output+"-z-%f.grayscale.png" % args.z)
+    plt.savefig(args.output+"-z-%f.grayscale.plot.png" % args.z)
+    #plt.imsave(args.output+"-z-%f.grayscale.image.png" % args.z, arr=img, cmap="gray") # img is not Affine transoformed here!!!
     plt.close()
         
     # -----------------------------------------------------------------------------

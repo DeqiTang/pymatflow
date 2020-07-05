@@ -652,6 +652,10 @@ class post_bands:
             # on the left we choose num_k_left, on the right we choose num_k_right
             num_k_left = 5 
             num_k_right = 5
+            #print("top_peak_k", top_peak_k)
+            #print("xcoord_k", self.xcoord_k)
+            #print(len(self.xcoord_k))
+            #print(-num_k_left, num_k_right+1)
             homo_x = [self.xcoord_k[top_peak_k+i] for i in range(-num_k_left, +num_k_right+1)]
             homo_y = [self.eigenval["spin_1"][top_peak_k+i]["energy"][homo] for i in range(-num_k_left, +num_k_right+1)]
             lumo_x = [self.xcoord_k[low_valley_k+i] for i in range(-num_k_left, +num_k_right+1)]
