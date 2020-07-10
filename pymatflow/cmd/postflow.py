@@ -458,7 +458,7 @@ def main():
             pass
         elif args.runtype == 7:
             # phonopy
-            os.system("post-abinit-phonopy.py -d %s -f %s --qpath-file %s --supercell-n %d %d %d" % (args.directory, xyzfile, args.kpath_file, args.supercell_n[0], args.supercell_n[1], args.supercell_n[2]))
+            os.system("post-abinit-phonopy.py -d %s -f %s --qpath-file %s --supercell-n %d %d %d --engine %s" % (args.directory, xyzfile, args.kpath_file, args.supercell_n[0], args.supercell_n[1], args.supercell_n[2], args.engine))
         else:
             pass
 
@@ -507,7 +507,7 @@ def main():
             pass
         elif args.runtype == 7:
             # phonopy
-            os.system("post-cp2k-phonopy.py -d %s -f %s --qpath-file %s --supercell-n %d %d %d" % (args.directory, xyzfile, args.kpath_file, args.supercell_n[0], args.supercell_n[1], args.supercell_n[2]))
+            os.system("post-cp2k-phonopy.py -d %s -f %s --qpath-file %s --supercell-n %d %d %d --engine %s" % (args.directory, xyzfile, args.kpath_file, args.supercell_n[0], args.supercell_n[1], args.supercell_n[2], args.engine))
         elif args.runtype == 8:
             # vibrational analysis
             pass
@@ -583,7 +583,7 @@ def main():
             os.system("post-qe-matdyn.py -d %s --option gnuplot --freq 0 0.1" % args.directory)
         elif args.runtype == 8:
             # phonopy phonon
-            os.system("post-qe-phonopy.py -d %s -f %s --qpath-file %s --supercell-n %d %d %d" % (args.directory, xyzfile, args.kpath_file, args.supercell_n[0], args.supercell_n[1], args.supercell_n[2]))
+            os.system("post-qe-phonopy.py -d %s -f %s --qpath-file %s --supercell-n %d %d %d --engine %s" % (args.directory, xyzfile, args.kpath_file, args.supercell_n[0], args.supercell_n[1], args.supercell_n[2], args.engine))
         else:
             pass
 # ==============================================================================
@@ -617,7 +617,7 @@ def main():
             os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
         elif args.runtype == 5:
             # phonopy
-            os.system("post-siesta-phonopy.py -d %s -f %s --qpath-file %s --supercell-n %d %d %d" % (args.directory, xyzfile, args.kpath_file, args.supercell_n[0], args.supercell_n[1], args.supercell_n[2]))
+            os.system("post-siesta-phonopy.py -d %s -f %s --qpath-file %s --supercell-n %d %d %d --engine %s" % (args.directory, xyzfile, args.kpath_file, args.supercell_n[0], args.supercell_n[1], args.supercell_n[2], args.engine))
         else:
             pass
 

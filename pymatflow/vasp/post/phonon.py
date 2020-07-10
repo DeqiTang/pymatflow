@@ -114,21 +114,38 @@ class phonon_post:
         import yaml
         with open("post-processing/band.yaml", 'r') as fin:
             band_yaml = yaml.safe_load(fin)
-        
-        with open("post-processing/band.data", 'w') as fout:
-            fout.write("# phonon band\n")
-            nqpoint = band_yaml["nqpoint"]
-            nband = band_yaml["phonon"][0]["band"].__len__()
-            # actually band_yaml["phonon"].__len__() == nqpoint
-            for i in range(nqpoint):
-                fout.write("%f" % band_yaml["phonon"][i]["distance"])
-                for band in band_yaml["phonon"][i]["band"]:
-                    fout.write(" %f" % band["frequency"])
-                fout.write("\n")
 
         npath = band_yaml["npath"]
         segment_nqpoint = band_yaml["segment_nqpoint"]
         labels = band_yaml["labels"]
+        
+        with open("post-processing/band.data", 'w') as fout:
+            fout.write("# phonon band: different column are different band\n")
+            fout.write("# but band in different kpath segmentation is not in the same order, so we divide it with empty lines\n")
+            fout.write("# so that there are no weird vertical lines\n")
+            nqpoint = band_yaml["nqpoint"]
+            nband = band_yaml["phonon"][0]["band"].__len__()
+            # actually band_yaml["phonon"].__len__() == nqpoint
+            #for i in range(nqpoint):
+            #    fout.write("%f" % band_yaml["phonon"][i]["distance"])
+            #    for band in band_yaml["phonon"][i]["band"]:
+            #        fout.write(" %f" % band["frequency"])
+            #    fout.write("\n")
+
+            for s in range(len(segment_nqpoint)):
+                if s == 0:
+                    start = 0
+                    end = segment_nqpoint[0] - 1                
+                else:
+                    start = sum(segment_nqpoint[:s])
+                    end = start + segment_nqpoint[s] - 1
+                for i in range(start, end + 1):
+                    fout.write("%f" % band_yaml["phonon"][i]["distance"])
+                    for band in band_yaml["phonon"][i]["band"]:
+                        fout.write(" %f" % band["frequency"])
+                    fout.write("\n")            
+                fout.write("\n")
+
         
         locs = []
         labels_for_matplotlib = []
@@ -173,8 +190,17 @@ class phonon_post:
             import matplotlib.pyplot as plt
             with open("post-processing/band.data", 'r') as fin:
                 band_data = np.loadtxt(fin)
-            for iband in range(nband):
-                plt.plot(band_data[:, 0], band_data[:, iband+1], color='red', linewidth=1)
+            # in band.yaml band in different kpath segmentation is not in the same order, we plot each segmentation separately
+            # so that there are no weird vertical lines
+            for s in range(len(segment_nqpoint)):
+                if s == 0:
+                    start = 0
+                    end = segment_nqpoint[0] - 1                
+                else:
+                    start = sum(segment_nqpoint[:s])
+                    end = start + segment_nqpoint[s] - 1            
+                for iband in range(nband):
+                    plt.plot(band_data[start:end+1, 0], band_data[start:end+1, iband+1], color='red', linewidth=1)
             plt.xticks(locs, labels_for_matplotlib)
             plt.xlabel("K")
             plt.ylabel("Frequency (THz)")
