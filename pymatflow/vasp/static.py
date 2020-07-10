@@ -1625,7 +1625,7 @@ class static_run(vasp):
         server_handle(auto=auto, directory=directory, jobfilebase="static-bse", server=self.run_params["server"])
 
 
-    def stm(self, directory="tmp-vasp-static", runopt="gen", auto=0, hse_in_scf=True):
+    def parchg_stm(self, directory="tmp-vasp-static", runopt="gen", auto=0, hse_in_scf=True):
         """
         directory: a place for all the generated files
 
@@ -1636,7 +1636,7 @@ class static_run(vasp):
             gen    -> generate a new calculation but do not run
             run    -> run a calculation on the previously generated files
             genrun -> generate a calculation and run it
-        Note: scf stm in a single run
+        Note: scf parchg(stm) in a single run
         """
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
@@ -1651,13 +1651,13 @@ class static_run(vasp):
             # scf
             self.incar.set_params({
                 "ICHARG": 2,
-                "LORBIT": 11, # must do this to get lm decomposed DOS, and it is needed in stm calc
+                "LORBIT": 11, # must do this to get lm decomposed DOS, and it is needed in parchg(stm) calc
             })
             
-            stm_related = {}
+            parchg_stm_related = {}
             for item in ["LPARD", "LSEPK", "LSEPB", "NBMOD", "EINT"]:
                 if item in self.incar.params and self.incar.params[item] != None:
-                    stm_related[item] = self.incar.params[item]
+                    parchg_stm_related[item] = self.incar.params[item]
                     self.incar.params[item] = None
                     
             #self.set_kpoints(option="automatic", kpoints_mp=kpoints_mp_scf)
@@ -1686,10 +1686,10 @@ class static_run(vasp):
                 "ICHARG": None,
                 "LORBIT": None,
             })
-            for item in stm_related:
-                self.incar.params[item] = stm_related[item]
-            incar_stm = self.incar.to_string()
-            kpoints_stm = self.kpoints.to_string()
+            for item in parchg_stm_related:
+                self.incar.params[item] = parchg_stm_related[item]
+            incar_parchg_stm = self.incar.to_string()
+            kpoints_parchg_stm = self.kpoints.to_string()
 
             # gen llhpc script
             with open(os.path.join(directory, "static.slurm"), 'w') as fout:
@@ -1719,22 +1719,22 @@ class static_run(vasp):
                 fout.write("cp OUTCAR OUTCAR.scf\n")
                 fout.write("cp vasprun.xml vasprun.xml.scf\n")
 
-                fout.write("# stm\n")
+                fout.write("# parchg(stm)\n")
                 fout.write("cat > INCAR<<EOF\n")
                 #self.incar.to_incar(fout)
-                fout.write(incar_stm)
+                fout.write(incar_parchg_stm)
                 fout.write("EOF\n")
 
                 fout.write("cat >KPOINTS<<EOF\n")
-                fout.write(kpoints_stm)
+                fout.write(kpoints_parchg_stm)
                 fout.write("EOF\n")
                 
                 if self.magnetic_status == "non-collinear":
                     fout.write("yhrun $PMF_VASP_NCL\n")
                 else:
                     fout.write("yhrun $PMF_VASP_STD \n")
-                fout.write("cp OUTCAR OUTCAR.nscf\n")
-                fout.write('cp vasprun.xml vasprun.xml.stm\n')
+                fout.write("cp OUTCAR OUTCAR.parchg(stm)\n")
+                fout.write('cp vasprun.xml vasprun.xml.parchg(stm)\n')
 
 
             # gen pbs script
@@ -1768,14 +1768,14 @@ class static_run(vasp):
                 fout.write("cp OUTCAR OUTCAR.scf\n")
                 fout.write("cp vasprun.xml vasprun.xml.scf\n")
 
-                fout.write("# stm\n")
+                fout.write("# parchg(stm)\n")
                 fout.write("cat > INCAR<<EOF\n")
                 #self.incar.to_incar(fout)
-                fout.write(incar_stm)
+                fout.write(incar_parchg_stm)
                 fout.write("EOF\n")
 
                 fout.write("cat >KPOINTS<<EOF\n")
-                fout.write(kpoints_stm)
+                fout.write(kpoints_parchg_stm)
                 fout.write("EOF\n")
 
                 if self.magnetic_status == "non-collinear":
@@ -1784,8 +1784,8 @@ class static_run(vasp):
                 else:
                     #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
                     fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD \n")
-                fout.write("cp OUTCAR OUTCAR.nscf\n")
-                fout.write("cp vasprun.xml vasprun.xml.stm\n")
+                fout.write("cp OUTCAR OUTCAR.parchg(stm)\n")
+                fout.write("cp vasprun.xml vasprun.xml.parchg(stm)\n")
 
 
             # gen local bash script
@@ -1810,22 +1810,22 @@ class static_run(vasp):
                 fout.write("cp OUTCAR OUTCAR.scf\n")
                 fout.write("cp vasprun.xml vasprun.xml.scf\n")
 
-                fout.write("# stm\n")
+                fout.write("# parchg(stm)\n")
                 fout.write("cat > INCAR<<EOF\n")
                 #self.incar.to_incar(fout)
-                fout.write(incar_stm)
+                fout.write(incar_parchg_stm)
                 fout.write("EOF\n")
 
                 fout.write("cat >KPOINTS<<EOF\n")
-                fout.write(kpoints_stm)
+                fout.write(kpoints_parchg_stm)
                 fout.write("EOF\n")
 
                 if self.magnetic_status == "non-collinear":
                     fout.write("%s $PMF_VASP_NCL \n" % self.run_params["mpi"])
                 else:
                     fout.write("%s $PMF_VASP_STD \n" % self.run_params["mpi"])
-                fout.write("cp OUTCAR OUTCAR.nscf\n")
-                fout.write("cp vasprun.xml vasprun.xml.stm\n")
+                fout.write("cp OUTCAR OUTCAR.parchg(stm)\n")
+                fout.write("cp vasprun.xml vasprun.xml.parchg(stm)\n")
 
 
             # gen lsf_sz script
@@ -1866,22 +1866,22 @@ class static_run(vasp):
                     fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
                 fout.write("cp OUTCAR OUTCAR.scf\n")
                 fout.write("cp vasprun.xml vasprun.xml.scf\n")
-                fout.write("# stm\n")
+                fout.write("# parchg(stm)\n")
                 fout.write("cat > INCAR<<EOF\n")
                 #self.incar.to_incar(fout)
-                fout.write(incar_stm)
+                fout.write(incar_parchg_stm)
                 fout.write("EOF\n")
 
                 fout.write("cat >KPOINTS<<EOF\n")
-                fout.write(kpoints_stm)
+                fout.write(kpoints_parchg_stm)
                 fout.write("EOF\n")
 
                 if self.magnetic_status == "non-collinear":
                     fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_NCL\n")
                 else:
                     fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
-                fout.write("cp OUTCAR OUTCAR.nscf\n")
-                fout.write("cp vasprun.xml vasprun.xml.stm\n")
+                fout.write("cp OUTCAR OUTCAR.parchg(stm\n")
+                fout.write("cp vasprun.xml vasprun.xml.parchg(stm)\n")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

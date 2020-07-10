@@ -245,10 +245,10 @@ class post_pdos:
         for element in data:
             for i in range(spin_n):
                 with open("pdos-proj-elem(%s)-lm-%s-spin-%d.data" % (element, self.magnetic_status, i+1), 'w') as fout:
-                    fout.write("# Efermi: %f\n" % self.efermi)
+                    fout.write("#Efermi: %f\n" % self.efermi)
                     fout.write("#")
                     for item in data[element]["spin_%d" % (i+1)]:
-                        fout.write(" %s" % item)
+                        fout.write("%s " % item)
                     fout.write("\n")
                     for j in range(len(data[element]["spin_%d" % (i+1)]["energy"])):
                         for item in data[element]["spin_%d" % (i+1)]:
@@ -411,10 +411,10 @@ class post_pdos:
         for i in range(spin_n):
             for element in data:
                 with open("pdos-proj-elem(%s)-l-%s-spin-%d.data" % (element, self.magnetic_status, i+1), 'w') as fout:
-                    fout.write("# Efermi: %f\n" % self.efermi)
+                    fout.write("#Efermi: %f\n" % self.efermi)
                     fout.write("#")
                     for item in data[element]["spin_%d" % (i+1)]:
-                        fout.write(" %s" % item)
+                        fout.write("%s " % item)
                     fout.write("\n")
                     for j in range(len(data[element]["spin_%d" % (i+1)]["energy"])):
                         for item in data[element]["spin_%d" % (i+1)]:

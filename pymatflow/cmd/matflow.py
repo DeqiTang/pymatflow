@@ -1835,7 +1835,7 @@ def main():
             description="setting type of static calculation when -r 0")
 
     gp.add_argument("--static", type=str, default="band",
-            choices=["scf", "band", "dos", "optics", "bse", "stm"],
+            choices=["scf", "band", "dos", "optics", "bse", "parchg","stm"],
             help="in case of band(default), run scf, nscf(bands) in a single run; in case of scf, run scf only, in case of optics, run scf and optics calc in a single run")
 
     gp.add_argument("--hse-in-scf", type=str, default="false",
@@ -1850,9 +1850,9 @@ def main():
             choices=["EVGW", "GW", "GW0", "QPGW0", "QPGW"],
             help="ALGO used for GW")
 
-    # VASP STM
-    gp = subparser.add_argument_group(title="STM related",
-            description="STM calc related parameters")
+    # VASP PARCHG STM
+    gp = subparser.add_argument_group(title="PARCHG(STM) related",
+            description="PARCHG(STM) calc related parameters")
             
     gp.add_argument("--lpard", type=str, default=None,
             choices=[".TRUE.", "T", "F", ".FALSE."],
@@ -2824,13 +2824,13 @@ def main():
             elif args.static == "bse":
                 task.set_kpoints(kpoints_mp=args.kpoints_mp)
                 task.bse(directory=args.directory, runopt=args.runopt, auto=args.auto, bse_level=args.bse_level, algo_gw=args.algo_gw)
-            elif args.static == "stm":
+            elif args.static == "parchg" or args.static == "stm":
                 if args.hse_in_scf.lower() == "true":
                     hse_in_scf = True
                 elif args.hse_in_scf.lower() == "false":
-                    hse_in_scf = False            
+                    hse_in_scf = False
                 task.set_kpoints(kpoints_mp=args.kpoints_mp)
-                task.stm(directory=args.directory, runopt=args.runopt, auto=args.auto, hse_in_scf=hse_in_scf)                
+                task.parchg_stm(directory=args.directory, runopt=args.runopt, auto=args.auto, hse_in_scf=hse_in_scf)                
         elif args.runtype == 1:
             # optimization
             from pymatflow.vasp.opt import opt_run
@@ -2842,10 +2842,10 @@ def main():
                 a = read_structure(filepath=xyzfile)
                 if args.fix != None:
                     fix = args.fix
-                elif args.around_z != None:
+                elif args.fix_around_z != None:
                     atoms_index_from_1 = []
                     for i in range(len(a.atoms)):
-                        if a.atoms[i].z > (args.around_z[0] + args.around_z[1]) and a.atoms[i].z < (args.around_z[0] + args.around_z[2]):
+                        if a.atoms[i].z > (args.fix_around_z[0] + args.fix_around_z[1]) and a.atoms[i].z < (args.fix_around_z[0] + args.fix_around_z[2]):
                             atoms_index_from_1.append(i+1)
                     fix = atoms_index_from_1
                 else:
@@ -2879,7 +2879,6 @@ def main():
                 else:
                     RGB = [255, 255, 255] # default
             
-                fix = args.fix
                 for i in fix:
                     atoms[i-1].set("Color", "%f, %f, %f, %f" % (RGB[0], RGB[1], RGB[2], 1))
                     

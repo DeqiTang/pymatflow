@@ -64,24 +64,29 @@ class phonon_post:
             fout.write("BAND_CONNECTION = .TRUE.\n")
             fout.write("DIM = %d %d %d\n" % (self.supercell_n[0], self.supercell_n[1], self.supercell_n[2]))
             fout.write("BAND =")
-            for qpoint in self.kpath:
-                if qpoint[4] != "|":
-                    fout.write(" %f %f %f" % (qpoint[0], qpoint[1], qpoint[2]))
+            for i in range(len(self.kpath) - 1):
+                if self.kpath[i][4] != "|":
+                    fout.write(" %f %f %f" % (self.kpath[i][0], self.kpath[i][1], self.kpath[i][2]))
                 else:
-                    fout.write(" %f %f %f," % (qpoint[0], qpoint[1], qpoint[2]))
+                    fout.write(" %f %f %f," % (self.kpath[i][0], self.kpath[i][1], self.kpath[i][2]))
+            fout.write(" %f %f %f" % (self.kpath[-1][0], self.kpath[-1][1], self.kpath[-1][2]))
             fout.write("\n")
             fout.write("BAND_LABELS =")
-            for qpoint in self.kpath:
-                if qpoint[4] != "|":
-                    if qpoint[3].upper() == "GAMMA":
+            for i in range(len(self.kpath) - 1):
+                if self.kpath[i][4] != "|":
+                    if self.kpath[i][3].upper() == "GAMMA":
                         fout.write(" $\Gamma$")
                     else:
-                        fout.write(" $%s$" % qpoint[3])
+                        fout.write(" $%s$" % self.kpath[i][3])
                 else:
-                    if qpoint[3].upper() == "GAMMA":
+                    if self.kpath[i][3].upper() == "GAMMA":
                         fout.write(" $\Gamma$,")
                     else:
-                        fout.write(" $%s$," % qpoint[3])
+                        fout.write(" $%s$," % self.kpath[i][3])
+            if self.kpath[-1][3].upper() == "GAMMA":
+                fout.write(" $\Gamma$")
+            else:
+                fout.write(" $%s$" % self.kpath[i][3])
             fout.write("\n")
 
         with open("post-processing/phonon-analysis.sh", 'w') as fout:

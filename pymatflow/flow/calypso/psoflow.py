@@ -1580,11 +1580,15 @@ def main():
     gp.add_argument("--bmix", type=float, default=None,
             help="sets the cutoff wave vector for Kerker mixing scheme")            
 
+    # Control of calypso
     gp = subparser.add_argument_group(title="psoflow control",
             description="psoflow controlled setting")
 
     gp.add_argument("--gen-incar-n", type=int, default=1,
             help="control number of INCAR_* to generate")
+            
+    gp.add_argument("--split-batch", type=int, default=None,
+            help="number of structure to calculate in one submit script, (several submit script are generated and submit at the same time)")
 
     # Calypso General
     gp = subparser.add_argument_group(title="Calypso General", 
