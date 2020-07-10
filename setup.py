@@ -176,6 +176,7 @@ setup(
         "pymatflow/scripts/stm-vasp.py",
         "pymatflow/scripts/chg-vasp.py",
         "pymatflow/scripts/cube-handle.py",
+        "pymatflow/scripts/chg-diff-1d.py",
         "pymatflow/remote/scripts/thq.py",
         "pymatflow/remote/scripts/thcancel.py",
         "pymatflow/remote/scripts/thpull.py",

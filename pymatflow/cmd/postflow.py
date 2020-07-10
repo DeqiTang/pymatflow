@@ -686,7 +686,7 @@ def main():
             task.supercell_n = args.supercell_n
             task.get_kpath(get_kpath(args.kpath_manual, args.kpath_file))
             task.get_xyz(xyzfile)
-            task.export(directory=args.directory)
+            task.export(directory=args.directory, engine=args.engine)
     # --------------------------------------------------------------------------
 
 

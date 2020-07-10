@@ -195,9 +195,9 @@ if __name__ == "__main__":
     labels = band_yaml["labels"]
     
     with open("band.data", 'w') as fout:
-        fout.write("# phonon band: different column are different band\n")
-        fout.write("# but band in different kpath segmentation is not in the same order, so we divide it with empty lines\n")
-        fout.write("# so that there are no weird vertical lines\n")
+        #phonon band, different column are different band, but band in different kpath segmentation is not in the same order
+        #so we divide it with empty lines, so that there are no weird vertical lines.
+        fout.write("#kpoint(segmented) band(1-n)\n")
         nqpoint = band_yaml["nqpoint"]
         nband = band_yaml["phonon"][0]["band"].__len__()
         # actually band_yaml["phonon"].__len__() == nqpoint
