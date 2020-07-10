@@ -124,22 +124,23 @@ class phonon_post:
                 fout.write("%f" % band_yaml["phonon"][i]["distance"])
                 for band in band_yaml["phonon"][i]["band"]:
                     fout.write(" %f" % band["frequency"])
-        
+                fout.write("\n")
+
         npath = band_yaml["npath"]
         segment_nqpoint = band_yaml["segment_nqpoint"]
         labels = band_yaml["labels"]
         
         locs = []
-        labels_for_matplootlib = []
+        labels_for_matplotlib = []
         labels_for_gnuplot = []
         
-        labels_for_gnuplot.append(labels[0][0] if labels[0][0] != "$\Gamma$" else "{/symbol G}")
-        labels_for_gnuplot.append(labels[0][1] if labels[0][1] != "$\Gamma$" else "{/symbol G}")
+        labels_for_gnuplot.append(labels[0][0].split("$")[1] if labels[0][0] != "$\Gamma$" else "{/symbol G}")
+        labels_for_gnuplot.append(labels[0][1].split("$")[1] if labels[0][1] != "$\Gamma$" else "{/symbol G}")
         labels_for_matplotlib.append(labels[0][0])
         labels_for_matplotlib.append(labels[0][1])
         iqpoint = 0
         locs.append(band_yaml["phonon"][iqpoint]["distance"])
-        iqpoint += segment_qpoint[0] - 1
+        iqpoint += segment_nqpoint[0] - 1
         locs.append(band_yaml["phonon"][iqpoint]["distance"])
         for ipath in range(1, npath):
             # labels
@@ -163,7 +164,7 @@ class phonon_post:
                 labels_for_matplotlib[-1] = "$" + labels[ipath-1][1].split("$")[1] + "|" + labels[ipath][0].split("$")[1] + "$"
                 labels_for_matplotlib.append(labels[ipath][1])
             # locs
-            iqpoint += segment_qpoint[ipath]
+            iqpoint += segment_nqpoint[ipath]
             locs.append(band_yaml["phonon"][iqpoint]["distance"])
             
             
@@ -177,7 +178,7 @@ class phonon_post:
             plt.xticks(locs, labels_for_matplotlib)
             plt.xlabel("K")
             plt.ylabel("Frequency (THz)")
-            plt.grid(b=True, which='major')
+            #plt.grid(b=True, which='major')
             #if xrange != None:
             #    plt.xlim(xmin=xrange[0], xmax=xrange[1])
             #if yrange != None:
@@ -203,9 +204,7 @@ class phonon_post:
                 #    fout.write("set xrange [%f:%f]\n" % (xrange[0], xrange[1]))
                 #if yrange != None:
                 #    fout.write("set yrange [%f:%f]\n" % (yrange[0], yrange[1]))
-                fout.write("plot for [[i=2:%d:1]] 'band.data' using 1:$i w l\n" % (nband + 1))
+                fout.write("plot for [i=2:%d:1] 'band.data' using 1:i w l\n" % (nband + 1))
             os.system("cd post-processing; gnuplot band.gnuplot; cd ../")            
         
-
-
         os.chdir("../")
