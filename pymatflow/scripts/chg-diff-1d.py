@@ -20,10 +20,10 @@ def main():
     parser.add_argument("-i", "--input", type=str, nargs=3, required=True,
         help="input vasp *CHG* file, -i TOTAL PART1 PART2")
 
-    parser.add_argument("--output-structure", type=str, default="chg",
+    parser.add_argument("--output-structure", type=str, default="diff-chg",
         help="output stucture contained in *CHG*")
 
-    parser.add_argument("-o", "--output", type=str, default="chg",
+    parser.add_argument("-o", "--output", type=str, default="diff-chg",
         help="prefix of the output image file name")
     
     parser.add_argument("--levels", type=int, default=10,
@@ -35,7 +35,7 @@ def main():
     parser.add_argument("--cmap", type=str, default="gray",
         choices=["gray", "hot", "afmhot", "Spectral", "plasma", "magma", "hsv", "rainbow", "brg"])
         
-    parser.add_argument("--abscissa", type=str, default="c", 
+    parser.add_argument("--abscissa", type=str, nargs="+", default=["a", "b", "c"], 
         choices=["a", "b", "c"], 
         help="choose the direction to do the dimension reduction")
         
@@ -102,37 +102,58 @@ def main():
     
     # data_iii dimension reduction
     data_sub = np.array(data_iii[0]) - np.array(data_iii[1]) - np.array(data_iii[2])
+    # the unit of value is actually not physical now!
     
-    data_red = []
-    if args.abscissa == "c":
-        for c in range(data_sub.shape[0]):
+    data_red_a = []
+    data_red_b = []
+    data_red_c = []
+    if "c" in args.abscissa:
+        for ci in range(data_sub.shape[0]):
             tmp = 0
-            for b in range(data_sub.shape[1]):
-                tmp += np.sum(data_sub[c, b, :])
-        data_red.append(tmp)
-    elif args.abscissa == "b":
-        for b in range(sub.shape[1]):
+            for bi in range(data_sub.shape[1]):
+                tmp += np.sum(data_sub[ci, bi, :])
+            data_red_c.append(tmp)
+    if "b" in args.abscissa:
+        for bi in range(data_sub.shape[1]):
             tmp = 0
-            for a in range(data_sub.shape[2]):
-                tmp += np.sum(data_sub[:, b, a])
-        data_red.append(tmp)
-    elif args.abscisa == "a":
-        for a in range(sub.shape[1]):
+            for ai in range(data_sub.shape[2]):
+                tmp += np.sum(data_sub[:, bi, ai])
+            data_red_b.append(tmp)
+    if "a" in args.abscissa:
+        for ai in range(data_sub.shape[2]):
             tmp = 0
-            for c in range(data_sub.shape[0]):
-                tmp += np.sum(data_sub[c, :, a])
-        data_red.append(tmp)    
-    
-    # make the plot
-    if args.abscissa == "c":
-        plt.plot(np.linspace(0, c, len(data_red)), data_red)
-    elif args.abscissa == "b":
-        plt.plot(np.linspace(0, b, len(data_red)), data_red)        
-    elif args.abscissa == "a":
-        plt.plot(np.linspace(0, a, len(data_red)), data_red)    
-    plt.tight_layout()
-    plt.savefig(args.output+".1d.%s.png" % args.abscissa)
-    plt.close()
+            for ci in range(data_sub.shape[0]):
+                tmp += np.sum(data_sub[ci, :, ai])
+            data_red_a.append(tmp)    
+
+    # output the data and make the plot
+    if "c" in args.abscissa:
+        plt.plot(np.linspace(0, c, len(data_red_c)), data_red_c)
+        with open(args.output+".1d.c.data", 'w') as fout:
+            c_coord = np.linspace(0, c, len(data_red_c))
+            for i in range(len(data_red_c)):
+                fout.write("%f %f\n" % (c_coord[i], data_red_c[i]))
+        plt.tight_layout()
+        plt.savefig(args.output+".1d.c.png")
+        plt.close()                
+    if "b" in args.abscissa:
+        plt.plot(np.linspace(0, b, len(data_red_b)), data_red_b)    
+        with open(args.output+".1d.b.data", 'w') as fout:
+            b_coord = np.linspace(0, b, len(data_red_b))
+            for i in range(len(data_red_b)):
+                fout.write("%f %f\n" % (b_coord[i], data_red_b[i]))        
+        plt.tight_layout()
+        plt.savefig(args.output+".1d.b.png")
+        plt.close()                
+    if "a" in args.abscissa:
+        plt.plot(np.linspace(0, a, len(data_red_a)), data_red_a)
+        with open(args.output+".1d.a.data", 'w') as fout:
+            a_coord = np.linspace(0, a, len(data_red_a))
+            for i in range(len(data_red_a)):
+                fout.write("%f %f\n" % (a_coord[i], data_red_a[i]))
+        plt.tight_layout()
+        plt.savefig(args.output+".1d.a.png")
+        plt.close()
     
     
     # image data for subtracted data
