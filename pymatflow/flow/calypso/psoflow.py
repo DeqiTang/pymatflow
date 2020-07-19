@@ -1300,24 +1300,6 @@ def main():
     gp.add_argument("--stderr", type=str, default="slurm.err",
             help="set standard err, now only apply for llhpc")
 
-    # actually this can be put in the main subparser, but it will make the command not like git sub-cmmand
-    # so we put them in every subsubparser
-    gp = subparser.add_mutually_exclusive_group(required=True) # at leaset one of cif and xyz is provided
-    # argparse will make sure only one of argument in structfile(xyz, cif) appear on command line
-    gp.add_argument("--xyz", type=str, default=None,
-            help="The xyz structure file with the second line specifying the cell parameter")
-
-    gp.add_argument("--cif", type=str, default=None,
-            help="The cif structure file")
-
-    gp.add_argument("--xsd", type=str, default=None,
-            help="The xsd structure file")
-
-    gp.add_argument("--xsf", type=str, default=None,
-            help="The xsf structure file")
-
-    gp.add_argument("--images", type=str, nargs="+",
-            help="the image stucture file(--images first.cif final.xsd), can only be cif, xsd, xsd, or xyz(second line is cell parameter) format")
 
     # potential file
     gp = subparser.add_argument_group(title="pseudopotential")
@@ -1596,7 +1578,13 @@ def main():
             
     gp.add_argument("--systemname", type=str, default="PsoFlow",
             help="a descriptive name of the system")
-            
+
+    gp.add_argument("--numberofspecies", type=int, default=None, required=True)
+    
+    gp.add_argument("--nameofatoms", type=str, nargs="+", default=None, required=True)
+    
+    gp.add_argument("--numberofatoms", type=int, nargs="+", default=None, required=True)
+    
     gp.add_argument("--numberofformula", type=int, nargs=2,
             default=None,
             help="define number of formulas used in simulation, default is 0 4")
@@ -1742,44 +1730,29 @@ def main():
         sys.exit(1)
 
     # dealing wich structure files
-    if args.xyz != None:
-        xyzfile = args.xyz
-    elif args.cif != None:
-        os.system("structflow convert -i %s -o %s.xyz" % (args.cif, args.cif))
-        xyzfile = "%s.xyz" % args.cif
-    elif args.xsd != None:
-        os.system("structflow convert -i %s -o %s.xyz" % (args.xsd, args.xsd))
-        xyzfile = "%s.xyz" % args.xsd
-    elif args.xsf != None:
-        os.sytem("structflow convert -i % -o %s.xyz" % (args.xsf, args.xsf))
-        xyzfile = "%s.xyz" % args.xsf
-    else:
-        # neb caculattion with
-        images = []
-        for image in args.images:
-            if image.split(".")[-1] == "xyz":
-                images.append(image)
-            else:
-                os.system("structflow convert -i %s -o %s.xyz" % (image, image))
-                images.append("%s.xyz" % image)
-        xyzfile = images[0] # this set only for dealing with pseudo potential file
-        #
 
 
-
-
+    # we use args.nameofatoms to construct a virtual xyz file in /tmp/matflow and use it to generate POTCAR with pot-from-xyz-modified.py
+    os.system("mkdir -p /tmp/psoflow")
+    with open("/tmp/psoflow/tmp.xyz", "w") as fout:
+        fout.write("%d\n" % len(args.nameofatoms))
+        fout.write("cell: 10 0 0 | 0 10 0 | 0 0 10\n")
+        for name in args.nameofatoms:
+            fout.write("%s 0.0 0.0 0.0\n" % name)
+    fake_xyzfile = os.path.join("/tmp/psoflow", "tmp.xyz")
+    
     # dealing with pseudo potential file
     if args.pot == "./":
         #TODO make a simple check, whether there exists the potential file
         pass
     elif args.pot == "auto":
         if args.driver == "abinit":
-            os.system("pot-from-xyz-modified.py -i %s -d ./ -p abinit --abinit-type=ncpp" % xyzfile)
+            os.system("pot-from-xyz-modified.py -i %s -d ./ -p abinit --abinit-type=ncpp" % fake_xyzfile)
         elif args.driver == "qe":
             if args.runtype == 6:
                 os.system("pot-from-xyz-modified.py -i %s -d ./ -p qe --qe-type=%s" % (images[0]), args.pot_type)
             else:
-                os.system("pot-from-xyz-modified.py -i %s -d ./ -p qe --qe-type=%s" % (xyzfile, args.pot_type))
+                os.system("pot-from-xyz-modified.py -i %s -d ./ -p qe --qe-type=%s" % (fake_xyzfile, args.pot_type))
         elif args.driver == "siesta":
             print("=============================================================\n")
             print("                     WARNING\n")
@@ -1789,7 +1762,7 @@ def main():
             print("please prepare it yourself\n")
             sys.exit(1)
         elif args.driver == "vasp":
-            os.system("vasp-potcar-from-xyz.py --type %s -i %s -o ./POTCAR" % (args.pot_type, xyzfile))
+            os.system("vasp-potcar-from-xyz.py --type %s -i %s -o ./POTCAR" % (args.pot_type, fake_xyzfile))
     else:
         os.system("cp %s/* ./" % args.pot)
 
@@ -1830,12 +1803,12 @@ def main():
                 input_dat_params[key] = value
             elif "@" not in lines[i] and "=" not in lines[i]:
                 continue
-            elif len(lines[i].split("\n")[0].split("#")[0].split("=")) == 2:
+            elif len(lines[i].split("\n")[0].split("#")[0].split("=")) == 2 and len(lines[i].split("\n")[0].split("#")[0].split("=")[1].split()) == 1:
                 # in case of single value input parameters
                 key = lines[i].split("=")[0].split()[0]
                 value = lines[i].split("\n")[0].split("#")[0].split("=")[1].split()[0]
                 input_dat_params[key] = value
-            elif len(lines[i].split("\n")[0].split("#")[0].split("=")) > 2:
+            elif len(lines[i].split("\n")[0].split("#")[0].split("=")) == 2 and len(lines[i].split("\n")[0].split("#")[0].split("=")[1].split()) > 1:
                 key = lines[i].split("=")[0].split()[0]
                 value = lines[i].split("\n")[0].split("#")[0].split("=")[1].split()
                 input_dat_params[key] = value
@@ -1845,12 +1818,15 @@ def main():
         # if xxx is alraedy in input_dat_params(set from --input_dat_params) and args.xxx is None
         # input_dat_params[xxx] will not be control by args.xxx
         input_dat_params["SystemName"] = args.systemname if "SystemName" not in input_dat_params or args.systemname != None else input_dat_params["SystemName"]
-        input_dat_params["NumberOfFormula"] = args.numberofformula if "NumberOfFormulat" not in input_dat_params or args.numberofformula != None else input_dat_params["NumberOfFormula"]
+        input_dat_params["NameOfAtoms"] = args.nameofatoms if "nameofatoms" not in input_dat_params or args.nameofatoms != None else input_dat_params["NameOfAtoms"]
+        input_dat_params["NumberOfSpecies"] = args.numberofspecies if "NumberOfSpcies" not in input_dat_params or args.numberofspecies != None else input_dat_params["NumberOfSpecies"]
+        input_dat_params["NumberOfAtoms"] = args.numberofatoms if "NumberOfAtoms" not in input_dat_params or args.numberofatoms != None else input_dat_params["NumberOfAtoms"]
+        input_dat_params["NumberOfFormula"] = args.numberofformula if "NumberOfFormula" not in input_dat_params or args.numberofformula != None else input_dat_params["NumberOfFormula"]
         input_dat_params["Volume"] = args.volume if "Volume" not in input_dat_params or args.volume != None else input_dat_params["Volume"]
         input_dat_params["DistanceOfIon"] = args.distanceofion if "DistanceOfIon" not in input_dat_params or args.distanceofion != None else input_dat_params["DistanceOfIon"]
         input_dat_params["IAlgo"] = args.ialgo_pso if "IAlgo" not in input_dat_params or args.ialgo_pso != None else input_dat_params["IAlgo"]
         input_dat_params["ICode"] = args.icode if "ICode" not in input_dat_params or args.icode != None else input_dat_params["ICode"]
-        input_dat_params["NumberOfLocaOptim"] = args.numberoflocaloptim if "NumberOfLocalOptim" not in input_dat_params or args.numberoflocaloptim != None else input_dat_params["NumberOfLocalOptim"]
+        input_dat_params["NumberOfLocalOptim"] = args.numberoflocaloptim if "NumberOfLocalOptim" not in input_dat_params or args.numberoflocaloptim != None else input_dat_params["NumberOfLocalOptim"]
         input_dat_params["PsoRatio"] = args.psoratio if "PsoRatio" not in input_dat_params or args.psoratio != None else input_dat_params["PsoRatio"]
         input_dat_params["PopSize"] = args.popsize if "PopSize" not in input_dat_params or args.popsize != None else input_dat_params["PopSize"]
         input_dat_params["Kgrid"] = args.kgrid if "Kgrid" not in input_dat_params or args.kgrid != None else input_dat_params["Kgrid"]
@@ -2675,15 +2651,18 @@ def main():
             #            
             pso = calypso()
             pso.set_params(params=input_dat_params)
-            pso.vasp.get_xyz(xyzfile)
+            #pso.vasp.get_xyz(xyzfile)
             #pso.vasp.set_params(params=params, runtype="opt")
             pso.gen_incar_n = args.gen_incar_n
             pso.multi_incar_params = params_all
             pso.vasp.set_kpoints(kpoints_mp=args.kpoints_mp)
-            pso.vasp.poscar.selective_dynamics = True if args.selective_dynamics.upper()[0] == "T" else False
+            #pso.vasp.poscar.selective_dynamics = True if args.selective_dynamics.upper()[0] == "T" else False
             pso.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             pso.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            pso.run_vasp(directory=args.directory, runopt=args.runopt, auto=args.auto)
+            if args.split_batch == None:
+                pso.run_vasp(directory=args.directory, runopt=args.runopt, auto=args.auto)
+            else:
+                pso.run_vasp_split(directory=args.directory, runopt=args.runopt, auto=args.auto, split_batch=args.split_batch)
         elif args.runtype == 2:
             pass
         elif args.runtype == 3:
