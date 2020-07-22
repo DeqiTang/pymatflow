@@ -19,6 +19,10 @@ if __name__ == "__main__":
             default="poscar_structures_split",
             help="directory to put the splitted structures.")
 
+    parser.add_argument("-f", "--format", type=str,
+            choices=["cif", "xsd", "xsd"],
+            help="format of the splited structures")
+
     args = parser.parse_args()
 
     print("========================================\n")
@@ -102,7 +106,15 @@ if __name__ == "__main__":
     # write structure files
     os.system("mkdir -p %s" % args.directory)
     from pymatflow.cmd.structflow import write_structure
-    for i in range(len(images)):
-        write_structure(structure=images[i], filepath=os.path.join(args.directory, "%d.cif" % (i+1)))
-        
+    if args.format == "cif":
+        for i in range(len(images)):
+            write_structure(structure=images[i], filepath=os.path.join(args.directory, "%d.cif" % (i+1)))
+    elif args.format == "xsd":
+        for i in range(len(images)):
+            write_structure(structure=images[i], filepath=os.path.join(args.directory, "%d.xsd" % (i+1)))    
+    elif args.format == "xsf":
+        for i in range(len(images)):
+            write_structure(structure=images[i], filepath=os.path.join(args.directory, "%d.xsf" % (i+1)))
+    else:
+        pass
     # end write structure files
