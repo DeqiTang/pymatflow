@@ -29,7 +29,13 @@ class md_run(vasp):
             1: NVT
             2: NPT
             3: NPH
+        thermostat:
+            0: Anderson
+            1: Nose-Hoover
+            2: Langevin
+            3: Multiple Anderson
         """
+        
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):
                 shutil.rmtree(directory)
@@ -37,7 +43,6 @@ class md_run(vasp):
             shutil.copyfile("POTCAR", os.path.join(directory, "POTCAR"))
             os.system("cp %s %s/" % (self.poscar.xyz.file, directory))
 
-            self.incar.set_md(ensemble=ensemble, thermostat=thermostat)
 
             with open(os.path.join(directory, "POSCAR"), 'w') as fout:
                 self.poscar.to_poscar(fout)

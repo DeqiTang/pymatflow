@@ -307,6 +307,17 @@ def main():
             choices=["a", "b", "c"],
             help="build nanotube along an axis parallel to axis specified")
      
+    # -----------------------------------------------------------------------------------
+    # set frac within zero and one
+    # ------------------------------------------------------------------------------------
+    subparser = subparsers.add_parser("std", help="set fractional coordinates within zero and one")
+    
+    subparser.add_argument("-i", "--input", type=str, required=True,
+            help="input structure file")
+            
+    subparser.add_argument("-o", "--output", type=str, required=True,
+            help="output structure file")
+     
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
     # ==========================================================
@@ -614,6 +625,20 @@ def main():
         # output structure
         if tube != None:
             write_structure(structure=tube, filepath=args.output)             
+    elif args.driver == "std":
+        from pymatflow.structure.tools import set_frac_within_zero_and_one
+        a = read_structure(filepath=args.input)
+        print("=======================================================================\n")
+        print("                       structflow\n")
+        print("-----------------------------------------------------------------------\n")
+        print("you are trying to set fractional coords within 0 and 1\n")            
+        print("from %s\n" % (args.input))
+        print("\n")
+        print("the output structure file is -> %s\n" % args.output)
+        
+        normalized = set_frac_within_zero_and_one(structure=a)
+        # output structure
+        write_structure(structure=normalized, filepath=args.output)                  
     # --------------------------------------------------------------------------
 
 

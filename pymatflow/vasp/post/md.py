@@ -48,7 +48,8 @@ class md_post:
         else:
             self.job_done = False
         #
-        self.get_trajectory()
+        # we may also use XDATCAR to get the trajectory so we do not execute self.get_trajectory() here
+        #self.get_trajectory()
         self.get_opt_params_and_run_info()
 
 
@@ -75,6 +76,7 @@ class md_post:
         self.run_info["total-energies"] = []
         self.run_info["fermi-energies"] = []
         self.run_info["total-forces-rms"] = []
+        self.run_info["temperatures"] = []
 
         for line in self.lines:
             # if it is an empty line continue to next line
@@ -92,6 +94,8 @@ class md_post:
                 self.run_info["fermi-energies"].append(float(line.split()[2]))
             if line.split()[0] == "FORCES:" and line.split()[1] == "max":
                 self.run_info["total-forces-rms"].append(float(line.split()[5]))
+            if "(temperature" in line:
+                self.run_info["temperatures"].append(float(line.split("(temperature")[1].split("K)")[0]))
             if line.split()[0] == "ENCUT" and line.split()[1] == "=":
                 self.electronic_params["ENCUT"] = float(line.split()[2])
             if line.split()[0] == "EDIFF" and line.split()[1] == "=":
@@ -126,8 +130,8 @@ class md_post:
         #    self.run_info["ion-steps"] = len(self.run_info["iterations"]) - 2
 
 
-    def print_trajectory(self, xyz="trajectory.xyz"):
-        with open(xyz, 'w') as fout:
+    def print_trajectory(self, directory="./", xyz="trajectory.xyz"):
+        with open(os.path.join(directory, xyz), 'w') as fout:
             for i in range(len(self.trajectory)):
                 fout.write("%d\n" % len(self.trajectory[i]))
                 fout.write("i = %d\n" % i)
@@ -138,7 +142,7 @@ class md_post:
         #os.system("xcrysden --xyz %s" % trajfile)
         subprocess.call(["xcrysden", "--xyz", trajfile])
 
-    def plot_run_info(self):
+    def plot_run_info(self, directory="./"):
         """
         """
         #plt.plot(self.run_info["iterations"])
@@ -149,36 +153,60 @@ class md_post:
         #plt.savefig("iterations-per-scf.png")
         #plt.close()
 
+        with open(os.path.join(directory, "total-energies-per-scf.data"), 'w') as fout:
+            for i in range(len(self.run_info["total-energies"])):
+                fout.write("%d %f\n" % (i, self.run_info["total-energies"][i]))
+
         plt.plot(self.run_info["total-energies"])
         plt.title("Total energies per SCF")
         plt.xlabel("Scf cycles")
         plt.ylabel("Total Energies (eV)")
         plt.tight_layout()
-        plt.savefig("total-energies-per-scf.png")
+        plt.savefig(os.path.join(directory, "total-energies-per-scf.png"))
         plt.close()
 
+        with open(os.path.join(directory, "fermi-energies-per-scf.data"), 'w') as fout:
+            for i in range(len(self.run_info["fermi-energies"])):
+                fout.write("%d %f\n" % (i, self.run_info["fermi-energies"][i]))
+                
         plt.plot(self.run_info["fermi-energies"])
         plt.title("Fermi energies per SCF")
         plt.xlabel("Scf cycles")
         plt.ylabel("Fermi energies (eV)")
         plt.tight_layout()
-        plt.savefig("fermi-energies-per-scf.png")
+        plt.savefig(os.path.join(directory, "fermi-energies-per-scf.png"))
         plt.close()
 
+        with open(os.path.join(directory, "total-forces-rms-per-scf.data"), 'w') as fout:
+            for i in range(len(self.run_info["total-forces-rms"])):
+                fout.write("%d %f\n" % (i, self.run_info["total-forces-rms"][i]))
+                
         plt.plot(self.run_info["total-forces-rms"])
         plt.title("Total forces(RMS) per SCF")
         plt.xlabel("Scf cycles")
         plt.ylabel("Total forces (eV/Angst)")
         plt.tight_layout()
-        plt.savefig("total-forces-rms-per-scf.png")
+        plt.savefig(os.path.join(directory, "total-forces-rms-per-scf.png"))
         plt.close()
 
-    def markdown_report(self, md="MolecularDynamicsReport.md"):
+        with open(os.path.join(directory, "temperature-per-scf.data"), 'w') as fout:
+            for i in range(len(self.run_info["temperatures"])):
+                fout.write("%d %f\n" % (i, self.run_info["temperatures"][i]))
+                
+        plt.plot(self.run_info["temperatures"])
+        plt.title("Temperature each ion step")
+        plt.xlabel("Scf cycles")
+        plt.ylabel("Temperature (T)")
+        plt.tight_layout()
+        plt.savefig(os.path.join(directory, "temperature-per-scf.png"))
+        plt.close()
+
+    def markdown_report(self, directory="./", md="MolecularDynamicsReport.md"):
         """
         when writing Chinese to a file you must specify
         encoding='utf-8' when open the file for writing
         """
-        with open(md, 'w', encoding='utf-8') as fout:
+        with open(os.path.join(directory, md), 'w', encoding='utf-8') as fout:
             fout.write("# 分子动力学实验统计\n")
             fout.write("任务是否结束:%s\n" % str(self.job_done))
             fout.write("## 离子步参数\n")
@@ -226,13 +254,18 @@ class md_post:
 
             fout.write("Total forces per SCF\n")
             fout.write("![Total forces per SCF](total-forces-rms-per-scf.png)\n")
+            
+            fout.write("Temperature per SCF\n")
+            fout.write("![Tempearture](temperature-per-scf.png)\n")
 
 
-    def export(self):
+    def export(self, directory="./"):
         """
         Note:
             * will only printout the final structure if the job is done
         """
-        self.print_trajectory()
-        self.plot_run_info()
-        self.markdown_report("MolecularDyanamicsport.md")
+        os.system("mkdir -p %s" % directory)
+        #self.print_trajectory(directory=directory, xyz="trajectory.xyz")
+        self.plot_run_info(directory=directory)
+        self.markdown_report(directory=directory, md="MolecularDyanamicsport.md")
+        

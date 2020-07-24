@@ -214,7 +214,6 @@ setup(
         "pymatflow/vasp/scripts/xdatcar-to-xyz.py",
         "pymatflow/vasp/scripts/split-poscars.py",
         "pymatflow/vasp/post/scripts/post-vasp-opt.py",
-        "pymatflow/vasp/post/scripts/post-vasp-md.py",
         "pymatflow/vasp/post/scripts/post-vasp-converge.py",
         "pymatflow/vasp/post/scripts/post-vasp-scf.py",
         "pymatflow/vasp/post/scripts/post-vasp-phonopy.py",

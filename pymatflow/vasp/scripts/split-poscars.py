@@ -19,7 +19,7 @@ if __name__ == "__main__":
             default="poscar_structures_split",
             help="directory to put the splitted structures.")
 
-    parser.add_argument("-f", "--format", type=str,
+    parser.add_argument("-f", "--format", type=str, default="cif",
             choices=["cif", "xsd", "xsd"],
             help="format of the splited structures")
 

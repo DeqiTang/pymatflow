@@ -233,7 +233,7 @@ def main():
             help="This is the function used to smear the electronic occupations. It is ignored if the Occupations block is set.")
 
     gp.add_argument("--spincomponents", type=str, default=None,
-            choices=["unpolarized", "spin_polarized", "spinors"],q
+            choices=["unpolarized", "spin_polarized", "spinors"],
             help="The calculations may be done in three different ways: spin-restricted (TD)DFT (i.e., doubly occupied \"closed shells\"), spin-unrestricted or \"spin-polarized\" (TD)DFT")
     
     # System
@@ -400,7 +400,14 @@ def main():
                 images.append("%s.xyz" % image)
         xyzfile = images[0] # this set only for dealing with pseudo potential file
         #
-
+    
+    # server
+    # xxx.set_run can only deal with pbs, llhpc, lsf_sz server now 
+    # however both guangzhou chaosuan llhpc are build on tianhe2, so they can use the same job system(yhbatch...)
+    # we add tianhe2 option to args.server which cannot be handled by xxx.set_run. so we convert it to llhpc if tianhe2 is chosen
+    server = args.server if args.server != "tianhe2" else "llhpc"
+    
+    
     # octopus run type 
     params = {}
     # deal with octopus inp template specified by --inp
@@ -462,7 +469,7 @@ def main():
         # static
         from pymatflow.octopus.static import static_run
         task = static_run()
-        task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+        task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
         task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
         
         if args.static == "scf":
@@ -532,7 +539,7 @@ def main():
         task.set_params(params=params, n="all", runtype="opt")
         task.set_kpoints(kpoints_mp=args.kpoints_mp, n="all")
         #task.poscar.selective_dynamics = True if args.selective_dynamics.upper()[0] == "T" else False
-        task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+        task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
         task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
         task.optimize(directory=args.directory, runopt=args.runopt, auto=args.auto)
     elif args.runtype == 2:
@@ -548,7 +555,7 @@ def main():
         task.get_xyz(xyzfile)
         task.set_params(params=params, n="all", runtype="opt")
         task.set_kpoints(kpoints_mp=args.kpoints_mp, n="all")
-        task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+        task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
         task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
         task.batch_a = args.batch_a
         task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a)
@@ -559,7 +566,7 @@ def main():
         task.get_xyz(xyzfile)
         task.set_params(params=params, n="all", runtype="opt")
         task.set_kpoints(kpoints_mp=args.kpoints_mp, n="all")
-        task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+        task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
         task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
         task.batch_a = args.batch_a
         task.batch_c = args.batch_c            
@@ -571,7 +578,7 @@ def main():
         task.get_xyz(xyzfile)
         task.set_params(params=params, n="all", runtype="opt")
         task.set_kpoints(kpoints_mp=args.kpoints_mp, n="all")
-        task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+        task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
         task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
         task.batch_a = args.batch_a     
         task.batch_c = args.batch_c            
@@ -594,7 +601,7 @@ def main():
             sys.exit(1)
         task.nebmake = "nebmake.pl" if args.nebmake == 0 else "nebmake.py"
         task.moving_atom = args.moving_atom
-        task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+        task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
         task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
         task.neb(directory=args.directory, runopt=args.runopt, auto=args.auto)
         # move the OUTCAR for initial stucture and final structure to the corresponding dir
@@ -610,7 +617,7 @@ def main():
         task.set_params(params=params, n="all", runtype="phonon")
         task.set_kpoints(kpoints_mp=args.kpoints_mp, n="all")
         task.supercell_n = args.supercell_n
-        task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+        task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
         task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
         task.phonon(directory=args.directory, runopt=args.runopt, auto=args.auto)
     elif args.runtype == 7:
@@ -621,7 +628,7 @@ def main():
         task.set_params(params=params, n="all", runtype="phonopy")
         task.set_kpoints(kpoints_mp=args.kpoints_mp, n="all")
         task.supercell_n = args.supercell_n
-        task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+        task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
         task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
         task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
     elif args.runtype == 8:
@@ -634,7 +641,7 @@ def main():
         task.get_xyz(xyzfile)
         task.set_params(params=params, n="all", runtype="opt")
         task.set_kpoints(kpoints_mp=args.kpoints_mp, n="all")
-        task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+        task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
         task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
         task.batch_a = args.batch_a     
         task.batch_b = args.batch_b

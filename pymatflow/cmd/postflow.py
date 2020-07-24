@@ -326,8 +326,8 @@ def main():
     subparser = subparsers.add_parser("vasp", help="using vasp as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5, 6, 7],
-            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->neb; 6->vasp-phonon; 7->phonopy")
+            choices=[0, 1, 2, 3, 4, 5, 6, 7, 10],
+            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->neb; 6->vasp-phonon; 7->phonopy; 10-md")
 
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory for the running.")
@@ -687,6 +687,17 @@ def main():
             task.get_kpath(get_kpath(args.kpath_manual, args.kpath_file))
             task.get_xyz(xyzfile)
             task.export(directory=args.directory, engine=args.engine)
+        elif args.runtype == 10:
+            # aimd
+            from pymatflow.vasp.post.md import md_post
+            task = md_post(output=os.path.join(args.directory, "OUTCAR"))
+            task.export(directory=os.path.join(args.directory, "post-processing"))
+            print("=========================================================\n")
+            print("             convert XDATCAR to xxx.xyz\n")
+            os.system("xdatcar-to-xyz.py -i %s -o %s" % (os.path.join(args.directory, "XDATCAR"), os.path.join(args.directory, "post-processing/traj-xdatcar.xyz")))
+        else:
+            pass
+
     # --------------------------------------------------------------------------
 
 

@@ -100,6 +100,90 @@ def vacuum_layer(structure, plane, thickness):
         pass
     # end
 
+def set_frac_min_to_zero(structure):
+    """
+    :return an object of crystal()
+    Note:
+        set the fractional coordinate minimum to zero, this is a way of standardize the cif file
+    """
+    from pymatflow.structure.crystal import crystal
+    from pymatflow.base.atom import Atom
+
+
+    # now calc the fractional coordinates
+    atoms_frac = []
+    latcell = np.array(structure.cell)
+    convmat = np.linalg.inv(latcell.T)
+    for i in range(len(structure.atoms)):
+        atom = []
+        atom.append(structure.atoms[i].name)
+        atom = atom + list(convmat.dot(np.array([structure.atoms[i].x, structure.atoms[i].y, structure.atoms[i].z])))
+        atoms_frac.append(atom)
+    
+    # set the minimum of fractional coord to to 0
+    min_frac_x = min(atoms_frac[:][1])
+    min_frac_y = min(atoms_frac[:][2])
+    min_frac_z = min(atoms_frac[:][3])
+    for i in range(len(atoms_frac)):
+        atoms_frac[i][1] -= min_frac_x
+        atoms_frac[i][2] -= min_frac_y
+        atoms_frac[i][3] -= min_frac_z
+    
+            
+    # now convert coord of atom in atoms_frac_within_new_cell to cartesian
+    out = crystal()
+    out.atoms = []
+    out.cell = structure.cell
+    latcell = np.array(out.cell)
+    convmat_frac_to_cartesian = latcell.T
+    for atom in atoms_frac:
+        cartesian = list(convmat_frac_to_cartesian.dot(np.array([atom[1], atom[2], atom[3]])))
+        out.atoms.append(Atom(name=atom[0], x=cartesian[0], y=cartesian[1], z=cartesian[2]))
+    #
+    
+    return out
+        
+def set_frac_within_zero_and_one(structure):
+    """
+    :return an object of crystal()
+    Note:
+        set the fractional coordinate within the range of 0 and 1, this is a way of standardize the cif file
+    """
+    from pymatflow.structure.crystal import crystal
+    from pymatflow.base.atom import Atom
+
+
+    # now calc the fractional coordinates
+    atoms_frac = []
+    latcell = np.array(structure.cell)
+    convmat = np.linalg.inv(latcell.T)
+    for i in range(len(structure.atoms)):
+        atom = []
+        atom.append(structure.atoms[i].name)
+        atom = atom + list(convmat.dot(np.array([structure.atoms[i].x, structure.atoms[i].y, structure.atoms[i].z])))
+        atoms_frac.append(atom)
+    
+    # set the fractional coordinates within 0 and 1
+    for i in range(len(atoms_frac)):
+        for j in range(1, 4):
+            while atoms_frac[i][j] >= 1:
+                atoms_frac[i][j] -= 1
+            while atoms_frac[i][j] < 0:
+                atoms_frac[i][j] += 1
+            
+    # now convert coord of atom in atoms_frac_within_new_cell to cartesian
+    out = crystal()
+    out.atoms = []
+    out.cell = structure.cell
+    latcell = np.array(out.cell)
+    convmat_frac_to_cartesian = latcell.T
+    for atom in atoms_frac:
+        cartesian = list(convmat_frac_to_cartesian.dot(np.array([atom[1], atom[2], atom[3]])))
+        out.atoms.append(Atom(name=atom[0], x=cartesian[0], y=cartesian[1], z=cartesian[2]))
+    #
+    return out        
+    
+    
     
 def inverse_geo_center(structure):
     """

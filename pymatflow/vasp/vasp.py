@@ -91,6 +91,7 @@ class vasp:
             "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG", "PSTRESS",
             "AMIX", "BMIX",
             "KSPACING",
+            "MDALGO", "SMASS", "ANDERSON_PROB", "TEBEG", "TEEND",
         ]
         phonon_allowed = [
             "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",

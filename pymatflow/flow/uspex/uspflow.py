@@ -1809,6 +1809,11 @@ def main():
         # input_txt_params[xxx] will not be control by args.xxx
         # input_txt_params["SystemName"] = args.systemname if "SystemName" not in input_txt_params or args.systemname != None else input_txt_params["SystemName"]
 
+    # server
+    # xxx.set_run can only deal with pbs, llhpc, lsf_sz server now 
+    # however both guangzhou chaosuan llhpc are build on tianhe2, so they can use the same job system(yhbatch...)
+    # we add tianhe2 option to args.server which cannot be handled by xxx.set_run. so we convert it to llhpc if tianhe2 is chosen
+    server = args.server if args.server != "tianhe2" else "llhpc"
 
     if args.driver == "abinit":
         params = {}
@@ -1844,7 +1849,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_params(params=params)
             task.set_kpoints(kpoints=kpoints)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 1:
@@ -1859,7 +1864,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_params(params=params)
             task.set_kpoints(kpoints=kpoints)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 2:
@@ -1871,7 +1876,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_params(params=params)
             task.set_kpoints(kpoints=kpoints)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa)
         elif args.runtype == 3:
@@ -1883,7 +1888,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_params(params=params)
             task.set_kpoints(kpoints=kpoints)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa, nc=args.nc, stepc=args.stepc)
         elif args.runtype == 4:
@@ -1895,7 +1900,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_params(params=params)
             task.set_kpoints(kpoints=kpoints)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa, nc=args.nc, stepc=args.stepc)
         elif args.runtype == 5:
@@ -1905,7 +1910,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_params(params=params)
             task.set_kpoints(kpoints=kpoints)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 6:
@@ -1918,7 +1923,7 @@ def main():
             task.set_params(params=params)
             task.set_kpoints(kpoints=kpoints)
             task.set_properties(properties=args.properties)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 7:
@@ -1929,7 +1934,7 @@ def main():
             task.set_params(params=params)
             task.set_kpoints(kpoints=kpoints)
             task.supercell_n = args.supercell_n
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
         else:
@@ -2030,7 +2035,7 @@ def main():
             if 2 in args.printout_option and kpath != None:
                 task.force_eval.dft.printout.band_structure.set_band(kpath=get_kpath(args.kpath_manual, args.kpath_file))
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 1:
@@ -2040,7 +2045,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_geo_opt()
             task.set_params(params=params)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.geo_opt(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 2:
@@ -2050,7 +2055,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_cell_opt()
             task.set_params(params=params)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.cell_opt(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 3:
@@ -2060,7 +2065,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_geo_opt()
             task.set_params(params=params)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.nc, stepa=args.stepa)
         elif args.runtype == 4:
@@ -2070,7 +2075,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_geo_opt()
             task.set_params(params=params)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
         elif args.runtype == 5:
@@ -2080,7 +2085,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_geo_opt()
             task.set_params(params=params)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
         elif args.runtype == 6:
@@ -2089,7 +2094,7 @@ def main():
             task = neb_run()
             task.get_images(images=images)
             task.set_params(params=params)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.neb(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 7:
@@ -2099,7 +2104,7 @@ def main():
             task.get_xyz(xyzfile)
             task.supercell_n = args.supercell_n
             task.set_params(params=params)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 8:
@@ -2108,7 +2113,7 @@ def main():
             task = vib_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.vib(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 9:
@@ -2117,7 +2122,7 @@ def main():
             task = static_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             if args.converge.lower() == "cutoff":
                 task.converge_cutoff(directory=args.directory, runopt=args.runopt, auto=args.auto, emin=args.cutoff_range[0], emax=args.cutoff_range[1], step=args.cutoff_range[2])
@@ -2138,7 +2143,7 @@ def main():
             task = md_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.aimd(directory=args.directory, runopt=args.runopt, auto=args.auto)
         else:
@@ -2238,7 +2243,7 @@ def main():
             task.set_projwfc(projwfc_input=projwfc_input)
             task.set_bands(bands_input=bands)
             task.set_pp(inputpp=inputpp, plotpp=plotpp)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             if args.static == "all":
                 task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpath=get_kpath(args.kpath_manual, args.kpath_file), kpoints_mp_scf=args.kpoints_mp_scf, kpoints_mp_nscf=args.kpoints_mp_nscf)
@@ -2252,7 +2257,7 @@ def main():
             task.set_relax()
             task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
             task.set_params(control=control, system=system, electrons=electrons, ions=ions)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.relax(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 2:
@@ -2263,7 +2268,7 @@ def main():
             task.set_vc_relax()
             task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
             task.set_params(control=control, system=system, electrons=electrons, ions=ions)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.vc_relax(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 3:
@@ -2274,7 +2279,7 @@ def main():
             task.set_relax()
             task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
             task.set_params(control=control, system=system, electrons=electrons, ions=ions)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa)
         elif args.runtype == 4:
@@ -2285,7 +2290,7 @@ def main():
             task.set_relax()
             task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
             task.set_params(control=control, system=system, electrons=electrons, ions=ions)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
         elif args.runtype == 5:
@@ -2296,7 +2301,7 @@ def main():
             task.set_relax()
             task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
             task.set_params(control=control, system=system, electrons=electrons, ions=ions)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
         elif args.runtype == 6:
@@ -2305,7 +2310,7 @@ def main():
             task.get_images(images=images)
             task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
             task.set_path(path=path)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.neb(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 7:
@@ -2313,7 +2318,7 @@ def main():
             task = dfpt_run()
             task.get_xyz(xyzfile)
             task.set_inputph(inputph=inputph)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.phx(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 8:
@@ -2324,7 +2329,7 @@ def main():
             task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
             task.set_params(control=control, system=system, electrons=electrons)
             task.supercell_n = args.supercell_n
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 9:
@@ -2341,7 +2346,7 @@ def main():
             task = static_run()
             task.get_xyz(xyzfile)
             task.set_pp(inputpp=inputpp, plotpp=plotpp)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.pp(directory=args.directory, runopt=args.runopt, auto=args.auto)
 
@@ -2392,7 +2397,7 @@ def main():
 
             task.set_params(params=params)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto, properties=args.properties)
         elif args.runtype == 1:
@@ -2406,7 +2411,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_params(params=params)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.opt(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 2:
@@ -2420,7 +2425,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_params(params=params)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa)
         elif args.runtype == 3:
@@ -2434,7 +2439,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_params(params=params)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
         elif args.runtype == 4:
@@ -2448,7 +2453,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_params(params=params)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
         elif args.runtype == 5:
@@ -2459,7 +2464,7 @@ def main():
             task.set_params(params=params)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.supercell_n = args.supercell_n
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 6:
@@ -2469,7 +2474,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_params(params=params)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
-            task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.md(directory=args.directory, runopt=args.runopt, auto=args.auto)
         else:
@@ -2574,7 +2579,7 @@ def main():
             usp.vasp.set_params(params=params, runtype="opt")
             usp.vasp.set_kpoints(kpoints_mp=args.kpoints_mp)
             usp.vasp.poscar.selective_dynamics = True if args.selective_dynamics.upper()[0] == "T" else False
-            usp.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            usp.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             usp.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             usp.run_vasp(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 2:
