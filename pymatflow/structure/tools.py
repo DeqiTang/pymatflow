@@ -511,7 +511,10 @@ def merge_layers(structure1, structure2, use_cell=None, distance=3.4, thickness=
         only merge layers with ab plane as the surface plane
     """
     from pymatflow.structure.crystal import crystal
-    from pymatflow.base.atom import Atom                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+    from pymatflow.base.atom import Atom                                            
+    
+    structure1 = set_frac_within_zero_and_one(structure1)
+    structure2 = set_frac_within_zero_and_one(structure2)
     
     old_cell_1 = copy.deepcopy(structure1.cell)
     old_cell_2 = copy.deepcopy(structure2.cell)
@@ -611,6 +614,9 @@ def build_nanotube_ab(structure, axis="b"):
         only apply to film structure with ab as plane and a must be vertical to b.
         ab plane must be periodical plane
     """
+    
+    structure = set_frac_within_zero_and_one(structure)
+    
     out = copy.deepcopy(structure)
     
     a = np.linalg.norm(out.cell[0])
