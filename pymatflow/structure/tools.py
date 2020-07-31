@@ -324,7 +324,9 @@ def enlarge_atoms_new_cell(structure, new_cell):
     n3 = np.ceil(np.max([new_a, new_b, new_c]) / c ) * 2
     n = [int(n1), int(n2), int(n3)]
     
+    print("n1 n2 n3: %d %d %d\n" % (n1, n2, n3))
     atoms = copy.deepcopy(structure.atoms)
+    print("atoms.size(): %d\n" % len(atoms))    
     # build supercell: replica in three vector one by one
     for i in range(3):
         natom_now = len(atoms)
@@ -379,6 +381,7 @@ def redefine_lattice(structure, a, b, c, precision=1.0e-8):
     atoms_container = crystal()
     atoms_container.get_atoms(enlarge_atoms_new_cell(structure=structure, new_cell=new_cell))
     
+    print("atoms_container.size(): %d\n" % len(atoms_container.atoms))
     # now calc the fractional coordinates of all atoms in atoms_container with new_cell as reference
     atoms_frac = []
     latcell_new = np.array(new_cell)
@@ -391,7 +394,7 @@ def redefine_lattice(structure, a, b, c, precision=1.0e-8):
     
     atoms_frac_within_new_cell = []
     for atom in atoms_frac:
-        if 0 <= atom[1] < (1-precision) and 0 <= atom[2] < (1-precision) and 0 <= atom[3] < (1-precision):
+        if (0 <= atom[1] < (1-precision)) and (0 <= atom[2] < (1-precision)) and (0 <= atom[3] < (1-precision)):
             atoms_frac_within_new_cell.append(atom)
             
     # now convert coord of atom in atoms_frac_within_new_cell to cartesian
@@ -751,7 +754,7 @@ def build_nanotube_ac(structure, axis="a"):
         center_x = min(all_x) + a / 2
         center_y = middle_y + radius
     elif axis == "a":
-        center_c = min(all_z) + c / 2
+        center_z = min(all_z) + c / 2
         center_y = middle_y + radius        
     
     for i in range(len(out.atoms)):
@@ -817,7 +820,7 @@ def build_nanotube_ac(structure, axis="a"):
                 #    new_z -= (middle_y - y) * np.cos(arc - np.pi / 2)
                 #    new_y += (middle_y - y) * np.cos(np.pi - arc)        
                 new_z += (y - middle_y) * np.cos(arc - np.pi / 2)
-                new_y -= (z - middle_y) * np.cos(np.pi - arc)                
+                new_y -= (y - middle_y) * np.cos(np.pi - arc)                
             out.atoms[i].y = new_y
             out.atoms[i].z = new_z        
     

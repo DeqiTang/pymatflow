@@ -263,7 +263,7 @@ def main():
             help="thickness of the vacuum layer, in unit of Angstrom, default is 10")
             
     subparser.add_argument("--precision", type=float, default=1.0e-8,
-            help="a value that is less than 1 and infinitely close to 1 used to judge whether one atom is in another periodic of the redefined cell used in cleave surface")
+            help="a value that is large than 0 and infinitely close to 0 used to judge whether one atom is in another periodic of the redefined cell used in cleave surface")
             
     # ---------------------------------------------------------------------------------
     # merge layers | ab plane

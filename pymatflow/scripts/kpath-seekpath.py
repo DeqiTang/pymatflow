@@ -56,14 +56,11 @@ def main():
     a = np.sqrt(structure.cell[0][0]**2 + structure.cell[0][1]**2 + structure.cell[0][2]**2)
     b = np.sqrt(structure.cell[1][0]**2 + structure.cell[1][1]**2 + structure.cell[1][2]**2)
     c = np.sqrt(structure.cell[2][0]**2 + structure.cell[2][1]**2 + structure.cell[2][2]**2)
-    for atom in structure.atoms:
-        positions.append([atom.x / a, atom.y / b, atom.z / c]) # must be scaled cartesian
-        #xyz = base_xyz()
-        #xyz.atoms = structure.atoms
-        #xyz.cell = structure.cell
-        #xyz.set_species_number()
-        #numbers.append(xyz.specie_labels[atom.name])
-        numbers.append(element[atom.name].number)
+    
+    frac_coord = structure.get_fractional()
+    for i in range(len(frac_coord)):
+        positions.append([frac_coord[i][1], frac_coord[i][2], frac_coord[i][3]]) # must be fractional coordinates
+        numbers.append(element[frac_coord[i][0]].number)
 
     cell = (lattice, positions, numbers)
 

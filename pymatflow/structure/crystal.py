@@ -112,7 +112,7 @@ class crystal():
         out = []
         latcell = np.array(self.cell)
         convmat = np.linalg.inv(latcell.T)
-        for i in range(self.natom):
+        for i in range(len(self.atoms)):
             atom = []
             atom.append(self.atoms[i].name)
             atom = atom + list(convmat.dot(np.array([self.atoms[i].x, self.atoms[i].y, self.atoms[i].z])))

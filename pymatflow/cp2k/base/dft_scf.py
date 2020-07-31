@@ -210,7 +210,8 @@ class cp2k_dft_scf_ot:
     def to_input(self, fout):
         fout.write("\t\t\t&OT %s\n" % (str(self.section)))
         for item in self.params:
-            fout.write("\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t%s %s\n" % (item, str(self.params[item])))
         fout.write("\t\t\t&END OT\n")
 
     def set_params(self, params):

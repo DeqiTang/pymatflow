@@ -436,8 +436,20 @@ def main():
     # FORCE_EVAL/DFT/SCF
     gp = subparser.add_argument_group(title="FORCE_EVAL/DFT/SCF")
 
+    gp.add_argument("--max-scf", type=int, default=None, # 50
+            help="Maximum number of SCF iteration to be performed for one optimization.")
+
+    gp.add_argument("--eps-default", type=float, default=None, # 1.0e-10
+            help="Try setting all EPS_xxx to values leading to an energy correct up to EPS_DEFAULT")
+
     gp.add_argument("--eps-scf", type=float, default=None, #1.0e-6,
             help="target accuracy for the scf convergence, default is 1.0e-6")
+
+    gp.add_argument("--max-scf-history", type=int, default=None, #0
+            help="Maximum number of SCF iterations after the history pipeline is filled")
+            
+    gp.add_argument("--max-diis", type=int, default=None, #4
+            help="Maximum number of DIIS vectors to be used")
 
     gp.add_argument("--xc-functional", type=str, default=None, #"pbe",
             choices=["B3LYP", "BEEFVDW", "BLYP", "BP", "LDA", "PBE", "PADE", "PBE0", "TPSS",
@@ -493,6 +505,25 @@ def main():
     gp.add_argument("--ls-scf", type=str, default=None, #"false",
             choices=["true", "false", "true", "false"],
             help="use linear scaling scf method")
+
+    gp.add_argument("--ot-preconditioner", type=str, default=None,
+            choices=["FULL_ALL", "FULL_KINETIC", "FULL_SINLGE", "FULL_SINGLE_INVERSE", "FULL_S_INVERSE", "NONE", "full_all", "full_kinetic", "full_single", "full_single_inverse", "full_s_inverse", "none"],
+            help="Type of preconditioner to be used with all minimization schemes. They differ in effectiveness, cost of construction, cost of application. Properly preconditioned minimization can be orders of magnitude faster than doing nothing.")
+
+    gp.add_argument("--ot-energy-gap", type=float, default=None, 
+            help="Should be an estimate for the energy gap [a.u.] (HOMO-LUMO) and is used in preconditioning, especially effective with the FULL_ALL preconditioner, in which case it should be an underestimate of the gap (can be a small number, e.g. 0.002). FULL_SINGLE_INVERSE takes it as lower bound (values below 0.05 can cause stability issues). In general, heigher values will tame the preconditioner in case of poor initial guesses. A negative value will leave the choice to CP2K depending on type of preconditioner. ")            
+
+    gp.add_argument("--ot-minimizer", type=str, default=None,
+            choices=["BROYDEN", "CG", "DIIS", "SD", "broyden", "cg", "diis", "sd"],
+            help="Minimizer to be used with the OT method")
+            
+    gp.add_argument("--ot-algorithm", type=str, default=None,
+            choices=["IRAC", "STRICT", "irac", "strict"],
+            help="Algorithm to be used for OT")
+            
+    gp.add_argument("--ot-linesearch", type=str, default=None,
+            choices=["2PNT", "3PNT", "GOLD", "NONE"],
+            help="1D line search algorithm to be used with the OT minimizer, in increasing order of robustness and cost. MINIMIZER CG combined with LINESEARCH GOLD should always find an electronic minimum. Whereas the 2PNT minimizer is almost always OK, 3PNT might be needed for systems in which successive OT CG steps do not decrease the total energy.")
 
     # vdw correction related
     gp = subparser.add_argument_group(title="FORCE_EVAL/DFT/XC")
@@ -1361,6 +1392,18 @@ def main():
     gp.add_argument("--targetpressure", type=float, default=0,
             help="Target pressure for Parrinello-Rahman method, variable cell optimizations, and annealing options.")
 
+    gp.add_argument("--mdstep", type=int, default=1000,
+            help="Final time step of the MD simulation.")
+
+    gp.add_argument("--timestep", type=float, default=1.0,
+            help="Length of the time step of the MD simulation.")
+
+    gp.add_argument("--initial-temp", type=float, default=0,
+            help="Initial temperature for the MD run.")
+
+    gp.add_argument("--target-temp", type=float, default=0,
+            help="arget temperature for Nose thermostat and annealing options.")
+
     # na nc stepa stepc
     # --------------------------------------------------------------------------
     gp = subparser.add_argument_group(title="cell optimization",
@@ -2150,7 +2193,11 @@ def main():
         params["FORCE_EVAL-DFT-MGRID-REL_CUTOFF"] = args.rel_cutoff if "FORCE_EVAL-DFT-MGRID-REL_CUTOFF" not in params or args.rel_cutoff != None else params["FORCE_EVAL-DFT-MGRID-REL_CUTOFF"]
         params["FORCE_EVAL-DFT-MGRID-NGRIDS"] = args.ngrids if "FORCE_EVAL-DFT-MGRID-NGRIDS" not in params or  args.ngrids != None else params["FORCE_EVAL-DFT-MGRID-NGRIDS"]
         params["FORCE_EVAL-DFT-XC-XC_FUNCTIONAL"] = args.xc_functional if "FORCE_EVAL-DFT-XC-XC_FUNCTIONAL" not in params or  args.xc_functional != None else params["FORCE_EVAL-DFT-XC-XC_FUNCTIONAL"]
+        params["FORCE_EVAL-DFT-SCF-MAX_SCF"] = args.max_scf if "FORCE_EVAL-DFT-SCF-MAX_SCF" not in params or args.max_scf != None else params["FORCE_EVAL-DFT-SCF-MAX_SCF"]
+        params["FORCE_EVAL-DFT-QS-EPS_DEFAULT"] = args.eps_default if "FORCE_EVAL-DFT-QS-EPS_DEFAULT" not in params or args.eps_default != None else params["FORCE_EVAL-DFT-QS-EPS_DEFAULT"]
         params["FORCE_EVAL-DFT-SCF-EPS_SCF"] = args.eps_scf if "FORCE_EVAL-DFT-SCF-EPS_SCF" not in params or  args.eps_scf != None else params["FORCE_EVAL-DFT-SCF-EPS_SCF"]
+        params["FORCE_EVAL-DFT-SCF-MAX_SCF_HISTORY"] = args.max_scf_history if "FORCE_EVAL-DFT-SCF-MAX_SCF_HISTORY" not in params or args.max_scf_history != None else params["FORCE_EVAL-DFT-SCF-MAX_SCF_HISTORY"]
+        params["FORCE_EVAL-DFT-SCF-MAX_DIIS"] = args.max_diis if "FORCE_EVAL-DFT-SCF-MAX_DIIS" not in params or args.max_diis != None else params["FORCE_EVAL-DFT-SCF-MAX_DIIS"]
         params["FORCE_EVAL-DFT-SCF-ADDED_MOS"] = args.added_mos if "FORCE_EVAL-DFT-SCF-ADDED_MOS" not in params or  args.added_mos != None else params["FORCE_EVAL-DFT-SCF-ADDED_MOS"]
         params["FORCE_EVAL-DFT-SCF-SMEAR"] = args.smear if "FORCE_EVAL-DFT-SCF-SMEAR" not in params or  args.smear != None else params["FORCE_EVAL-DFT-SCF-SMEAR"]
         params["FORCE_EVAL-DFT-SCF-SMEAR-METHOD"] = args.smear_method if "FORCE_EVAL-DFT-SCF-SMEAR-METHOD" not in params or args.smear_method != None else params["FORCE_EVAL-DFT-SCF-SMEAR-METHOD"]
@@ -2161,6 +2208,11 @@ def main():
         params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"] = args.mixing_alpha if "FORCE_EVAL-DFT-SCF-MIXING-ALPHA" not in params or  args.mixing_alpha != None else params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"]
         params["FORCE_EVAL-DFT-KPOINTS-SCHEME"] = args.kpoints_scheme if "FORCE_EVAL-DFT-KPOINTS-SCHEME" not in params or  args.kpoints_scheme != None else params["FORCE_EVAL-DFT-KPOINTS-SCHEME"]
         params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"] = args.vdw_potential_type if "FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE" not in params or  args.vdw_potential_type != None else params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"]
+        params["FORCE_EVAL-DFT-SCF-OT-PRECONDITIONER"] = args.ot_preconditioner if "FORCE_EVAL-DFT-SCF-OT-PRECONDITIONER" not in params or args.ot_preconditioner != None else params["FORCE_EVAL-DFT-SCF-OT-PRECONDITIONER"]
+        params["FORCE_EVAL-DFT-SCF-OT-ENERGY_GAP"] = args.ot_energy_gap if "FORCE_EVAL-DFT-SCF-OT-ENERGY_GAP" not in params or args.ot_energy_gap != None else params["FORCE_EVAL-DFT-SCF-OT-ENERGY_GAP"]
+        params["FORCE_EVAL-DFT-SCF-OT-MINIMIZER"] = args.ot_minimizer if "FORCE_EVAL-DFT-SCF-OT-MINIMIZER" not in params or args.ot_minimizer != None else params["FORCE_EVAL-DFT-SCF-OT-MINIMIZER"]
+        params["FORCE_EVAL-DFT-SCF-OT-ALGORITHM"] = args.ot_algorithm if "FORCE_EVAL-DFT-SCF-OT-ALGORITHM" not in params or args.ot_algorithm != None else params["FORCE_EVAL-DFT-SCF-OT-ALGORITHM"]
+        params["FORCE_EVAL-DFT-SCF-OT-LINESEARCH"] = args.ot_linesearch if "FORCE_EVAL-DFT-SCF-OT-LINESEARCH" not in params or args.ot_linesearch != None else params["FORCE_EVAL-DFT-SCF-OT-LINESEARCH"]
         params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-TYPE"] = args.pair_type if "FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-TYPE" not in params or  args.pair_type != None else params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-TYPE"]
         params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-R_CUTOFF"] = args.r_cutoff if "FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-R_CUTOFF" not in params or  args.r_cutoff != None else params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-R_CUTOFF"]
         params["FORCE_EVAL-DFT-PRINT-ELF_CUBE-STRIDE"] = args.dft_print_elf_cube_stride if "FORCE_EVAL-DFT-PRINT-ELF_CUBE-STRIDE" not in params or  args.dft_print_elf_cube_stride != None else params["FORCE_EVAL-DFT-PRINT-ELF_CUBE-STRIDE"]
@@ -2702,6 +2754,10 @@ def main():
         elif args.runtype == 6:
             # molecular dynamics
             from pymatflow.siesta.md import md_run
+            params["MD.FinalTimeStep"] = args.mdstep
+            params["MD.LengthTimeStep"] = args.timestep
+            params["MD.InitialTemperature"] = args.initial_temp
+            params["MD.TargetTemperature"] = args.target_temp         
             task = md_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
