@@ -225,6 +225,7 @@ setup(
         "pymatflow/vasp/post/scripts/post-vasp-pdos.py",
         "pymatflow/vasp/post/scripts/post-vasp-neb-vtst.py",
         "pymatflow/vasp/post/scripts/procar-vasp.py",
+        "pymatflow/vasp/post/scripts/post-vasp-dfpt-elastic-piezo.py",
         "pymatflow/octopus/scripts/octflow.py",
         ],
     entry_points = {
