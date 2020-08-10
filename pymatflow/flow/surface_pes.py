@@ -33,20 +33,23 @@ class cp2k_run(cp2k.opt_run):
         self.pes_params = {}
         self.set_pes() # set default value
 
-    def set_pes(self, move_atom=[-1], xrange=[0, 1.5, 0.1], yrange=[0, 1.5, 0.5], zshift=0.0, fix_z=1):
+    def set_pes(self, move_atom=[-1], xrange=[0, 1.5, 0.1], yrange=[0, 1.5, 0.5], zshift=0.0, fix_z=1, fix_y=2, fix_x=2):
         """
         :parma move_atom: the atoms that will move in the calculation, list start from 0.
         :param xrange: x range for moving the specified moving atoms.
         :param: yrange: y range for moving the specified moving atoms
         :param: zshift: z shift for the moving atoms, will shift the z of specified moving atoms by value of zshift
         :param: fix_z: 0 -> do not fix any z of the atoms, 1 -> only fix z of the buttom atoms, 2: fix z of both the buttom and the moving atoms. 
-                note x y are all fixed           
+        :param: fix_y: 0 -> do not fix any y of the atoms, 1 -> only fix y of the buttom atoms, 2: fix y of both the buttom and the moving atoms. 
+        :param: fix_x: 0 -> do not fix any x of the atoms, 1 -> only fix x of the buttom atoms, 2: fix x of both the buttom and the moving atoms. 
         """
         self.pes_params["move_atom"] = move_atom
         self.pes_params["xrange"] = xrange
         self.pes_params["yrange"] = yrange
         self.pes_params["zshift"] = zshift
         self.pes_params["fix_z"] = fix_z
+        self.pes_params["fix_y"] = fix_y
+        self.pes_params["fix_x"] = fix_x
 
     def run(self, directory="tmp-cp2k-pes-opt", runopt="gen", auto=0):
         if runopt == "gen" or runopt == "genrun":
@@ -63,6 +66,8 @@ class cp2k_run(cp2k.opt_run):
             yrange = self.pes_params["yrange"]
             zshift = self.pes_params["zshift"]
             fix_z = self.pes_params["fix_z"]
+            fix_y = self.pes_params["fix_y"]
+            fix_x = self.pes_params["fix_x"]
 
             os.chdir(directory)
             # generate the input files and the initial trajectory
@@ -78,19 +83,37 @@ class cp2k_run(cp2k.opt_run):
                         #----------------------------------------------
                         self.force_eval.subsys.xyz.atoms[i].z += zshift
 
-                    # fix xy of no move atoms and move atoms
-                    # first fix all atoms
-                    for i in range(len(self.poscar.xyz.atoms)):
-                        self.poscar.xyz.atoms[i].fix = [True, True, True]
+                    # first fix xyz of all atoms
+                    for i in range(len(self.force_eval.subsys.xyz.atoms)):
+                        self.force_eval.subsys.xyz.atoms[i].fix = [True, True, True]
                     # unfix z of moving atoms or z of no moving atoms
                     if fix_z == 0:
-                        for i in range(len(self.poscar.xyz.atoms)):
-                            self.poscar.xyz.atoms[i].fix[2] = False
+                        for i in range(len(self.force_eval.subsys.xyz.atoms)):
+                            self.force_eval.subsys.xyz.atoms[i].fix[2] = False
                     elif fix_z == 1:
                         for i in self.pes_params["move_atom"]:
-                            self.poscar.xyz.atoms[i].fix[2] = False
+                            self.force_eval.subsys.xyz.atoms[i].fix[2] = False
                     elif fix_z == 2:
                         # nothing need to do
+                        pass
+                    # unfix x or y of moving atoms or no moving atoms
+                    if fix_y == 0:
+                        for i in range(len(self.force_eval.subsys.xyz.atoms)):
+                            self.force_eval.subsys.xyz.atoms[i].fix[1] = False
+                    elif fix_y == 1:
+                        for i in self.pes_params["move_atom"]:
+                            self.force_eval.subsys.xyz.atoms[i].fix[1] = False
+                    elif fix_y == 2:
+                        # nothing need to do
+                        pass
+                    if fix_x == 0:
+                        for i in range(len(self.force_eval.subsys.xyz.atoms)):
+                            self.force_eval.subsys.xyz.atoms[i].fix[0] = False
+                    elif fix_x == 1:
+                        for i in self.pes_params["move_atom"]:
+                            self.force_eval.subsys.xyz.atoms[i].fix[0]
+                    elif fix_x == 2:
+                        # noting to do
                         pass
 
                     with open("_%.3f_%.3f_/geo-opt.inp" % (deltax if np.abs(deltax) >= 0.001 else 0.0, deltay if np.abs(deltay) >= 0.001 else 0.0), 'w') as fout:
@@ -311,20 +334,24 @@ class qe_run(qe.opt_run):
         self.pes_params = {}
         self.set_pes() # set default value
 
-    def set_pes(self, move_atom=[-1], xrange=[0, 1.5, 0.1], yrange=[0, 1.5, 0.5], zshift=0.0, fix_z=1):
+    def set_pes(self, move_atom=[-1], xrange=[0, 1.5, 0.1], yrange=[0, 1.5, 0.5], zshift=0.0, fix_z=1, fix_y=2, fix_x=2):
         """
         :parma move_atom: the atoms that will move in the calculation, list start from 0.
         :param xrange: x range for moving the specified moving atoms.
         :param: yrange: y range for moving the specified moving atoms
         :param: zshift: z shift for the moving atoms, will shift the z of specified moving atoms by value of zshift
         :param: fix_z: 0 -> do not fix any z of the atoms, 1 -> only fix z of the buttom atoms, 2: fix z of both the buttom and the moving atoms. 
-                note x y are all fixed   
+        :param: fix_y: 0 -> do not fix any y of the atoms, 1 -> only fix y of the buttom atoms, 2: fix y of both the buttom and the moving atoms. 
+        :param: fix_x: 0 -> do not fix any x of the atoms, 1 -> only fix x of the buttom atoms, 2: fix x of both the buttom and the moving atoms. 
         """
         self.pes_params["move_atom"] = move_atom
         self.pes_params["xrange"] = xrange
         self.pes_params["yrange"] = yrange
         self.pes_params["zshift"] = zshift
         self.pes_params["fix_z"] = fix_z
+        self.pes_params["fix_y"] = fix_y
+        self.pes_params["fix_x"] = fix_x
+        
 
     def run(self, directory="tmp-qe-pes-opt", runopt="gen", auto=0):
         if runopt == "gen" or runopt == "genrun":
@@ -347,6 +374,9 @@ class qe_run(qe.opt_run):
             yrange = self.pes_params["yrange"]
             zshift = self.pes_params["zshift"]
             fix_z = self.pes_params["fix_z"]
+            fix_y = self.pes_params["fix_y"]
+            fix_x = self.pes_params["fix_x"]
+            
             os.chdir(directory)
             # generate the input files and the initial trajectory
             os.system("mkdir -p post-processing")
@@ -363,8 +393,8 @@ class qe_run(qe.opt_run):
                         #----------------------------------------------
                         self.arts.xyz.atoms[i].z += zshift
 
-                    # fix xy of no move atoms and move atoms
-                    # first fix all atoms
+
+                    # first fix xyz of all atoms
                     for i in range(len(self.arts.xyz.atoms)):
                         self.arts.xyz.atoms[i].fix = [True, True, True]
                     # unfix z of moving atoms or z of no moving atoms
@@ -377,6 +407,26 @@ class qe_run(qe.opt_run):
                     elif fix_z == 2:
                         # nothing need to do
                         pass
+                    # unfix x or y of moving atoms or no moving atoms
+                    if fix_y == 0:
+                        for i in range(len(self.arts.xyz.atoms)):
+                            self.arts.xyz.atoms[i].fix[1] = False
+                    elif fix_y == 1:
+                        for i in self.pes_params["move_atom"]:
+                            self.arts.xyz.atoms[i].fix[1] = False
+                    elif fix_y == 2:
+                        # nothing need to do
+                        pass
+                    if fix_x == 0:
+                        for i in range(len(self.arts.xyz.atoms)):
+                            self.arts.xyz.atoms[i].fix[0] = False
+                    elif fix_x == 1:
+                        for i in self.pes_params["move_atom"]:
+                            self.arts.xyz.atoms[i].fix[0]
+                    elif fix_x == 2:
+                        # noting to do
+                        pass
+
 
                     with open("_%.3f_%.3f_/relax.in" % (deltax if np.abs(deltax) >= 0.001 else 0.0, deltay if np.abs(deltay) >= 0.001 else 0.0), 'w') as fout:
                         self.control.to_in(fout)
@@ -605,20 +655,23 @@ class vasp_run(vasp.opt_run):
 
         self.batch_x_y = None
 
-    def set_pes(self, move_atom=[-1], xrange=[0, 1.5, 0.1], yrange=[0, 1.5, 0.5], zshift=0.0, fix_z=1):
+    def set_pes(self, move_atom=[-1], xrange=[0, 1.5, 0.1], yrange=[0, 1.5, 0.5], zshift=0.0, fix_z=1, fix_y=2, fix_x=2):
         """
         :parma move_atom: the atoms that will move in the calculation, list start from 0.
         :param xrange: x range for moving the specified moving atoms.
         :param: yrange: y range for moving the specified moving atoms
         :param: zshift: z shift for the moving atoms, will shift the z of specified moving atoms by value of zshift
         :param: fix_z: 0 -> do not fix any z of the atoms, 1 -> only fix z of the buttom atoms, 2: fix z of both the buttom and the moving atoms. 
-                note x y are all fixed            
+        :param: fix_y: 0 -> do not fix any y of the atoms, 1 -> only fix y of the buttom atoms, 2: fix y of both the buttom and the moving atoms. 
+        :param: fix_x: 0 -> do not fix any x of the atoms, 1 -> only fix x of the buttom atoms, 2: fix x of both the buttom and the moving atoms. 
         """
         self.pes_params["move_atom"] = move_atom
         self.pes_params["xrange"] = xrange
         self.pes_params["yrange"] = yrange
         self.pes_params["zshift"] = zshift
         self.pes_params["fix_z"] = fix_z
+        self.pes_params["fix_y"] = fix_y
+        self.pes_params["fix_x"] = fix_x
 
     def run(self, directory="tmp-vasp-pes-opt", runopt="gen", auto=0):
         """
@@ -627,6 +680,9 @@ class vasp_run(vasp.opt_run):
         yrange = self.pes_params["yrange"]
         zshift = self.pes_params["zshift"]
         fix_z = self.pes_params["fix_z"]
+        fix_y = self.pes_params["fix_y"]
+        fix_x = self.pes_params["fix_x"]
+        
         
         nx = len(np.arange(xrange[0], xrange[1], xrange[2]))
         ny = len(np.arange(yrange[0], yrange[1], yrange[2]))
@@ -676,8 +732,7 @@ class vasp_run(vasp.opt_run):
                         #----------------------------------------------
                         self.poscar.xyz.atoms[i].z += zshift
 
-                    # fix xy of no move atoms and move atoms
-                    # first fix all atoms
+                    # first fix xyz of all atoms
                     for i in range(len(self.poscar.xyz.atoms)):
                         self.poscar.xyz.atoms[i].fix = [True, True, True]
                     # unfix z of moving atoms or z of no moving atoms
@@ -690,7 +745,26 @@ class vasp_run(vasp.opt_run):
                     elif fix_z == 2:
                         # nothing need to do
                         pass
-
+                    # unfix x or y of moving atoms or no moving atoms
+                    if fix_y == 0:
+                        for i in range(len(self.poscar.xyz.atoms)):
+                            self.poscar.xyz.atoms[i].fix[1] = False
+                    elif fix_y == 1:
+                        for i in self.pes_params["move_atom"]:
+                            self.poscar.xyz.atoms[i].fix[1] = False
+                    elif fix_y == 2:
+                        # nothing need to do
+                        pass
+                    if fix_x == 0:
+                        for i in range(len(self.poscar.xyz.atoms)):
+                            self.poscar.xyz.atoms[i].fix[0] = False
+                    elif fix_x == 1:
+                        for i in self.pes_params["move_atom"]:
+                            self.poscar.xyz.atoms[i].fix[0]
+                    elif fix_x == 2:
+                        # noting to do
+                        pass
+            
                     with open("_%.3f_%.3f_/POSCAR" % (deltax if np.abs(deltax) >= 0.001 else 0.0, deltay if np.abs(deltay) >= 0.001 else 0.0), 'w') as fout:
                         self.poscar.to_poscar(fout)                    
 

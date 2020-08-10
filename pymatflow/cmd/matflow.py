@@ -1874,7 +1874,15 @@ def main():
 
     gp.add_argument("--fix-z", type=int, default=1,
             choices=[0, 1, 2],
-            help="0 -> do not fix any z of the atoms, 1: only fix z of the buttom atoms, 2: fix z of both the buttom and the moving atoms. note x y are all fixed")
+            help="0 -> do not fix any z of the atoms, 1: only fix z of the buttom atoms, 2: fix z of both the buttom and the moving atoms. default is 1")
+    
+    gp.add_argument("--fix-y", type=int, default=2,
+            choices=[0, 1, 2],
+            help="0 -> do not fix any z of the atoms, 1: only fix z of the buttom atoms, 2: fix z of both the buttom and the moving atoms. default is 2")
+    
+    gp.add_argument("--fix-x", type=int, default=2,
+            choices=[0, 1, 2],
+            help="0 -> do not fix any z of the atoms, 1: only fix z of the buttom atoms, 2: fix z of both the buttom and the moving atoms. default is 2")
 
     gp.add_argument("--batch-x-y", type=int, nargs=2, default=None,
             help="number of structures to calculate each batch x and y, default is all in one batch")
@@ -1949,7 +1957,10 @@ def main():
 
     gp.add_argument("--nelect", type=int, default=None,
             help="sets the number of electrons")
-            
+
+    gp.add_argument("--laechg", type=str, default=None,
+            choices=[".TRUE.", ".FALSE.", "T", "F"],
+            help="for bader analysis. when LAECHG=.TRUE. the all-electron charge density will be reconstructed explicitly and written out to file.")
             
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
@@ -2868,6 +2879,7 @@ def main():
         params["AMIX"] = args.amix if "AMIX" not in params or args.amix != None else params["AMIX"]
         params["BMIX"] = args.bmix if "BMIX" not in params or args.bmix != None else params["BMIX"]
         params["NELECT"] = args.nelect if "NELECT" not in params or args.nelect != None else params["NELECT"]
+        params["LAECHG"] = args.laechg if "LAECHG" not in params or args.laechg != None else params["LAECHG"]
         params["LPARD"] = args.lpard if "LPARD" not in params or args.lpard != None else params["LPARD"]
         params["LSEPK"] = args.lsepk if "LSEPK" not in params or args.lsepk != None else params["LSEPK"]
         params["LSEPB"] = args.lsepb if "LSEPB" not in params or args.lsepb != None else params["LSEPB"]
@@ -3084,7 +3096,7 @@ def main():
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             #task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.batch_x_y = args.batch_x_y
-            task.set_pes(move_atom=args.move_atom, xrange=args.xrange, yrange=args.yrange, zshift=args.zshift, fix_z=args.fix_z)            
+            task.set_pes(move_atom=args.move_atom, xrange=args.xrange, yrange=args.yrange, zshift=args.zshift, fix_z=args.fix_z, fix_y=args.fix_y, fix_x=args.fix_x)
             task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 9:
             # abc cell

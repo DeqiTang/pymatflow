@@ -392,10 +392,10 @@ class opt_run(vasp):
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             for i_batch_a in range(n_batch_a):
-                os.system("bash opt-cubic-%d.sh" % (i_batch_a))
+                os.system("bash opt-cubic-batch-%d.sh" % (i_batch_a))
             os.chdir("../")
         for i_batch_a in range(n_batch_a):
-            server_handle(auto=auto, directory=directory, jobfilebase="opt-cubic-%d" % (i_batch_a), server=self.run_params["server"])
+            server_handle(auto=auto, directory=directory, jobfilebase="opt-cubic-batch-%d" % (i_batch_a), server=self.run_params["server"])
 
 
     def hexagonal(self, directory="tmp-vasp-opt-hexagonal", runopt="gen", auto=0, range_a=[-0.1, 0.1, 0.01], range_c=[-0.1, 0.1, 0.01]):
