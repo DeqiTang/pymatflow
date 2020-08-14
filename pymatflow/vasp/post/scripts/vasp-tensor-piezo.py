@@ -3,6 +3,7 @@
 
 import os
 import argparse
+import csv
 import copy
 import datetime
 import subprocess
@@ -21,6 +22,9 @@ if __name__ == "__main__":
     parser.add_argument("--outcars", help="OUTCAR for piezoelectric stress tensor and elastic tensor calculation respectively", type=str, nargs=2, required=True)
 
     parser.add_argument("--poscar", type=str, required=True, help="POSCAR of the structure")
+    
+    parser.add_argument("--output-csv", type=str, default="./piezo_elastic_data.csv",
+            help="specify the path for the csv file to store the results")
 
     args = parser.parse_args()
 
@@ -159,3 +163,44 @@ if __name__ == "__main__":
     print("%f %f %f\n" % (d_piezo_strain_2d_pc_n[0, 0], d_piezo_strain_2d_pc_n[0, 1], d_piezo_strain_2d_pc_n[0, 2]))
     print("%f %f %f\n" % (d_piezo_strain_2d_pc_n[1, 0], d_piezo_strain_2d_pc_n[1, 1], d_piezo_strain_2d_pc_n[1, 2]))
     print("%f %f %f\n" % (d_piezo_strain_2d_pc_n[2, 0], d_piezo_strain_2d_pc_n[2, 1], d_piezo_strain_2d_pc_n[2, 2]))
+    
+    
+    # output data to csv file
+    with open(args.output_csv, "w") as fout:
+        csv_writer = csv.writer(fout)
+        csv_writer.writerow(["Piezoelectric stress tensor (C/m^2)"])
+        csv_writer.writerows(e_total.tolist())
+        
+        csv_writer.writerow(["Piezoelectric stress tensor (pC/m^2)"])
+        csv_writer.writerows(e_total_pc_m2.tolist())
+        
+        csv_writer.writerow(["Piezoelectric strain tensor (C/N)"])
+        csv_writer.writerows(d_piezo_strain.tolist())
+
+        csv_writer.writerow(["Piezoelectric strain tensor (pC/N)"])
+        csv_writer.writerows(d_piezo_strain_pc_n.tolist())
+
+        csv_writer.writerow(["Total Elastic tensor (kBar)"])
+        csv_writer.writerows(c_elastic.tolist())
+
+        csv_writer.writerow(["Total Elastic tensor (N/m^2)"])
+        csv_writer.writerows(c_elastic_n_m2.tolist())
+    
+        csv_writer.writerow(["Piezoelectric stress tensor of 2D materials (z as surface direction)"])
+        csv_writer.writerow(["Piezoelectric stess tensor in 2D (pC/m)"])
+        csv_writer.writerow(["e_ij(2D)"])
+        csv_writer.writerow(["e11 e12 e16"])
+        csv_writer.writerow(["e21 e22 e26"])
+        csv_writer.writerow(["e31 e32 e36"])
+        csv_writer.writerows(e_total_2d_pc_m.tolist())
+    
+    
+        csv_writer.writerow(["Elastic tensor in 2D (N/m)"])
+        csv_writer.writerow(["C_ij(2D)"])
+        csv_writer.writerow(["C11 C12 C16"])
+        csv_writer.writerow(["C21 C22 C26"])
+        csv_writer.writerow(["C61 C62 C66"])
+        csv_writer.writerows(c_elastic_2d_n_m.tolist())
+        
+        csv_writer.writerow(["Piezoelectric strain tensor in 2D (pC/N)"])
+        csv_writer.writerows(d_piezo_strain_2d_pc_n.tolist())
