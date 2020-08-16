@@ -38,6 +38,13 @@ def read_structure(filepath):
         import pymatflow.third.aseio as aseio
         a = crystal()
         a.cell, a.atoms = aseio.read_poscar(filepath)
+    elif filepath.split(".")[-1] == "lammps" or filepath.split(".")[-1] == "lmp":
+        from pymatflow.structure.crystal import crystal
+        import pymatflow.third.aseio as aseio
+        a = crystal()
+        a.cell, a.atoms = aseio.read_lammps_data(filepath)
+    else:
+        pass
     return a
 
 
@@ -83,6 +90,9 @@ def write_structure(structure, filepath, frac=1):
             else:
                 pass
             poscar.to_poscar(fout=fout, coordtype=coordtype)
+    elif filepath.split(".")[-1] == "lammps" or filepath.split(".")[-1] == "lmp":
+        import pymatflow.third.aseio as aseio
+        aseio.write_lammps_data(cell=structure.cell, atoms=structure.atoms, filepath=filepath)            
     else:
         pass
 
