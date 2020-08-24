@@ -2876,6 +2876,7 @@ def main():
         params["IMAGES"] = args.nimage if "IMAGES" not in params or args.images != None else params["IMAGES"]
         params["LLINEOPT"] = args.llineopt if "LLINEOPT" not in params or args.llineopt != None else params["LLINEOPT"]
         params["FDSTEP"] = args.fdstep if "FDSTEP" not in params or args.fdstep != None else params["FDSTEP"]
+        params["SYMPREC"] = args.symprec if "SYMPREC" not in params or args.symprec != None else params["SYMPREC"]
         params["AMIX"] = args.amix if "AMIX" not in params or args.amix != None else params["AMIX"]
         params["BMIX"] = args.bmix if "BMIX" not in params or args.bmix != None else params["BMIX"]
         params["NELECT"] = args.nelect if "NELECT" not in params or args.nelect != None else params["NELECT"]

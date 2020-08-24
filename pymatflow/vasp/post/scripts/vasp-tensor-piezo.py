@@ -125,9 +125,9 @@ if __name__ == "__main__":
     print("Piezoelectric stress tensor of 2D materials (z as surface direction)\n")
     print("Piezoelectric stess tensor in 2D (pC/m)\n")
     print("e_ij(2D)\n")
-    print("e11 e12 e16\n")
-    print("e21 e22 e26\n")
-    print("e31 e32 e36\n")    
+    print("| |e11| |e12| |e16| |\n")
+    print("| |e21| |e22| |e26| |\n")
+    print("| |e31| |e32| |e36| |\n")    
     structure = read_structure(filepath=args.poscar)
     c = np.linalg.norm(np.array(structure.cell[2]))
     e_total_2d_pc_m = []
@@ -137,9 +137,13 @@ if __name__ == "__main__":
             row.append(e_total[i-1, j-1])
         e_total_2d_pc_m.append(row)
     e_total_2d_pc_m = np.array(e_total_2d_pc_m) * 1.0e+12 * c * 1.0e-10 # pC/m
-    print("%f %f %f\n" % (e_total_2d_pc_m[0, 0], e_total_2d_pc_m[0, 1], e_total_2d_pc_m[0, 2]))
-    print("%f %f %f\n" % (e_total_2d_pc_m[1, 0], e_total_2d_pc_m[1, 1], e_total_2d_pc_m[1, 2]))
-    print("%f %f %f\n" % (e_total_2d_pc_m[2, 0], e_total_2d_pc_m[2, 1], e_total_2d_pc_m[2, 2]))
+    #print("%f %f %f\n" % (e_total_2d_pc_m[0, 0], e_total_2d_pc_m[0, 1], e_total_2d_pc_m[0, 2]))
+    #print("%f %f %f\n" % (e_total_2d_pc_m[1, 0], e_total_2d_pc_m[1, 1], e_total_2d_pc_m[1, 2]))
+    #print("%f %f %f\n" % (e_total_2d_pc_m[2, 0], e_total_2d_pc_m[2, 1], e_total_2d_pc_m[2, 2]))
+    e_total_2d_pc_m_abs = np.abs(e_total_2d_pc_m) # we use absolute value of eij in 2d condition
+    print("%f %f %f\n" % (e_total_2d_pc_m_abs[0, 0], e_total_2d_pc_m_abs[0, 1], e_total_2d_pc_m_abs[0, 2]))
+    print("%f %f %f\n" % (e_total_2d_pc_m_abs[1, 0], e_total_2d_pc_m_abs[1, 1], e_total_2d_pc_m_abs[1, 2]))
+    print("%f %f %f\n" % (e_total_2d_pc_m_abs[2, 0], e_total_2d_pc_m_abs[2, 1], e_total_2d_pc_m_abs[2, 2]))
     
     print("Elastic tensor in 2D (N/m)\n")
     print("C_ij(2D)\n")
@@ -159,7 +163,11 @@ if __name__ == "__main__":
     print("%f %f %f\n" % (c_elastic_2d_n_m[2, 0], c_elastic_2d_n_m[2, 1], c_elastic_2d_n_m[2, 2]))
     
     print("Piezoelectric strain tensor in 2D (pC/N)\n")
-    d_piezo_strain_2d_pc_n = np.dot(e_total_2d_pc_m, np.linalg.inv(c_elastic_2d_n_m)) # pC/N
+    #d_piezo_strain_2d_pc_n = np.dot(e_total_2d_pc_m, np.linalg.inv(c_elastic_2d_n_m)) # pC/N
+    #print("%f %f %f\n" % (d_piezo_strain_2d_pc_n[0, 0], d_piezo_strain_2d_pc_n[0, 1], d_piezo_strain_2d_pc_n[0, 2]))
+    #print("%f %f %f\n" % (d_piezo_strain_2d_pc_n[1, 0], d_piezo_strain_2d_pc_n[1, 1], d_piezo_strain_2d_pc_n[1, 2]))
+    #print("%f %f %f\n" % (d_piezo_strain_2d_pc_n[2, 0], d_piezo_strain_2d_pc_n[2, 1], d_piezo_strain_2d_pc_n[2, 2]))
+    d_piezo_strain_2d_pc_n = np.dot(e_total_2d_pc_m_abs, np.linalg.inv(c_elastic_2d_n_m)) # pC/N
     print("%f %f %f\n" % (d_piezo_strain_2d_pc_n[0, 0], d_piezo_strain_2d_pc_n[0, 1], d_piezo_strain_2d_pc_n[0, 2]))
     print("%f %f %f\n" % (d_piezo_strain_2d_pc_n[1, 0], d_piezo_strain_2d_pc_n[1, 1], d_piezo_strain_2d_pc_n[1, 2]))
     print("%f %f %f\n" % (d_piezo_strain_2d_pc_n[2, 0], d_piezo_strain_2d_pc_n[2, 1], d_piezo_strain_2d_pc_n[2, 2]))
@@ -189,10 +197,10 @@ if __name__ == "__main__":
         csv_writer.writerow(["Piezoelectric stress tensor of 2D materials (z as surface direction)"])
         csv_writer.writerow(["Piezoelectric stess tensor in 2D (pC/m)"])
         csv_writer.writerow(["e_ij(2D)"])
-        csv_writer.writerow(["e11 e12 e16"])
-        csv_writer.writerow(["e21 e22 e26"])
-        csv_writer.writerow(["e31 e32 e36"])
-        csv_writer.writerows(e_total_2d_pc_m.tolist())
+        csv_writer.writerow(["| |e11| |e12| |e16| |"])
+        csv_writer.writerow(["| |e21| |e22| |e26| |"])
+        csv_writer.writerow(["| |e31| |e32| |e36| |"])
+        csv_writer.writerows(e_total_2d_pc_m_abs.tolist())
     
     
         csv_writer.writerow(["Elastic tensor in 2D (N/m)"])

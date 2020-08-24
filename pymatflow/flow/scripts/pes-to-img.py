@@ -1,3 +1,4 @@
+import os
 import copy
 import argparse
 import numpy as np
@@ -142,5 +143,5 @@ if __name__ == "__main__":
     ax.set_ylabel('y')
     ax.set_zlabel('energy')
     plt.savefig(args.output+".3d-surface-2d-contour.png")
-    plt.close()    
+    plt.close()
 
