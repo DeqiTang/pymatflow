@@ -1402,7 +1402,7 @@ class opt_run(vasp):
                             pass
 
                 # gen local bash script
-                with open("opt-tetragonal.sh", 'w') as fout:
+                with open("opt-tetragonal-%d-%d.sh" % (i_batch_a, i_batch_c), 'w') as fout:
                     fout.write("#!/bin/bash\n")
 
                     fout.write("cat > INCAR<<EOF\n")

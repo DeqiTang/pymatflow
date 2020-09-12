@@ -2558,33 +2558,45 @@ def main():
             task = opt_run()
             task.get_xyz(xyzfile)
             task.set_relax()
+            task.batch_a = args.batch_a     
+            task.batch_b = args.batch_b
+            task.batch_c = args.batch_c                
             task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
             task.set_params(control=control, system=system, electrons=electrons, ions=ions)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa)
+            #task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, stepa=args.stepa)
+            task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a)
         elif args.runtype == 4:
             # hexagonal cell opt
             from pymatflow.qe.opt import opt_run
             task = opt_run()
             task.get_xyz(xyzfile)
             task.set_relax()
+            task.batch_a = args.batch_a     
+            task.batch_b = args.batch_b
+            task.batch_c = args.batch_c  
             task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
             task.set_params(control=control, system=system, electrons=electrons, ions=ions)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
+            #task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
+            task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_c=args.range_c)
         elif args.runtype == 5:
             # tetragonal cell opt
             from pymatflow.qe.opt import opt_run
             task = opt_run()
             task.get_xyz(xyzfile)
             task.set_relax()
+            task.batch_a = args.batch_a     
+            task.batch_b = args.batch_b
+            task.batch_c = args.batch_c              
             task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
             task.set_params(control=control, system=system, electrons=electrons, ions=ions)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
+            #task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
+            task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_c=args.range_c)
         elif args.runtype == 6:
             from pymatflow.qe.neb import neb_run
             task = neb_run()
