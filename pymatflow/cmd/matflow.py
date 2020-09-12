@@ -946,8 +946,20 @@ def main():
     # &electrons
     gp = subparser.add_argument_group(title="pw.x->electrons")
 
+    gp.add_argument("--electron-maxstep", type=int, default=None,
+            help="maximum number of iterations in a scf step")
+
     gp.add_argument("--conv-thr", type=float, default=1.0e-6,
             help="the conv_thr for scf, when doing geometric optimization better use a strict covnergec for scf")
+
+    gp.add_argument("--mixing-beta", type=float, default=None,
+            help="mixing factor for self-consistency, default is 0.7")
+
+    gp.add_argument("--mixing-ndim", type=float, default=None,
+            help="number of iterations used in mixing scheme. If you are tight with memory, you may reduce it to 4 or so.")
+
+    gp.add_argument("--diagonalization", type=float, default=None,
+            help="Available options are: david cg ppcg paro")
 
     # &ions
     gp = subparser.add_argument_group(title="pw.x->ions")
@@ -2445,8 +2457,12 @@ def main():
         system["degauss"] = args.degauss if "degauss" not in system or args.degauss != None else system["degauss"]
         system["vdw_corr"] = args.vdw_corr if "vde_corr" not in system or args.vdw_corr != None  else system["vdw_corr"]
         system["nbnd"] = args.nbnd if "nbnd" not in system or args.nbnd != None else system["nbnd"]
+        electrons["electron_maxstep"] = args.electron_maxstep if "electron_maxstep" not in electrons or args.electron_maxstep != None else electrons["electron_maxstep"]
         electrons["conv_thr"] = args.conv_thr if "conv_thr" not in electrons or args.conv_thr != None else electrons["conv_thr"]
-
+        electrons["mixing_beta"] = args.mixing_beta if "mixing_beta" not in electrons or args.mixing_beta != None else electrons["mixing_beta"]
+        electrons["mixing_ndim"] = args.mixing_ndim if "mixing_ndim" not in electrons or args.mixing_ndim != None else electrons["mixing_ndim"]
+        electrons["diagonalization"] = args.diagonalization if "diagonalization" not in electrons or args.diagonalization != None else electrons["diagonalization"]
+        
         system["nspin"] = args.nspin if "nspin" not in system or args.nspin != None else system["nspin"]
         system["starting_magnetization"] = args.starting_magnetization if "starting_magnetization" not in system or args.starting_magnetization != None else system["starting_magnetization"]
         system["noncolin"] = args.noncolin if "noncolin" not in system or args.nnoncolin != None else system["noncolin"]
