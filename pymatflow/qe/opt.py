@@ -47,7 +47,8 @@ class opt_run(pwscf):
             for element in self.arts.xyz.specie_labels:
                 for item in all_file:
                     #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
-                    if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
+                    #if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
+                    if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE) or re.match("(%s)(_*)(upf)" % element, item, re.IGNORECASE):    
                         shutil.copyfile(item, os.path.join(directory, item))
                         break
             self.arts.pseudo.dir = os.path.abspath(directory)
@@ -93,7 +94,8 @@ class opt_run(pwscf):
             for element in self.arts.xyz.specie_labels:
                 for item in all_file:
                     #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
-                    if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
+                    #if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
+                    if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE) or re.match("(%s)(_*)(upf)" % element, item, re.IGNORECASE):    
                         shutil.copyfile(item, os.path.join(directory, item))
                         break
             #
@@ -163,7 +165,8 @@ class opt_run(pwscf):
         for element in self.arts.xyz.specie_labels:
             for item in all_file:
                 #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
-                if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
+                #if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
+                if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE) or re.match("(%s)(_*)(upf)" % element, item, re.IGNORECASE):    
                     shutil.copyfile(item, os.path.join(directory, item))
                     break
         self.arts.pseudo.dir = os.path.abspath(directory)
@@ -488,7 +491,8 @@ class opt_run(pwscf):
         for element in self.arts.xyz.specie_labels:
             for item in all_file:
                 #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
-                if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
+                #if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
+                if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE) or re.match("(%s)(_*)(upf)" % element, item, re.IGNORECASE):    
                     shutil.copyfile(item, os.path.join(directory, item))
                     break
         self.arts.pseudo.dir = os.path.abspath(directory)
@@ -1059,7 +1063,8 @@ class opt_run(pwscf):
         for element in self.arts.xyz.specie_labels:
             for item in all_file:
                 #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
-                if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
+                #if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
+                if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE) or re.match("(%s)(_*)(upf)" % element, item, re.IGNORECASE):    
                     shutil.copyfile(item, os.path.join(directory, item))
                     break
         self.arts.pseudo.dir = os.path.abspath(directory)
@@ -1640,7 +1645,9 @@ class opt_run(pwscf):
         all_file = os.listdir()
         for element in self.arts.xyz.specie_labels:
             for item in all_file:
-                if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
+                #if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
+                if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE) or re.match("(%s)(_*)(upf)" % element, item, re.IGNORECASE):    
                     shutil.copyfile(item, os.path.join(directory, item))
                     break
         self.arts.pseudo.dir = os.path.abspath(directory)
@@ -1994,7 +2001,7 @@ class opt_run(pwscf):
 
             fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a[0], range_a[2], a+range_a[1]))
             fout.write("do\n")
-            fout.write("for b in `seq -2 %f %f %f`\n" % (b+range_b[0], range_b[2], b+range_b[1]))
+            fout.write("for b in `seq -w %f %f %f`\n" % (b+range_b[0], range_b[2], b+range_b[1]))
             fout.write("do\n")
             fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c[0], range_c[2], c+range_c[1]))
             fout.write("do\n")
@@ -2002,6 +2009,9 @@ class opt_run(pwscf):
             fout.write("  cat >> energy-latconst.data <<EOF\n")
             fout.write("${a} ${b} ${c} ${energy:32:-2}\n")
             fout.write("EOF\n")
+            fout.write("done\n")
+            fout.write("done\n")
+            fout.write("done\n")
             
             #fout.write("cat > energy-latconst.gp<<EOF\n")
             #fout.write("set term gif\n")

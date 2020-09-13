@@ -67,7 +67,8 @@ class phonopy_run(pwscf):
             for element in self.arts.xyz.specie_labels:
                 for item in all_file:
                     #if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE):
-                    if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
+                    #if item.split(".")[0].lower() == element.lower() or item.split("_")[0].lower() == element.lower():
+                    if re.match("(%s)(.*)(upf)" % element, item, re.IGNORECASE) or re.match("(%s)(_*)(upf)" % element, item, re.IGNORECASE):    
                         shutil.copyfile(item, os.path.join(directory, item))
                         break
             self.arts.pseudo.dir = os.path.abspath(directory)

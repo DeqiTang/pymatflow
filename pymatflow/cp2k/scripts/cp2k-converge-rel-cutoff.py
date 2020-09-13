@@ -18,7 +18,7 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--directory", type=str, default="tmp-cp2k-rel-cutoff",
             help="directory to do the rel-cutoff converge test calculation")
 
-    parser.add_argument("-f", "--file", type=str,
+    parser.add_argument("--xyz", type=str,
             help="the xyz structure file with second line specifying cell parameters")
 
     parser.add_argument("--runopt", type=str, default="gen",
@@ -101,6 +101,23 @@ if __name__ == "__main__":
     parser.add_argument("--ppn", type=int, default=32,
             help="ppn of the server")
 
+    parser.add_argument("--queue", type=str, default=None,
+            help="the queue to submit to job, default is not set")    
+
+    # llhpc
+    parser.add_argument("--partition", type=str, default="free",
+            help="choose partition to submit job")
+
+    parser.add_argument("--ntask", type=int, default=24,
+            help="choose task number")
+
+    parser.add_argument("--stdout", type=str, default="slurm.out",
+            help="set standard out")
+
+    parser.add_argument("--stderr", type=str, default="slurm.err",
+            help="set standard err")
+
+
     # ==========================================================
     # transfer parameters from the arg parser to opt_run setting
     # ==========================================================
@@ -125,7 +142,8 @@ if __name__ == "__main__":
     params["FORCE_EVAL-DFT-KPOINTS-SCHEME"] = args.kpoints_scheme
 
     task = static_run()
-    task.get_xyz(args.file)
+    task.get_xyz(args.xyz)
     task.set_params(params=params)
-    task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn)
+    task.set_run(mpi=args.mpi, server=args.server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+    task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
     task.converge_rel_cutoff(emin=args.range[0], emax=args.range[1], step=args.range[2], directory=args.directory, runopt=args.runopt, auto=args.auto)

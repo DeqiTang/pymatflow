@@ -451,7 +451,7 @@ def main():
     gp.add_argument("--max-diis", type=int, default=None, #4
             help="Maximum number of DIIS vectors to be used")
 
-    gp.add_argument("--xc-functional", type=str, default=None, #"pbe",
+    gp.add_argument("--xc-functional", type=str, default="pbe",
             choices=["B3LYP", "BEEFVDW", "BLYP", "BP", "LDA", "PBE", "PADE", "PBE0", "TPSS",
                 "b3lyp", "beefvdw", "blyp", "bp", "lda", "pbe", "pade", "pbe0", "tpss"],
             help="shortcut for the most common functional combinations, default is PBE")
@@ -490,7 +490,7 @@ def main():
             choices=["TRUE", "FALSE", "true", "false"],
             help="controls the activation of smearing")
 
-    gp.add_argument("--smear-method", type=str, default=None, #"FERMI_DIRAC",
+    gp.add_argument("--smear-method", type=str, default="FERMI_DIRAC",
             help="Smearing method to be applied, can be fermi_dirac(default) or energy_window")
 
     gp.add_argument("--added-mos", type=int, default=None, #0,
@@ -961,6 +961,10 @@ def main():
     gp.add_argument("--diagonalization", type=float, default=None,
             help="Available options are: david cg ppcg paro")
 
+    gp.add_argument("--scf-must-converge", type=str, default=None,
+            choices=[".true.", ".false."],
+            help="If .false. do not stop molecular dynamics or ionic relaxation when electron_maxstep is reached. Use with care.")
+
     # &ions
     gp = subparser.add_argument_group(title="pw.x->ions")
 
@@ -1197,6 +1201,19 @@ def main():
             default=None,
             help="number of structure each batch c")
 
+    # fix atoms
+    gp = subparser.add_argument_group(title="fix atoms",
+            description="specify atoms to fix in optimization, only used when --runtype=1")
+
+    gp.add_argument("--fix", help="list of fixed atoms, index start from 1, have privilege over --fix-around-z", nargs='+', type=int)
+
+    gp.add_argument("--fix-around-z", type=float, nargs=3, default=None,
+        help="select atoms around specified z in Angstrom with tolerance, like this --fix-around-z 10 -0.5 0.5")            
+            
+    gp.add_argument("--color-fix", type=str, default="white",
+        choices=["red", "green", "blue", "white"],
+        help="select color to color the fixed atoms in xsd file, can be: red green blue and white")
+        
     # inp template
     gp = subparser.add_argument_group(title="template input",
             description="read template input")
@@ -2337,9 +2354,13 @@ def main():
             task.get_xyz(xyzfile)
             task.set_geo_opt()
             task.set_params(params=params)
+            task.batch_a = args.batch_a     
+            task.batch_b = args.batch_b
+            task.batch_c = args.batch_c     
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.nc, stepa=args.stepa)
+            #task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.nc, stepa=args.stepa)
+            task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a)
         elif args.runtype == 4:
             # hexagonal cell opt
             from pymatflow.cp2k.opt import opt_run
@@ -2347,9 +2368,13 @@ def main():
             task.get_xyz(xyzfile)
             task.set_geo_opt()
             task.set_params(params=params)
+            task.batch_a = args.batch_a     
+            task.batch_b = args.batch_b
+            task.batch_c = args.batch_c     
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
+            #task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
+            task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_c=args.range_c)
         elif args.runtype == 5:
             # tetragonal cell opt
             from pymatflow.cp2k.opt import opt_run
@@ -2357,9 +2382,13 @@ def main():
             task.get_xyz(xyzfile)
             task.set_geo_opt()
             task.set_params(params=params)
+            task.batch_a = args.batch_a     
+            task.batch_b = args.batch_b
+            task.batch_c = args.batch_c     
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
-            task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
+            #task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
+            task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_c=args.range_c)
         elif args.runtype == 6:
             # neb
             from pymatflow.cp2k.neb import neb_run
@@ -2462,7 +2491,8 @@ def main():
         electrons["mixing_beta"] = args.mixing_beta if "mixing_beta" not in electrons or args.mixing_beta != None else electrons["mixing_beta"]
         electrons["mixing_ndim"] = args.mixing_ndim if "mixing_ndim" not in electrons or args.mixing_ndim != None else electrons["mixing_ndim"]
         electrons["diagonalization"] = args.diagonalization if "diagonalization" not in electrons or args.diagonalization != None else electrons["diagonalization"]
-        
+        electrons["scf_must_converge"] = args.scf_must_converge if "scf_must_converge" not in electrons or args.scf_must_converge != None else electrons["scf_must_converge"]
+
         system["nspin"] = args.nspin if "nspin" not in system or args.nspin != None else system["nspin"]
         system["starting_magnetization"] = args.starting_magnetization if "starting_magnetization" not in system or args.starting_magnetization != None else system["starting_magnetization"]
         system["noncolin"] = args.noncolin if "noncolin" not in system or args.nnoncolin != None else system["noncolin"]
@@ -2549,6 +2579,56 @@ def main():
         elif args.runtype == 1:
             # relax
             from pymatflow.qe.opt import opt_run
+            
+            if args.fix != None or args.fix_around_z != None:
+                # can only write xyz and poscar file
+                from pymatflow.cmd.structflow import read_structure                
+                a = read_structure(filepath=xyzfile)
+                if args.fix != None:
+                    fix = args.fix
+                elif args.fix_around_z != None:
+                    atoms_index_from_1 = []
+                    for i in range(len(a.atoms)):
+                        if a.atoms[i].z > (args.fix_around_z[0] + args.fix_around_z[1]) and a.atoms[i].z < (args.fix_around_z[0] + args.fix_around_z[2]):
+                            atoms_index_from_1.append(i+1)
+                    fix = atoms_index_from_1
+                else:
+                    fix = []                      
+                    
+                fix_str = ""
+                for i in fix:
+                        fix_str += "%d " % i
+                os.system("xyz-fix-atoms.py -i %s -o %s --fix %s" % (xyzfile, xyzfile, fix_str))
+                #args.selective_dynamics = "T"
+                
+                # output an xsd file with fixed atoms colored specifically so that user can check the atoms fixed
+                from xml.etree.ElementTree import parse
+                from pymatflow.cmd.structflow import write_structure
+                os.system("mkdir -p /tmp/structflow/fix")
+                write_structure(a, filepath="/tmp/structflow/fix/tmp.xsd")
+                # read xsd file
+                xsd = parse("/tmp/structflow/fix/tmp.xsd")
+    
+                # ID of Atom3D in xsd file start from 4
+                imap = xsd.getroot().find("AtomisticTreeRoot").find("SymmetrySystem").find("MappingSet").find("MappingFamily").find("IdentityMapping")
+                atoms = imap.findall("Atom3d")
+                if args.color_fix == "white":
+                    RGB = [255, 255, 255]
+                elif args.color_fix == "red":
+                    RGB = [255, 0, 0]
+                elif args.color_fix == "green":
+                    RGB = [0, 255, 0]
+                elif args.color_fix == "blue":
+                    RGB = [0, 0, 255]
+                else:
+                    RGB = [255, 255, 255] # default
+            
+                for i in fix:
+                    atoms[i-1].set("Color", "%f, %f, %f, %f" % (RGB[0], RGB[1], RGB[2], 1))
+                    
+                # write xsd file
+                xsd.write(xyzfile+".coloring.atoms.fixed.xsd")
+
             task = opt_run()
             task.get_xyz(xyzfile)
             task.set_relax()

@@ -345,8 +345,9 @@ class cp2k_dft_scf_smear:
         """
         fout.write("\t\t\t&SMEAR %s\n" % str(self.section))
         if self.section.upper() == "TRUE":
-            fout.write("\t\t\t\tMETHOD %s\n" % self.params["METHOD"])
-            if self.params["METHOD"] != None and self.params["METHOD"].upper() == "ENERGY_WINDOW" and slef.params["WINDOW_SIZE"] != None:
+            if self.params["METHOD"] is not None:
+                fout.write("\t\t\t\tMETHOD %s\n" % self.params["METHOD"])
+            if self.params["METHOD"] != None and self.params["METHOD"].upper() == "ENERGY_WINDOW" and self.params["WINDOW_SIZE"] != None:
                 fout.write("\t\t\t\tWINDOW_SIZE %f\n" % self.params["WINDOW_SIZE"])
             elif self.params["METHOD"] != None and self.params["METHOD"].upper() == "FERMI_DIRAC" and self.params["ELECTRONIC_TEMPERATURE"] != None:
                 fout.write("\t\t\t\tELECTRONIC_TEMPERATURE %f\n" % self.params["ELECTRONIC_TEMPERATURE"])
