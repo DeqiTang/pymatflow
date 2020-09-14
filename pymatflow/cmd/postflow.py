@@ -187,8 +187,8 @@ def main():
             choices=["cutoff", "rel_cutoff", "kpoints_auto", "kpoints_manual"],
             help="choose type of converge test")
 
-    subparser.add_argument("--criteria", type=float, default=7.35e-4,
-            help="converge criteria for cutoff or rel_cutoff or kpoints in unit of Ry")
+    subparser.add_argument("--criteria", type=float, default=3.67e-4,
+            help="converge criteria for cutoff or rel_cutoff or kpoints in unit of Hartree")
 
     subparser.add_argument("--supercell-n", type=int, nargs="+",
             default=[1, 1, 1],

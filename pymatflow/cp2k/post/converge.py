@@ -9,9 +9,9 @@ import sys
 class converge_post:
     def __init__(self):
         # analyse the result
-        self.criteria_for_cutoff = 7.35e-4 # 10 meV = 7.35e-4 Ry
-        self.criteria_for_rel_cutoff = 7.35e-4
-        self.criteria_for_kpoints = 7.35e-4
+        self.criteria_for_cutoff = 3.67e-4 # 10 meV = 0.00036749308136648884 Hartree
+        self.criteria_for_rel_cutoff = 3.67e-4
+        self.criteria_for_kpoints = 3.67e-4
 
 
     def judge(self, energies, criteria):
@@ -37,9 +37,9 @@ class converge_post:
             fout.write("- 这个推荐值是你的测试范围内的推荐值\n")
             fout.write("- 如果该值是测试范围的最后一个值, 可能意味着没有达到收敛判剧\n")
             if converge.upper() == "CUTOFF":
-                fout.write("- 推荐值的依据为%s前后两值能量差小于%f[Ry]=%f[eV]\n" % (converge.upper(), self.criteria_for_cutoff, self.criteria_for_cutoff*13.6056923))
+                fout.write("- 推荐值的依据为%s前后两值能量差小于%.9f[Hartree]=%.9f[eV]\n" % (converge.upper(), self.criteria_for_cutoff, self.criteria_for_cutoff*27.211396641308))
             if converge.upper() == "REL_CUTOFF":
-                fout.write("- 推荐值的依据为%s前后两值能量差小于%f[Ry]=%f[eV]\n" % (converge.upper(), self.criteria_for_rel_cutoff, self.criteria_for_rel_cutoff*13.6056923))
+                fout.write("- 推荐值的依据为%s前后两值能量差小于%.9f[Hartree]=%.9f[eV]\n" % (converge.upper(), self.criteria_for_rel_cutoff, self.criteria_for_rel_cutoff*27.211396641308))
             fout.write("### 能量变化趋势图\n")
             fout.write("![energy-x](energy-%s.png)\n" % converge.lower())
 

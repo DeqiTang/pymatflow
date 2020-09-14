@@ -57,7 +57,7 @@ class cp2k_force_eval:
 
     def to_input(self, fout):
         # check before write input file
-        self.check_spin()
+        #self.check_spin()
 
         fout.write("&FORCE_EVAL\n")
         for item in self.params:

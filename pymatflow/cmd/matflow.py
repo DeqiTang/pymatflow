@@ -433,16 +433,27 @@ def main():
             choices=["TRUE", "FALSE", "true", "false"],
             help="Requests a spin-polarized calculation using alpha and beta orbitals, i.e. no spin restriction is applied.Alias names for this keyword: UNRESTRICTED_KOHN_SHAM, UKS, SPIN_POLARIZED")
 
+    gp.add_argument("--charge", type=int, default=None,
+            help="The total charge of the system")
+
+    gp.add_argument("--surface-dipole-correction", type=str, default=None,
+            choices=["TRUE", "FALSE", "true", "false"],
+            help="For slab calculations with asymmetric geometries, activate the correction of the electrostatic potential with by compensating for the surface dipole. Implemented only for slabs with normal parallel to one Cartesian axis. The normal direction is given by the keyword SURF_DIP_DIR")
+
+    gp.add_argument("--surf-dip-dir", type=str, default=None,
+            choices=["X", "Y", "Z", "x", "y", "z"],
+            help="Cartesian axis parallel to surface normal")
+
     # FORCE_EVAL/DFT/SCF
     gp = subparser.add_argument_group(title="FORCE_EVAL/DFT/SCF")
 
-    gp.add_argument("--max-scf", type=int, default=None, # 50
+    gp.add_argument("--max-scf", type=int, default=50,
             help="Maximum number of SCF iteration to be performed for one optimization.")
 
-    gp.add_argument("--eps-default", type=float, default=None, # 1.0e-10
+    gp.add_argument("--eps-default", type=float, default=1.0e-14,
             help="Try setting all EPS_xxx to values leading to an energy correct up to EPS_DEFAULT")
 
-    gp.add_argument("--eps-scf", type=float, default=None, #1.0e-6,
+    gp.add_argument("--eps-scf", type=float, default=1.0e-6,
             help="target accuracy for the scf convergence, default is 1.0e-6")
 
     gp.add_argument("--max-scf-history", type=int, default=None, #0
@@ -462,7 +473,7 @@ def main():
     gp.add_argument("--rel-cutoff", type=int, default=None, #60,
             help="determines the grid at which a Gaussian is mapped, giving the cutoff used for a gaussian with alpha=1. A value 50+-10Ry might be required for highly accurate results, Or for simulations with a variable cell, default value: 60 Ry")
 
-    gp.add_argument("--ngrids", type=int, default=None, #4,
+    gp.add_argument("--ngrids", type=int, default=4,
             help="The number of multigrids to use, default is 4")
 
     gp.add_argument("--kpoints-scheme", type=str,
@@ -479,11 +490,22 @@ def main():
             choices=["TRUE", "FALSE", "true", "false"],
             help="whether choosing tranditional diagonalization for SCF")
 
+    gp.add_argument("--diag-algo", type=str, default="STANDARD",
+            choices=["DAVIDSON", "FILTER_MATRIX", "OT", "STANDARD",
+            "davidson", "filter_matrix", "ot", "standard"],
+            help="Algorithm to be used for diagonalization")
+
     gp.add_argument("--ot", type=str, default="FALSE",
             choices=["TRUE", "FALSE", "true", "false"],
             help="whether choosing orbital transformation for SCF")
 
-    gp.add_argument("--mixing-alpha", type=float, default=None, #0.4,
+    gp.add_argument("--mixing-method", type=str, default=None,
+            choices=["BROYDEN_MIXING", "BROYDEN_MIXING_NEW", "DIRECT_P_MIXING", "KERKER_MIXING", "MULTISECANT_MIXING",
+            "NONE", "PULAY_MIXING", "broyden_mixing", "broyden_mixing_new", "direct_p_mixing", "kerker_mixing", "multisecant_mixing",
+            "none", "pulay_mixing"],
+            help="Mixing method to be applied")
+
+    gp.add_argument("--mixing-alpha", type=float, default=0.4,
             help="fraction of new density to be included, default is 0.4")
 
     gp.add_argument("--smear", type=str, default=None, #"FALSE",
@@ -533,7 +555,7 @@ def main():
             help="Type of dispersion/vdW functional or potential to use")
 
     gp.add_argument("--pair-type", type=str, default=None, #"DFTD3",
-            choices=["DFTD2", "DFTD3", "DFTD3(BJ)"],
+            choices=["DFTD2", "DFTD3", "DFTD3(BJ)", "dftd2", "dftd3", "dftd3(bj)"],
             help="Type of potential(VDW)")
 
     gp.add_argument("--r-cutoff", type=float, default=None, #1.05835442E+001,
@@ -2228,6 +2250,9 @@ def main():
 
         params["FORCE_EVAL-DFT-LS_SCF"] = args.ls_scf if "FORCE_EVAL-DFT-LS_SCF" not in params or args.ls_scf != None else params["FORCE_EVAL-DFT-LS_SCF"]
         params["FORCE_EVAL-DFT-LSD"] = args.lsd if "FORCE_EVAL-DFT-LSD" not in params or args.lsd != None else params["FORCE_EVAL-DFT-LSD"]
+        params["FORCE_EVAL-DFT-CHARGE"] = args.lsd if "FORCE_EVAL-DFT-LSD" not in params or args.lsd != None else params["FORCE_EVAL-DFT-LSD"]
+        params["FORCE_EVAL-DFT-SURFACE_DIPOLE_CORRECTION"] = args.surface_dipole_correction if "FORCE_EVAL-DFT-SURFACE_DIPOLE_CORRECTION" not in params or args.surface_dipole_correction != None else params["FORCE_EVAL-DFT-SURFACE_DIPOLE_CORRECTION"]
+        params["FORCE_EVAL-DFT-SURF_DIP_DIR"] = args.surf_dip_dir if "FORCE_EVAL-DFT-SURF_DIP_DIR" not in params or args.surf_dip_dir != None else params["FORCE_EVAL-DFT-SURF_DIP_DIR"]        
         params["FORCE_EVAL-DFT-QS-METHOD"] = args.qs_method if "FORCE_EVAL-DFT-QS-METHOD" not in params or args.qs_method != None else params["FORCE_EVAL-DFT-QS-METHOD"]
         params["FORCE_EVAL-DFT-MGRID-CUTOFF"] = args.cutoff if "FORCE_EVAL-DFT-MGRID-CUTOFF" not in params or args.cutoff != None else params["FORCE_EVAL-DFT-MGRID-CUTOFF"]
         params["FORCE_EVAL-DFT-MGRID-REL_CUTOFF"] = args.rel_cutoff if "FORCE_EVAL-DFT-MGRID-REL_CUTOFF" not in params or args.rel_cutoff != None else params["FORCE_EVAL-DFT-MGRID-REL_CUTOFF"]
@@ -2244,7 +2269,9 @@ def main():
         params["FORCE_EVAL-DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE"] = args.electronic_temp if "FORCE_EVAL-DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE" not in params or  args.electronic_temp != None else params["FORCE_EVAL-DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE"]
         params["FORCE_EVAL-DFT-SCF-SMEAR-WINDOW_SIZE"] = args.window_size if "FORCE_EVAL-DFT-SCF-SMEAR-WINDOW_SIZE" not in params or  args.window_size != None else params["FORCE_EVAL-DFT-SCF-SMEAR-WINDOW_SIZE"]
         params["FORCE_EVAL-DFT-SCF-DIAGONALIZATION"] = args.diag if "FORCE_EVAL-DFT-SCF-DIAGONALIZATION" not in params or  args.diag != None else params["FORCE_EVAL-DFT-SCF-DIAGONALIZATION"]
+        params["FORCE_EVAL-DFT-SCF-DIAGONALIZATION-ALGORITHM"] = args.diag_algo if "FORCE_EVAL-DFT-SCF-DIAGONALIZATION-ALGORITHM" not in params or  args.diag_algo != None else params["FORCE_EVAL-DFT-SCF-DIAGONALIZATION-ALGORITHM"]
         params["FORCE_EVAL-DFT-SCF-OT"] = args.ot if "FORCE_EVAL-DFT-SCF-OT" not in params or  args.ot != None else params["FORCE_EVAL-DFT-SCF-OT"]
+        params["FORCE_EVAL-DFT-SCF-MIXING-METHOD"] = args.mixing_method if "FORCE_EVAL-DFT-SCF-MIXING-METHOD" not in params or  args.mixing_method != None else params["FORCE_EVAL-DFT-SCF-MIXING-METHOD"]
         params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"] = args.mixing_alpha if "FORCE_EVAL-DFT-SCF-MIXING-ALPHA" not in params or  args.mixing_alpha != None else params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"]
         params["FORCE_EVAL-DFT-KPOINTS-SCHEME"] = args.kpoints_scheme if "FORCE_EVAL-DFT-KPOINTS-SCHEME" not in params or  args.kpoints_scheme != None else params["FORCE_EVAL-DFT-KPOINTS-SCHEME"]
         params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"] = args.vdw_potential_type if "FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE" not in params or  args.vdw_potential_type != None else params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"]
