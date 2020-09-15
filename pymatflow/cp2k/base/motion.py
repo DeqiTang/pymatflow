@@ -81,6 +81,8 @@ class cp2k_motion:
             self.shell_opt.to_input(fout)
         if self.band.status == True:
             self.band.to_input(fout)
+        if self.free_energy.status == True:
+            self.free_energy.to_input(fout)
         if self.printout.status == True:
             self.printout.to_input(fout)
         fout.write("&END MOTION\n")

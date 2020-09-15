@@ -307,3 +307,38 @@ class md_run(cp2k):
             os.chdir("../")
 
     #
+
+    def metadynamics(self, directory="tmp-cp2k-metadynamics", inpname="metadynamics.inp", output="metadynamics.out", runopt="gen", auto=0):
+        """
+        :param directory:
+            directory is and path where the calculation will happen.
+        :param inpname:
+            input filename for the cp2k
+        :param output:
+            output filename for the cp2k
+        """
+        self.motion.free_energy.status = True
+        self.motion.free_energy.metadyn.status = True
+        self.motion.free_energy.metadyn.printout.status = True
+        
+        if runopt == "gen" or runopt == "genrun":
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            os.mkdir(directory)
+            shutil.copyfile(self.force_eval.subsys.xyz.file, os.path.join(directory, os.path.basename(self.force_eval.subsys.xyz.file)))
+
+            with open(os.path.join(directory, inpname), 'w') as fout:
+                self.glob.to_input(fout)
+                self.force_eval.to_input(fout)
+                self.motion.to_input(fout)
+
+            # gen server job comit file
+            self.gen_llhpc(cmd="$PMF_CP2K", directory=directory, inpname=inpname, output=output)
+            # gen pbs server job comit file
+            self.gen_pbs(cmd="$PMF_CP2K", directory=directory, inpname=inpname, output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+
+        if runopt == "run" or runopt == "genrun":
+            os.chdir(directory)
+            os.system("%s $PMF_CP2K -in %s | tee %s" % (self.run_params["mpi"], inpname, output))
+            os.chdir("../")
+        server_handle(auto=auto, directory=directory, jobfilebase="metadynamics", server=self.run_params["server"])

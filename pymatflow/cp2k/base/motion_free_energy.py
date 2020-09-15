@@ -774,7 +774,7 @@ class cp2k_motion_free_energy_metadyn:
             self.spawned_hills_invdt.to_input(fout)
         if self.spawned_hills_pos.status == True:
             self.spanwed_hills_pos.to_input(fout)
-        if self.spanwed_hills_scale.status == True:
+        if self.spawned_hills_scale.status == True:
             self.spawned_hills_scale.to_input(fout)
         fout.write("\t\t&END METADYN\n")
 
@@ -896,7 +896,7 @@ class cp2k_motion_free_energy:
         self.alchemical_change = cp2k_motion_free_energy_alchemical_change()
         self.free_energy_info = cp2k_motion_free_energy_free_energy_info()
         self.metadyn = cp2k_motion_free_energy_metadyn()
-        self.umbrella_intergration = cp2k_motion_free_energy_umbrella_integration()
+        self.umbrella_integration = cp2k_motion_free_energy_umbrella_integration()
         # basic setting
 
     def to_input(self, fout):

@@ -197,7 +197,7 @@ class static_run(cp2k):
                     fout.write("yhrun $PMF_CP2K -in %s > %s\n" % (inpname, out_f_name))
 
             # gen pbs running script
-            with open("converge-rel-cutoff.pbs", 'w') as fout:
+            with open(os.path.join(directory, "converge-rel-cutoff.pbs"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 fout.write("#PBS -N %s\n" % self.run_params["jobname"])
                 fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))

@@ -334,8 +334,8 @@ def main():
     gp = subparser.add_argument_group(title="overall running control")
 
     gp.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4 ,5, 6, 7, 8, 9, 10, 11],
-            help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6-neb; 7->phonopy; 8->vibrational_analysis; 9->converge test; 10->aimd; 11->abc")
+            choices=[0, 1, 2, 3, 4 ,5, 6, 7, 8, 9, 10, 11, 12],
+            help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6-neb; 7->phonopy; 8->vibrational_analysis; 9->converge test; 10->aimd; 11->abc; 12->metadynamics")
 
     gp.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory to do the calculation")
@@ -507,6 +507,9 @@ def main():
 
     gp.add_argument("--mixing-alpha", type=float, default=0.4,
             help="fraction of new density to be included, default is 0.4")
+
+    gp.add_argument("--mixing-nbuffer", type=int, default=None, # default is 4
+            help="Number of previous steps stored for the actual mixing scheme. default is 4")
 
     gp.add_argument("--smear", type=str, default=None, #"FALSE",
             choices=["TRUE", "FALSE", "true", "false"],
@@ -717,6 +720,19 @@ def main():
             choices=["TRUE", "FALSE", "true", "false"],
             help="Compute at each BAND step the RMSD and rotate the frames in order to minimize it.")
 
+    # MOTION/FREE_ENERGY
+    gp = subparser.add_argument_group(title="MOTION/FREE_ENERGY")
+    
+    gp.add_argument("--metadyn-delta-t", type=float, default=None,
+            help="If Well-tempered metaD is used, the temperature parameter must be specified.")
+
+    gp.add_argument("--metadyn-do-hills", type=str, default=None,
+            choices=["TRUE", "FALSE", "true", "false"],
+            help="This keyword enables the spawning of the hills. Default FALSE")
+
+    gp.add_argument("--metadyn-nt-hills", type=int, default=None,
+            help="Specify the maximum MD step interval between spawning two hills.")
+            
     #             vibrational_analysis related parameters
     # ---------------------------------------------------------------
     gp = subparser.add_argument_group(title="VIBRATIONAL_ANALYSIS")
@@ -924,6 +940,14 @@ def main():
     # &control
     gp = subparser.add_argument_group(title="pw.x->control")
 
+    gp.add_argument("--etot-conv-thr",
+            type=float, default=1.0e-4,
+            help="convergence threshold of energy for geometric optimization")
+
+    gp.add_argument("--forc-conv-thr",
+            type=float, default=1.0e-3,
+            help="convergence threshold for force in optimization,(usually it is more important than energy)")
+
     gp.add_argument("--tstress", type=str, default=".false.",
             choices=[".true.", ".false."],
             help="calculate stress. default=.false.")
@@ -953,6 +977,12 @@ def main():
 
     gp.add_argument("--vdw-corr", help="vdw_corr = dft-d, dft-d3, ts-vdw, xdm", type=str, default="none")
 
+    gp.add_argument("--tot-charge", type=int, default=None,
+            help="Total charge of the system. Useful for simulations with charged cells. tot_charge=+1 means one electron missing from the system, tot_charge=-1 means one additional electron, and so on.")
+
+    gp.add_argument("--nosym", type=str, default=None,
+            choices=[".true.", ".false."],
+            help="Do not use this option unless you know exactly what you want and what you get. May be useful in the following cases: - in low-symmetry large cells, if you cannot afford a k-point grid with the correct symmetry - in MD simulations - in calculations for isolated atoms")
 
     # magnetic related parameters
     gp.add_argument("--nspin", type=int, default=None,
@@ -990,17 +1020,29 @@ def main():
     # &ions
     gp = subparser.add_argument_group(title="pw.x->ions")
 
-    gp.add_argument("--etot-conv-thr",
-            type=float, default=1.0e-4,
-            help="convergence threshold of energy for geometric optimization")
-
-    gp.add_argument("--forc-conv-thr",
-            type=float, default=1.0e-3,
-            help="convergence threshold for force in optimization,(usually it is more important than energy)")
+    gp.add_argument("--ion-dynamics", type=str, default=None,
+            choices=["bfgs", "damp", "verlet", "langevin", "langevin-smc", "beeman"],
+            help="For different type of calculation different possibilities are allowed and different default values apply.")
 
     gp.add_argument("--nstep",
             type=int, default=50,
             help="maximum ion steps for geometric optimization")
+
+    gp.add_argument("--pot-extrapolation", type=str, default=None,
+            choices=["none", "atomic", "first_order", "second_order"],
+            help="Used to extrapolate the potential from preceding ionic steps. first_order and second-order extrapolation make sense only for molecular dynamics calculations")
+   
+    gp.add_argument("--wfc-extrapolation", type=str, default=None,
+            choices=["none", "first_order", "second_order"],
+            help="Used to extrapolate the wavefunctions from preceding ionic steps. first_order and second-order extrapolation make sense only for molecular dynamics calculations")
+
+    gp.add_argument("--ion-temperature", type=str, default=None,
+            choices=["rescaling", "rescaling-v", "rescaling-T", "reduce-T", "berendsen", "andersen", "svr", "initial", "not_controlled"],
+            help="for molecular dynamics")
+
+    gp.add_argument("--tempw", type=float, default=None,
+            help="Starting temperature (Kelvin) in MD runs target temperature for most thermostats.")
+
     # &cell
     gp = subparser.add_argument_group(title="pw.x->cells")
 
@@ -2250,7 +2292,7 @@ def main():
 
         params["FORCE_EVAL-DFT-LS_SCF"] = args.ls_scf if "FORCE_EVAL-DFT-LS_SCF" not in params or args.ls_scf != None else params["FORCE_EVAL-DFT-LS_SCF"]
         params["FORCE_EVAL-DFT-LSD"] = args.lsd if "FORCE_EVAL-DFT-LSD" not in params or args.lsd != None else params["FORCE_EVAL-DFT-LSD"]
-        params["FORCE_EVAL-DFT-CHARGE"] = args.lsd if "FORCE_EVAL-DFT-LSD" not in params or args.lsd != None else params["FORCE_EVAL-DFT-LSD"]
+        params["FORCE_EVAL-DFT-CHARGE"] = args.charge if "FORCE_EVAL-DFT-CHARGE" not in params or args.charge != None else params["FORCE_EVAL-DFT-CHARGE"]
         params["FORCE_EVAL-DFT-SURFACE_DIPOLE_CORRECTION"] = args.surface_dipole_correction if "FORCE_EVAL-DFT-SURFACE_DIPOLE_CORRECTION" not in params or args.surface_dipole_correction != None else params["FORCE_EVAL-DFT-SURFACE_DIPOLE_CORRECTION"]
         params["FORCE_EVAL-DFT-SURF_DIP_DIR"] = args.surf_dip_dir if "FORCE_EVAL-DFT-SURF_DIP_DIR" not in params or args.surf_dip_dir != None else params["FORCE_EVAL-DFT-SURF_DIP_DIR"]        
         params["FORCE_EVAL-DFT-QS-METHOD"] = args.qs_method if "FORCE_EVAL-DFT-QS-METHOD" not in params or args.qs_method != None else params["FORCE_EVAL-DFT-QS-METHOD"]
@@ -2273,6 +2315,7 @@ def main():
         params["FORCE_EVAL-DFT-SCF-OT"] = args.ot if "FORCE_EVAL-DFT-SCF-OT" not in params or  args.ot != None else params["FORCE_EVAL-DFT-SCF-OT"]
         params["FORCE_EVAL-DFT-SCF-MIXING-METHOD"] = args.mixing_method if "FORCE_EVAL-DFT-SCF-MIXING-METHOD" not in params or  args.mixing_method != None else params["FORCE_EVAL-DFT-SCF-MIXING-METHOD"]
         params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"] = args.mixing_alpha if "FORCE_EVAL-DFT-SCF-MIXING-ALPHA" not in params or  args.mixing_alpha != None else params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"]
+        params["FORCE_EVAL-DFT-SCF-MIXING-NBUFFER"] = args.mixing_nbuffer if "FORCE_EVAL-DFT-SCF-MIXING-NBUFFER" not in params or  args.mixing_nbuffer != None else params["FORCE_EVAL-DFT-SCF-MIXING-NBUFFER"]        
         params["FORCE_EVAL-DFT-KPOINTS-SCHEME"] = args.kpoints_scheme if "FORCE_EVAL-DFT-KPOINTS-SCHEME" not in params or  args.kpoints_scheme != None else params["FORCE_EVAL-DFT-KPOINTS-SCHEME"]
         params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"] = args.vdw_potential_type if "FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE" not in params or  args.vdw_potential_type != None else params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"]
         params["FORCE_EVAL-DFT-SCF-OT-PRECONDITIONER"] = args.ot_preconditioner if "FORCE_EVAL-DFT-SCF-OT-PRECONDITIONER" not in params or args.ot_preconditioner != None else params["FORCE_EVAL-DFT-SCF-OT-PRECONDITIONER"]
@@ -2320,6 +2363,10 @@ def main():
         params["MOTION-MD-TEMP_TOL"] = args.temp_tol if "MOTION-MD-TEMP_TOL" not in params or  args.temp_tol != None else params["MOTION-MD-TEMP_TOL"]
         params["MOTION-PRINT-TRAJECTORY-FORMAT"] = args.traj_format if "MOTION-PRINT-TRAJECTORY-FORMAT" not in params or  args.traj_format != None else params["MOTION-PRINT-TRAJECTORY-FORMAT"]
 
+        params["MOTION-FREE_ENERGY-METADYN-DELTA_T"] = args.metadyn_delta_t if "MOTION-FREE_ENERGY-METADYN-DELTA_T" not in params or args.metadyn_delta_t != None else params["MOTION-FREE_ENERGY-METADYN-DELTA_T"]
+        params["MOTION-FREE_ENERGY-METADYN-DO_HILLS"] =  args.metadyn_do_hills if "MOTION-FREE_ENERGY-METADYN-DO_HILLS" not in params or args.metadyn_do_hills != None else params["MOTION-FREE_ENERGY-METADYN-DO_HILLS"]
+        params["MOTION-FREE_ENERGY-METADYN-NT_HILLS"] =  args.metadyn_nt_hills if "MOTION-FREE_ENERGY-METADYN-NT_HILLS" not in params or args.metadyn_nt_hills != None else params["MOTION-FREE_ENERGY-METADYN-NT_HILLS"]
+
         params["VIBRATIONAL_ANALYSIS-DX"] = args.dx if "VIBRATIONAL_ANALYSIS-DX" not in params or  args.dx != None else params["VIBRATIONAL_ANALYSIS-DX"]
         params["VIBRATIONAL_ANALYSIS-FULLY_PERIODIC"] = args.fully_periodic if "VIBRATIONAL_ANALYSIS-FULLY_PERIODIC" not in params or  args.fully_periodic != None else params["VIBRATIONAL_ANALYSIS-FULLY_PERIODIC"]
         params["VIBRATIONAL_ANALYSIS-INTENSITIES"] = args.intensities if "VIBRATIONAL_ANALYSIS-INTENSITIES" not in params or  args.intensities != None else params["VIBRATIONAL_ANALYSIS-INTENSITIES"]
@@ -2341,7 +2388,6 @@ def main():
                 print("go and check it\n")
                 sys.exit(1)
                 
-        
         if args.runtype == 0:
             from pymatflow.cp2k.static import static_run
             task = static_run()
@@ -2487,7 +2533,16 @@ def main():
             task.batch_b = args.batch_b
             task.batch_c = args.batch_c     
             task.abc(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_b=args.range_b, range_c=args.range_c)
-        else:
+        elif args.runtype == 12:
+            # metadynamics
+            from pymatflow.cp2k.md import md_run
+            task = md_run()
+            task.get_xyz(xyzfile)
+            task.set_params(params=params)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            task.metadynamics(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        else:                
             pass
 # ====================================================================================
 # Quantum ESPERSSO Quantum ESPERSSO Quantum ESPERSSO Quantum ESPERSSO Quantum ESPERSSO
@@ -2513,6 +2568,13 @@ def main():
         system["degauss"] = args.degauss if "degauss" not in system or args.degauss != None else system["degauss"]
         system["vdw_corr"] = args.vdw_corr if "vde_corr" not in system or args.vdw_corr != None  else system["vdw_corr"]
         system["nbnd"] = args.nbnd if "nbnd" not in system or args.nbnd != None else system["nbnd"]
+        system["tot_charge"] = args.tot_charge if "tot_charge" not in system or args.tot_charge != None else system["tot_charge"]
+        system["nosym"] = args.nosym if "nosym" not in system or args.nosym != None else system["nosym"]
+
+        system["nspin"] = args.nspin if "nspin" not in system or args.nspin != None else system["nspin"]
+        system["starting_magnetization"] = args.starting_magnetization if "starting_magnetization" not in system or args.starting_magnetization != None else system["starting_magnetization"]
+        system["noncolin"] = args.noncolin if "noncolin" not in system or args.nnoncolin != None else system["noncolin"]
+        
         electrons["electron_maxstep"] = args.electron_maxstep if "electron_maxstep" not in electrons or args.electron_maxstep != None else electrons["electron_maxstep"]
         electrons["conv_thr"] = args.conv_thr if "conv_thr" not in electrons or args.conv_thr != None else electrons["conv_thr"]
         electrons["mixing_beta"] = args.mixing_beta if "mixing_beta" not in electrons or args.mixing_beta != None else electrons["mixing_beta"]
@@ -2520,9 +2582,12 @@ def main():
         electrons["diagonalization"] = args.diagonalization if "diagonalization" not in electrons or args.diagonalization != None else electrons["diagonalization"]
         electrons["scf_must_converge"] = args.scf_must_converge if "scf_must_converge" not in electrons or args.scf_must_converge != None else electrons["scf_must_converge"]
 
-        system["nspin"] = args.nspin if "nspin" not in system or args.nspin != None else system["nspin"]
-        system["starting_magnetization"] = args.starting_magnetization if "starting_magnetization" not in system or args.starting_magnetization != None else system["starting_magnetization"]
-        system["noncolin"] = args.noncolin if "noncolin" not in system or args.nnoncolin != None else system["noncolin"]
+        ions["ion_dynamics"] = args.ion_dynamics if "ion_dynamics" not in ions or args.ion_cynamics != None else ions["ion_dynamics"]
+        ions["pot_extrapolation"] = args.pot_extrapolation if "pot_extrapolation" not in ions or args.pot_extrapolation != None else ions["pot_extrapolation"]
+        ions["wfc_extrapolation"] = args.wfc_extrapolation if "wfc_extrapolation" not in ions or args.wfc_extrapolation != None else ions["wfc_extrapolation"]
+        ions["ion_temperature"] = args.ion_temperature if "ion_temperature" not in ions or args.ion_temperature != None else ions["ion_temperature"]
+        ions["tempw"] = args.tempw if "tempw" not in ions or args.tempw != None else ions["tempw"]
+        
 
         path = {}
         if args.nebin != None:

@@ -1298,12 +1298,14 @@ class cp2k_dft_scf:
             print("======================================\n")
             sys.exit(1)
         if self.smear.section != None and self.smear.section.upper() == "TRUE":
+            """
             if self.params["ADDED_MOS"] == None or self.params["ADDED_MOS"] == 0:
                 print("==========================================================\n")
                 print("                      Warning !!!\n")
                 print("==========================================================\n")
                 print("If you are using smearing, you should set ADDED_MOS too!!!\n")
                 sys.exit(1)
+            """
             self.smear.to_input(fout)
         if self.printout.status == True:
             self.printout.to_input(fout)
