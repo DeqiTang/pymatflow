@@ -51,6 +51,7 @@ class md_post:
         self.run_info["scf-steps-converged"] = []
         self.run_info["total-energies"] = []
         self.run_info["fermi-energies"] = []
+        self.run_info["temperatures"] = []
 
         for line in self.lines:
             # if it is an empty line continue to next line
@@ -75,6 +76,11 @@ class md_post:
             # so len(self.run_info["total-energies"]) equal to the actually times for scf calculation
             if line.split()[0] == "ENERGY|" and line.split()[4] == "QS":
                 self.run_info["total-energies"].append(float(line.split()[8]))
+            if line.split()[0] == "INITIAL" and line.split()[1] == "TEMPERATURE[K]":
+                self.run_info["temperatures"].append(float(line.split()[3]))
+            if line.split()[0] == "TEMPERATURE" and line.split()[1] == "[K]":
+                self.run_info["temperatures"].append(float(line.split()[3])) # INSTANTANEOUS TEMPERATURE
+                
 
         #self.run_info["scf-cycles"] = len(self.run_info["scf-steps"])
         # the total scf cycles might be more than the len(self.run_info["scf-steps"])
@@ -103,6 +109,14 @@ class md_post:
         plt.ylabel("Total Energies (a.u.)")
         plt.tight_layout()
         plt.savefig("total-energies-per-scf.png")
+        plt.close()
+
+        plt.plot(self.run_info["temperatures"])
+        plt.title("Temperatures per SCF")
+        plt.xlabel("Scf cycle")
+        plt.ylabel("Temperature (K)")
+        plt.tight_layout()
+        plt.savefig("temperature-per-scf.png")
         plt.close()
 
 
@@ -141,6 +155,9 @@ class md_post:
             
             fout.write("Total energies per SCF\n")
             fout.write("![Total energies per SCF](total-energies-per-scf.png)\n")
+
+            fout.write("Temperature per SCF\n")
+            fout.write("![Temperature per SCF](temperature-per-scf.png)\n")
 
 
     def export(self, directory):

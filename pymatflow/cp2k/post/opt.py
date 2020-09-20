@@ -8,6 +8,8 @@ import datetime
 import subprocess
 import matplotlib.pyplot as plt
 
+from pymatflow.cmd.structflow import read_structure, write_structure
+
 
 class opt_out:
     """
@@ -111,6 +113,64 @@ class opt_out:
         plt.savefig("total-energy-each-ion-step.png")
         plt.close()
 
+    def get_optimized_structure(self, xyztraj, geo_opt_inp, directory):
+        """
+        :param xyztraj: output xxx.xyz trajectory file
+        :param geo_opt_inp: input file for geo opt
+        :param directory: directory to put the optimized structure
+
+        Note: now can only dealt with GEO_OPT
+        """
+
+        with open(geo_opt_inp, 'r') as fin:
+            geo_opt_inp_lines = fin.readlines()
+        for i in range(len(geo_opt_inp_lines)):
+            if len(geo_opt_inp_lines[i].split()) > 0 and geo_opt_inp_lines[i].split()[0].upper() == "&CELL":
+                j = 1
+                while not ("&END" in geo_opt_inp_lines[i+j].upper().split() and "CELL" in geo_opt_inp_lines[i+j].upper().split()):
+                    if len(geo_opt_inp_lines[i+j].split()) > 0 and geo_opt_inp_lines[i+j].split()[0].upper() == "A":
+                        a = []
+                        for k in range(3):
+                            a.append(float(geo_opt_inp_lines[i+j].split()[k+1]))
+                    elif len(geo_opt_inp_lines[i+j].split()) > 0 and geo_opt_inp_lines[i+j].split()[0].upper() == "B":
+                        b = []
+                        for k in range(3):
+                            b.append(float(geo_opt_inp_lines[i+j].split()[k+1]))
+                    elif len(geo_opt_inp_lines[i+j].split()) > 0 and geo_opt_inp_lines[i+j].split()[0].upper() == "C":
+                        c = []
+                        for k in range(3):
+                            c.append(float(geo_opt_inp_lines[i+j].split()[k+1]))
+                    j += 1
+                break
+        cell = []
+        cell.append(a)
+        cell.append(b)
+        cell.append(c)
+        
+        traj_lines = []
+        with open(xyztraj, 'r') as fin:
+            for line in fin:
+                if len(line.split()) == 0:
+                    continue
+                traj_lines.append(line)
+        natom = int(traj_lines[0].split()[0])
+        nimage = int(len(traj_lines)/(natom+2))
+        with open(os.path.join(directory, "optimized.xyz"), 'w') as fout:
+            fout.write("%d\n" %natom)
+            fout.write("cell: %.9f %.9f %.9f | %.9f %.9f %.9f | %.9f %.9f %.9f\n" % (
+                cell[0][0], cell[0][1], cell[0][2],
+                cell[1][0], cell[1][1], cell[1][2],
+                cell[2][0], cell[2][1], cell[2][2],
+            ))
+            for i in range((natom+2)*(nimage-1)+2, (natom+2)*nimage):
+                fout.write(traj_lines[i])
+
+        a = read_structure(filepath=os.path.join(directory, "optimized.xyz"))
+        write_structure(structure=a, filepath=os.path.join(directory, "optimized.cif"))
+        # end get optimized structure
+
+
+
     def markdown_report(self, md="opt-info.md"):
         with open(md, 'w', encoding='utf-8') as fout:
             fout.write("# Optimization实验统计\n")
@@ -159,6 +219,7 @@ class opt_out:
         os.chdir("post-processing")
         self.plot_info()
         self.markdown_report()
+        self.get_optimized_structure(xyztraj="../ab-initio-pos-1.xyz", geo_opt_inp="../geo-opt.inp", directory="./")
         with open("opt.json", 'w') as fout:
             fout.write(self.to_json_string())
         os.chdir("../../")

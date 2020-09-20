@@ -704,6 +704,7 @@ def main():
     gp = subparser.add_argument_group(title="MOTION/BAND")
 
     gp.add_argument("--band-type", type=str, default=None, #"CI-NEB",
+            choices=["IT-NEB", "CI-NEB", "B-NEB", "D-NEB", "SM", "it-neb", "ci-neb", "b-neb", "d-neb", "sm"],
             help="specify the type of band calculation")
 
     gp.add_argument("--number-of-replica", type=int, default=None, #5,
@@ -2407,6 +2408,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_geo_opt()
             task.set_params(params=params)
+            task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.geo_opt(directory=args.directory, runopt=args.runopt, auto=args.auto)
@@ -2417,6 +2419,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_cell_opt()
             task.set_params(params=params)
+            task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.cell_opt(directory=args.directory, runopt=args.runopt, auto=args.auto)
@@ -2430,6 +2433,7 @@ def main():
             task.batch_a = args.batch_a     
             task.batch_b = args.batch_b
             task.batch_c = args.batch_c     
+            task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             #task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.nc, stepa=args.stepa)
@@ -2444,6 +2448,7 @@ def main():
             task.batch_a = args.batch_a     
             task.batch_b = args.batch_b
             task.batch_c = args.batch_c     
+            task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             #task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
@@ -2458,6 +2463,7 @@ def main():
             task.batch_a = args.batch_a     
             task.batch_b = args.batch_b
             task.batch_c = args.batch_c     
+            task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             #task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, na=args.na, nc=args.nc, stepa=args.stepa, stepc=args.stepc)
@@ -2468,6 +2474,7 @@ def main():
             task = neb_run()
             task.get_images(images=images)
             task.set_params(params=params)
+            task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.neb(directory=args.directory, runopt=args.runopt, auto=args.auto)
@@ -2478,6 +2485,7 @@ def main():
             task.get_xyz(xyzfile)
             task.supercell_n = args.supercell_n
             task.set_params(params=params)
+            task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
@@ -2487,6 +2495,7 @@ def main():
             task = vib_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
+            task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.vib(directory=args.directory, runopt=args.runopt, auto=args.auto)
@@ -2496,6 +2505,7 @@ def main():
             task = static_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
+            task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             if args.converge.lower() == "cutoff":
@@ -2517,6 +2527,7 @@ def main():
             task = md_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
+            task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.aimd(directory=args.directory, runopt=args.runopt, auto=args.auto)
@@ -2527,6 +2538,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_geo_opt()
             task.set_params(params=params)
+            task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.batch_a = args.batch_a     
@@ -2539,6 +2551,7 @@ def main():
             task = md_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
+            task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.metadynamics(directory=args.directory, runopt=args.runopt, auto=args.auto)

@@ -337,7 +337,8 @@ class cp2k_dft_xc_vdw_potential_pair_potential_print_dftd:
     def to_input(self, fout):
         fout.write("\t\t\t\t\t&PRINT_DFTD\n")
         for item in self.params:
-            fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
         if self.each.status == True:
             self.each.to_input(fout)
         fout.write("\t\t\t\t\t&END PRINT_DFTD\n")
@@ -365,7 +366,8 @@ class cp2k_dft_xc_vdw_potential_pair_potential:
     def to_input(self, fout):
         fout.write("\t\t\t\t&PAIR_POTENTIAL\n")
         for item in self.params:
-            fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
+            if self.params[item] is not None:
+                fout.write("\t\t\t\t\t%s %s\n" % (item, str(self.params[item])))
         if self.print_dftd.status == True:
             self.print_dftd.to_input(fout)
         fout.write("\t\t\t\t&END PAIR_POTENTIAL\n")

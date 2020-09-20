@@ -453,6 +453,10 @@ class opt_run(vasp):
                     fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
                     fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
 
+                    fout.write("cat > INCAR<<EOF\n")
+                    self.incar.to_incar(fout)
+                    fout.write("EOF\n")
+                    
                     a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
                     b = np.sqrt(self.poscar.xyz.cell[1][0]**2+self.poscar.xyz.cell[1][1]**2+self.poscar.xyz.cell[1][2]**2)
                     c = np.sqrt(self.poscar.xyz.cell[2][0]**2+self.poscar.xyz.cell[2][1]**2+self.poscar.xyz.cell[2][2]**2)
@@ -1074,6 +1078,7 @@ class opt_run(vasp):
                 else:
                     # nothing to do
                     pass
+
         os.chdir("../")
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -1142,6 +1147,10 @@ class opt_run(vasp):
                     fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
                     fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
 
+                    fout.write("cat > INCAR<<EOF\n")
+                    self.incar.to_incar(fout)
+                    fout.write("EOF\n")
+                    
                     #a = self.poscar.xyz.cell[0][0]
                     #c = self.poscar.xyz.cell[2][2]
                     a = np.sqrt(self.poscar.xyz.cell[0][0]**2+self.poscar.xyz.cell[0][1]**2+self.poscar.xyz.cell[0][2]**2)
@@ -1860,6 +1869,10 @@ class opt_run(vasp):
                         fout.write("#SBATCH -J %s-%d-%d-%d\n" % (self.run_params["jobname"], i_batch_a, i_batch_b, i_batch_c))
                         fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
                         fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+
+                        fout.write("cat > INCAR<<EOF\n")
+                        self.incar.to_incar(fout)
+                        fout.write("EOF\n")
 
                         #a = self.poscar.xyz.cell[0][0]
                         #c = self.poscar.xyz.cell[2][2]

@@ -91,6 +91,7 @@ class pdos_out:
         # shift fermie energy to 0
         for i in range(len(self.energies)):
             self.energies[i] = self.energies[i] - efermi
+        self.efermi = efermi
         print("===============================================\n")
         print("qe.post.pdos:\n")
         print("we automatically shift the fermi energy\n")
@@ -186,6 +187,82 @@ class pdos_out:
             pass
         elif self.magnetic_status == "non-collinear-spin-orbit":
             pass
+
+    def export_data(self, directory):
+        """
+        """
+        if self.magnetic_status == "collinear-spin-unpolarized":
+            data = {}
+            for atmorb in self.data_0:
+                key = self.get_elem_type(atmorb)+"-"+self.get_orb_type(atmorb)
+                if key in data:
+                    data[key] = data[key] + self.data_0[atmorb]["ldos"]
+                else:
+                    data[key] = self.data_0[atmorb]["ldos"]
+        elif self.magnetic_status == "collinear-spin-polarized":
+            data = {}
+            for atmorb in self.data_1:
+                key = self.get_elem_type(atmorb)+"-"+self.get_orb_type(atmorb)
+                key_up = self.get_elem_type(atmorb)+"-"+self.get_orb_type(atmorb)+"-up"
+                key_dw = self.get_elem_type(atmorb)+"-"+self.get_orb_type(atmorb)+"-down"
+                if key_up in data and key_dw in data:
+                    data[key_up] = data[key_up] + self.data_1[atmorb]["ldos_up"]
+                    data[key_dw] = data[key_dw] + (-self.data_1[atmorb]["ldos_dw"])
+                else:
+                    data[key_up] = self.data_1[atmorb]["ldos_up"]
+                    data[key_dw] = (-self.data_1[atmorb]["ldos_dw"])
+
+        # export pdos projected to element and orbital l
+        with open(os.path.join(directory, "pdos-projected-to-element-and-orbital-l.data"), 'w') as fout:
+            fout.write("# efermi shifted to 0 already, previous efermi=%f\n" % self.efermi)
+            fout.write("#Energy")
+            for key in data:
+                fout.write(" %s" % key)
+            fout.write("\n")
+            for i in range(len(self.energies)):
+                fout.write("%.9f" % self.energies[i])
+                for key in data:
+                    fout.write("  %.9f" % data[key][i])
+                fout.write("\n")
+
+        # export pdos projected to atom and orbital l
+        if self.magnetic_status == "collinear-spin-unpolarized":
+            with open(os.path.join(directory, "pdos-projected-to-atom-and-orbital-l"), 'w') as fout:
+                fout.write("# efermi shifted to 0 already, previous efermi=%f\n" % self.efermi)
+                fout.write("#Energy")
+                for atmorb in self.data_0:
+                    fout.write(" Atom(%d):%s-%s" % (self.get_elem_type(atmorb), self.get_orb_type(atmorb)))
+                fout.write("\n")
+                for i in range(len(self.energies)):
+                    fout.write("%.9f" % self.energies[i])
+                    for atmorb in self.data_0:
+                        fout.write("  %.9f" % self.data_0[atmorb]["ldos"][i])
+                    fout.write("\n")
+        elif self.magnetic_status == "collinear-spin-polarized":
+            with open(os.path.join(directory, "pdos-projected-to-atom-and-orbital-l"), 'w') as fout:
+                fout.write("# efermi shifted to 0 already, previous efermi=%f\n" % self.efermi)
+                fout.write("#Energy")
+                for atmorb in self.data_0:
+                    fout.write(" Atom(%d):%s-%s-up Atom(%d):%s-%s-down" % (self.get_elem_type(atmorb), self.get_orb_type(atmorb), self.get_elem_type(atmorb), self.get_orb_type(atmorb)))
+                fout.write("\n")
+                for i in range(len(self.energies)):
+                    fout.write("%.9f" % self.energies[i])
+                    for atmorb in self.data_1:
+                        fout.write("  %.9f %.9f" % (self.data_1[atmorb]["ldos_up"][i], self.data_1[atmorb]["ldos_dw"][i]))
+                    fout.write("\n")            
+        # export total dos to data file
+        if self.magnetic_status == "collinear-spin-unpolarized":
+            with open(os.path.join(directory, "total-dos.data"), 'w') as fout:
+                fout.write("# efermi shifted to 0 already, previous efermi=%f\n" % self.efermi)
+                fout.write("#energye dos\n")
+                for i in range(len(self.energies)):
+                    fout.write("%.9f %.9f\n" % (self.energies[i], self.data_0_tdos["dos"][i]))
+        elif self.magnetic_status == "collinear-spin-polarized":
+            with open(os.path.join(directory, "total-dos.data"), 'w') as fout:
+                fout.write("# efermi shifted to 0 already, previous efermi=%f\n" % self.efermi)
+                fout.write("#energye dos(up) dos(down)\n")
+                for i in range(len(self.energies)):
+                    fout.write("%.9f %.9f %.9f\n" % (self.energies[i], self.data_0_tdos["dos_up"][i], self.data_0_tdos["dos_dw"][i]))
 
 
     def plot_elem_orb_l_proj(self, plotrange=[0.0, 1.0], filename="pdos-projected-to-element-and-orbital-l.png", fontsize=10):
@@ -631,6 +708,7 @@ class pdos_post:
     def export(self, directory="tmp-qe-static", plotrange=[0, 1.0], atomtoproj=[], fontsize=10):
         os.chdir(directory)
         os.system("mkdir -p post-processing")
+        self.export_data(directory="post-processing")
         self.plot_elem_orb_proj(plotrange=plotrange, filename="post-processing/pdos-specified-range.png", fontsize=fontsize)
         self.plot_atom_orb_proj(plotrange=plotrange, atomtoproj=atomtoproj, filename="post-processing/pdos-atomproj-specified-range.png", fontsize=fontsize)
         self.plot_tdos(plotrange=plotrange, filename="post-processing/tdos-specified-range.png")
