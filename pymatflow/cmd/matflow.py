@@ -561,6 +561,10 @@ def main():
             choices=["DFTD2", "DFTD3", "DFTD3(BJ)", "dftd2", "dftd3", "dftd3(bj)"],
             help="Type of potential(VDW)")
 
+    gp.add_argument("--reference-functional", type=str, default="PBE",
+            choices=["PBE", "pbe"],
+            help="Use parameters for this specific density functional. For available D3 and D3(BJ) parameters. Must be set if using VDW")
+  
     gp.add_argument("--r-cutoff", type=float, default=None, #1.05835442E+001,
             help="Range of potential. The cutoff will be 2 times this value")
 
@@ -720,6 +724,22 @@ def main():
     gp.add_argument("--rotate-frames", type=str, default=None, #"TRUE",
             choices=["TRUE", "FALSE", "true", "false"],
             help="Compute at each BAND step the RMSD and rotate the frames in order to minimize it.")
+
+    gp.add_argument("--optimize-end-points", type=str, default=None,
+            choices=["TRUE", "FALSE", "true", "false"],
+            help="Performs also an optimization of the end points of the band. default is FALSE")
+
+    gp.add_argument("--convergence-control-max-dr", type=float, default=None,
+            help="Tolerance on the maximum value of the displacement on the BAND.")
+
+    gp.add_argument("--convergence-control-max-force", type=float, default=None,
+            help="Tolerance on the maximum value of Forces on the BAND. ")
+
+    gp.add_argument("--convergence-control-rms-dr", type=float, default=None,
+            help="Tolerance on RMS displacements on the BAND.")
+
+    gp.add_argument("--convergence-control-rms-force", type=float, default=None,
+            help="Tolerance on RMS Forces on the BAND.")
 
     # MOTION/FREE_ENERGY
     gp = subparser.add_argument_group(title="MOTION/FREE_ENERGY")
@@ -2325,6 +2345,7 @@ def main():
         params["FORCE_EVAL-DFT-SCF-OT-ALGORITHM"] = args.ot_algorithm if "FORCE_EVAL-DFT-SCF-OT-ALGORITHM" not in params or args.ot_algorithm != None else params["FORCE_EVAL-DFT-SCF-OT-ALGORITHM"]
         params["FORCE_EVAL-DFT-SCF-OT-LINESEARCH"] = args.ot_linesearch if "FORCE_EVAL-DFT-SCF-OT-LINESEARCH" not in params or args.ot_linesearch != None else params["FORCE_EVAL-DFT-SCF-OT-LINESEARCH"]
         params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-TYPE"] = args.pair_type if "FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-TYPE" not in params or  args.pair_type != None else params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-TYPE"]
+        params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-REFERENCE_FUNCTIONAL"] = args.reference_functional if "FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-REFERENCE_FUNCTIONAL" not in params or  args.reference_functional != None else params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-REFERENCE_FUNCTIONAL"]
         params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-R_CUTOFF"] = args.r_cutoff if "FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-R_CUTOFF" not in params or  args.r_cutoff != None else params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-PAIR_POTENTIAL-R_CUTOFF"]
         params["FORCE_EVAL-DFT-PRINT-ELF_CUBE-STRIDE"] = args.dft_print_elf_cube_stride if "FORCE_EVAL-DFT-PRINT-ELF_CUBE-STRIDE" not in params or  args.dft_print_elf_cube_stride != None else params["FORCE_EVAL-DFT-PRINT-ELF_CUBE-STRIDE"]
         params["FORCE_EVAL-DFT-PRINT-E_DENSITY_CUBE-STRIDE"] = args.dft_print_e_density_cube_stride if "FORCE_EVAL-DFT-PRINT-E_DENSITY_CUBE-STRIDE" not in params or  args.dft_print_e_density_cube_stride != None else params["FORCE_EVAL-DFT-PRINT-E_DENSITY_CUBE-STRIDE"]
@@ -2356,6 +2377,12 @@ def main():
         params["MOTION-BAND-ALIGN_FRAMES"] = args.align_frames if "MOTION-BAND-ALIGN_FRAMES" not in params or  args.align_frames != None else params["MOTION-BAND-ALIGN_FRAMES"]
         params["MOTION-BAND-ROTATE-FRAMES"] = args.rotate_frames if "MOTION-BAND-ROTATE-FRAMES" not in params or  args.rotate_frames != None else params["MOTION-BAND-ROTATE-FRAMES"]
         params["MOTION-BAND-K_SPRING"] = args.k_spring if "MOTION-BAND-K_SPRING" not in params or  args.k_spring != None else params["MOTION-BAND-K_SPRING"]
+        params["MOTION-BAND-OPTIMIZE_BAND-OPTIMIZE_END_POINTS"] = args.optimize_end_points if "MOTION-BAND-OPTIMIZE_BAND-OPTIMIZE_END_POINTS" not in params or  args.optimize_end_points != None else params["MOTION-BAND-OPTIMIZE_BAND-OPTIMIZE_END_POINTS"]
+        params["MOTION-BAND-CONVERGENCE_CONTROL-MAX_DR"] = args.convergence_control_max_dr if "MOTION-BAND-OPTIMIZE_BAND-CONVERGENCE_CONTROL-MAX_DR" not in params or  args.convergence_control_max_dr != None else params["MOTION-BAND-OPTIMIZE_BAND-CONVERGENCE_CONTROL-MAX_DR"]
+        params["MOTION-BAND-CONVERGENCE_CONTROL-MAX_FORCE"] = args.convergence_control_max_force if "MOTION-BAND-OPTIMIZE_BAND-CONVERGENCE_CONTROL-MAX_FORCE" not in params or  args.convergence_control_max_force != None else params["MOTION-BAND-OPTIMIZE_BAND-CONVERGENCE_CONTROL-MAX_FORCE"]
+        params["MOTION-BAND-CONVERGENCE_CONTROL-RMS_DR"] = args.convergence_control_rms_dr if "MOTION-BAND-OPTIMIZE_BAND-CONVERGENCE_CONTROL-RMS_DR" not in params or  args.convergence_control_rms_dr != None else params["MOTION-BAND-OPTIMIZE_BAND-CONVERGENCE_CONTROL-RMS_DR"]
+        params["MOTION-BAND-CONVERGENCE_CONTROL-RMS_FORCE"] = args.convergence_control_rms_force if "MOTION-BAND-OPTIMIZE_BAND-CONVERGENCE_CONTROL-RMS_FORCE" not in params or  args.convergence_control_rms_force != None else params["MOTION-BAND-OPTIMIZE_BAND-CONVERGENCE_CONTROL-RMS_FORCE"]
+
 
         params["MOTION-MD-STEPS"] = args.md_steps if "MOTION-MD-STEPS" not in params or  args.md_steps != None else params["MOTION-MD-STEPS"]
         params["MOTION-MD-TIMESTEP"] = args.timestep if "MOTION-MD-TIMESTEP" not in params or  args.timestep != None else params["MOTION-MD-TIMESTEP"]
