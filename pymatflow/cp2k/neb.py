@@ -41,6 +41,15 @@ class neb_run(cp2k):
         self.force_eval.basic_setting()
         self.motion.set_type("BAND")
 
+        # to generate key output in main output of running
+        # if these section are not switched on there are no
+        # enough output date of the neb run
+        self.motion.band.convergence_info.status = True
+        self.motion.band.program_run_info.status = True
+        self.motion.band.program_run_info.params["INITIAL_CONFIGURATION_INFO"] = "TRUE"
+        self.motion.band.energy.status = True
+
+
     def get_images(self, images):
         """
         :param images:

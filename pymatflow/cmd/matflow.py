@@ -401,12 +401,24 @@ def main():
     gp.add_argument("--images", type=str, nargs="+",
             help="the image stucture file(--images first.cif final.xsd), can only be cif, xsd, xsd, or xyz(second line is cell parameter) format")
 
-    # potential file
-    gp = subparser.add_argument_group(title="pseudopotential")
+    # potential file and basis set
+    gp = subparser.add_argument_group(title="pseudopotential and basis set")
 
     gp.add_argument("--pot", type=str, default="auto",
             choices=["auto"],
             help="setting pseudopotential file, in cp2k can only be auto(no need to set)")
+
+    gp.add_argument("--kind-pot", type=str, nargs="+", default=None,
+            help="set like this: --kind-pot H GTH-PBE Li GTH-PBE ...[they have default setting]")
+
+    gp.add_argument("--kind-basis", type=str, nargs="+", default=None,
+            help="set like this: --kind-basis H DZVP-MOLOPT-SR-GTH Li DZVP-MOLOPT-SR-GTH ...[they have default setting]")
+
+    gp.add_argument("--basis-file", type=str, default="BASIS_MOLOPT",
+            help="set the BASIS_SET_FILE_NAME")
+
+    gp.add_argument("--pot-file", type=str, default="GTH_POTENTIALS",
+            help="set the POTENTIAL_FILE_NAME")
 
     # GLOBAL
     gp = subparser.add_argument_group(title="GLOBAL")
@@ -716,6 +728,9 @@ def main():
 
     gp.add_argument("--k-spring", type=float, default=None, #2.0e-2,
             help="value of the spring constant")
+
+    gp.add_argument("--nproc-rep", type=int, default=None,
+            help="Specify the number of processors to be used per replica environment (for parallel runs) default is 1.")
 
     gp.add_argument("--align-frames", type=str, default=None, #"TRUE",
             choices=["TRUE", "FALSE", "true", "false"],
@@ -2377,6 +2392,7 @@ def main():
         params["MOTION-BAND-ALIGN_FRAMES"] = args.align_frames if "MOTION-BAND-ALIGN_FRAMES" not in params or  args.align_frames != None else params["MOTION-BAND-ALIGN_FRAMES"]
         params["MOTION-BAND-ROTATE-FRAMES"] = args.rotate_frames if "MOTION-BAND-ROTATE-FRAMES" not in params or  args.rotate_frames != None else params["MOTION-BAND-ROTATE-FRAMES"]
         params["MOTION-BAND-K_SPRING"] = args.k_spring if "MOTION-BAND-K_SPRING" not in params or  args.k_spring != None else params["MOTION-BAND-K_SPRING"]
+        params["MOTION-BAND-NPROC_REP"] = args.nproc_rep  if "MOTION-BAND-NPROC_REP" not in params or  args.nproc_rep != None else params["MOTION-BAND-NPROC_REP"]
         params["MOTION-BAND-OPTIMIZE_BAND-OPTIMIZE_END_POINTS"] = args.optimize_end_points if "MOTION-BAND-OPTIMIZE_BAND-OPTIMIZE_END_POINTS" not in params or  args.optimize_end_points != None else params["MOTION-BAND-OPTIMIZE_BAND-OPTIMIZE_END_POINTS"]
         params["MOTION-BAND-CONVERGENCE_CONTROL-MAX_DR"] = args.convergence_control_max_dr if "MOTION-BAND-OPTIMIZE_BAND-CONVERGENCE_CONTROL-MAX_DR" not in params or  args.convergence_control_max_dr != None else params["MOTION-BAND-OPTIMIZE_BAND-CONVERGENCE_CONTROL-MAX_DR"]
         params["MOTION-BAND-CONVERGENCE_CONTROL-MAX_FORCE"] = args.convergence_control_max_force if "MOTION-BAND-OPTIMIZE_BAND-CONVERGENCE_CONTROL-MAX_FORCE" not in params or  args.convergence_control_max_force != None else params["MOTION-BAND-OPTIMIZE_BAND-CONVERGENCE_CONTROL-MAX_FORCE"]
@@ -2403,6 +2419,24 @@ def main():
         params["VIBRATIONAL_ANALYSIS-THERMOCHEMISTRY"] = args.thermochemistry if "VIBRATIONAL_ANALYSIS-THERMOCHEMISTRY" not in params or  args.thermochemistry != None else params["VIBRATIONAL_ANALYSIS-THERMOCHEMISTRY"]
 
         
+        # deal with POTENTIAL and BASIS SET
+        kind_pot = {}
+        if args.kind_pot == None:
+            pass
+        else:
+            n_ele = int(len(args.kind_pot.split()) / 2)
+            for i in range(n_ele):
+                kind_pot[args.kind_pot.split()[2*i]] = args.kind_pot.split()[2*i+1]
+        kind_basis = {}
+        if args.kind_basis == None:
+            pass
+        else:
+            n_ele = int(len(args.kind_basis.split()) / 2)
+            for i in range(n_ele):
+                kind_basis[args.kind_basis.split()[2*i]] = args.kind_basis.split()[2*i+1]
+        #
+
+
         # do some check
         if params["MOTION-CELL_OPT-KEEP_SYMMETRY"] == None:
             pass
@@ -2421,6 +2455,7 @@ def main():
             task = static_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
             task.set_printout(option=args.printout_option)
             if 2 in args.printout_option:
                 task.force_eval.dft.printout.band_structure.set_band(kpath=get_kpath(args.kpath_manual, args.kpath_file))
@@ -2435,6 +2470,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_geo_opt()
             task.set_params(params=params)
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -2446,6 +2482,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_cell_opt()
             task.set_params(params=params)
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -2457,6 +2494,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_geo_opt()
             task.set_params(params=params)
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
             task.batch_a = args.batch_a     
             task.batch_b = args.batch_b
             task.batch_c = args.batch_c     
@@ -2472,6 +2510,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_geo_opt()
             task.set_params(params=params)
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
             task.batch_a = args.batch_a     
             task.batch_b = args.batch_b
             task.batch_c = args.batch_c     
@@ -2487,6 +2526,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_geo_opt()
             task.set_params(params=params)
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
             task.batch_a = args.batch_a     
             task.batch_b = args.batch_b
             task.batch_c = args.batch_c     
@@ -2501,6 +2541,7 @@ def main():
             task = neb_run()
             task.get_images(images=images)
             task.set_params(params=params)
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -2512,6 +2553,7 @@ def main():
             task.get_xyz(xyzfile)
             task.supercell_n = args.supercell_n
             task.set_params(params=params)
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -2522,6 +2564,7 @@ def main():
             task = vib_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -2532,6 +2575,7 @@ def main():
             task = static_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -2554,6 +2598,7 @@ def main():
             task = md_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -2565,6 +2610,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_geo_opt()
             task.set_params(params=params)
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -2578,6 +2624,7 @@ def main():
             task = md_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)

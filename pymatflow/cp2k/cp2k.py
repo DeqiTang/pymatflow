@@ -116,6 +116,23 @@ class cp2k:
             elif item.split("-")[0].upper() == "VIBRATIONAL_ANALYSIS":
                 self.vibrational_analysis.set_params({item.replace("VIBRATIONAL_ANALYSIS-", ""): params[item]})
 
+    def set_pot_basis(self, kind_basis={}, kind_pot={}, basis_set_file="BASIS_MOLOPT", potential_file="GTH_POTENTIALS"):
+        """
+        :param kind_basis: {"Li": DZVP-MOLOPT-SR-GTH, ...}
+            can be empty dict as all the elemnet has default setting
+        :param kind_pot: {"Li": GTH-PBE, ...}
+            can be empty dict as all the elemnet has default setting
+        :param basis_set_file: PATH_TO_THE_BASIS_SET_FILE_NAME
+        :param potential_file: PATH_TO_THE_POTENTIAL_FILE_NAME
+        """
+        self.force_eval.dft.params["BASIS_SET_FILE_NAME"] = basis_set_file if basis_set_file is not None else "BASIS_MOLOPT"
+        self.force_eval.dft.params["POTENTIAL_FILE_NAME"] = potential_file if potential_file is not None else "GTH_POTENTIALS"
+        for item in kind_basis:
+            self.force_eval.subsys.basis_set[item] = kind_basis[item]
+        for item in kind_pot:
+            self.force_eval.subsys.potential[item] = kind_pot[item]
+
+
     def set_vdw(self, usevdw=False):
         if usevdw == True:
             self.force_eval.dft.xc.vdw_potential.status = True
