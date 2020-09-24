@@ -2435,6 +2435,8 @@ def main():
             for i in range(n_ele):
                 kind_basis[args.kind_basis.split()[2*i]] = args.kind_basis.split()[2*i+1]
         #
+        basis_file = os.path.abspath(args.basis_file) if os.path.exists(args.basis_file) else os.path.basename(args.basis_file)
+        pot_file = os.path.abspath(args.pot_file) if os.path.exists(args.pot_file) else os.path.basename(args.pot_file)
 
 
         # do some check
@@ -2455,7 +2457,7 @@ def main():
             task = static_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
-            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=basis_file, potential_file=pot_file)
             task.set_printout(option=args.printout_option)
             if 2 in args.printout_option:
                 task.force_eval.dft.printout.band_structure.set_band(kpath=get_kpath(args.kpath_manual, args.kpath_file))
@@ -2470,7 +2472,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_geo_opt()
             task.set_params(params=params)
-            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=basis_file, potential_file=pot_file)
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -2482,7 +2484,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_cell_opt()
             task.set_params(params=params)
-            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=basis_file, potential_file=pot_file)
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -2494,7 +2496,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_geo_opt()
             task.set_params(params=params)
-            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=basis_file, potential_file=pot_file)
             task.batch_a = args.batch_a     
             task.batch_b = args.batch_b
             task.batch_c = args.batch_c     
@@ -2510,7 +2512,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_geo_opt()
             task.set_params(params=params)
-            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=basis_file, potential_file=pot_file)
             task.batch_a = args.batch_a     
             task.batch_b = args.batch_b
             task.batch_c = args.batch_c     
@@ -2526,7 +2528,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_geo_opt()
             task.set_params(params=params)
-            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=basis_file, potential_file=pot_file)
             task.batch_a = args.batch_a     
             task.batch_b = args.batch_b
             task.batch_c = args.batch_c     
@@ -2541,7 +2543,7 @@ def main():
             task = neb_run()
             task.get_images(images=images)
             task.set_params(params=params)
-            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=basis_file, potential_file=pot_file)
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -2553,7 +2555,7 @@ def main():
             task.get_xyz(xyzfile)
             task.supercell_n = args.supercell_n
             task.set_params(params=params)
-            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=basis_file, potential_file=pot_file)
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -2564,7 +2566,7 @@ def main():
             task = vib_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
-            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=basis_file, potential_file=pot_file)
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -2575,7 +2577,7 @@ def main():
             task = static_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
-            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=basis_file, potential_file=pot_file)
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -2598,7 +2600,7 @@ def main():
             task = md_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
-            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=basis_file, potential_file=pot_file)
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -2610,7 +2612,7 @@ def main():
             task.get_xyz(xyzfile)
             task.set_geo_opt()
             task.set_params(params=params)
-            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=basis_file, potential_file=pot_file)
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -2624,7 +2626,7 @@ def main():
             task = md_run()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
-            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=os.path.abspath(args.basis_file), potential_file=os.path.abspath(args.pot_file))
+            task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=basis_file, potential_file=pot_file)
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
