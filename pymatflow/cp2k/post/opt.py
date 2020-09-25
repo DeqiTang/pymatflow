@@ -108,7 +108,7 @@ class opt_out:
         plt.plot(self.run_info["total_energy_each_ion_step"], marker="o")
         plt.title("Total energy each ion step")
         plt.xlabel("Ion step")
-        plt.ylabel("Total energy(a.u.")
+        plt.ylabel("Total energy(a.u.)")
         plt.tight_layout()
         plt.savefig("total-energy-each-ion-step.png")
         plt.close()

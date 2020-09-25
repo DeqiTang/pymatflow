@@ -10,8 +10,12 @@ class bands_post:
     """
     def __init__(self):
         """
+        efermi in static-scf.out is in unit of a.u.
+        but eigenvalue in bands.bs is in unit of eV.
+        so we convert efermi from a.u. to eV
         """
         pass
+        self.ha_to_ev = 27.211324570273 # needed to convert Fermi from [a.u.] to eV
 
     def get_efermi(self, static_out="static-scf.out"):
         with open(static_out, 'r') as fin:
@@ -20,7 +24,7 @@ class bands_post:
         self.efermi = None
         for line in lines:
             if "Fermi energy:" in line:
-                self.efermi = float(line.split()[2]) * 27.211324570273
+                self.efermi = float(line.split()[2]) * self.ha_to_ev # now become eV
         return self.efermi
 
     def get_kpath_and_bands(self, kpath, cell, bands="bands.bs"):
@@ -104,6 +108,7 @@ class bands_post:
 
     def get_eigenval(self):
         """
+        eigenval in xxx.bs file is in unit of eV by default so we need not to convert it
         """
         # first check the magnetic_status
         self.magnetic_status = "spin-unpolarized"
@@ -231,7 +236,7 @@ class bands_post:
                 if self.efermi == None:
                     fout.write("# efermi: smearing is not used so fermi energy is not calculated in cp2k\n")
                 else:
-                    fout.write("# efermi: %f\n" % self.efermi)
+                    fout.write("# efermi: %f (eV) and eigenvalues are in unit of eV\n" % self.efermi)
                 for k in range(nband):
                     for j in range(len(self.xcoord_k)):
                         fout.write("%f %f\n" % (self.xcoord_k[j], self.eigenval["spin_%d" % (i+1)][j]["energy"][k]))
@@ -241,7 +246,7 @@ class bands_post:
                 if self.efermi == None:
                     fout.write("# efermi: smearing is not used so fermi energy is not calculated in cp2k\n")
                 else:
-                    fout.write("# efermi: %f\n" % self.efermi)
+                    fout.write("# efermi: %f (eV) and eigenvalues are in unit of eV\n" % self.efermi)
                 for k in range(band_min, band_max, 1):
                     for j in range(len(self.xcoord_k)):
                         fout.write("%f %f\n" % (self.xcoord_k[j], self.eigenval["spin_%d" % (i+1)][j]["energy"][k]))
@@ -312,7 +317,7 @@ class bands_post:
                 if self.efermi == None:
                     fout.write("# efermi: smearing is not used so fermi energy is not calculated in cp2k\n")
                 else:
-                    fout.write("# efermi: %f\n" % self.efermi)
+                    fout.write("# efermi: %f (eV) and eigenvalues are in unit of eV\n" % self.efermi)
                 for k in range(nband):
                     for j in range(len(self.xcoord_k)):
                         fout.write("%f %f\n" % (self.xcoord_k[j], self.eigenval["spin_%d" % (i+1)][j]["energy"][k]))
@@ -322,7 +327,7 @@ class bands_post:
                 if self.efermi == None:
                     fout.write("# efermi: smearing is not used so fermi energy is not calculated in cp2k\n")
                 else:
-                    fout.write("# efermi: %f\n" % self.efermi)
+                    fout.write("# efermi: %f (eV) and eigenvalues are in unit of eV\n" % self.efermi)
                 for k in range(band_min, band_max, 1):
                     for j in range(len(self.xcoord_k)):
                         fout.write("%f %f\n" % (self.xcoord_k[j], self.eigenval["spin_%d" % (i+1)][j]["energy"][k]))
@@ -448,7 +453,7 @@ class bands_post:
             lumo = min(conduction)
             gap = min([self.eigenval["spin_1"][k]["energy"][lumo] for k in range(nkpoints)]) - max([self.eigenval["spin_1"][k]["energy"][homo] for k in range(nkpoints)])
             print("The system is semiconducting or insulating\n")
-            print("And the gap is %f\n" % gap)
+            print("And the gap is %f eV\n" % gap)
         elif spin_n == 2:
             print("The calculation is done for two spin\n")
             print("Spin 1:\n")
@@ -481,7 +486,7 @@ class bands_post:
                 lumo = min(conduction)
                 gap = min([self.eigenval["spin_1"][k]["energy"][lumo] for k in range(nkpoints)]) - max([self.eigenval["spin_1"][k]["energy"][homo] for k in range(nkpoints)])
                 print("The system is semiconducting or insulating in spin 1\n")
-                print("And the gap in spin 1 is %f\n" % gap)
+                print("And the gap in spin 1 is %f eV\n" % gap)
             
             print("Spin 2:\n")
             is_metallic_spin_2 = False
@@ -513,7 +518,7 @@ class bands_post:
                 lumo = min(conduction)
                 gap = min([self.eigenval["spin_2"][k]["energy"][lumo] for k in range(nkpoints)]) - max([self.eigenval["spin_2"][k]["energy"][homo] for k in range(nkpoints)])
                 print("The system is semiconducting or insulating in spin 2\n")
-                print("And the gap in spin 2 is %f\n" % gap)
+                print("And the gap in spin 2 is %f eV\n" % gap)
 
 
     def print_effective_mass(self):

@@ -9,7 +9,7 @@ import sys
 class converge_post:
     def __init__(self):
         # analyse the result
-        self.criteria_for_cutoff = 3.67e-4 # 10 meV = 0.00036749308136648884 Hartree
+        self.criteria_for_cutoff = 3.67e-4 # in unit of Hartree, 10 meV = 0.00036749308136648884 Hartree
         self.criteria_for_rel_cutoff = 3.67e-4
         self.criteria_for_kpoints = 3.67e-4
 
@@ -132,7 +132,7 @@ class converge_post:
             plt.plot(x_all, energy_all, marker='o')
             plt.title("CUTOFF Converge Test", fontweight='bold', color='red')
             plt.xlabel("CUTOFF (Ry)")
-            plt.ylabel("Energy (Ry)")
+            plt.ylabel("Energy (Ha)")
             plt.tight_layout()
             plt.grid(True)
             plt.savefig("energy-%s.png" % converge.lower())
@@ -141,7 +141,7 @@ class converge_post:
             plt.plot(x_all, energy_all, marker='o')
             plt.title("REL_CUTOFF Converge Test", fontweight='bold', color='red')
             plt.xlabel("REL_CUTOFF (Ry)")
-            plt.ylabel("Energy (Ry)")        
+            plt.ylabel("Energy (Ha)")        
             plt.tight_layout()
             plt.grid(True)
             plt.savefig("energy-%s.png" % converge.lower())
@@ -151,7 +151,7 @@ class converge_post:
             #plt.xticks(x_all, ["%dx%dx%d" % (x_all[i], x_all[i], x_all[i]) for i in range(len(x_all))])
             plt.title("Kpoints-auto Converge Test", fontweight='bold', color='red')
             plt.xlabel("Kpoints")
-            plt.ylabel("Energy (Ry)")        
+            plt.ylabel("Energy (Ha)")        
             plt.tight_layout()
             plt.grid(True)
             plt.savefig("energy-%s.png" % converge.lower())
@@ -161,7 +161,7 @@ class converge_post:
             plt.xticks(range(len(energy_all)), x_all)
             plt.title("Kpoints-manual Converge Test", fontweight='bold', color='red')
             plt.xlabel("Kpoints")
-            plt.ylabel("Energy (Ry)")        
+            plt.ylabel("Energy (Ha)")        
             plt.tight_layout()
             plt.grid(True)
             plt.savefig("energy-%s.png" % converge.lower())
