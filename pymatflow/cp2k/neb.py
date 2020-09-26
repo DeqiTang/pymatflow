@@ -48,6 +48,15 @@ class neb_run(cp2k):
         self.motion.band.program_run_info.status = True
         self.motion.band.program_run_info.params["INITIAL_CONFIGURATION_INFO"] = "TRUE"
         self.motion.band.energy.status = True
+        self.motion.band.optimize_band.status = True
+        
+    def check_neb(self):
+        if "OPT_TYPE" not in self.motion.band.optimize_band.params or self.motion.band.optimize_band.params["OPT_TYPE"] == None or self.motion.band.optimize_band.params["OPT_TYPE"].upper() == "DIIS":
+            self.motion.band.optimize_band.diis.status = True # use DIIS optimize scheme
+            self.motion.band.optimize_band.md.status = False
+        else:
+            self.motion.band.optimize_band.diis.status = False
+            self.motion.band.optimize_band.md.status = True
 
 
     def get_images(self, images):

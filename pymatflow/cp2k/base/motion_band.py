@@ -26,7 +26,7 @@ class cp2k_motion_band_banner_each:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 3:
+            if len(item.split("-")) == 4:
                 self.params[item.split("-")[-1]] = params[item]
             else:
                 pass
@@ -54,7 +54,7 @@ class cp2k_motion_band_banner:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 2:
+            if len(item.split("-")) == 3:
                 self.params[item.split("-")[-1]] = params[item]
             elif item.split("-")[1] == "EACH":
                 self.each.set_params({item: params[item]})
@@ -80,7 +80,7 @@ class cp2k_motion_band_ci_neb:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 2:
+            if len(item.split("-")) == 3:
                 self.params[item.split("-")[-1]] = params[item]
             else:
                 pass
@@ -104,7 +104,7 @@ class cp2k_motion_band_convergence_control:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 2:
+            if len(item.split("-")) == 3:
                 self.params[item.split("-")[-1]] = params[item]
             else:
                 pass
@@ -128,7 +128,7 @@ class cp2k_motion_band_convergence_info_each:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 3:
+            if len(item.split("-")) == 4:
                 self.params[item.split("-")[-1]] = params[item]
             else:
                 pass
@@ -157,9 +157,9 @@ class cp2k_motion_band_convergence_info:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 2:
+            if len(item.split("-")) == 3:
                 self.params[item.split("-")[-1]] = params[item]
-            elif item.split("-")[1] == "EACH":
+            elif item.split("-")[2] == "EACH":
                 self.each.set_params({item: params[item]})
             else:
                 pass
@@ -184,7 +184,7 @@ class cp2k_motion_band_energy_each:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 3:
+            if len(item.split("-")) == 4:
                 self.params[item.split("-")[-1]] = params[item]
             else:
                 pass
@@ -213,9 +213,9 @@ class cp2k_motion_band_energy:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 2:
+            if len(item.split("-")) == 3:
                 self.params[item.split("-")[-1]] = params[item]
-            elif item.split("-")[1] == "EACH":
+            elif item.split("-")[2] == "EACH":
                 self.each.set_params({item: params[item]})
             else:
                 pass
@@ -239,7 +239,7 @@ class cp2k_motion_band_optimize_band_diis_diis_info_each:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 5:
+            if len(item.split("-")) == 6:
                 self.params[item.split("-")[-1]] = params[item]
             else:
                 pass
@@ -265,7 +265,7 @@ class cp2k_motion_band_optimize_band_diis_diis_info:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 4:
+            if len(item.split("-")) == 5:
                 self.params[item.split("-")[-1]] = params[item]
             else:
                 pass
@@ -293,9 +293,9 @@ class cp2k_motion_band_optimize_band_diis:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 3:
+            if len(item.split("-")) == 4:
                 self.params[item.split("-")[-1]] = params[item]
-            elif item.split("-")[2] == "DIIS_INFO":
+            elif item.split("-")[3] == "DIIS_INFO":
                 self.diis_info.set_params({item: params[item]})
             else:
                 pass
@@ -320,7 +320,7 @@ class cp2k_motion_band_optimize_band_md_temp_control:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 4:
+            if len(item.split("-")) == 5:
                 self.params[item.split("-")[-1]] = params[item]
             else:
                 pass
@@ -344,7 +344,7 @@ class cp2k_motion_band_optimize_band_md_vel_control:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 4:
+            if len(item.split("-")) == 5:
                 self.params[item.split("-")[-1]] = params[item]
             else:
                 pass
@@ -376,11 +376,11 @@ class cp2k_motion_band_optimize_band_md:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 3:
+            if len(item.split("-")) == 4:
                 self.params[item.split("-")[-1]] = params[item]
-            elif item.split("-")[2] == "TEMP_CONTROL":
+            elif item.split("-")[3] == "TEMP_CONTROL":
                 self.temp_control.set_params({item: params[item]})
-            elif item.split("-")[2] == "VEL_CONTROL":
+            elif item.split("-")[3] == "VEL_CONTROL":
                 self.vel_control.set_params({item: params[item]})
             else:
                 pass
@@ -412,11 +412,11 @@ class cp2k_motion_band_optimize_band:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 2:
+            if len(item.split("-")) == 3:
                 self.params[item.split("-")[-1]] = params[item]
-            elif item.split("-")[1] == "DIIS":
+            elif item.split("-")[2] == "DIIS":
                 self.diis.set_params({item: params[item]})
-            elif item.split("-")[1] == "MD":
+            elif item.split("-")[2] == "MD":
                 self.md.set_params({item: params[item]})
             else:
                 pass
@@ -441,7 +441,7 @@ class cp2k_motion_band_program_run_info_each:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 3:
+            if len(item.split("-")) == 4:
                 self.params[item.split("-")[-1]] = params[item]
             else:
                 pass
@@ -470,9 +470,9 @@ class cp2k_motion_band_program_run_info:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 2:
+            if len(item.split("-")) == 3:
                 self.params[item.split("-")[-1]] = params[item]
-            elif item.split("-")[1] == "EACH":
+            elif item.split("-")[2] == "EACH":
                 self.each.set_params({item: params[item]})
             else:
                 pass
@@ -497,7 +497,7 @@ class cp2k_motion_band_replica_coord:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 3:
+            if len(item.split("-")) == 4:
                 self.params[item.split("-")[-1]] = params[item]
             else:
                 pass
@@ -521,7 +521,7 @@ class cp2k_motion_band_replica_velocity:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 3:
+            if len(item.split("-")) == 4:
                 self.params[item.split("-")[-1]] = params[item]
             else:
                 pass
@@ -552,11 +552,11 @@ class cp2k_motion_band_replica:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 2:
+            if len(item.split("-")) == 3:
                 self.params[item.split("-")[-1]] = params[item]
-            elif item.split("-")[1] == "COORD":
+            elif item.split("-")[2] == "COORD":
                 self.coord.set_params({item: params[item]})
-            elif item.split("-")[1] == "VELOCITY":
+            elif item.split("-")[2] == "VELOCITY":
                 self.velocity.set_params({item: params[item]})
             else:
                 pass
@@ -580,7 +580,7 @@ class cp2k_motion_band_replica_info_each:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 3:
+            if len(item.split("-")) == 4:
                 self.params[item.split("-")[-1]] = params[item]
             else:
                 pass
@@ -609,9 +609,9 @@ class cp2k_motion_band_replica_info:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 2:
+            if len(item.split("-")) == 3:
                 self.params[item.split("-")[-1]] = params[item]
-            elif item.split("-")[1] == "EACH":
+            elif item.split("-")[2] == "EACH":
                 self.each.set_params({item: params[item]})
             else:
                 pass
@@ -635,7 +635,7 @@ class cp2k_motion_band_string_method:
 
     def set_params(self, params):
         for item in params:
-            if len(item.split("-")) == 2:
+            if len(item.split("-")) == 3:
                 self.params[item.split("-")[-1]] = params[item]
             else:
                 pass

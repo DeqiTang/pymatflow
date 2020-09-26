@@ -756,7 +756,14 @@ def main():
     gp.add_argument("--convergence-control-rms-force", type=float, default=None,
             help="Tolerance on RMS Forces on the BAND.")
 
+    gp.add_argument('--optimize-band-opt-type', type=str, default=None,
+            choices=["DIIS", "MD", "diis", "md"],
+            help="Specifies the type optimizer used for the band")
+
     gp.add_argument("--optimize-band-diis-max-steps", type=int, default=None,
+            help="Specify the maximum number of optimization steps for neb run")
+
+    gp.add_argument("--optimize-band-md-max-steps", type=int, default=None,
             help="Specify the maximum number of optimization steps for neb run")
 
     # MOTION/FREE_ENERGY
@@ -2401,7 +2408,9 @@ def main():
         params["MOTION-BAND-CONVERGENCE_CONTROL-MAX_FORCE"] = args.convergence_control_max_force if "MOTION-BAND-OPTIMIZE_BAND-CONVERGENCE_CONTROL-MAX_FORCE" not in params or  args.convergence_control_max_force != None else params["MOTION-BAND-OPTIMIZE_BAND-CONVERGENCE_CONTROL-MAX_FORCE"]
         params["MOTION-BAND-CONVERGENCE_CONTROL-RMS_DR"] = args.convergence_control_rms_dr if "MOTION-BAND-OPTIMIZE_BAND-CONVERGENCE_CONTROL-RMS_DR" not in params or  args.convergence_control_rms_dr != None else params["MOTION-BAND-OPTIMIZE_BAND-CONVERGENCE_CONTROL-RMS_DR"]
         params["MOTION-BAND-CONVERGENCE_CONTROL-RMS_FORCE"] = args.convergence_control_rms_force if "MOTION-BAND-OPTIMIZE_BAND-CONVERGENCE_CONTROL-RMS_FORCE" not in params or  args.convergence_control_rms_force != None else params["MOTION-BAND-OPTIMIZE_BAND-CONVERGENCE_CONTROL-RMS_FORCE"]
+        params["MOTION-BAND-OPTIMIZE_BAND-OPT_TYPE"] = args.optimize_band_opt_type if "MOTION-BAND-OPTIMIZE_BAND-OPTIMIZE_BAND-OPT_TYPE" not in params or  args.optimize_band_opt_type != None else params["MOTION-BAND-OPTIMIZE_BAND-OPTIMIZE_BAND-OPT_TYPE"]
         params["MOTION-BAND-OPTIMIZE_BAND-DIIS-MAX_STEPS"] = args.optimize_band_diis_max_steps if "MOTION-BAND-OPTIMIZE_BAND-OPTIMIZE_BAND-DIIS-MAX_STEPS" not in params or  args.optimize_band_diis_max_steps != None else params["MOTION-BAND-OPTIMIZE_BAND-OPTIMIZE_BAND-DIIS-MAX_STEPS"]
+        params["MOTION-BAND-OPTIMIZE_BAND-MD-MAX_STEPS"] = args.optimize_band_md_max_steps if "MOTION-BAND-OPTIMIZE_BAND-OPTIMIZE_BAND-MD-MAX_STEPS" not in params or  args.optimize_band_md_max_steps != None else params["MOTION-BAND-OPTIMIZE_BAND-OPTIMIZE_BAND-MD-MAX_STEPS"]
 
 
         params["MOTION-MD-STEPS"] = args.md_steps if "MOTION-MD-STEPS" not in params or  args.md_steps != None else params["MOTION-MD-STEPS"]
@@ -2547,6 +2556,7 @@ def main():
             task = neb_run()
             task.get_images(images=images)
             task.set_params(params=params)
+            task.check_neb()
             task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=basis_file, potential_file=pot_file)
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
