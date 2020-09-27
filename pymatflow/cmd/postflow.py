@@ -139,13 +139,15 @@ def main():
             choices=[0, 1, 2, 3, 4 ,5, 6, 7, 8, 9, 10],
             help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->neb; 7->phonopy; 8->vibrational_analysis; 9:converge test; 10->aimd")
 
-    subparser.add_argument("--static", type=str, default="scf",
-            choices=["scf", "band"],
+    subparser.add_argument("--static", type=str, nargs="+", default=None,
+            choices=["scf", "band", "pdos"],
             help="type of static calc, like band")
 
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory for the running.")
 
+    subparser.add_argument("--smearing-width", type=float, default=0.2,
+            help="smearing width for the processing of pdos data")
 
     subparser.add_argument("--kpath-manual", type=str, nargs="+", default=None,
             help="manual input kpath for band structure calculation")
@@ -468,12 +470,12 @@ def main():
     elif args.driver == "cp2k":
         if args.runtype == 0:
             # static
-            if args.static == "scf":
+            if "scf" in args.static:
                 from pymatflow.cp2k.post.scf import scf_out
                 task = scf_out()
                 task.get_info(os.path.join(args.directory, "static-scf.out"))
                 task.export(args.directory)
-            elif args.static == "band":
+            if "band" in args.static:
                 from pymatflow.cp2k.post.bands import bands_post
                 from pymatflow.cmd.structflow import read_structure
                 structure = read_structure(xyzfile)
@@ -483,6 +485,17 @@ def main():
                 task.export(directory=args.directory, engine=args.engine, bandrange=args.bandrange, xrange=args.xrange, yrange=args.yrange)
                 task.print_gap()
                 task.print_effective_mass()
+            if "pdos" in args.static:
+                from pymatflow.cp2k.post.pdos import pdos_post
+                task = pdos_post()
+                files=[]
+                for f in os.listdir(args.directory):
+                    if "ab-initio-k" in f and f.split(".")[-1] == "pdos":
+                        files.append(os.path.join(args.directory, f))
+                task.get_data(pdos_files=files)
+                task.convolute(width=args.smearing_width)
+                os.system("mkdir -p %s" % os.path.join(args.directory, "post-processing"))
+                task.export_smearing(os.path.join(args.directory, "post-processing"))
         elif args.runtype == 1:
             from pymatflow.cp2k.post.opt import opt_out 
             task = opt_out()
