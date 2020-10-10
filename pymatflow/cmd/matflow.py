@@ -430,6 +430,10 @@ def main():
     # FORCE_EVAL/SUBSYS
     gp = subparser.add_argument_group(title="FORCE_EVAL/SUBSYS")
 
+    gp.add_argument("--cell-periodic", type=str, default=None,
+            choices=["NONE", "X", "XY", "XYZ", "XZ", "Y", "YZ", "Z", "none", "x", "xy", "xyz", "xz", "y", "yz", "z"],
+            help="Specify the directions for which periodic boundary conditions (PBC) will be applied. Important notice: This applies to the generation of the pair lists as well as to the application of the PBCs to positions. See the POISSON section to specify the periodicity used for the electrostatics. Typically the settings should be the same. DEFAULT is XYZ")
+
     gp.add_argument("--cell-symmetry", type=str, default=None,
             help="Imposes an initial cell symmetry. must be set when you do KEEP_SYMMETRY cell_opt")
 
@@ -455,6 +459,17 @@ def main():
     gp.add_argument("--surf-dip-dir", type=str, default=None,
             choices=["X", "Y", "Z", "x", "y", "z"],
             help="Cartesian axis parallel to surface normal")
+
+    # FORCE_EVAL/DFT/POISSON
+    gp = subparser.add_argument_group(title="FORCE_EVAL/DFT/POISSON")
+
+    gp.add_argument("--poisson-periodic", type=str, default=None,
+            choices=["NONE", "X", "XY", "XYZ", "XZ", "Y", "YZ", "Z", "none", "x", "xy", "xyz", "xz", "y", "yz", "z"],
+            help="Specify the directions in which PBC apply. Important notice, this only applies to the electrostatics. See the CELL section to specify the periodicity used for e.g. the pair lists. Typically the settings should be the same. default is XYZ")
+            
+    gp.add_argument("--poisson-solver", type=str, default=None,
+            choices=["ANALYTIC", "IMPLICIT", "MT", "MULTIPOLE", "PERIODIC", "WAVELET", "analytic", "implicit", "mt", "multipole", "periodic", "wavelet"],
+            help="Specify which kind of solver to use to solve the Poisson equation.")
 
     # FORCE_EVAL/DFT/SCF
     gp = subparser.add_argument_group(title="FORCE_EVAL/DFT/SCF")
@@ -519,6 +534,9 @@ def main():
 
     gp.add_argument("--mixing-alpha", type=float, default=0.4,
             help="fraction of new density to be included, default is 0.4")
+
+    gp.add_argument("--mixing-beta", type=float, default=0.5, 
+            help="Denominator parameter in Kerker damping introduced to suppress charge sloshing: rho_mix(g) =rho_in(g) + alpha*g^2/(g^2 + beta^2)*(rho_out(g)-rho_in(g))")
 
     gp.add_argument("--mixing-nbuffer", type=int, default=None, # default is 4
             help="Number of previous steps stored for the actual mixing scheme. default is 4")
@@ -2334,6 +2352,7 @@ def main():
         #print(params)
         params["GLOBAL-PRINT_LEVEL"] = args.print_level if "GLOBAL-PRINT_LEVEL" not in params or args.print_level != None else params["GLOBAL-PRINT_LEVEL"]
         
+        params["FORCE_EVAL-SUBSYS-CELL-PERIODIC"] = args.cell_periodic if "FORCE_EVAL-SUBSYS-CELL-PERIODIC" not in params or args.cell_periodic != None else params["FORCE_EVAL-SUBSYS-CELL-PERIODIC"]
         params["FORCE_EVAL-SUBSYS-CELL-SYMMETRY"] = args.cell_symmetry if "FORCE_EVAL-SUBSYS-CELL-SYMMETRY" not in params or args.cell_symmetry != None else params["FORCE_EVAL-SUBSYS-CELL-SYMMETRY"]
 
         params["FORCE_EVAL-DFT-LS_SCF"] = args.ls_scf if "FORCE_EVAL-DFT-LS_SCF" not in params or args.ls_scf != None else params["FORCE_EVAL-DFT-LS_SCF"]
@@ -2341,6 +2360,8 @@ def main():
         params["FORCE_EVAL-DFT-CHARGE"] = args.charge if "FORCE_EVAL-DFT-CHARGE" not in params or args.charge != None else params["FORCE_EVAL-DFT-CHARGE"]
         params["FORCE_EVAL-DFT-SURFACE_DIPOLE_CORRECTION"] = args.surface_dipole_correction if "FORCE_EVAL-DFT-SURFACE_DIPOLE_CORRECTION" not in params or args.surface_dipole_correction != None else params["FORCE_EVAL-DFT-SURFACE_DIPOLE_CORRECTION"]
         params["FORCE_EVAL-DFT-SURF_DIP_DIR"] = args.surf_dip_dir if "FORCE_EVAL-DFT-SURF_DIP_DIR" not in params or args.surf_dip_dir != None else params["FORCE_EVAL-DFT-SURF_DIP_DIR"]        
+        params["FORCE_EVAL-DFT-POISSON-PERIODIC"] = args.poisson_periodic if "FORCE_EVAL-DFT-POISSON-PERIODIC" not in params or args.poisson_periodic != None else params["FORCE_EVAL-DFT-POISSON-PERIODIC"]
+        params["FORCE_EVAL-DFT-POISSON-POISSON_SOLVER"] = args.poisson_solver if "FORCE_EVAL-DFT-POISSON-POISSON_SOLVER" not in params or args.poisson_solver != None else params["FORCE_EVAL-DFT-POISSON-POISSON_SOLVER"]
         params["FORCE_EVAL-DFT-QS-METHOD"] = args.qs_method if "FORCE_EVAL-DFT-QS-METHOD" not in params or args.qs_method != None else params["FORCE_EVAL-DFT-QS-METHOD"]
         params["FORCE_EVAL-DFT-MGRID-CUTOFF"] = args.cutoff if "FORCE_EVAL-DFT-MGRID-CUTOFF" not in params or args.cutoff != None else params["FORCE_EVAL-DFT-MGRID-CUTOFF"]
         params["FORCE_EVAL-DFT-MGRID-REL_CUTOFF"] = args.rel_cutoff if "FORCE_EVAL-DFT-MGRID-REL_CUTOFF" not in params or args.rel_cutoff != None else params["FORCE_EVAL-DFT-MGRID-REL_CUTOFF"]
@@ -2361,6 +2382,7 @@ def main():
         params["FORCE_EVAL-DFT-SCF-OT"] = args.ot if "FORCE_EVAL-DFT-SCF-OT" not in params or  args.ot != None else params["FORCE_EVAL-DFT-SCF-OT"]
         params["FORCE_EVAL-DFT-SCF-MIXING-METHOD"] = args.mixing_method if "FORCE_EVAL-DFT-SCF-MIXING-METHOD" not in params or  args.mixing_method != None else params["FORCE_EVAL-DFT-SCF-MIXING-METHOD"]
         params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"] = args.mixing_alpha if "FORCE_EVAL-DFT-SCF-MIXING-ALPHA" not in params or  args.mixing_alpha != None else params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"]
+        params["FORCE_EVAL-DFT-SCF-MIXING-BETA"] = args.mixing_beta if "FORCE_EVAL-DFT-SCF-MIXING-BETA" not in params or  args.mixing_beta != None else params["FORCE_EVAL-DFT-SCF-MIXING-BETA"]
         params["FORCE_EVAL-DFT-SCF-MIXING-NBUFFER"] = args.mixing_nbuffer if "FORCE_EVAL-DFT-SCF-MIXING-NBUFFER" not in params or  args.mixing_nbuffer != None else params["FORCE_EVAL-DFT-SCF-MIXING-NBUFFER"]        
         params["FORCE_EVAL-DFT-KPOINTS-SCHEME"] = args.kpoints_scheme if "FORCE_EVAL-DFT-KPOINTS-SCHEME" not in params or  args.kpoints_scheme != None else params["FORCE_EVAL-DFT-KPOINTS-SCHEME"]
         params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"] = args.vdw_potential_type if "FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE" not in params or  args.vdw_potential_type != None else params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"]

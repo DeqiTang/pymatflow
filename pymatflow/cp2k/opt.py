@@ -211,11 +211,14 @@ class opt_run(cp2k):
                 fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                 fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                 fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                fout.write("\t\t\tPERIODIC xyz\n")
+                for item in self.force_eval.subsys.cell.params:
+                    if self.force_eval.subsys.cell.params[item] is not None:
+                        fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                 fout.write("EOF\n")
                 fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
                 fout.write("  yhrun $PMF_CP2K -inp geo-opt-${a}.inp > geo-opt-${a}.out\n")
                 fout.write("done\n")
+
 
             # gen pbs script
             with open("geo-opt-cubic-%d.pbs" % i_batch_a, 'w') as fout:
@@ -273,7 +276,9 @@ class opt_run(cp2k):
                 fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                 fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                 fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                fout.write("\t\t\tPERIODIC xyz\n")
+                for item in self.force_eval.subsys.cell.params:
+                    if self.force_eval.subsys.cell.params[item] is not None:
+                        fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                 fout.write("EOF\n")
                 fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
                 fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -inp geo-opt-${a}.inp > geo-opt-${a}.out\n")
@@ -325,7 +330,9 @@ class opt_run(cp2k):
                 fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                 fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                 fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                fout.write("\t\t\tPERIODIC xyz\n")
+                for item in self.force_eval.subsys.cell.params:
+                    if self.force_eval.subsys.cell.params[item] is not None:
+                        fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                 fout.write("EOF\n")
                 fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
                 fout.write("  %s $PMF_CP2K -inp geo-opt-${a}.inp | tee geo-opt-${a}.out\n" % self.run_params["mpi"])
@@ -480,7 +487,9 @@ class opt_run(cp2k):
                             fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                             fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                             fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                            fout.write("\t\t\tPERIODIC xyz\n")
+                            for item in self.force_eval.subsys.cell.params:
+                                if self.force_eval.subsys.cell.params[item] is not None:
+                                    fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                             fout.write("EOF\n")
                             fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}.inp\n")
                             fout.write("  yhrun $PMF_CP2K -inp geo-opt-${a}-${c}.inp > geo-opt-${a}-${c}.out\n")
@@ -501,7 +510,9 @@ class opt_run(cp2k):
                             fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                             fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                             fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                            fout.write("\t\t\tPERIODIC xyz\n")
+                            for item in self.force_eval.subsys.cell.params:
+                                if self.force_eval.subsys.cell.params[item] is not None:
+                                    fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                             fout.write("EOF\n")
                             fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
                             fout.write("  yhrun $PMF_CP2K -in geo-opt-${a}.inp > geo-opt-${a}.out\n")
@@ -526,7 +537,9 @@ class opt_run(cp2k):
                             fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                             fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                             fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                            fout.write("\t\t\tPERIODIC xyz\n")
+                            for item in self.force_eval.subsys.cell.params:
+                                if self.force_eval.subsys.cell.params[item] is not None:
+                                    fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                             fout.write("EOF\n")
                             fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${c}.inp\n")
                             fout.write("  yhrun $PMF_CP2K -in geo-opt-${c}.inp > geo-opt-${c}.out\n")
@@ -606,7 +619,9 @@ class opt_run(cp2k):
                             fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                             fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                             fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                            fout.write("\t\t\tPERIODIC xyz\n")
+                            for item in self.force_eval.subsys.cell.params:
+                                if self.force_eval.subsys.cell.params[item] is not None:
+                                    fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                             fout.write("EOF\n")
                             fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}.inp\n")
                             fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -inp geo-opt-${a}-${c}.inp > geo-opt-${a}-${c}.out\n")
@@ -627,7 +642,9 @@ class opt_run(cp2k):
                             fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                             fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                             fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                            fout.write("\t\t\tPERIODIC xyz\n")
+                            for item in self.force_eval.subsys.cell.params:
+                                if self.force_eval.subsys.cell.params[item] is not None:
+                                    fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                             fout.write("EOF\n")
                             fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
                             fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -in geo-opt-${a}.inp > geo-opt-${a}.out\n")
@@ -652,7 +669,9 @@ class opt_run(cp2k):
                             fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                             fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                             fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                            fout.write("\t\t\tPERIODIC xyz\n")
+                            for item in self.force_eval.subsys.cell.params:
+                                if self.force_eval.subsys.cell.params[item] is not None:
+                                    fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                             fout.write("EOF\n")
                             fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${c}.inp\n")
                             fout.write("  mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -in geo-opt-${c}.inp > geo-opt-${c}.out\n")
@@ -727,7 +746,9 @@ class opt_run(cp2k):
                             fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                             fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                             fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                            fout.write("\t\t\tPERIODIC xyz\n")
+                            for item in self.force_eval.subsys.cell.params:
+                                if self.force_eval.subsys.cell.params[item] is not None:
+                                    fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                             fout.write("EOF\n")
                             fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}.inp\n")
                             fout.write("  %s $PMF_CP2K -inp geo-opt-${a}-${c}.inp | tee geo-opt-${a}-${c}.out\n" % self.run_params["mpi"])
@@ -748,7 +769,9 @@ class opt_run(cp2k):
                             fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                             fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                             fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                            fout.write("\t\t\tPERIODIC xyz\n")
+                            for item in self.force_eval.subsys.cell.params:
+                                if self.force_eval.subsys.cell.params[item] is not None:
+                                    fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                             fout.write("EOF\n")
                             fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
                             fout.write("  %s $PMF_CP2K -in geo-opt-${a}.inp | tee geo-opt-${a}.out\n" % self.run_params["mpi"])
@@ -773,7 +796,9 @@ class opt_run(cp2k):
                             fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                             fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                             fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                            fout.write("\t\t\tPERIODIC xyz\n")
+                            for item in self.force_eval.subsys.cell.params:
+                                if self.force_eval.subsys.cell.params[item] is not None:
+                                    fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                             fout.write("EOF\n")
                             fout.write("  cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${c}.inp\n")
                             fout.write("  %s $PMF_CP2K -in geo-opt-${c}.inp | tee geo-opt-${c}.out\n" % self.run_params["mpi"])
@@ -987,7 +1012,9 @@ class opt_run(cp2k):
                             fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                             fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                             fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                            fout.write("\t\t\tPERIODIC XYZ\n")
+                            for item in self.force_eval.subsys.cell.params:
+                                if self.force_eval.subsys.cell.params[item] is not None:
+                                    fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                             fout.write("EOF\n")
                             fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}.inp\n")
                             fout.write("    yhrun $PMF_CP2K -in geo-opt-${a}-${c}.inp > geo-opt-${a}-${c}.out\n")
@@ -1008,7 +1035,9 @@ class opt_run(cp2k):
                             fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                             fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                             fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                            fout.write("\t\t\tPERIODIC XYZ\n")
+                            for item in self.force_eval.subsys.cell.params:
+                                if self.force_eval.subsys.cell.params[item] is not None:
+                                    fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                             fout.write("EOF\n")
                             fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
                             fout.write("    yhrun $PMF_CP2K -in geo-opt-${a}.inp > geo-opt-${a}.out\n")
@@ -1033,7 +1062,9 @@ class opt_run(cp2k):
                             fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                             fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                             fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                            fout.write("\t\t\tPERIODIC XYZ\n")
+                            for item in self.force_eval.subsys.cell.params:
+                                if self.force_eval.subsys.cell.params[item] is not None:
+                                    fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                             fout.write("EOF\n")
                             fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
                             fout.write("    yhrun $PMF_CP2K -in geo-opt-${a}.inp > geo-opt-${a}.out\n")
@@ -1111,7 +1142,9 @@ class opt_run(cp2k):
                             fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                             fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                             fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                            fout.write("\t\t\tPERIODIC XYZ\n")
+                            for item in self.force_eval.subsys.cell.params:
+                                if self.force_eval.subsys.cell.params[item] is not None:
+                                    fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                             fout.write("EOF\n")
                             fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}.inp\n")
                             fout.write("    mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -in geo-opt-${a}-${c}.inp > geo-opt-${a}-${c}.out\n")
@@ -1132,7 +1165,9 @@ class opt_run(cp2k):
                             fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                             fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                             fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                            fout.write("\t\t\tPERIODIC XYZ\n")
+                            for item in self.force_eval.subsys.cell.params:
+                                if self.force_eval.subsys.cell.params[item] is not None:
+                                    fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                             fout.write("EOF\n")
                             fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
                             fout.write("    mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -in geo-opt-${a}.inp > geo-opt-${a}.out\n")
@@ -1157,7 +1192,9 @@ class opt_run(cp2k):
                             fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                             fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                             fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                            fout.write("\t\t\tPERIODIC XYZ\n")
+                            for item in self.force_eval.subsys.cell.params:
+                                if self.force_eval.subsys.cell.params[item] is not None:
+                                    fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                             fout.write("EOF\n")
                             fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
                             fout.write("    mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -in geo-opt-${a}.inp > geo-opt-${a}.out\n")
@@ -1229,7 +1266,9 @@ class opt_run(cp2k):
                             fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                             fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                             fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                            fout.write("\t\t\tPERIODIC XYZ\n")
+                            for item in self.force_eval.subsys.cell.params:
+                                if self.force_eval.subsys.cell.params[item] is not None:
+                                    fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                             fout.write("EOF\n")
                             fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}.inp\n")
                             fout.write("    %s $PMF_CP2K -in geo-opt-${a}-${c}.inp | tee geo-opt-${a}-${c}.out\n" % self.run_params["mpi"])
@@ -1250,7 +1289,9 @@ class opt_run(cp2k):
                             fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                             fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                             fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                            fout.write("\t\t\tPERIODIC XYZ\n")
+                            for item in self.force_eval.subsys.cell.params:
+                                if self.force_eval.subsys.cell.params[item] is not None:
+                                    fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                             fout.write("EOF\n")
                             fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
                             fout.write("    %s $PMF_CP2K -in geo-opt-${a}.inp | tee geo-opt-${a}.out\n" % self.run_params["mpi"])
@@ -1275,7 +1316,9 @@ class opt_run(cp2k):
                             fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                             fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                             fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                            fout.write("\t\t\tPERIODIC XYZ\n")
+                            for item in self.force_eval.subsys.cell.params:
+                                if self.force_eval.subsys.cell.params[item] is not None:
+                                    fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                             fout.write("EOF\n")
                             fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}.inp\n")
                             fout.write("    %s $PMF_CP2K -in geo-opt-${a}.inp | tee geo-opt-${a}.out\n" % self.run_params["mpi"])
@@ -1515,7 +1558,9 @@ class opt_run(cp2k):
                         fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                         fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                         fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                        fout.write("\t\t\tPERIODIC XYZ\n")
+                        for item in self.force_eval.subsys.cell.params:
+                            if self.force_eval.subsys.cell.params[item] is not None:
+                                fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))                        
                         fout.write("EOF\n")
                         fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}-${c}.inp\n")
                         fout.write("    %s $PMF_CP2K -in geo-opt-${a}-${b}-${c}.inp | tee geo-opt-${a}-${b}-${c}.out\n" % self.run_params["mpi"])
@@ -1578,7 +1623,9 @@ class opt_run(cp2k):
                         fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                         fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                         fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                        fout.write("\t\t\tPERIODIC XYZ\n")
+                        for item in self.force_eval.subsys.cell.params:
+                            if self.force_eval.subsys.cell.params[item] is not None:
+                                fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                         fout.write("EOF\n")
                         fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}-${c}.inp\n")
                         fout.write("    mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -in geo-opt-${a}-${b}-${c}.inp | tee geo-opt-${a}-${b}-${c}.out\n")
@@ -1634,7 +1681,9 @@ class opt_run(cp2k):
                         fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                         fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                         fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                        fout.write("\t\t\tPERIODIC XYZ\n")
+                        for item in self.force_eval.subsys.cell.params:
+                            if self.force_eval.subsys.cell.params[item] is not None:
+                                fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                         fout.write("EOF\n")
                         fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}-${c}.inp\n")
                         fout.write("    %s $PMF_CP2K -in geo-opt-${a}-${b}-${c}.inp | tee geo-opt-${a}-${b}-${c}.out\n" % self.run_params["mpi"])
@@ -1705,7 +1754,9 @@ class opt_run(cp2k):
                         fout.write("\t\t\tA ${vec11} ${vec12} ${vec13}\n")
                         fout.write("\t\t\tB ${vec21} ${vec22} ${vec23}\n")
                         fout.write("\t\t\tC ${vec31} ${vec32} ${vec33}\n")
-                        fout.write("\t\t\tPERIODIC XYZ\n")
+                        for item in self.force_eval.subsys.cell.params:
+                            if self.force_eval.subsys.cell.params[item] is not None:
+                                fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                         fout.write("EOF\n")
                         fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}-${c}.inp\n")
                         fout.write("    %s $PMF_CP2K -in geo-opt-${a}-${b}-${c}.inp | tee geo-opt-${a}-${b}-${c}.out\n" % self.run_params["mpi"])
