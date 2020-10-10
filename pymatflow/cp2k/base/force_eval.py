@@ -83,7 +83,6 @@ class cp2k_force_eval:
         self.dft.status = True
         self.dft.mgrid.params["CUTOFF"] = 100
         self.dft.mgrid.params["REL_CUTOFF"]= 60
-        self.dft.poisson.status = True
 
     def set_params(self, params):
         """
