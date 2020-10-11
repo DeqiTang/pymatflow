@@ -483,6 +483,9 @@ def main():
     gp.add_argument("--eps-scf", type=float, default=1.0e-6,
             help="target accuracy for the scf convergence, default is 1.0e-6")
 
+    gp.add_argument("--level-shift", type=float, default=None,
+            help="Use level shifting to improve convergence, default is 0.0")
+
     gp.add_argument("--max-scf-history", type=int, default=None, #0
             help="Maximum number of SCF iterations after the history pipeline is filled")
             
@@ -541,6 +544,36 @@ def main():
     gp.add_argument("--mixing-nbuffer", type=int, default=None, # default is 4
             help="Number of previous steps stored for the actual mixing scheme. default is 4")
 
+    # outer scf
+    gp.add_argument("--outer-scf", type=str, default=None, # "FALSE",
+            choices=["TRUE", "FALSE", "true", "false"],
+            help="controls the activation of the outer SCF loop")
+
+    gp.add_argument("--outer-scf-bisect-trust-count", type=int, default=None,
+            help="Maximum number of times the same point will be used in bisection, a small number guards against the effect of wrongly converged states.")
+
+    gp.add_argument("--outer-scf-diis-buffer-length", type=int, default=None,
+            help="Maximum number of DIIS vectors used")
+
+    gp.add_argument("--outer-scf-extrapolation-order", type=int, default=None,
+            choices=[1, 2, 3, 4],
+            help="Number of past states used in the extrapolation of the variables during e.g. MD")
+
+    gp.add_argument("--outer-scf-eps-scf", type=str, default=None,
+            help="The target gradient of the outer SCF variables. Notice that the EPS_SCF of the inner loop also determines the value that can be reached in the outer loop, typically EPS_SCF of the outer loop must be smaller than or equal to EPS_SCF of the inner loop.")
+
+    gp.add_argument("--outer-scf-max-scf", type=int, default=None,
+            help="The maximum number of outer loops")
+
+    gp.add_argument("--outer-scf-optimizer", type=str, default=None,
+            choices=["BISECT", "BROYDEN", "DIIS", "NEWTON", "NEWTON_LS", "NONE", "SD", "SECANT", "bisect", "broyden", "diis", "newton", "newton_ls", "none", "sd", "secant"],
+            help="Method used to bring the outer loop to a stationary point")
+
+    gp.add_argument("--outer-scf-type", type=str, default=None,
+            choices=["BASIS_CENTER_OPT", "CDFT_CONSTRAINT", "DDAPC_CONSTRAINT", "NONE", "S2_CONSTRAINT", "basis_center_opt", "cdft_constraint", "ddapc_constraint", "none"],
+            help="Specifies which kind of outer SCF should be employed ")
+    
+    # smear
     gp.add_argument("--smear", type=str, default=None, #"FALSE",
             choices=["TRUE", "FALSE", "true", "false"],
             help="controls the activation of smearing")
@@ -553,6 +586,9 @@ def main():
 
     gp.add_argument("--electronic-temp", type=float, default=None, #300,
             help="Electronic temperature in the case of Fermi-Dirac smearing in unit of [K], default is 300")
+
+    gp.add_argument("--eps-fermi-dirac", type=float, default=None,
+            help="Accuracy checks on occupation numbers use this as a tolerance. default is 1.0E-10")
 
     gp.add_argument("--window-size", type=float, default=None, #0,
             help="size of the energy window centred at the Fermi level for energy_window type smearing")
@@ -2370,13 +2406,27 @@ def main():
         params["FORCE_EVAL-DFT-SCF-MAX_SCF"] = args.max_scf if "FORCE_EVAL-DFT-SCF-MAX_SCF" not in params or args.max_scf != None else params["FORCE_EVAL-DFT-SCF-MAX_SCF"]
         params["FORCE_EVAL-DFT-QS-EPS_DEFAULT"] = args.eps_default if "FORCE_EVAL-DFT-QS-EPS_DEFAULT" not in params or args.eps_default != None else params["FORCE_EVAL-DFT-QS-EPS_DEFAULT"]
         params["FORCE_EVAL-DFT-SCF-EPS_SCF"] = args.eps_scf if "FORCE_EVAL-DFT-SCF-EPS_SCF" not in params or  args.eps_scf != None else params["FORCE_EVAL-DFT-SCF-EPS_SCF"]
+        params["FORCE_EVAL-DFT-SCF-LEVEL_SHIFT"] = args.level_shift if "FORCE_EVAL-DFT-SCF-LEVEL_SHIFT" not in params or  args.level_shift != None else params["FORCE_EVAL-DFT-SCF-LEVEL_SHIFT"]
         params["FORCE_EVAL-DFT-SCF-MAX_SCF_HISTORY"] = args.max_scf_history if "FORCE_EVAL-DFT-SCF-MAX_SCF_HISTORY" not in params or args.max_scf_history != None else params["FORCE_EVAL-DFT-SCF-MAX_SCF_HISTORY"]
         params["FORCE_EVAL-DFT-SCF-MAX_DIIS"] = args.max_diis if "FORCE_EVAL-DFT-SCF-MAX_DIIS" not in params or args.max_diis != None else params["FORCE_EVAL-DFT-SCF-MAX_DIIS"]
         params["FORCE_EVAL-DFT-SCF-ADDED_MOS"] = args.added_mos if "FORCE_EVAL-DFT-SCF-ADDED_MOS" not in params or  args.added_mos != None else params["FORCE_EVAL-DFT-SCF-ADDED_MOS"]
+       
+
+        params["FORCE_EVAL-DFT-SCF-OUTER_SCF"] = args.outer_scf if "FORCE_EVAL-DFT-SCF-OUTER_SCF" not in params or  args.outer_scf != None else params["FORCE_EVAL-DFT-SCF-OUTER_SCF"]
+        params["FORCE_EVAL-DFT-SCF-OUTER_SCF-BISECT_TRUST_COUNT"] = args.outer_scf_bisect_trust_count if "FORCE_EVAL-DFT-SCF-OUTER_SCF-BISECT_TRUST_COUNT" not in params or  args.outer_scf_bisect_trust_count != None else params["FORCE_EVAL-DFT-SCF-OUTER_SCF-BISECT_TRUST_COUNT"]
+        params["FORCE_EVAL-DFT-SCF-OUTER_SCF-DIIS_BUFFER_LENGTH"] = args.outer_scf_diis_buffer_length if "FORCE_EVAL-DFT-SCF-OUTER_SCF-DIIS_BUFFER_LENGTH" not in params or  args.outer_scf_diis_buffer_length != None else params["FORCE_EVAL-DFT-SCF-OUTER_SCF-DIIS_BUFFER_LENGTH"]
+        params["FORCE_EVAL-DFT-SCF-OUTER_SCF-EXTRAPOLATION_ORDER"] = args.outer_scf_extrapolation_order if "FORCE_EVAL-DFT-SCF-OUTER_SCF-EXTRAPOLATION_ORDER" not in params or  args.outer_scf_extrapolation_order != None else params["FORCE_EVAL-DFT-SCF-OUTER_SCF-EXTRAPOLATION_ORDER"]
+        params["FORCE_EVAL-DFT-SCF-OUTER_SCF-EPS_SCF"] = args.outer_scf_eps_scf if "FORCE_EVAL-DFT-SCF-OUTER_SCF-EPS_SCF" not in params or  args.outer_scf_eps_scf != None else params["FORCE_EVAL-DFT-SCF-OUTER_SCF-EPS_SCF"]
+        params["FORCE_EVAL-DFT-SCF-OUTER_SCF-MAX_SCF"] = args.outer_scf_max_scf if "FORCE_EVAL-DFT-SCF-OUTER_SCF-MAX_SCF" not in params or  args.outer_scf_max_scf != None else params["FORCE_EVAL-DFT-SCF-OUTER_SCF-MAX_SCF"]
+        params["FORCE_EVAL-DFT-SCF-OUTER_SCF-OPTIMIZER"] = args.outer_scf_optimizer if "FORCE_EVAL-DFT-SCF-OUTER_SCF-OPTIMIZER" not in params or  args.outer_scf_optimizer != None else params["FORCE_EVAL-DFT-SCF-OUTER_SCF-OPTIMIZER"]
+        params["FORCE_EVAL-DFT-SCF-OUTER_SCF-TYPE"] = args.outer_scf_type if "FORCE_EVAL-DFT-SCF-OUTER_SCF-TYPE" not in params or  args.outer_scf_type != None else params["FORCE_EVAL-DFT-SCF-OUTER_SCF-TYPE"]
+
         params["FORCE_EVAL-DFT-SCF-SMEAR"] = args.smear if "FORCE_EVAL-DFT-SCF-SMEAR" not in params or  args.smear != None else params["FORCE_EVAL-DFT-SCF-SMEAR"]
         params["FORCE_EVAL-DFT-SCF-SMEAR-METHOD"] = args.smear_method if "FORCE_EVAL-DFT-SCF-SMEAR-METHOD" not in params or args.smear_method != None else params["FORCE_EVAL-DFT-SCF-SMEAR-METHOD"]
         params["FORCE_EVAL-DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE"] = args.electronic_temp if "FORCE_EVAL-DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE" not in params or  args.electronic_temp != None else params["FORCE_EVAL-DFT-SCF-SMEAR-ELECTRONIC_TEMPERATURE"]
+        params["FORCE_EVAL-DFT-SCF-SMEAR-EPS_FERMI_DIRAC"] = args.eps_fermi_dirac if "FORCE_EVAL-DFT-SCF-SMEAR-EPS_FERMI_DIRAC" not in params or  args.esp_fermi_dirac != None else params["FORCE_EVAL-DFT-SCF-SMEAR-EPS_FERMI_DIRAC"]
         params["FORCE_EVAL-DFT-SCF-SMEAR-WINDOW_SIZE"] = args.window_size if "FORCE_EVAL-DFT-SCF-SMEAR-WINDOW_SIZE" not in params or  args.window_size != None else params["FORCE_EVAL-DFT-SCF-SMEAR-WINDOW_SIZE"]
+        
         params["FORCE_EVAL-DFT-SCF-DIAGONALIZATION"] = args.diag if "FORCE_EVAL-DFT-SCF-DIAGONALIZATION" not in params or  args.diag != None else params["FORCE_EVAL-DFT-SCF-DIAGONALIZATION"]
         params["FORCE_EVAL-DFT-SCF-DIAGONALIZATION-ALGORITHM"] = args.diag_algo if "FORCE_EVAL-DFT-SCF-DIAGONALIZATION-ALGORITHM" not in params or  args.diag_algo != None else params["FORCE_EVAL-DFT-SCF-DIAGONALIZATION-ALGORITHM"]
         params["FORCE_EVAL-DFT-SCF-OT"] = args.ot if "FORCE_EVAL-DFT-SCF-OT" not in params or  args.ot != None else params["FORCE_EVAL-DFT-SCF-OT"]
@@ -2384,6 +2434,7 @@ def main():
         params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"] = args.mixing_alpha if "FORCE_EVAL-DFT-SCF-MIXING-ALPHA" not in params or  args.mixing_alpha != None else params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"]
         params["FORCE_EVAL-DFT-SCF-MIXING-BETA"] = args.mixing_beta if "FORCE_EVAL-DFT-SCF-MIXING-BETA" not in params or  args.mixing_beta != None else params["FORCE_EVAL-DFT-SCF-MIXING-BETA"]
         params["FORCE_EVAL-DFT-SCF-MIXING-NBUFFER"] = args.mixing_nbuffer if "FORCE_EVAL-DFT-SCF-MIXING-NBUFFER" not in params or  args.mixing_nbuffer != None else params["FORCE_EVAL-DFT-SCF-MIXING-NBUFFER"]        
+        
         params["FORCE_EVAL-DFT-KPOINTS-SCHEME"] = args.kpoints_scheme if "FORCE_EVAL-DFT-KPOINTS-SCHEME" not in params or  args.kpoints_scheme != None else params["FORCE_EVAL-DFT-KPOINTS-SCHEME"]
         params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"] = args.vdw_potential_type if "FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE" not in params or  args.vdw_potential_type != None else params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"]
         params["FORCE_EVAL-DFT-SCF-OT-PRECONDITIONER"] = args.ot_preconditioner if "FORCE_EVAL-DFT-SCF-OT-PRECONDITIONER" not in params or args.ot_preconditioner != None else params["FORCE_EVAL-DFT-SCF-OT-PRECONDITIONER"]

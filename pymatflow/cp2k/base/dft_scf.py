@@ -1307,6 +1307,10 @@ class cp2k_dft_scf:
                 sys.exit(1)
             """
             self.smear.to_input(fout)
+        
+        if self.outer_scf.section != None and self.outer_scf.section.upper() == "TRUE":
+            self.outer_scf.to_input(fout)
+
         if self.printout.status == True:
             self.printout.to_input(fout)
         fout.write("\t\t&END SCF\n")
