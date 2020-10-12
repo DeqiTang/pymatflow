@@ -1520,7 +1520,7 @@ class opt_run(cp2k):
                         fout.write("\n")
                         fout.write("# get begin and end line number of the cell block in geo-opt.inp.template\n")
                         fout.write("cell_block_begin=`cat geo-opt.inp.template | grep -n \'&CELL\' | head -n 1 | cut -d \':\' -f1`\n")
-                        fout.write("cell_block_end=`cat geo-opt.inp.template | grep -n \'&END CELL\' | head -n 1 | cut -d \':\' -f1\n`")
+                        fout.write("cell_block_end=`cat geo-opt.inp.template | grep -n \'&END CELL\' | head -n 1 | cut -d \':\' -f1`\n")
                         fout.write("\n")
 
                         fout.write("a_in=%f\n" % a)
@@ -1562,7 +1562,7 @@ class opt_run(cp2k):
                             if self.force_eval.subsys.cell.params[item] is not None:
                                 fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))                        
                         fout.write("EOF\n")
-                        fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}-${c}.inp\n")
+                        fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${b}-${c}.inp\n")
                         fout.write("    %s $PMF_CP2K -in geo-opt-${a}-${b}-${c}.inp | tee geo-opt-${a}-${b}-${c}.out\n" % self.run_params["mpi"])
                         fout.write("done\n")
                         fout.write("done\n")
@@ -1572,7 +1572,7 @@ class opt_run(cp2k):
                     
 
                     # gen pbs script
-                    with open("opt-tetragonal-%d-%d-%d.pbs" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
+                    with open("opt-abc-%d-%d-%d.pbs" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
                         fout.write("#!/bin/bash\n")
                         fout.write("#PBS -N %s-%d-%d-%d\n" % (self.run_params["jobname"], i_batch_a, i_batch_b, i_batch_c))
                         fout.write("#PBS -l nodes=%d:ppn=%d\n" % (self.run_params["nodes"], self.run_params["ppn"]))
@@ -1585,7 +1585,7 @@ class opt_run(cp2k):
                         fout.write("\n")
                         fout.write("# get begin and end line number of the cell block in geo-opt.inp.template\n")
                         fout.write("cell_block_begin=`cat geo-opt.inp.template | grep -n \'&CELL\' | head -n 1 | cut -d \':\' -f1`\n")
-                        fout.write("cell_block_end=`cat geo-opt.inp.template | grep -n \'&END CELL\' | head -n 1 | cut -d \':\' -f1\n`")
+                        fout.write("cell_block_end=`cat geo-opt.inp.template | grep -n \'&END CELL\' | head -n 1 | cut -d \':\' -f1`\n")
                         fout.write("\n")
 
                         fout.write("a_in=%f\n" % a)
@@ -1627,7 +1627,7 @@ class opt_run(cp2k):
                             if self.force_eval.subsys.cell.params[item] is not None:
                                 fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                         fout.write("EOF\n")
-                        fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}-${c}.inp\n")
+                        fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${b}-${c}.inp\n")
                         fout.write("    mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_CP2K -in geo-opt-${a}-${b}-${c}.inp | tee geo-opt-${a}-${b}-${c}.out\n")
                         fout.write("done\n")
                         fout.write("done\n")
@@ -1636,13 +1636,13 @@ class opt_run(cp2k):
 
 
                     # gen local bash script
-                    with open("opt-tetragonal.sh", 'w') as fout:
+                    with open("opt-abc.sh", 'w') as fout:
                         fout.write("#!/bin/bash\n")
 
                         fout.write("\n")
                         fout.write("# get begin and end line number of the cell block in geo-opt.inp.template\n")
                         fout.write("cell_block_begin=`cat geo-opt.inp.template | grep -n \'&CELL\' | head -n 1 | cut -d \':\' -f1`\n")
-                        fout.write("cell_block_end=`cat geo-opt.inp.template | grep -n \'&END CELL\' | head -n 1 | cut -d \':\' -f1\n`")
+                        fout.write("cell_block_end=`cat geo-opt.inp.template | grep -n \'&END CELL\' | head -n 1 | cut -d \':\' -f1`\n")
                         fout.write("\n")
 
 
@@ -1685,7 +1685,7 @@ class opt_run(cp2k):
                             if self.force_eval.subsys.cell.params[item] is not None:
                                 fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                         fout.write("EOF\n")
-                        fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}-${c}.inp\n")
+                        fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${b}-${c}.inp\n")
                         fout.write("    %s $PMF_CP2K -in geo-opt-${a}-${b}-${c}.inp | tee geo-opt-${a}-${b}-${c}.out\n" % self.run_params["mpi"])
                         fout.write("done\n")
                         fout.write("done\n")
@@ -1717,7 +1717,7 @@ class opt_run(cp2k):
                         fout.write("\n")
                         fout.write("# get begin and end line number of the cell block in geo-opt.inp.template\n")
                         fout.write("cell_block_begin=`cat geo-opt.inp.template | grep -n \'&CELL\' | head -n 1 | cut -d \':\' -f1`\n")
-                        fout.write("cell_block_end=`cat geo-opt.inp.template | grep -n \'&END CELL\' | head -n 1 | cut -d \':\' -f1\n`")
+                        fout.write("cell_block_end=`cat geo-opt.inp.template | grep -n \'&END CELL\' | head -n 1 | cut -d \':\' -f1`\n")
                         fout.write("\n")
                         
                         fout.write("a_in=%f\n" % a)
@@ -1758,7 +1758,7 @@ class opt_run(cp2k):
                             if self.force_eval.subsys.cell.params[item] is not None:
                                 fout.write("\t\t\t%s %s\n" % (item, self.force_eval.subsys.cell.params[item]))
                         fout.write("EOF\n")
-                        fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${c}-${c}.inp\n")
+                        fout.write("    cat geo-opt.inp.template | tail -n +${cell_block_end} >> geo-opt-${a}-${b}-${c}.inp\n")
                         fout.write("    %s $PMF_CP2K -in geo-opt-${a}-${b}-${c}.inp | tee geo-opt-${a}-${b}-${c}.out\n" % self.run_params["mpi"])
                         fout.write("done\n")
                         fout.write("done\n")
@@ -1778,7 +1778,7 @@ class opt_run(cp2k):
 
             fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a[0], range_a[2], a+range_a[1]))
             fout.write("do\n")
-            fout.write("for b in `seq -2 %f %f %f`\n" % (b+range_b[0], range_b[2], b+range_b[1]))
+            fout.write("for b in `seq -w %f %f %f`\n" % (b+range_b[0], range_b[2], b+range_b[1]))
             fout.write("do\n")
             fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c[0], range_c[2], c+range_c[1]))
             fout.write("do\n")
@@ -1786,18 +1786,9 @@ class opt_run(cp2k):
             fout.write("  cat >> energy-latconst.data <<EOF\n")
             fout.write("${a} ${b} ${c} ${energy:48:-1}\n")
             fout.write("EOF\n")
-            
-            #fout.write("cat > energy-latconst.gp<<EOF\n")
-            #fout.write("set term gif\n")
-            #fout.write("set output 'energy-latconst.gif'\n")
-            #fout.write("set title 'Energy Latconst'\n")
-            #fout.write("set xlabel 'latconst(a)'\n")
-            #fout.write("set ylabel 'latconst(c)'\n")
-            #fout.write("set zlabel 'Energy'\n")
-            #fout.write("splot 'energy-latconst.data'\n")
-            #fout.write("EOF\n")
-            #fout.write("\n")
-            #fout.write("gnuplot energy-latconst.gp")
+            fout.write("done\n")
+            fout.write("done\n")
+            fout.write("done\n")
 
         os.chdir("../")
         
