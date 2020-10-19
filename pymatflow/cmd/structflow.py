@@ -2,6 +2,7 @@
 
 import os
 import sys
+import numpy as np
 import argparse
 
 
@@ -328,6 +329,20 @@ def main():
     subparser.add_argument("-o", "--output", type=str, required=True,
             help="output structure file")
      
+    # ------------------------------------------------------------------------------------
+    # generate series of cell volume changed structures
+    # ------------------------------------------------------------------------------------
+    subparser = subparsers.add_parser("cv", help="generate series of cell volume changed structures")
+
+    subparser.add_argument("-i", "--input", type=str, required=True,
+            help="input structure file")
+
+    subparser.add_argument("-d", "--directory", type=str, default="./",
+            help="directory to put the generated structures")
+
+    subparser.add_argument("--range", type=float, nargs=3, default=[0.95, 1.05, 0.01],
+            help="cell volume change ratio, default is [0.95, 1.05, 0.01]")
+
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
     # ==========================================================
@@ -648,7 +663,51 @@ def main():
         
         normalized = set_frac_within_zero_and_one(structure=a)
         # output structure
-        write_structure(structure=normalized, filepath=args.output)                  
+        write_structure(structure=normalized, filepath=args.output)           
+    elif args.driver == "cv":
+        from pymatflow.structure.crystal import crystal
+        from pymatflow.base.atom import Atom
+        a = read_structure(filepath=args.input)
+        print("=======================================================================\n")
+        print("                       structflow\n")
+        print("-----------------------------------------------------------------------\n")
+        print("you are trying to get a series of structure with different volume\n")            
+        print("from %s\n" % (args.input))
+        print("\n")
+        print("the output dir for structure file is -> %s\n" % args.directory)
+
+        # now calc the fractional coordinates
+        atoms_frac = []
+        latcell = np.array(a.cell)
+        convmat = np.linalg.inv(latcell.T)
+        for i in range(len(a.atoms)):
+            atom = []
+            atom.append(a.atoms[i].name)
+            atom = atom + list(convmat.dot(np.array([a.atoms[i].x, a.atoms[i].y, a.atoms[i].z])))
+            atoms_frac.append(atom)
+        #
+        out = crystal()
+        os.system("mkdir -p %s" % args.directory)
+        for i, ratio_v in enumerate(np.arange(args.range[0], args.range[1], args.range[2])):
+            ratio = np.power(ratio_v, 1/3)
+
+            # now convert coord of atom in atoms_frac_within_new_cell to cartesian
+            out.atoms = []
+            out.cell = (np.array(a.cell) * ratio).tolist()
+            latcell = np.array(out.cell)
+            convmat_frac_to_cartesian = latcell.T
+            for atom in atoms_frac:
+                cartesian = list(convmat_frac_to_cartesian.dot(np.array([atom[1], atom[2], atom[3]])))
+                out.atoms.append(Atom(name=atom[0], x=cartesian[0], y=cartesian[1], z=cartesian[2]))
+            output_name = ".".join(os.path.basename(args.input).split(".")[:-1] + ["%d" % i, "cif"])
+            write_structure(out, filepath=os.path.join(args.directory, output_name))
+            #            
+        with open(os.path.join(args.directory, "log.txt"), 'w') as fout:
+            fout.write("# index\tratio_v\tvolume(Angstrom^3)\n")
+            for i, ratio_v in enumerate(np.arange(args.range[0], args.range[1], args.range[2])):
+                ratio = np.power(ratio_v, 1/3)
+                cell_now = (np.array(a.cell) * ratio).tolist()
+                fout.write("%d\t%f\t%f\n" % (i, ratio_v, np.linalg.det(cell_now)))
     # --------------------------------------------------------------------------
 
 
