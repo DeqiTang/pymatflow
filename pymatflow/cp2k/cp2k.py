@@ -190,6 +190,8 @@ class cp2k:
             self.force_eval.dft.printout.xray_diffraction_spectrum.status = True
         if 13 in option:
             self.force_eval.properties.resp.status = True
+        if 14 in option:
+            self.force_eval.dft.printout.moments.status = True
 
     def set_run(self, mpi="", server="pbs", jobname="cp2k", nodes=1, ppn=32, queue=None):
         """ used to set  the parameters controlling the running of the task

@@ -92,8 +92,12 @@ class phonopy_run(vasp):
                 fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
                 fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
                 fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                fout.write("cat > INCAR<<EOF\n")
+                self.incar.to_incar(fout)
+                fout.write("EOF\n")                
                 for disp in disps:
                     fout.write("cd disp-%s\n" % disp)
+                    fout.write("cp ../INCAR .\n")
                     fout.write("yhrun $PMF_VASP_STD\n")
                     fout.write("cd ../\n")
 

@@ -639,7 +639,7 @@ def main():
 
     gp.add_argument("-p", "--printout-option", nargs="+", type=int,
             default=[],
-            choices = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+            choices = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
             help=
             """
             Properties printout option, you can also activate multiple prinout-option at the same time.
@@ -656,6 +656,7 @@ def main():
            11: printout v_xc_cube
            12: printout xray_diffraction_spectrum
            13: request a RESP fit of charges.
+           14: printout MOMENTS
            default is no printout of these properties.
            """)
 
@@ -666,6 +667,14 @@ def main():
     gp.add_argument("--dft-print-e-density-cube-stride", type=int, nargs="+",
             default=None, #[1, 1, 1],
             help="The stride (X,Y,Z) used to write the cube file (larger values result in smaller cube files). You can provide 3 numbers (for X,Y,Z) or 1 number valid for all components.")
+
+    gp.add_argument("--dft-print-moments-periodic", type=str, default=None,
+            choices=["TRUE", "FALSE", "true", "false"],
+            help="Use Berry phase formula (PERIODIC=T) or simple operator (PERIODIC=F). The latter normally requires that the CELL is periodic NONE.")
+
+    gp.add_argument("--dft-print-moments-reference", type=str, default=None,
+            choices=["COAC", "COM", "USER_DEFINED", "ZERO", "coac", "com", "user_defined", "zero"],
+            help="Define the reference point for the calculation of the electrostatic moment. default is ZERO")
 
     # FORCE_EVAL/PROPERTIES
     gp = subparser.add_argument_group(title="FORCE_EVAL/PROPERTIES")
@@ -2450,6 +2459,8 @@ def main():
         params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-RANGE"] = args.properties_resp_slab_sampling_range if "FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-RANGE" not in params or  args.properties_resp_slab_sampling_range != None else params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-RANGE"]
         params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-SURF_DIRECTION"] = args.properties_resp_slab_sampling_surf_direction if "FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-SURF_DIRECTION" not in params or  args.properties_resp_slab_sampling_surf_direction != None else params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-SURF_DIRECTION"]
         params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST"] = args.properties_resp_slab_sampling_atom_list if "FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST" not in params or  args.properties_resp_slab_sampling_atom_list != None else params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST"]
+        params["FORCE_EVAL-DFT-PRINT-MOMENTS-PERIODIC"] = args.dft_print_moments_periodic if "FORCE_EVAL-DFT-PRINT-MOMENTS-PERIODIC" not in params or args.dft_print_moments_periodic != None else params["FORCE_EVAL-DFT-PRINT-MOMENTS-PERIODIC"]
+        params["FORCE_EVAL-DFT-PRINT-MOMENTS-REFERENCE"] = args.dft_print_moments_reference if "FORCE_EVAL-DFT-PRINT-MOMENTS-REFERENCE" not in params or args.dft_print_moments_reference != None else params["FORCE_EVAL-DFT-PRINT-MOMENTS-REFERENCE"]
 
         params["MOTION-GEO_OPT-MAX_ITER"] = args.geo_opt_max_iter if "MOTION-GEO_OPT-MAX_ITER" not in params or  args.geo_opt_max_iter != None else params["MOTION-GEO_OPT-MAX_ITER"]
         params["MOTION-GEO_OPT-OPTIMIZER"] = args.geo_opt_optimizer if "MOTION-GEO_OPT-OPTIMIZER" not in params or  args.geo_opt_optimizer != None else params["MOTION-GEO_OPT-OPTIMIZER"]
@@ -2652,6 +2663,7 @@ def main():
             from pymatflow.cp2k.vib import vib_run
             task = vib_run()
             task.get_xyz(xyzfile)
+            task.set_printout(option=args.printout_option)
             task.set_params(params=params)
             task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=basis_file, potential_file=pot_file)
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
@@ -2686,6 +2698,7 @@ def main():
             from pymatflow.cp2k.md import md_run
             task = md_run()
             task.get_xyz(xyzfile)
+            task.set_printout(option=args.printout_option)
             task.set_params(params=params)
             task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=basis_file, potential_file=pot_file)
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)

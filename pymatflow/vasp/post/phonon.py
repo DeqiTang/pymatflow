@@ -92,7 +92,8 @@ class phonon_post:
 
         with open("post-processing/phonon-analysis.sh", 'w') as fout:
             fout.write("#!/bin/bash\n\n")
-            #fout.write("cp ../phonopy_disp.yaml ./")
+            #fout.write("cp ../phonopy_disp.yaml ./\n")
+            #fout.write("cp ../disp.yaml ./\n")
             #fout.write("cp ../POSCAR ./\n")
             fout.write("cp ../POSCAR-original-unitcell ./\n")
             fout.write("# generate the FORCE_SET\n")

@@ -91,7 +91,11 @@ class phonopy_post:
 
         with open("post-processing/phonopy-analysis.sh", 'w') as fout:
             fout.write("#!/bin/bash\n\n")
-            fout.write("cp ../phonopy_disp.yaml ./")
+            fout.write("cp ../phonopy_disp.yaml ./\n")
+            fout.write("cp ../disp.yaml ./\n")
+            # From phonopy v2.0, displacements are written into "phonopy_disp.yaml".
+            # "disp.yaml" is still supported for reading except for Wien2k interface, 
+            # so we now cp both possible phonopy_disp.yaml and disp.yaml to current dir
             fout.write("cp ../POSCAR ./\n")
             fout.write("# generate the FORCE_SET\n")
             fout.write("phonopy -f ../disp-{001..%s}/vasprun.xml\n" % (disps[-1]))
