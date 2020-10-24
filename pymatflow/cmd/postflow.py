@@ -397,6 +397,8 @@ def main():
             default=[1, 1, 1],
             help="supercell for phonopy, like [2, 2, 2]")
             
+    subparser.add_argument("--tmax", type=float, default=1500,
+            help="phonopy thermo properties calc temperature max")
 
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
@@ -703,7 +705,7 @@ def main():
             task.supercell_n = args.supercell_n
             task.get_kpath(get_kpath(args.kpath_manual, args.kpath_file))
             task.get_xyz(xyzfile)
-            task.export(directory=args.directory, engine=args.engine)
+            task.export(directory=args.directory, engine=args.engine, tmax=args.tmax)
         elif args.runtype == 7:
             # phonopy
             from pymatflow.vasp.post.phonopy import phonopy_post
@@ -711,7 +713,7 @@ def main():
             task.supercell_n = args.supercell_n
             task.get_kpath(get_kpath(args.kpath_manual, args.kpath_file))
             task.get_xyz(xyzfile)
-            task.export(directory=args.directory, engine=args.engine)
+            task.export(directory=args.directory, engine=args.engine, tmax=args.tmax)
         elif args.runtype == 10:
             # aimd
             from pymatflow.vasp.post.md import md_post

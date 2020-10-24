@@ -18,7 +18,7 @@ class phonopy_post:
         self.xyz = base_xyz()
         self.xyz.get_xyz(filepath)
 
-    def export(self, directory, engine="matplotlib"):
+    def export(self, directory, engine="matplotlib", tmax=1500):
         os.chdir(directory)
         os.system("ls | grep 'POSCAR-' > pos.data")
         disps = []
@@ -102,9 +102,9 @@ class phonopy_post:
             fout.write("# plot The density of states (DOS)\n")
             fout.write("phonopy -p mesh.conf -s\n")
             fout.write("# Thermal properties are calculated with the sampling mesh by:\n")
-            fout.write("phonopy -t mesh.conf\n")
+            fout.write("phonopy -t mesh.conf --tmax %f\n" % tmax)
             fout.write("# Thermal properties can be plotted by:\n")
-            fout.write("phonopy -t -p mesh.conf -s\n")
+            fout.write("phonopy -t -p mesh.conf -s --tmax %f\n" % tmax)
             fout.write("# calculate Projected DOS and plot it\n")
             fout.write("phonopy -p pdos.conf -s\n")
             fout.write("# plot band structure\n")
