@@ -227,11 +227,11 @@ class pdos_out:
 
         # export pdos projected to atom and orbital l
         if self.magnetic_status == "collinear-spin-unpolarized":
-            with open(os.path.join(directory, "pdos-projected-to-atom-and-orbital-l"), 'w') as fout:
+            with open(os.path.join(directory, "pdos-projected-to-atom-and-orbital-l.data"), 'w') as fout:
                 fout.write("# efermi shifted to 0 already, previous efermi=%f\n" % self.efermi)
                 fout.write("#Energy")
                 for atmorb in self.data_0:
-                    fout.write(" Atom(%d):%s-%s" % (self.get_elem_type(atmorb), self.get_orb_type(atmorb)))
+                    fout.write(" Atom(%d):%s-%s" % (self.get_atom_num(atmorb), self.get_elem_type(atmorb), self.get_orb_type(atmorb)))
                 fout.write("\n")
                 for i in range(len(self.energies)):
                     fout.write("%.9f" % self.energies[i])
@@ -239,11 +239,11 @@ class pdos_out:
                         fout.write("  %.9f" % self.data_0[atmorb]["ldos"][i])
                     fout.write("\n")
         elif self.magnetic_status == "collinear-spin-polarized":
-            with open(os.path.join(directory, "pdos-projected-to-atom-and-orbital-l"), 'w') as fout:
+            with open(os.path.join(directory, "pdos-projected-to-atom-and-orbital-l.data"), 'w') as fout:
                 fout.write("# efermi shifted to 0 already, previous efermi=%f\n" % self.efermi)
                 fout.write("#Energy")
                 for atmorb in self.data_0:
-                    fout.write(" Atom(%d):%s-%s-up Atom(%d):%s-%s-down" % (self.get_elem_type(atmorb), self.get_orb_type(atmorb), self.get_elem_type(atmorb), self.get_orb_type(atmorb)))
+                    fout.write(" Atom(%d):%s-%s-up Atom(%d):%s-%s-down" % (self.get_atom_num(atmorb), self.get_elem_type(atmorb), self.get_orb_type(atmorb), self.get_atom_num(atmorb), self.get_elem_type(atmorb), self.get_orb_type(atmorb)))
                 fout.write("\n")
                 for i in range(len(self.energies)):
                     fout.write("%.9f" % self.energies[i])
@@ -452,6 +452,7 @@ class pdos_out:
     def export(self, directory="tmp-qe-static", plotrange=[0, 1.0], atomtoproj=[], fontsize=10):
         os.chdir(directory)
         os.system("mkdir -p post-processing")
+        self.export_data(directory="post-processing")
         self.plot_elem_orb_l_proj(plotrange=plotrange, filename="post-processing/pdos-specified-range.png", fontsize=fontsize)
         self.plot_atom_orb_l_proj(plotrange=plotrange, atomtoproj=atomtoproj, filename="post-processing/pdos-atomproj-specified-range.png", fontsize=fontsize)
         self.plot_tdos(plotrange=plotrange, filename="post-processing/tdos-specified-range.png")

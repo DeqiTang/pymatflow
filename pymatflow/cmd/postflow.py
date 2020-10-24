@@ -203,7 +203,7 @@ def main():
     subparser = subparsers.add_parser("qe", help="using quantum espresso as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8],
+            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 11],
             help="choices of runtype. 0->static_run; 1->relax; 2->vc-relax; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->neb; 7->dfpt; 8->phonopy")
 
 
@@ -281,7 +281,15 @@ def main():
     subparser.add_argument("--yrange", type=float, nargs=2,
             default=None,
             help="y range of the plot")
-            
+
+    gp = subparser.add_argument_group(title="converge test",
+            description="converge test for ecutrho ecutwfc degauss kpoints")
+    
+    gp.add_argument("--converge", type=str, default="ecutwfc",
+            choices=["ecutwfc", "ecutrho", "degauss", "kpoints"],
+            help="choose what to do converge test, ecutwfc or ecutrho or degauss, or kpoints")
+
+
     # --------------------------------------------------------------------------
     # SIESTA
     # --------------------------------------------------------------------------
@@ -597,6 +605,10 @@ def main():
         elif args.runtype == 8:
             # phonopy phonon
             os.system("post-qe-phonopy.py -d %s -f %s --qpath-file %s --supercell-n %d %d %d --engine %s" % (args.directory, xyzfile, args.kpath_file, args.supercell_n[0], args.supercell_n[1], args.supercell_n[2], args.engine))
+        elif args.runtype == 11:
+            from pymatflow.qe.post.converge import converge_post
+            task = converge_post()
+            task.postprocess(directory=args.directory, converge=args.converge)
         else:
             pass
 # ==============================================================================

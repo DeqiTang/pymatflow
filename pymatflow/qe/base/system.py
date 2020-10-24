@@ -133,6 +133,22 @@ class qe_system:
                     for i in range(len(self.params[item])):
                         fout.write("starting_magnetization(%d) = %f\n" % (i+1, self.params[item][i]))
                     continue
+                if item == "Hubbard_U":
+                    for i in range(len(self.params[item])):
+                        fout.write("Hubbard_U(%d) = %f\n" % (i+1, self.params[item][i]))
+                    continue
+                if item == "Hubbard_J0":
+                    for i in range(len(self.params[item])):
+                        fout.write("Hubbard_J0(%d) = %f\n" % (i+1, self.params[item][i]))
+                    continue
+                if item == "Hubbard_alpha":
+                    for i in range(len(self.params[item])):
+                        fout.write("Hubbard_alpha(%d) = %f\n" % (i+1, self.params[item][i]))
+                    continue
+                if item == "Hubbard_beta":
+                    for i in range(len(self.params[item])):
+                        fout.wrte("Hubbard_beta(%d) = %f\n" %(i+1, self.params[item][i]))
+                #
                 if type(self.params[item]) == str:
                     if self.params[item] == ".true." or self.params[item] == ".false.":
                         fout.write("%s = %s\n" % (item, str(self.params[item])))

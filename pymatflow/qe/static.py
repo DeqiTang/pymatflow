@@ -416,7 +416,7 @@ class static_run(pwscf):
             for i in range(n_test + 1):
                 degauss = degauss_min + i * step
                 inp_name = "degauss-%f.in" % degauss
-                self.control.params['outdir'] = './tmp-' + str(degauss)
+                self.control.params['outdir'] = './tmp-%f' % degauss
                 #self.arts.set_kpoints([nk, nk, nk, 0, 0, 0]) # use the previously convered kpoints(automatic)
                 self.system.params['degauss'] = degauss
                 with open(inp_name, 'w') as fout:

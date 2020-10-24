@@ -956,8 +956,8 @@ def main():
     gp = subparser.add_argument_group(title="overall running control")
 
     gp.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-            help="choices of runtype. 0->static_run; 1->relax; 2->vc-relax; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->neb; 7->dfpt; 8->phonopy; 9->pp.x; 10->abc")
+            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+            help="choices of runtype. 0->static_run; 1->relax; 2->vc-relax; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->neb; 7->dfpt; 8->phonopy; 9->pp.x; 10->abc; 11->converge")
 
     gp.add_argument("--static", type=str, default="all",
             choices=["all", "scf"],
@@ -1049,12 +1049,10 @@ def main():
     # &control
     gp = subparser.add_argument_group(title="pw.x->control")
 
-    gp.add_argument("--etot-conv-thr",
-            type=float, default=1.0e-4,
+    gp.add_argument("--etot-conv-thr", type=float, default=None, #1.0e-4,
             help="convergence threshold of energy for geometric optimization")
 
-    gp.add_argument("--forc-conv-thr",
-            type=float, default=1.0e-3,
+    gp.add_argument("--forc-conv-thr", type=float, default=None, #1.0e-3,
             help="convergence threshold for force in optimization,(usually it is more important than energy)")
 
     gp.add_argument("--tstress", type=str, default=".false.",
@@ -1092,6 +1090,15 @@ def main():
     gp.add_argument("--nosym", type=str, default=None,
             choices=[".true.", ".false."],
             help="Do not use this option unless you know exactly what you want and what you get. May be useful in the following cases: - in low-symmetry large cells, if you cannot afford a k-point grid with the correct symmetry - in MD simulations - in calculations for isolated atoms")
+    
+    gp.add_argument("--nosym-evc", type=str, default=None,
+            choices=[".true.", ".false."],
+            help="if (.TRUE.) symmetry is not used, and k points are forced to have the symmetry of the Bravais lattice;")
+
+    gp.add_argument("--noinv", type=str, default=None,
+            choices=[".true.", ".false"],
+            help="if (.TRUE.) disable the usage of k => -k symmetry(time reversal) in k-point generation")
+    
 
     # magnetic related parameters
     gp.add_argument("--nspin", type=int, default=None,
@@ -1104,6 +1111,60 @@ def main():
     gp.add_argument("--noncolin", type=str, default=None,
             choices=[".true.", ".false."],
             help="if .true. the program will perform a noncollinear calculation.")
+    # DFT+U
+    gp.add_argument("--lda-plus-u", type=str, default=None,
+            choices=[".true.", ".false."],
+            help="DFT+U (formerly known as LDA+U) currently works only for a few selected elements. Modify Modules/set_hubbard_l.f90 and PW/src/tabd.f90 if you plan to use DFT+U with an element that is not configured there.")
+
+    gp.add_argument("--lda-plus-u-kind", type=int, default=None,
+            choices=[0, 1, 2],
+            help="0   DFT+U simplified version of Cococcioni and de Gironcoli, using Hubbard_U;  1   DFT+U rotationally invariant scheme of Liechtenstein et al.,using Hubbard U and Hubbard J; 2   DFT+U+V simplified version of Campo Jr and Cococcioni, using Hubbard V")
+
+    gp.add_argument("--hubbard-u", type=float, nargs="+", default=None,
+            help="Hubbard_U(i): U parameter (eV) for species i, DFT+U calculation")
+
+    gp.add_argument("--hubbard-j0", type=float, nargs="+", default=None,
+            help="Hubbard_J0(i): J0 parameter (eV) for species i, DFT+U+J calculation")
+
+    gp.add_argument("--hubbard-alpha", type=float, default=None,
+            help="Hubbard_alpha(i) is the perturbation (on atom i, in eV) used to compute U with the linear-response method of Cococcioni and de Gironcoli(only for lda_plus_u_kind=0)")
+
+    gp.add_argument("--hubbard-beta", type=float, default=None,
+            help="Hubbard_beta(i) is the perturbation (on atom i, in eV) used to compute J0 with the linear-response method of Cococcioni and de Gironcoli(only for lda_plus_u_kind=0)")
+
+    gp.add_argument("--u-projection-type", type=str, default=None,
+            choices=["atomic", "ortho-atomic", "norm-atomic", "file", "pseudo"],
+            help="Only active when lda_plus_U is .true., specifies the type of projector on localized orbital to be used in the DFT+U scheme. default is atomic")
+
+    # Hybrid functional
+    gp.add_argument("--input-dft", type=str, default="pbe",
+            choices=["pbe", "pbe0", "b3lyp", "hse", "vdw-DF"], 
+            help="Exchange-correlation functional: eg 'PBE', 'BLYP' etc")
+
+    gp.add_argument("--ace", type=str, default=None,
+            choices=[".true.", ".false."],
+            help="Use Adaptively Compressed Exchange operator as in Lin Lin, J. Chem. Theory Comput. 2016, 12, 2242--2249, Set to false to use standard Exchange (much slower)")
+
+    gp.add_argument("--exx-fraction", type=float, default=None,
+            help="Fraction of EXX for hybrid functional calculations. In the case of input_dft='PBE0', the default value is 0.25, while for input_dft='B3LYP' the exx_fraction default value is 0.20.")
+
+    gp.add_argument("--screening-parameter", type=float, default=None,
+            help="screening_parameter for HSE like hybrid functionals., default is 0.106")
+
+    gp.add_argument("--exxdiv-treatment", type=str, default=None,
+            choices=["gygi-baldereschi", "vcut_spherical", "vcut_ws", "none"],
+            help="Specific for EXX. It selects the kind of approach to be used for treating the Coulomb potential divergencies at small q vectors.")
+    
+    gp.add_argument("--x-gamma-extrapolation", type=str, default=None,
+            choices=[".true.", ".false."],
+            help="Specific for EXX. If .true., extrapolate the G=0 term of the potential ")
+
+    gp.add_argument("--ecutvcut", type=float, default=None,
+            help="Reciprocal space cutoff for correcting Coulomb potential divergencies at small q vectors.")
+
+    gp.add_argument("--nqx", type=float, nargs=3, default=[None, None, None], 
+            help="Three-dimensional mesh for q (k1-k2) sampling of the Fock operator (EXX). Can be smaller than the number of k-points. Currently this defaults to the size of the k-point mesh used. In QE =< 5.0.2 it defaulted to nqx1=nqx2=nqx3=1.")
+
     # &electrons
     gp = subparser.add_argument_group(title="pw.x->electrons")
 
@@ -1170,10 +1231,6 @@ def main():
             help="Kpoints generation scheme option for the SCF or non-SCF calculation")
 
     gp.add_argument("--kpoints-mp", type=int, nargs=6,
-            default=[1, 1, 1, 0, 0, 0],
-            help="Monkhorst-Pack kpoint grid, in format like --kpoints-mp 1 1 1 0 0 0")
-
-    gp.add_argument("--kpoints-mp-scf", type=int, nargs=6,
             default=[1, 1, 1, 0, 0, 0],
             help="Monkhorst-Pack kpoint grid, in format like --kpoints-mp 1 1 1 0 0 0")
 
@@ -1399,6 +1456,23 @@ def main():
             
     gp.add_argument("--phin", type=str, default=None,
             help="read parameters from ph.x input template")            
+
+    # converge test
+    gp = subparser.add_argument_group(title="converge test",
+            description="converge test for ecutrho ecutwfc degauss kpoints")
+    
+    gp.add_argument("--converge", type=str, default="ecutwfc",
+            choices=["ecutwfc", "ecutrho", "degauss", "kpoints"],
+            help="choose what to do converge test, ecutwfc or ecutrho or degauss, or kpoints")
+            
+    gp.add_argument("--ecutwfc-range", type=int, nargs=3,
+            help="test range for ecutwfc, like --ecutwfc-range 30 120 10")
+
+    gp.add_argument("--ecutrho-range", type=int, nargs=3,
+            help="test range for ecutrho, like --ecutrho-range 600 1000 50")
+
+    gp.add_argument("--degauss-range", type=float, nargs=3,
+            help="test range for degauss, like --degauss-range 0.001 0.02 0.001")
 
     # --------------------------------------------------------------------------
     # SIESTA
@@ -2759,11 +2833,33 @@ def main():
         system["nbnd"] = args.nbnd if "nbnd" not in system or args.nbnd != None else system["nbnd"]
         system["tot_charge"] = args.tot_charge if "tot_charge" not in system or args.tot_charge != None else system["tot_charge"]
         system["nosym"] = args.nosym if "nosym" not in system or args.nosym != None else system["nosym"]
+        system["nosym_evc"] = args.nosym_evc if "nosym_evc" not in system or args.nosym_evc != None else system["nosym_evc"]
+        system["noinv"] = args.noinv if "noinv" not in system or args.noinv != None else system["noinv"]
 
         system["nspin"] = args.nspin if "nspin" not in system or args.nspin != None else system["nspin"]
         system["starting_magnetization"] = args.starting_magnetization if "starting_magnetization" not in system or args.starting_magnetization != None else system["starting_magnetization"]
         system["noncolin"] = args.noncolin if "noncolin" not in system or args.nnoncolin != None else system["noncolin"]
         
+        system["lda_plus_u"] = args.lda_plus_u if "lda_plus_u" not in system or args.lda_plus_u != None else system["lda_plus_u"]
+        system["lda_plus_u_kind"] = args.lda_plus_u_kind if "lda_plus_u_kind" not in system or args.lda_plus_u_Kind != None else system["lda_plus_u_kind"]
+        system["Hubbard_U"] = args.hubbard_u if "Hubbard_U" not in system or args.hubbard_u != None else system["Hubbard_U"]
+        system["Hubbard_J0"] = args.hubbard_j0 if "Hubbard_J0" not in system or args.hubbard_j0 != None else system["Hubbard_J0"]
+        system["Hubbard_alpha"] = args.hubbard_alpha if "Hubbard_alpha" not in system or args.hubbard_alpha != None else system["Hubbard_alpha"]
+        system["Hubbard_beta"] = args.hubbard_beta if "Hubbard_beta" not in system or args.hubbard_beta != None else system["Hubbard_beta"]
+        system["U_projection_type"] = args.u_projection_type if "U_projection_type" not in system or args.u_projection_type != None else system["U_projection_type"]
+        
+        system["input_dft"] = args.input_dft if "input_dft" not in system or args.input_dft != None else params["input_dft"]
+        system["ace"] = args.ace if "ace" not in system or args.ace != None else params["ace"]
+        system["exx_fraction"]  = args.exx_fraction if "exx_fraction" not in system or args.exx_fraction != None else params["exx_fraction"]
+        system["screening_parameter"] = args.screening_parameter if "screening_parameter" not in system or args.screening_parameter != None else params["screening_parameter"]
+        system["exxdiv_treatment"] = args.exxdiv_treatment if "exxdiv_treatment" not in system or args.exxdiv_treatment != None else params["exxdiv_treatment"]
+        system["x_gamma_extrapolation"] = args.x_gamma_extrapolation if "x_gamma_extrapolation" not in system or args.x_gamma_extrapolation != None else params["x_gamma_extrapolation"]
+        system["ecutvcut"] = args.ecutvcut if "ecutvcut" not in system or args.ecutvcut != None else params["ecutvcut"]
+        system["nqx1"] = args.nqx[0] if "nqx1" not in system or args.nqx[0] != None else params["nqx1"]
+        system["nqx2"] = args.nqx[1] if "nqx2" not in system or args.nqx[1] != None else params["nqx2"]
+        system["nqx3"] = args.nqx[2] if "nqx3" not in system or args.nqx[2] != None else params["nqx3"]
+        
+
         electrons["electron_maxstep"] = args.electron_maxstep if "electron_maxstep" not in electrons or args.electron_maxstep != None else electrons["electron_maxstep"]
         electrons["conv_thr"] = args.conv_thr if "conv_thr" not in electrons or args.conv_thr != None else electrons["conv_thr"]
         electrons["mixing_beta"] = args.mixing_beta if "mixing_beta" not in electrons or args.mixing_beta != None else electrons["mixing_beta"]
@@ -2854,7 +2950,7 @@ def main():
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             if args.static == "all":
-                task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpath=get_kpath(args.kpath_manual, args.kpath_file), kpoints_mp_scf=args.kpoints_mp_scf, kpoints_mp_nscf=args.kpoints_mp_nscf)
+                task.run(directory=args.directory, runopt=args.runopt, auto=args.auto, kpath=get_kpath(args.kpath_manual, args.kpath_file), kpoints_mp_scf=args.kpoints_mp, kpoints_mp_nscf=args.kpoints_mp_nscf)
             elif args.static == "scf":
                 task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 1:
@@ -3033,6 +3129,24 @@ def main():
             task.batch_b = args.batch_b
             task.batch_c = args.batch_c     
             task.abc(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_b=args.range_b, range_c=args.range_c)
+        elif args.runtype == 11:
+            # converge test
+            from pymatflow.qe.static import static_run
+            
+            task = static_run()
+            task.get_xyz(xyzfile)
+            task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
+            task.set_params(control=control, system=system, electrons=electrons, ions=ions)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            if args.converge == "ecutwfc":            
+                task.converge_ecutwfc(args.ecutwfc_range[0], args.ecutwfc_range[1], args.ecutwfc_range[2], directory=args.directory, runopt=args.runopt, auto=args.auto)
+            elif args.converge == "ecutrho":
+                task.converge_ecutrho(args.ecutrho_range[0], args.ecutrho_range[1], args.ecutrho_range[2], args.ecutwfc, directory=args.directory, runopt=args.runopt, auto=args.auto)
+            elif args.converge == "degauss":
+                task.converge_degauss(round(args.degauss_range[0], 6), round(args.degauss_range[1], 6), round(args.degauss_range[2], 6), directory=args.directory, runopt=args.runopt, auto=args.auto)
+            elif args.converge == "kpoints":
+                pass
         else:
             pass
 

@@ -132,17 +132,23 @@ class bands_post:
                 if len(line.split()) == 0:
                     break
                 len_xcoord += 1
+            # specified band range
             begin = int(nbnd*bandrange[0])
             end = int(nbnd*bandrange[1])
-            with open(os.path.join("post-processing", self.bandfile_gnu+".bandrange"), 'w') as fout:
+            with open(os.path.join("post-processing", self.bandfile_gnu+".bandrange.data"), 'w') as fout:
                 for i in range(begin, end):
                     for k in range((i*(len_xcoord+1)), i*(len_xcoord+1)+len_xcoord, 1):
                         fout.write(band_data_gnu[k])
                     fout.write("\n")
+            # all band
+            with open(os.path.join("post-processing", self.bandfile_gnu+".allband.data"), "w") as fout:
+                for i in range(0, nbnd, 1):
+                    for k in range((i*(len_xcoord+1)), i*(len_xcoord+1)+len_xcoord, 1):
+                        fout.write(band_data_gnu[k])
+                    fout.write("\n")
             #
-            with open(os.path.join("post-processing", "bandplot.gp"), 'w') as fout:
+            with open(os.path.join("post-processing", "bandplot.gnuplot"), 'w') as fout:
                 fout.write("set terminal gif\n")
-                fout.write("set output 'bandstructure.gif'\n")
                 fout.write("unset key\n")
                 fout.write("set parametric\n")
 
@@ -213,8 +219,12 @@ class bands_post:
                 fout.write("set autoscale\n")
                 fout.write("# fermi energy shifted to zero by use using 1:($2-%f) in plot function\n" % self.efermi)
                 fout.write("# and data in %s file is not modified at all, and is as it is\n" % self.bandfile_gnu)
+                fout.write("set output 'bandstructure.bandrange.gif'\n")
                 fout.write("plot ")
-                fout.write("'%s' using 1:($2-%f) w l" % (self.bandfile_gnu+".bandrange", self.efermi))
+                fout.write("'%s' using 1:($2-%f) w l\n" % (self.bandfile_gnu+".bandrange.data", self.efermi))
+                fout.write("set output 'bandstructure.allband.gif'\n")
+                fout.write("plot ")
+                fout.write("'%s' using 1:($2-%f) w l\n" % (self.bandfile_gnu+".allband.data", self.efermi))
                 #
                 #for i in range(len(self.specialk) - 1):
                 #    fout.write(", %f, t" % (self.specialk[i]["xcoord"]))
@@ -222,8 +232,8 @@ class bands_post:
                 #
                 fout.write("\n")
             os.chdir("post-processing")
-            os.system("gnuplot bandplot.gp")
-            os.system("eog bandstructure.gif")
+            os.system("gnuplot bandplot.gnuplot")
+            os.system("eog bandstructure.bandrange.gif")
             os.chdir("../")
 
         elif option == "matplotlib":

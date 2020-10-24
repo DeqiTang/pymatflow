@@ -11,6 +11,7 @@ class converge_post:
         # analyse the result
         self.criteria_for_ecutwfc = 7.35e-4 # 10 meV = 7.35e-4 Ry
         self.criteria_for_ecutrho = 7.35e-5
+        self.criteria_for_degauss = 7.35e-5 
         self.criteria_for_kpoints = 7.35e-3 # 7.35e-4
 
     def postprocess(self, directory, converge):
@@ -19,7 +20,7 @@ class converge_post:
             directory of the converge test running
         converge:
             type of the converge running, it can be
-            ecutwfc, ecutrho, kpoints
+            ecutwfc, ecutrho, degauss, kpoints
         """
         os.chdir(directory)
         if converge == "ecutwfc":
@@ -46,6 +47,18 @@ class converge_post:
             for x in x_all:
                 outfiles.append("ecutrho-%d.out" % x)
 
+        elif converge == "degauss":
+            x_all = []
+            for f in os.listdir():
+                if f.split(".")[-1] == "out" and f[0:8] == "degauss-":
+                    x_all.append(float(f.split(".out")[0].split("-")[1]))
+            # we must sort the x_all
+            x_all.sort()
+
+            outfiles = []
+            for x in x_all:
+                outfiles.append("degauss-%f.out" % x)
+
         elif converge == "kpoints":
             x_all = []
             for f in os.listdir():
@@ -59,7 +72,7 @@ class converge_post:
                 outfiles.append("kpoints-%d.out" % x)
         else:
             print("qe.post.converge.converge_post class can only deal with\n")
-            print("ecutwfc, ecutrho, kpoints now\n")
+            print("ecutwfc, ecutrho, degauss, kpoints now\n")
             sys.exit(1)
 
         
@@ -76,6 +89,9 @@ class converge_post:
                 energy_all.append(float(line.split()[4]))
 
         plt.plot(x_all, energy_all, marker='o')
+
+        os.system("mkdir -p post-processing")
+        os.chdir("post-processing")
         if converge == "ecutwfc":
             plt.title("Ecutwfc Converge Test", fontweight='bold', color='red')
             plt.xlabel("Ecutwfc (Ry)")
@@ -85,13 +101,21 @@ class converge_post:
             plt.savefig("energy-ecutwfc.png")
             self.md_report(converge=converge, suggested=x_all[self.judge(energy_all, self.criteria_for_ecutwfc)])
         elif converge == "ecutrho":
-            plt.title("Ecutrho COnverge Test", fontweight='bold', color='red')
+            plt.title("Ecutrho Converge Test", fontweight='bold', color='red')
             plt.xlabel("Ecurho (Ry)")
             plt.ylabel("Energy (Ry)")        
             plt.tight_layout()
             plt.grid(True)
             plt.savefig("energy-ecutrho.png")
             self.md_report(converge=converge, suggested=x_all[self.judge(energy_all, self.criteria_for_ecutrho)])
+        elif converge == "degauss":
+            plt.title("Degauss Converge Test", fontweight='bold', color='red')
+            plt.xlabel("Degauss (Ry)")
+            plt.ylabel("Energy (Ry)")        
+            plt.tight_layout()
+            plt.grid(True)
+            plt.savefig("energy-degauss.png")
+            self.md_report(converge=converge, suggested=x_all[self.judge_degauss(energy_all, self.criteria_for_degauss)])        
         elif converge == "kpoints":
             plt.title("Kpoints Converge Test", fontweight='bold', color='red')
             plt.xlabel("Kpoints")
@@ -104,9 +128,9 @@ class converge_post:
             print("qe.post.converge.converge_post class can only deal with\n")
             print("ecutwfc, ecutrho, kpoints now\n")
             sys.exit(1)
-        
+
         plt.show()
-        os.chdir("../")
+        os.chdir("../../")
 
     #
 
@@ -117,6 +141,22 @@ class converge_post:
         # means the last params
         for i in range(1, len(energies)):
             deltae = energies[i] - energies[i-1]
+            if abs(deltae) < criteria:
+                return i
+        # didn't satisfy the criteria return the last index
+        return -1
+
+    def judge_degauss(self, energies, criteria):
+        #
+        # return the index of the recommended value
+        # if criteria not reached return -1 which
+        # means the last params
+        # 
+        # degauss is different from ecutwfc and ecutrho as usually 
+        # a small value is better for degauss, while a large value is better for ecutwfc and ecutrho.
+        # so we define a unique judge function for degauss.
+        for i in range(len(energies)-2, -1, -1):
+            deltae = energies[i] - energies[i+1]
             if abs(deltae) < criteria:
                 return i
         # didn't satisfy the criteria return the last index
@@ -136,6 +176,8 @@ class converge_post:
                 fout.write("- 推荐值的依据为%s前后两值能量差小于%f[Ry]=%f[eV]\n" % (converge, self.criteria_for_ecutwfc, self.criteria_for_ecutwfc*13.6056923))
             if converge == "ecutrho":
                 fout.write("- 推荐值的依据为%s前后两值能量差小于%f[Ry]=%f[eV]\n" % (converge, self.criteria_for_ecutrho, self.criteria_for_ecutrho*13.6056923))
+            if converge == "degauss":
+                fout.write("- 推荐值的依据为%s前后两值能量差小于%f[Ry]=%f[eV]\n" % (converge, self.criteria_for_degauss, self.criteria_for_degauss*13.6056923))            
             if converge == "kpoints":
                 fout.write("- 推荐值的依据为%s前后两值能量差小于%f[Ry]=%f[eV]\n" % (converge, self.criteria_for_kpoints, self.criteria_for_kpoints*13.6056923))
             fout.write("### 能量变化趋势图\n")
