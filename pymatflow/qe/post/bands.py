@@ -2,6 +2,8 @@
 # _*_ coding: utf-8 _*_
 
 import os
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 def calc_carrier_effective_mass():
@@ -238,9 +240,6 @@ class bands_post:
 
         elif option == "matplotlib":
 
-            import numpy as np
-            import matplotlib.pyplot as plt
-
             with open(self.bandfile_dat, 'r') as fout:
                 lines = fout.readlines()
                 nbnd = int(lines[0].split()[2].split(",")[0])
@@ -335,12 +334,6 @@ class bands_post:
                 
         with open(self.bandfile_gnu, 'r') as fout:
             data =  np.loadtxt(fout)
-
-
-            for i in range(begin, end):
-                # here minus self.efermi means the plot will shift efermi to 0
-                # band the data variable is not modified.
-                plt.plot(data[i*nks:(i+1)*nks, 0], data[i*nks:(i+1)*nks, 1] - self.efermi)
                 
         is_metallic = False
         for i in range(nbnd):

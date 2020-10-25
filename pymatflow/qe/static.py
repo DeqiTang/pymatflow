@@ -1099,6 +1099,10 @@ class static_run(pwscf):
             self.arts.pseudo.dir = os.path.abspath(directory)
             self.control.set_params({"pseudo_dir": os.path.abspath(directory)})
             #
+            # check hybrid functional
+            # in pw.x non-scf calc, hybrid functional is not allowed
+            input_dft = self.system.params["input_dft"] if self.system.params["input_dft"] is not None else None
+
 
             # 1) scf
             self.control.calculation("scf")
@@ -1111,7 +1115,10 @@ class static_run(pwscf):
 
             # 2) nscf
             self.control.calculation("nscf")
+            # hybrid functional calc is not allowed in non-scf calc
             self.set_kpoints(kpoints_option="automatic", kpoints_mp=kpoints_mp_nscf)
+            if input_dft.lower() == "pbe0" or input_dft.lower() == "b3lyp" or input_dft.lower() == "hse":
+                self.system.params["input_dft"] = "pbe"
             with open(os.path.join(directory, "static-nscf.in"), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)
@@ -1157,6 +1164,8 @@ class static_run(pwscf):
             # 4) band structure
             self.control.calculation('bands')
             self.set_kpoints(kpoints_option="crystal_b", crystal_b=kpath)
+            if input_dft.lower() == "pbe0" or input_dft.lower() == "b3lyp" or input_dft.lower() == "hse":
+                self.system.params["input_dft"] = "pbe"            
             with open(os.path.join(directory, "static-bands.in"), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)

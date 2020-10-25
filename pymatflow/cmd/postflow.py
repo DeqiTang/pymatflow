@@ -560,6 +560,7 @@ def main():
             os.chdir(args.directory)
             task = bands_post(pwxbandsin="static-bands.in", bandsxout="bands.out")
             task.plot_band(option=args.engine, bandrange=args.bandrange, xrange=args.xrange, yrange=args.yrange)
+            task.print_gap()
             os.chdir("../")
             task = pdos_out()
             task.get_data(directory=args.directory, filpdos="projwfc")
