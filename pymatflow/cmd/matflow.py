@@ -867,6 +867,9 @@ def main():
     gp.add_argument("--thermochemistry", type=str, default=None, #"FALSE",
             help="Calculation of the thermochemical data. Valid for molecules in the gas phase.")
 
+    gp.add_argument("--vib-nproc-rep", type=int, default=None,
+            help="Specify the number of processors to be used per replica environment (for parallel runs). default is 1")
+
     #                   PHONOPY related parameters
     # ------------------------------------------------------------------
     gp = subparser.add_argument_group(title="phonopy:",
@@ -2588,6 +2591,7 @@ def main():
         params["VIBRATIONAL_ANALYSIS-TC_PRESSURE"] = args.tc_pressure if "VIBRATIONAL_ANALYSIS-TC_PRESSURE" not in params or  args.tc_pressure != None else params["VIBRATIONAL_ANALYSIS-TC_PRESSURE"]
         params["VIBRATIONAL_ANALYSIS-TC_TEMPERATURE"] = args.tc_temperature if "VIBRATIONAL_ANALYSIS-TC_TEMPERATURE" not in params or  args.tc_temperature != None else params["VIBRATIONAL_ANALYSIS-TC_TEMPERATURE"]
         params["VIBRATIONAL_ANALYSIS-THERMOCHEMISTRY"] = args.thermochemistry if "VIBRATIONAL_ANALYSIS-THERMOCHEMISTRY" not in params or  args.thermochemistry != None else params["VIBRATIONAL_ANALYSIS-THERMOCHEMISTRY"]
+        params["VIBRATIONAL_ANALYSIS-NPROC_REP"] = args.vib_nproc_rep if "VIBRATIONAL_ANALYSIS-NPROC_REP" not in params or  args.vib_nproc_rep != None else params["VIBRATIONAL_ANALYSIS-NPROC_REP"]
 
         
         # deal with POTENTIAL and BASIS SET

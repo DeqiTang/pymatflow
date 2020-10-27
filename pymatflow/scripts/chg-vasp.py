@@ -94,7 +94,9 @@ def main():
         data = np.fromstring(tmp_str, sep="\n")
         
     data = data.reshape(ngzf, ngyf, ngxf)
-    
+    # charge data in cube file is in shape (ngridx, ngridy, ngridz)
+    # while charge in *CHG* file is in shape (ngzf, ngyf, ngxf)
+    # they are different!    
     
     if 1 in args.output_option:
         # -------------------------------------------------------

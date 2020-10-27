@@ -84,7 +84,10 @@ def main():
         
     #data = data.reshape(ngridz, ngridy, ngridx)
     # grid data in cube is iterated in different compared to *CHG* of vasp
-    data = data.reshape(ngridx, ngridy, ngridz)
+    data = data.reshape(ngridx, ngridy, ngridz) 
+    # charge data in cube file is in shape (ngridx, ngridy, ngridz)
+    # while charge in *CHG* file is in shape (ngzf, ngyf, ngxf)
+    # they are different!
     
     
     # -------------------------------------------------------

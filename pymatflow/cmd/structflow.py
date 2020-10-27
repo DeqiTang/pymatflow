@@ -57,7 +57,7 @@ def write_structure(structure, filepath, frac=1):
     :param filepath: file path for the output structure file
         it will judge the file type by the suffix
     :param frac: output fractional coordinates, currently only used by POSCAR/CONTCAR
-        1(default): use faractional, 0: use cartesian
+        1(default): use fractional, 0: use cartesian
     """
     if filepath.split(".")[-1] == "xyz":
         structure.write_xyz(filepath=filepath)
