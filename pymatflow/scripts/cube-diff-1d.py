@@ -56,12 +56,12 @@ def main():
         with open(cube_filepath[i], "r") as fin:
             cube.append(fin.readlines())
 
+    bohr_to_angstrom = 0.529177249
     natoms_each_image = []
     for k in range(3):
         # read structure info
         natom = abs(int(cube[k][2].split()[0])) # it might be negative, if MO infor are included in cube file
         natoms_each_image.append(natom)
-        bohr_to_angstrom = 0.529177249
         structure = crystal()
         structure.cell = []
         for i in range(3):
@@ -117,11 +117,15 @@ def main():
     # data_iii dimension reduction
     data_sub = np.array(data_iii[0]) - np.array(data_iii[1]) - np.array(data_iii[2])
     # the unit of value is actually not physical now!
+    #
+    # cell_volume are in unit of Angstrom^3
     cell_volume = np.dot(np.cross(np.array(structure.cell[0]), np.array(structure.cell[1])), np.array(structure.cell[2]))
     cell_volume_per_unit = cell_volume / (ngridx * ngridy * ngridz)
     
-    # value in cube file are \rho(r)_of_electrons
-    total_electrons = np.sum(data_iii[0])  * cell_volume_per_unit
+    # value in cube file are \rho(r)_of_electrons in unit of e/Bohr^3
+    # namely number of electrons each Borh^3
+    # so we have to convert it to e/Angstrom^23, through divide it by borh_to_angstrom**3
+    total_electrons = np.sum(data_iii[0])  * cell_volume_per_unit / bohr_to_angstrom**3
     #
     
     print("======================================================\n")
@@ -132,7 +136,9 @@ def main():
     
     
     
-    # unit of data_red_? is e/Anstrom, namely number of electrons per Angstrom
+    # data_sub is in unit of e/Bohr^3
+    # we will build data_red_? to be in unit of e/Anstrom, namely number of electrons per Angstrom
+    # to do this we have to time the volume density with bohr_to_angstrom^-3
     data_red_a = []
     data_red_b = []
     data_red_c = []
@@ -142,7 +148,7 @@ def main():
             tmp = 0
             for bi in range(data_sub.shape[1]):
                 tmp += np.sum(data_sub[:, bi, ci])
-            nelect_ci = tmp * cell_volume_per_unit
+            nelect_ci = tmp * cell_volume_per_unit / bohr_to_angstrom**3
             rho_line = nelect_ci / len_ci
             data_red_c.append(rho_line)
     if "b" in args.abscissa:
@@ -151,7 +157,7 @@ def main():
             tmp = 0
             for ai in range(data_sub.shape[0]):
                 tmp += np.sum(data_sub[ai, bi, :])
-            nelect_bi = tmp * cell_volume_per_unit
+            nelect_bi = tmp * cell_volume_per_unit / bohr_to_angstrom**3
             rho_line = nelect_bi / len_bi                
             data_red_b.append(rho_line)
     if "a" in args.abscissa:
@@ -160,7 +166,7 @@ def main():
             tmp = 0
             for ci in range(data_sub.shape[2]):
                 tmp += np.sum(data_sub[ai, :, ci])
-            nelect_ai = tmp * cell_volume_per_unit
+            nelect_ai = tmp * cell_volume_per_unit / bohr_to_angstrom**3
             rho_line = nelect_ai / len_ai                   
             data_red_a.append(rho_line)    
 
