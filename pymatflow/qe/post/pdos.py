@@ -17,7 +17,7 @@ class pdos_out:
         self.tdos = None
         self.energies = None
 
-    def get_data(self, directory="tmp-qe-static", filpdos="projwfc"):
+    def get_data(self, directory="tmp-qe-static", filpdos="projwfc", usefermi="scf"):
         """
         this function first try to get fermi energy from the nscfout file
         and if nscfout doesn't exist it will try to extract fermi energy
@@ -64,30 +64,23 @@ class pdos_out:
 
         self.energies = self.tdos[:, 0]
 
-        # get fermi energy from nscf output
+        # get fermi energy from scf or nscf output
         scfout = "static-scf.out"
         nscfout = "static-nscf.out"
-        if os.path.exists(os.path.join(directory, nscfout)):
-            with open(os.path.join(directory, nscfout), 'r') as fin:
-                for line in fin:
-                    if len(line.split()) == 0:
-                        continue
-                    if line.split()[0] == "the" and line.split()[1] == "Fermi":
-                        efermi = float(line.split()[4])
-        elif os.path.exists(os.path.join(directory, scfout)):
+        if usefermi == "scf":
             with open(os.path.join(directory, scfout), 'r') as fin:
                 for line in fin:
                     if len(line.split()) == 0:
                         continue
                     if line.split()[0] == "the" and line.split()[1] == "Fermi":
                         efermi = float(line.split()[4])
-        else:
-            print("===========================================================\n")
-            print("                Warning !!!\n")
-            print("===========================================================\n")
-            print("PDOS postprocessing:\n")
-            print("must provide nscfout or at least scfout to get Fermi energy\n")
-            sys.exit(1)
+        elif usefermi == "nscf":
+            with open(os.path.join(directory, nscfout), 'r') as fin:
+                for line in fin:
+                    if len(line.split()) == 0:
+                        continue
+                    if line.split()[0] == "the" and line.split()[1] == "Fermi":
+                        efermi = float(line.split()[4])
         # shift fermie energy to 0
         for i in range(len(self.energies)):
             self.energies[i] = self.energies[i] - efermi
@@ -96,8 +89,8 @@ class pdos_out:
         print("qe.post.pdos:\n")
         print("we automatically shift the fermi energy\n")
         print("from %f to 0\n" % efermi)
-        print("efermi is read from static-nscf.out\n")
-        print("or statis-scf.out, if static-nscf.out is not available\n")
+        print("efermi is read from %s\n" % ("statis-scf.out" if usefermi == "scf" else "statis-nscf.out"))
+        print("you can choose to read efermi from scf or nscf output by --use-fermi")
         #
         # tranfser self.data to new data structure for better usage:
         self._transfer_data_to_new_struct()

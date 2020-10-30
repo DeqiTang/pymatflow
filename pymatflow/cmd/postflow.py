@@ -219,6 +219,10 @@ def main():
     subparser.add_argument("--bandrange", type=float, nargs="+",
             default=[0, 1.0],
             help="band range to plot. in percentage")
+ 
+    subparser.add_argument("--use-fermi", type=str, default="scf",
+            choices=["scf", "nscf"],
+            help="choose to extracr fermi energy from scf or nscf output. default is scf")
 
     subparser.add_argument("--engine", type=str, default="matplotlib",
             choices=["matplotlib", "gnuplot"],
@@ -558,12 +562,12 @@ def main():
             from pymatflow.qe.post.bands import bands_post
             from pymatflow.qe.post.pdos import pdos_out
             os.chdir(args.directory)
-            task = bands_post(pwxbandsin="static-bands.in", bandsxout="bands.out")
+            task = bands_post(pwxbandsin="static-bands.in", bandsxout="bands.out", usefermi=args.use_fermi)
             task.plot_band(option=args.engine, bandrange=args.bandrange, xrange=args.xrange, yrange=args.yrange)
             task.print_gap()
             os.chdir("../")
             task = pdos_out()
-            task.get_data(directory=args.directory, filpdos="projwfc")
+            task.get_data(directory=args.directory, filpdos="projwfc", usefermi=args.use_fermi)
             task.export(directory=args.directory, plotrange=args.plotrange, atomtoproj=args.atomtoproj, fontsize=args.fontsize)
 
         elif args.runtype == 1:

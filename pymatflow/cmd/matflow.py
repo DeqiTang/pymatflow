@@ -1183,7 +1183,8 @@ def main():
     gp.add_argument("--mixing-ndim", type=float, default=None,
             help="number of iterations used in mixing scheme. If you are tight with memory, you may reduce it to 4 or so.")
 
-    gp.add_argument("--diagonalization", type=float, default=None,
+    gp.add_argument("--diagonalization", type=str, default=None,
+            choices=["david", "cg", "ppcg", "paro"],
             help="Available options are: david cg ppcg paro")
 
     gp.add_argument("--scf-must-converge", type=str, default=None,

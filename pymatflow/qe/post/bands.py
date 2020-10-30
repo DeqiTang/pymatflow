@@ -15,12 +15,14 @@ def calc_band_gap():
 class bands_post:
     """
     """
-    def __init__(self, pwxbandsin, bandsxout):
+    def __init__(self, pwxbandsin, bandsxout, usefermi="scf"):
         """
         pwxbandin:
             the input file for the pw.x band calculation. used to get the special kpoints names.
         bandsxout:
             used to get the x coordinate of the special kpoints
+        usefermi:
+            choose to extracr fermi energy from scf or nscf output. default is scf
 
         specialk:
             [{label: "Gamma", coord: [float, float, float], xcoord: float}, ....]
@@ -32,10 +34,13 @@ class bands_post:
             self.pwxbandsin = fout.readlines()
         with open(bandsxout, 'r') as fout:
             self.bandsxout = fout.readlines()
+        
+        self.usefermi = usefermi
 
         self.specialk = []
         self.bandfile_gnu = None
         self.get_info()
+
 
     def get_info(self):
         # get the special kpoint coord and label from pw.x band calculation input file
@@ -76,34 +81,27 @@ class bands_post:
             if line.split()[0] == "Bands" and line.split()[1] == "written":
                 self.bandfile_dat = line.split()[4]
         #
-        # get fermi energy from nscf output
+        # get fermi energy from scf or nscf output
         scfout = "static-scf.out"
         nscfout = "static-nscf.out"
-        if os.path.exists(os.path.join("./", nscfout)):
-            with open(os.path.join("./", nscfout), 'r') as fin:
-                for line in fin:
-                    if len(line.split()) == 0:
-                        continue
-                    if line.split()[0] == "the" and line.split()[1] == "Fermi":
-                        self.efermi = float(line.split()[4])
-        elif os.path.exists(os.path.join("./", scfout)):
+        if self.usefermi == "scf":
             with open(os.path.join("./", scfout), 'r') as fin:
                 for line in fin:
                     if len(line.split()) == 0:
                         continue
                     if line.split()[0] == "the" and line.split()[1] == "Fermi":
                         self.efermi = float(line.split()[4])
-        else:
-            print("===========================================================\n")
-            print("                Warning !!!\n")
-            print("===========================================================\n")
-            print("BAND structure postprocessing:\n")
-            print("must provide nscfout or at least scfout to get Fermi energy\n")
-            sys.exit(1)
+        elif self.usefermi == "nscf":                
+            with open(os.path.join("./", nscfout), 'r') as fin:
+                for line in fin:
+                    if len(line.split()) == 0:
+                        continue
+                    if line.split()[0] == "the" and line.split()[1] == "Fermi":
+                        self.efermi = float(line.split()[4])
         # we do not directly shift Efermi to zero in the dataset
         # but only use it to set the gnuplot scripts so that gnuplot
         # script will be responsible for shfiting Efermi to zero.
-
+    
     def plot_band(self, option="gnuplot", bandrange=[0, 1.0], xrange=None, yrange=None):
         """
         option:

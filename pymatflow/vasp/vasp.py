@@ -52,7 +52,7 @@ class vasp:
             "IVDW", "LORBIT", "LOPTICS", "CSHIFT", "NEDOS", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "LSORBIT","SAXIS", "LMAXMIX", "LHFCALC", "HFSCREEN", "AEXX", "LSUBROT", "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG", "LELF", "PSTRESS",
-            "AMIX", "BMIX", "NELECT", "LAECHG", "SYMPREC",
+            "AMIX", "BMIX", "LAECHG", "SYMPREC", "NELECT", 
             "KSPACING", "LPARD", "LSEPK", "LSEPB", "NBMOD", "EINT",
         ]
         opt_allowed = [
@@ -61,7 +61,7 @@ class vasp:
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG", "LAECHG",
             "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG", "PSTRESS",
-            "AMIX", "BMIX", "SYMPREC",
+            "AMIX", "BMIX", "SYMPREC", "NELECT",
             "KSPACING",
         ]
         phonopy_allowed = [
@@ -69,7 +69,7 @@ class vasp:
             "IVDW", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "ALGO", "IALGO", "ADDGRID", "LAECHG",
             "ISYM", "LREAL", "LWAVE", "LCHARG",
-            "AMIX", "BMIX", "SYMPREC",
+            "AMIX", "BMIX", "SYMPREC", "NELECT",
             "KSPACING",
         ]
         neb_allowed = [
@@ -80,7 +80,7 @@ class vasp:
             "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG",
             "IOPT", "LCLIMB", "SPRING", "IMAGES", "LNEBCELL", "MAXMOVE", "LGLOBAL", 
             "LAUTOSCALE", "INVCURV", "LLINEOPT", "FDSTEP", 
-            "AMIX", "BMIX", "SYMPREC",
+            "AMIX", "BMIX", "SYMPREC", "NELECT",
             "KSPACING",
         ]
         md_allowed = [
@@ -89,7 +89,7 @@ class vasp:
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG", "LAECHG",
             "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG", "PSTRESS",
-            "AMIX", "BMIX", "SYMPREC",
+            "AMIX", "BMIX", "SYMPREC", "NELECT",
             "KSPACING",
             "MDALGO", "SMASS", "ANDERSON_PROB", "TEBEG", "TEEND",
         ]
@@ -99,7 +99,7 @@ class vasp:
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG", "LAECHG",
             "IBRION", "ISIF", "NSW", "POTIM", "EDIFFG",
-            "AMIX", "BMIX", "SYMPREC",
+            "AMIX", "BMIX", "SYMPREC", "NELECT",
             "KSPACING",
         ]
         if runtype == "static":
