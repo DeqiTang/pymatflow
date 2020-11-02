@@ -34,6 +34,11 @@ def read_structure(filepath):
         import pymatflow.third.aseio as aseio
         a = crystal()
         a.cell, a.atoms = aseio.read_xsf(filepath)
+    elif filepath.split(".")[-1] == "cfg":
+        from pymatflow.structure.crystal import crystal
+        import pymatflow.third.aseio as aseio 
+        a = crystal()
+        a.cell, a.atoms = aseio.read_cfg(filepath)    
     elif os.path.basename(filepath) == "POSCAR" or os.path.basename(filepath) == "CONTCAR":
         from pymatflow.structure.crystal import crystal
         import pymatflow.third.aseio as aseio
@@ -73,6 +78,9 @@ def write_structure(structure, filepath, frac=1):
     elif filepath.split(".")[-1] == "cube":
         import pymatflow.third.aseio as aseio
         aseio.write_cube(cell=structure.cell, atoms=structure.atoms, filepath=filepath)
+    elif filepath.split(".")[-1] == "cfg":
+        import pymatflow.third.aseio as aseio 
+        aseio.write_cfg(cell=structure.cell, atoms=structure.atoms, filepath=filepath)
     elif os.path.basename(filepath) == "POSCAR" or os.path.basename(filepath) == "CONTCAR":
         from pymatflow.structure.crystal import crystal
         from pymatflow.vasp.base.poscar import vasp_poscar

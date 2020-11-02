@@ -87,7 +87,7 @@ class octopus:
             fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
             fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
             fout.write("cat > inp<<EOF\n")
-            fout.write(self.inp.to_string())
+            fout.write(self.inp[0].to_string())
             fout.write("EOF\n")
             fout.write("yhrun %s\n" % cmd)
 
@@ -98,8 +98,8 @@ class octopus:
         """
         with open(os.path.join(directory, scriptname), 'w') as fout:
             fout.write("#!/bin/bash\n")
-            fout.write("cat > INCAR<<EOF\n")
-            fout.write(self.inp.to_string())
+            fout.write("cat > inp<<EOF\n")
+            fout.write(self.inp[0].to_string())
             fout.write("EOF\n")
             fout.write("yhrun -N 1 -n 24 %s\n" % (cmd))
 
@@ -115,8 +115,8 @@ class octopus:
                 fout.write("#PBS -q %s\n" % queue)            
             fout.write("\n")
             fout.write("cd $PBS_O_WORKDIR\n")
-            fout.write("cat > INCAR<<EOF\n")
-            fout.write(self.inp.to_string())
+            fout.write("cat > inp<<EOF\n")
+            fout.write(self.inp[0].to_string())
             fout.write("EOF\n")
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
             fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi %s \n" % (cmd))
@@ -128,8 +128,8 @@ class octopus:
         with open(os.path.join(directory, scriptname), 'w') as fout:
             fout.write("#!/bin/bash\n")
             fout.write("\n")
-            fout.write("cat > INCAR<<EOF\n")
-            fout.write(self.inp.to_string())
+            fout.write("cat > inp<<EOF\n")
+            fout.write(self.inp[0].to_string())
             fout.write("EOF\n")
             fout.write("%s %s\n" % (mpi, cmd))
 
@@ -156,7 +156,7 @@ class octopus:
             fout.write("done\n")
             fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\\n\' \',\')\n")
 
-            fout.write("cat > INCAR<<EOF\n")
-            fout.write(self.inp.to_string())
+            fout.write("cat > inp<<EOF\n")
+            fout.write(self.inp[0].to_string())
             fout.write("EOF\n")
             fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist %s\n" % cmd)

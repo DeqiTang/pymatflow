@@ -150,7 +150,7 @@ class units:
     def __init__(self):
         self.params = {}
         
-        self.params["Units"] = "ev_angstrom"
+        #self.params["Units"] = "ev_angstrom" # obsolete
         self.params["UnitsOutput"] = "ev_angstrom"
 
     def to_string(self):
