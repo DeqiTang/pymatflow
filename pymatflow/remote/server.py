@@ -12,7 +12,7 @@ def server_handle(auto, server, directory, jobfilebase):
         3: pymatflow run in server, direct submit the job
         in order use auto=1, 2, you must make sure there is a working ~/.pymatflow/server_[pbs|yh].conf"
     :param server:
-        can be 'pbs' or 'llhpc' or 'lsf_sz'
+        can be 'pbs' or 'llhpc' or 'lsf_sz' or 'lsf_sustc
     :param jobfilebase:
         base name of submitting job script,
         like static-nscf and the coresponding job submit script
@@ -56,4 +56,6 @@ def server_handle(auto, server, directory, jobfilebase):
             os.system("yhbatch %s" % jobfilebase+".slurm")
         elif server == "lsf_sz":
             os.system("chmod 755 %s; bsub %s" % (jobfilebase+".lsf_sz", jobfilebase+".lsf_sz"))
+        elif server == "lsf_sustc":
+            os.system("chmod 755 %s; bsub < %s" % (jobfilebase+".lsf_sustc", jobfilebase+".lsf_sustc"))            
         os.chdir("../")

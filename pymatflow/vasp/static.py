@@ -49,6 +49,8 @@ class static_run(vasp):
             self.gen_bash(directory=directory, mpi=self.run_params["mpi"], cmd="$PMF_VASP_STD", scriptname="static-scf.sh")
             # gen lsf_sz script
             self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-scf.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen lsf_sustc script
+            self.gen_lsf_sustc(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-scf.lsf_sustc", jobname=self.run_params["jobname"], np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -86,6 +88,8 @@ class static_run(vasp):
             self.gen_bash(directory=directory, mpi=self.run_params["mpi"], cmd="$PMF_VASP_STD", scriptname="static-nscf.sh")
             # gen lsf_sz script
             self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-nscf.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen lsf_sustc script
+            self.gen_lsf_sustc(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-nscf.lsf_sustc", jobname=self.run_params["jobname"], np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
 
 
         if runopt == "run" or runopt == "genrun":
@@ -126,6 +130,9 @@ class static_run(vasp):
             self.gen_bash(directory=directory, cmd="%s %PMF_VASP_STD" % self.run_params["mpi"], scriptname="static-bands.sh")
             # gen lsf_sz script
             self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-bands.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen lsf_sustc script
+            self.gen_lsf_sustc(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-bands.lsf_sustc", jobname=self.run_params["jobname"], np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
+
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -699,6 +706,79 @@ class static_run(vasp):
                 fout.write("cp OUTCAR OUTCAR.nscf\n")
                 fout.write("cp vasprun.xml vasprun.xml.nscf\n")
 
+            # gen lsf_sustc script
+            with open(os.path.join(directory, "static.lsf_sustc"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#BSUB -J %s\n" % self.run_params["jobname"])
+                fout.write("#BSUB -q %s\n" % self.run_params["queue"])
+                fout.write("#BSUB -n %s\n" % (self.run_params["nodes"] * self.run_params["ppn"])) #number of total cores
+                fout.write("#BSUB -R \"span[ptile=%d]\"\n" % self.run_params["ppn"])
+                fout.write("hostfile=`echo $LSB_DJOB_HOSTFILE`\n")
+                fout.write("NP=`cat $hostfile | wc -l`\n")
+                fout.write("cd $LS_SUBCWD\n")
+
+                fout.write("cat >POSCAR<<EOF\n")
+                self.poscar.to_poscar(fout)
+                fout.write("EOF\n")
+                fout.write("# scf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                #self.incar.to_incar(fout)
+                fout.write(incar_scf)
+                fout.write("EOF\n")
+                fout.write("cat > KPOINTS<<EOF\n")
+                #self.kpoints.to_kpoints(fout)
+                fout.write(kpoints_scf)
+                fout.write("EOF\n")
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_NCL\n")
+                else:
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")
+                fout.write("cp OUTCAR OUTCAR.scf\n")
+                fout.write("cp vasprun.xml vasprun.xml.scf\n")
+                fout.write("# nscf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                #self.incar.to_incar(fout)
+                fout.write(incar_nscf)
+                fout.write("EOF\n")
+                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and float(self.incar.params["HFSCREEN"]) == 0.2:
+                    fout.write("nk=`cat IBZKPT | head -n 2 | tail -n -1`\n")
+                    nkpoint = 0
+                    for i in range(len(kpath)-1):
+                        if kpath[i][4] != "|":
+                            nkpoint += kpath[i][4]
+                    fout.write("nk=`echo \"${nk}+%d\" | bc`\n" % nkpoint)
+                    fout.write("cat >KPOINTS<<EOF\n")
+                    fout.write("Kpoint for HSE band structure\n")
+                    fout.write("${nk}\n")
+                    fout.write("EOF\n")
+                    fout.write("cat IBZKPT | tail -n +3 >> KPOINTS\n")
+                    fout.write("cat >> KPOINTS<<EOF\n")
+                    #for kpoint in kpath:
+                    #    fout.write("%f %f %f 0.0 !%s\n" % (kpoint[0], kpoint[1], kpoint[2], kpoint[3]))
+                    for i in range(len(kpath)-1):
+                        if kpath[i][4] != "|":
+                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i][0], kpath[i][1], kpath[i][2], kpath[i][3]))                            
+                            for j in range(kpath[i][4]-2):
+                                x = (kpath[i+1][0] - kpath[i][0]) / (kpath[i][4]-1) * (j+1) + kpath[i][0]
+                                y = (kpath[i+1][1] - kpath[i][1]) / (kpath[i][4]-1) * (j+1) + kpath[i][1]
+                                z = (kpath[i+1][2] - kpath[i][2]) / (kpath[i][4]-1) * (j+1) + kpath[i][2]
+                                fout.write("%f %f %f 0.0\n" % (x, y, z))
+                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i+1][0], kpath[i+1][1], kpath[i+1][2], kpath[i+1][3]))
+                        else:
+                            continue
+                    fout.write("EOF\n")           
+                else:
+                    fout.write("cat >KPOINTS<<EOF\n")
+                    fout.write(kpoints_nscf)
+                    fout.write("EOF\n")
+
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_NCL\n")
+                else:
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")
+                fout.write("cp OUTCAR OUTCAR.nscf\n")
+                fout.write("cp vasprun.xml vasprun.xml.nscf\n")
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("bash static.sh")
@@ -949,6 +1029,52 @@ class static_run(vasp):
                     fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_NCL\n")
                 else:
                     fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                fout.write("cp OUTCAR OUTCAR.nscf\n")
+                fout.write("cp vasprun.xml vasprun.xml.nscf\n")
+
+            # gen lsf_sustc script
+            with open(os.path.join(directory, "static.lsf_sustc"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#BSUB -J %s\n" % self.run_params["jobname"])
+                fout.write("#BSUB -q %s\n" % self.run_params["queue"])
+                fout.write("#BSUB -n %s\n" % (self.run_params["nodes"] * self.run_params["ppn"])) #number of total cores
+                fout.write("#BSUB -R \"span[ptile=%d]\"\n" % self.run_params["ppn"])
+                fout.write("hostfile=`echo $LSB_DJOB_HOSTFILE`\n")
+                fout.write("NP=`cat $hostfile | wc -l`\n")
+                fout.write("cd $LS_SUBCWD\n")
+
+                fout.write("cat >POSCAR<<EOF\n")
+                self.poscar.to_poscar(fout)
+                fout.write("EOF\n")
+                fout.write("# scf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                #self.incar.to_incar(fout)
+                fout.write(incar_scf)
+                fout.write("EOF\n")
+                fout.write("cat > KPOINTS<<EOF\n")
+                #self.kpoints.to_kpoints(fout)
+                fout.write(kpoints_scf)
+                fout.write("EOF\n")
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_NCL\n")
+                else:
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")
+                fout.write("cp OUTCAR OUTCAR.scf\n")
+                fout.write("cp vasprun.xml vasprun.xml.scf\n")
+                fout.write("# nscf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                #self.incar.to_incar(fout)
+                fout.write(incar_nscf)
+                fout.write("EOF\n")
+
+                fout.write("cat >KPOINTS<<EOF\n")
+                fout.write(kpoints_nscf)
+                fout.write("EOF\n")
+
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_NCL\n")
+                else:
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")
                 fout.write("cp OUTCAR OUTCAR.nscf\n")
                 fout.write("cp vasprun.xml vasprun.xml.nscf\n")
 
@@ -1203,6 +1329,52 @@ class static_run(vasp):
                     fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_NCL\n")
                 else:
                     fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                fout.write("cp OUTCAR OUTCAR.nscf\n")
+                fout.write("cp vasprun.xml vasprun.xml.nscf\n")
+
+            # gen lsf_sustc script
+            with open(os.path.join(directory, "static-optics.lsf_sustc"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#BSUB -J %s\n" % self.run_params["jobname"])
+                fout.write("#BSUB -q %s\n" % self.run_params["queue"])
+                fout.write("#BSUB -n %s\n" % (self.run_params["nodes"] * self.run_params["ppn"])) #number of total cores
+                fout.write("#BSUB -R \"span[ptile=%d]\"\n" % self.run_params["ppn"])
+                fout.write("hostfile=`echo $LSB_DJOB_HOSTFILE`\n")
+                fout.write("NP=`cat $hostfile | wc -l`\n")
+                fout.write("cd $LS_SUBCWD\n")
+
+                fout.write("cat >POSCAR<<EOF\n")
+                self.poscar.to_poscar(fout)
+                fout.write("EOF\n")
+                fout.write("# scf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                #self.incar.to_incar(fout)
+                fout.write(incar_scf)
+                fout.write("EOF\n")
+                fout.write("cat > KPOINTS<<EOF\n")
+                #self.kpoints.to_kpoints(fout)
+                fout.write(kpoints_scf)
+                fout.write("EOF\n")
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_NCL\n")
+                else:
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")
+                fout.write("cp OUTCAR OUTCAR.scf\n")
+                fout.write("cp vasprun.xml vasprun.xml.scf\n")
+                fout.write("# nscf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                #self.incar.to_incar(fout)
+                fout.write(incar_nscf)
+                fout.write("EOF\n")
+
+                fout.write("cat >KPOINTS<<EOF\n")
+                fout.write(kpoints_nscf)
+                fout.write("EOF\n")
+
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_NCL\n")
+                else:
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")
                 fout.write("cp OUTCAR OUTCAR.nscf\n")
                 fout.write("cp vasprun.xml vasprun.xml.nscf\n")
 
@@ -1617,6 +1789,87 @@ class static_run(vasp):
                     fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
                 fout.write('cp vasprun.xml vasprun.xml.bse\n')
 
+            # gen lsf_sustc script
+            with open(os.path.join(directory, "static-bse.lsf_sustc"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#BSUB -J %s\n" % self.run_params["jobname"])
+                fout.write("#BSUB -q %s\n" % self.run_params["queue"])
+                fout.write("#BSUB -n %s\n" % (self.run_params["nodes"] * self.run_params["ppn"])) #number of total cores
+                fout.write("#BSUB -R \"span[ptile=%d]\"\n" % self.run_params["ppn"])
+                fout.write("hostfile=`echo $LSB_DJOB_HOSTFILE`\n")
+                fout.write("NP=`cat $hostfile | wc -l`\n")
+                fout.write("cd $LS_SUBCWD\n")
+
+                fout.write("cat >POSCAR<<EOF\n")
+                self.poscar.to_poscar(fout)
+                fout.write("EOF\n")
+                fout.write("# scf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                fout.write(incar_scf)
+                fout.write("EOF\n")
+                fout.write("cat >KPOINTS<<EOF\n")
+                #self.kpoints.to_kpoints(fout)
+                fout.write(kpoints_scf)
+                fout.write("EOF\n")
+
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_NCL\n")
+                else:
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")
+
+                fout.write("cp OUTCAR OUTCAR.scf\n")
+                fout.write("cp vasprun.xml vasprun.xml.scf\n")
+
+                if bse_level == 0:
+                    pass
+                elif bse_level == 1:
+                    fout.write("# hse\n")
+                    fout.write("cat > INCAR<<EOF\n")
+                    fout.write(incar_hse)
+                    fout.write("EOF\n")
+                    fout.write("cat >KPOINTS<<EOF\n")
+                    fout.write(kpoints_scf)
+                    fout.write("EOF\n")
+                elif bse_level == 2:
+                    fout.write("# gw\n")
+                    fout.write("cat > INCAR<<EOF\n")
+                    fout.write(incar_gw)
+                    fout.write("EOF\n")
+                    fout.write("cat >KPOINTS<<EOF\n")
+                    fout.write(kpoints_scf)
+                    fout.write("EOF\n")
+        
+
+                if bse_level == 0:
+                    pass
+                elif bse_level == 1:
+                    if self.magnetic_status == "non-collinear":
+                        fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_NCL\n")
+                    else:
+                        fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")                    
+                    fout.write("cp OUTCAR OUTCAR.hse\n")
+                    fout.write('cp vasprun.xml vasprun.xml.hse\n')
+                elif bse_level == 2:
+                    if self.magnetic_status == "non-collinear":
+                        fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_NCL\n")
+                    else:
+                        fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")                       
+                    fout.write("cp OUTCAR OUTCAR.gw\n")
+                    fout.write("cp vasprun.xml vasprun.xml.gw\n")
+
+                fout.write("# bse\n")
+                fout.write("cat > INCAR<<EOF\n")
+                fout.write(incar_bse)
+                fout.write("EOF\n")
+                fout.write("cat >KPOINTS<<EOF\n")
+                fout.write(kpoints_scf)
+                fout.write("EOF\n")
+
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_NCL\n")
+                else:
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")
+                fout.write('cp vasprun.xml vasprun.xml.bse\n')
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -1880,6 +2133,52 @@ class static_run(vasp):
                     fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_NCL\n")
                 else:
                     fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
+                fout.write("cp OUTCAR OUTCAR.parchg(stm\n")
+                fout.write("cp vasprun.xml vasprun.xml.parchg(stm)\n")
+
+            # gen lsf_sustc script
+            with open(os.path.join(directory, "static.lsf_sustc"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#BSUB -J %s\n" % self.run_params["jobname"])
+                fout.write("#BSUB -q %s\n" % self.run_params["queue"])
+                fout.write("#BSUB -n %s\n" % (self.run_params["nodes"] * self.run_params["ppn"])) #number of total cores
+                fout.write("#BSUB -R \"span[ptile=%d]\"\n" % self.run_params["ppn"])
+                fout.write("hostfile=`echo $LSB_DJOB_HOSTFILE`\n")
+                fout.write("NP=`cat $hostfile | wc -l`\n")
+                fout.write("cd $LS_SUBCWD\n")
+
+                fout.write("cat >POSCAR<<EOF\n")
+                self.poscar.to_poscar(fout)
+                fout.write("EOF\n")
+                fout.write("# scf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                #self.incar.to_incar(fout)
+                fout.write(incar_scf)
+                fout.write("EOF\n")
+                fout.write("cat > KPOINTS<<EOF\n")
+                #self.kpoints.to_kpoints(fout)
+                fout.write(kpoints_scf)
+                fout.write("EOF\n")
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_NCL\n")
+                else:
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")
+                fout.write("cp OUTCAR OUTCAR.scf\n")
+                fout.write("cp vasprun.xml vasprun.xml.scf\n")
+                fout.write("# parchg(stm)\n")
+                fout.write("cat > INCAR<<EOF\n")
+                #self.incar.to_incar(fout)
+                fout.write(incar_parchg_stm)
+                fout.write("EOF\n")
+
+                fout.write("cat >KPOINTS<<EOF\n")
+                fout.write(kpoints_parchg_stm)
+                fout.write("EOF\n")
+
+                if self.magnetic_status == "non-collinear":
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_NCL\n")
+                else:
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")
                 fout.write("cp OUTCAR OUTCAR.parchg(stm\n")
                 fout.write("cp vasprun.xml vasprun.xml.parchg(stm)\n")
 

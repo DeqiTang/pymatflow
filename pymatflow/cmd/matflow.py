@@ -110,7 +110,7 @@ def main():
 
     gp.add_argument("--server", type=str, default="pbs",
             choices=["pbs", "llhpc", "tianhe2"],
-            help="type of remote server, can be pbs or llhpc")
+            help="type of remote server, can be pbs or llhpc or lsf_sz")
 
     gp.add_argument("--jobname", type=str, default="matflow-job",
             help="jobname on the pbs server")
@@ -1768,8 +1768,8 @@ def main():
             help="MPI command, used in single node running, namely --auto 0 --runopt genrun")
 
     gp.add_argument("--server", type=str, default="pbs",
-            choices=["pbs", "llhpc", "lsf_sz", "tianhe2"],
-            help="type of remote server, can be pbs or llhpc or lsf_sz")
+            choices=["pbs", "llhpc", "lsf_sz", "tianhe2", "lsf_sustc"],
+            help="type of remote server, can be pbs or llhpc or lsf_sz or lsf_sustc")
 
     gp.add_argument("--jobname", type=str, default="matflow-running",
             help="jobname on the pbs server")

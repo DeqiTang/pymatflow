@@ -164,6 +164,26 @@ class phonopy_run(vasp):
                     fout.write("cd ../\n")
 
 
+            # generate lsf_sustc bash script
+            with open(os.path.join(directory, "phonopy-job.lsf_sustc"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#BSUB -J %s\n" % self.run_params["jobname"])
+                fout.write("#BSUB -q %s\n" % self.run_params["queue"])
+                fout.write("#BSUB -n %s\n" % (self.run_params["nodes"] * self.run_params["ppn"])) #number of total cores
+                fout.write("#BSUB -R \"span[ptile=%d]\"\n" % self.run_params["ppn"])
+                fout.write("hostfile=`echo $LSB_DJOB_HOSTFILE`\n")
+                fout.write("NP=`cat $hostfile | wc -l`\n")
+                fout.write("cd $LS_SUBCWD\n")
+
+                fout.write("cat > INCAR<<EOF\n")
+                self.incar.to_incar(fout)
+                fout.write("EOF\n")
+                for disp in disps:
+                    fout.write("cd disp-%s\n" % disp)
+                    fout.write("cp ../INCAR .\n")
+                    fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")
+                    fout.write("cd ../\n")
+
             # non-analytical term correction (optional)
             # 参见: https://atztogo.github.io/phonopy/vasp.html
 

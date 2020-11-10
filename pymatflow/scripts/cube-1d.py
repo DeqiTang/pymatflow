@@ -93,7 +93,6 @@ def main():
     tmp_str = "".join(cube[natom+6:])
     data = np.fromstring(tmp_str, sep="\n")
         
-    #data = data.reshape(ngridz, ngridy, ngridx)
     # grid data in cube is iterated in different compared to *CHG* of vasp
     data = data.reshape(ngridx, ngridy, ngridz)
 

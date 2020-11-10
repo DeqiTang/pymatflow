@@ -254,3 +254,25 @@ class vasp:
             self.kpoints.to_kpoints(fout)
             fout.write("EOF\n")
             fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist %s\n" % cmd)
+
+    def gen_lsf_sustc(self, directory, cmd="vasp_std", scriptname="vasp.lsf_sustc", jobname="matflow-job", np=24, np_per_node=12, queue="medium"):
+        """
+        generating lsf job script for calculation on Southern University of Science and Technology supercomputer
+        """
+        with open(os.path.join(directory, scriptname), 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("#BSUB -J %s\n" % jobname)
+            fout.write("#BSUB -q %s\n" % queue)
+            fout.write("#BSUB -n %s\n" % np) #number of total cores
+            fout.write("#BSUB -R \"span[ptile=%d]\"\n" % np_per_node)
+            fout.write("hostfile=`echo $LSB_DJOB_HOSTFILE`\n")
+            fout.write("NP=`cat $hostfile | wc -l`\n")
+            fout.write("cd $LS_SUBCWD\n")
+
+            fout.write("cat > INCAR<<EOF\n")
+            self.incar.to_incar(fout)
+            fout.write("EOF\n")
+            fout.write("cat > KPOINTS<<EOF\n")
+            self.kpoints.to_kpoints(fout)
+            fout.write("EOF\n")
+            fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP %s\n" % cmd)
