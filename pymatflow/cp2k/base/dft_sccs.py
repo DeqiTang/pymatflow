@@ -72,7 +72,7 @@ class cp2k_dft_sccs:
         """
         fout: a file stream for writing
         """
-        fout.write("\t\t&SCCS\n")
+        fout.write("\t\t&SCCS %s\n" % str(self.section))
         for item in self.params:
             if self.params[item] is not None:
                 fout.write("\t\t\t%s %s\n" % (item, str(self.params[item])))

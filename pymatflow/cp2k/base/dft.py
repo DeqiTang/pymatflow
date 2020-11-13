@@ -156,6 +156,10 @@ class cp2k_dft:
             self.xc.to_input(fout)
         if self.kpoints.status == True:
             self.kpoints.to_input(fout)
+        #if self.sccs.status == True:
+        #    self.sccs.to_input(fout)
+        if self.sccs.section != None and self.sccs.section.upper() == "TRUE":
+            self.sccs.to_input(fout)
         if self.scf.status == True:
             self.scf.to_input(fout)
         if self.localize.status == True:
@@ -181,6 +185,8 @@ class cp2k_dft:
             if len(item.split("-")) == 2:
                 if item.split("-")[-1] == "LS_SCF":
                     self.ls_scf.section = params[item]
+                elif item.split("-")[-1] == "SCCS":
+                    self.sccs.section = params[item]
                 else:
                     self.params[item.split("-")[-1]] = params[item]
             elif item.split("-")[1] == "ALMO_SCF":

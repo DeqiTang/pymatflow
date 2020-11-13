@@ -634,6 +634,44 @@ def main():
     gp.add_argument("--r-cutoff", type=float, default=None, #1.05835442E+001,
             help="Range of potential. The cutoff will be 2 times this value")
 
+    # DFT/SCCS
+    gp = subparser.add_argument_group(title="DFT/SCCS")
+
+    gp.add_argument("--dft-sccs", type=str, default=None,
+            choices=["true", "false", "TRUE", "FALSE"],
+            help="Controls the activation of the SCCS section")
+    
+    gp.add_argument("--dft-sccs-alpha", type=float, default=None,
+            help="Solvent specific tunable parameter for the calculation of the repulsion term.")
+
+    gp.add_argument("--dft-sccs-beta", type=float, default=None,
+            help="Solvent specific tunable parameter for the calculation of the dispersion term")
+
+    gp.add_argument("--dft-sccs-delta-rho", type=float, default=None,
+            help="Numerical increment for the calculation of the (quantum) surface of the solute cavity")
+
+    gp.add_argument("--dft-sccs-dielectric-constant", type=float, default=None,
+            help="Dielectric constant of the solvent, defaut is 80")
+
+    gp.add_argument("--dft-sccs-eps-sccs", type=float, default=None,
+            help="Tolerance for the convergence of the polarisation density, i.e. requested accuracy for the SCCS iteration cycle, default is 1.0E-6")
+
+    gp.add_argument("--dft-sccs-eps-scf", type=float, default=None,
+            help="The SCCS iteration cycle is activated only if the SCF iteration cycle is converged to this threshold value, default is 1.0E-1")
+
+    gp.add_argument("--dft-sccs-gamma", type=float, default=None,
+            help="Surface tension of the solvent used for the calculation of the cavitation term, default is 0")
+
+    gp.add_argument("--dft-sccs-max-iter", type=int, default=None,
+            help="Maximum number of SCCS iteration steps performed to converge within the given tolerance, default is 100")            
+
+    gp.add_argument("--dft-sccs-method", type=str, default=None,
+            choices=["ANDREUSSI", "FATTEBERT-GYGI", "andreussi", "fatterbert-gygi"],
+            help="Method used for the smoothing of the dielectric function")
+
+    gp.add_argument("--dft-sccs-mixing", type=float, default=None,
+            help="Mixing parameter (Hartree damping) employed during the iteration procedure, default is 0.6")
+
     # printout option
     gp = subparser.add_argument_group(title="printout option")
 
@@ -2539,6 +2577,19 @@ def main():
         params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST"] = args.properties_resp_slab_sampling_atom_list if "FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST" not in params or  args.properties_resp_slab_sampling_atom_list != None else params["FORCE_EVAL-PROPERTIES-RESP-SLAB_SAMPLING-ATOM_LIST"]
         params["FORCE_EVAL-DFT-PRINT-MOMENTS-PERIODIC"] = args.dft_print_moments_periodic if "FORCE_EVAL-DFT-PRINT-MOMENTS-PERIODIC" not in params or args.dft_print_moments_periodic != None else params["FORCE_EVAL-DFT-PRINT-MOMENTS-PERIODIC"]
         params["FORCE_EVAL-DFT-PRINT-MOMENTS-REFERENCE"] = args.dft_print_moments_reference if "FORCE_EVAL-DFT-PRINT-MOMENTS-REFERENCE" not in params or args.dft_print_moments_reference != None else params["FORCE_EVAL-DFT-PRINT-MOMENTS-REFERENCE"]
+
+
+        params["FORCE_EVAL-DFT-SCCS"] = args.dft_sccs if "FORCE_EVAL-DFT-SCCS" not in params or  args.dft_sccs != None else params["FORCE_EVAL-DFT-SCCS"]
+        params["FORCE_EVAL-DFT-SCCS-ALPHA"] = args.dft_sccs_alpha if "FORCE_EVAL-DFT-SCCS-ALPHA" not in params or  args.dft_sccs_alpha != None else params["FORCE_EVAL-DFT-SCCS-ALPHA"]
+        params["FORCE_EVAL-DFT-SCCS-BETA"] = args.dft_sccs_beta if "FORCE_EVAL-DFT-SCCS-BETA" not in params or  args.dft_sccs_beta != None else params["FORCE_EVAL-DFT-SCCS-BETA"]
+        params["FORCE_EVAL-DFT-SCCS-DELTA_RHO"] = args.dft_sccs_delta_rho if "FORCE_EVAL-DFT-SCCS-DELTA_RHO" not in params or  args.dft_sccs_delta_rho != None else params["FORCE_EVAL-DFT-SCCS-DELTA_RHO"]
+        params["FORCE_EVAL-DFT-SCCS-DIELECTRIC_CONSTANT"] = args.dft_sccs_dielectric_constant if "FORCE_EVAL-DFT-SCCS-DIELECTRIC_CONSTANT" not in params or  args.dft_sccs_dielectric_constant != None else params["FORCE_EVAL-DFT-SCCS-DIELECTRIC_CONSTANT"]
+        params["FORCE_EVAL-DFT-SCCS-EPS_SCCS"] = args.dft_sccs_eps_sccs if "FORCE_EVAL-DFT-SCCS-EPS_SCCS" not in params or  args.dft_sccs_eps_sccs != None else params["FORCE_EVAL-DFT-SCCS-EPS_SCCS"]
+        params["FORCE_EVAL-DFT-SCCS-EPS_SCF"] = args.dft_sccs_eps_scf if "FORCE_EVAL-DFT-SCCS-EPS_SCF" not in params or  args.dft_sccs_eps_scf != None else params["FORCE_EVAL-DFT-SCCS-EPS_SCF"]
+        params["FORCE_EVAL-DFT-SCCS-GAMMA"] = args.dft_sccs_gamma if "FORCE_EVAL-DFT-SCCS-GAMMA" not in params or  args.dft_sccs_gamma != None else params["FORCE_EVAL-DFT-SCCS-GAMMA"]
+        params["FORCE_EVAL-DFT-SCCS-MAX_ITER"] = args.dft_sccs_max_iter if "FORCE_EVAL-DFT-SCCS-MAX_ITER" not in params or  args.dft_sccs_max_iter != None else params["FORCE_EVAL-DFT-SCCS-MAX_ITER"]
+        params["FORCE_EVAL-DFT-SCCS-METHOD"] = args.dft_sccs_method if "FORCE_EVAL-DFT-SCCS-METHOD" not in params or  args.dft_sccs_method != None else params["FORCE_EVAL-DFT-SCCS-METHOD"]
+        params["FORCE_EVAL-DFT-SCCS-MIXING"] = args.dft_sccs_mixing if "FORCE_EVAL-DFT-SCCS-MIXING" not in params or  args.dft_sccs_mixing != None else params["FORCE_EVAL-DFT-SCCS-MIXING"]
 
         params["MOTION-GEO_OPT-MAX_ITER"] = args.geo_opt_max_iter if "MOTION-GEO_OPT-MAX_ITER" not in params or  args.geo_opt_max_iter != None else params["MOTION-GEO_OPT-MAX_ITER"]
         params["MOTION-GEO_OPT-OPTIMIZER"] = args.geo_opt_optimizer if "MOTION-GEO_OPT-OPTIMIZER" not in params or  args.geo_opt_optimizer != None else params["MOTION-GEO_OPT-OPTIMIZER"]
