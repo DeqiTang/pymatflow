@@ -541,6 +541,15 @@ def main():
     gp.add_argument("--mixing-beta", type=float, default=0.5, 
             help="Denominator parameter in Kerker damping introduced to suppress charge sloshing: rho_mix(g) =rho_in(g) + alpha*g^2/(g^2 + beta^2)*(rho_out(g)-rho_in(g))")
 
+    gp.add_argument("--mixing-broy-wo", type=float, default=None,
+            help="w0 parameter used in Broyden mixing, default is 0.01")
+
+    gp.add_argument("--mixing-broy-wmax", type=float, default=None,
+            help="default is 30")
+
+    gp.add_argument("--mixing-broy-wref", type=float, default=None,
+            help="default is 100")
+
     gp.add_argument("--mixing-nbuffer", type=int, default=None, # default is 4
             help="Number of previous steps stored for the actual mixing scheme. default is 4")
 
@@ -2571,6 +2580,10 @@ def main():
         params["FORCE_EVAL-DFT-SCF-MIXING-METHOD"] = args.mixing_method if "FORCE_EVAL-DFT-SCF-MIXING-METHOD" not in params or  args.mixing_method != None else params["FORCE_EVAL-DFT-SCF-MIXING-METHOD"]
         params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"] = args.mixing_alpha if "FORCE_EVAL-DFT-SCF-MIXING-ALPHA" not in params or  args.mixing_alpha != None else params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"]
         params["FORCE_EVAL-DFT-SCF-MIXING-BETA"] = args.mixing_beta if "FORCE_EVAL-DFT-SCF-MIXING-BETA" not in params or  args.mixing_beta != None else params["FORCE_EVAL-DFT-SCF-MIXING-BETA"]
+        params["FORCE_EVAL-DFT-SCF-MIXING-BROY_W0"] = args.mixing_broy_w0 if "FORCE_EVAL-DFT-SCF-MIXING-BROY_W0" not in params or  args.mixing_broy_w0 != None else params["FORCE_EVAL-DFT-SCF-MIXING-BROY_W0"]
+        params["FORCE_EVAL-DFT-SCF-MIXING-BROY_WMAX"] = args.mixing_broy_wmax if "FORCE_EVAL-DFT-SCF-MIXING-BROY_WMAX" not in params or  args.mixing_broy_wmax != None else params["FORCE_EVAL-DFT-SCF-MIXING-BROY_WMAX"]
+        params["FORCE_EVAL-DFT-SCF-MIXING-BROY_WREF"] = args.mixing_broy_wref if "FORCE_EVAL-DFT-SCF-MIXING-BROY_WREF" not in params or  args.mixing_broy_wref != None else params["FORCE_EVAL-DFT-SCF-MIXING-BROY_WREF"]
+        
         params["FORCE_EVAL-DFT-SCF-MIXING-NBUFFER"] = args.mixing_nbuffer if "FORCE_EVAL-DFT-SCF-MIXING-NBUFFER" not in params or  args.mixing_nbuffer != None else params["FORCE_EVAL-DFT-SCF-MIXING-NBUFFER"]        
         params["FORCE_EVAL-DFT-SCF-MIXING-GMIX_P"] = args.mixing_gmix_p if "FORCE_EVAL-DFT-SCF-MIXING-GMIX_P" not in params or  args.mixing_gmix_p != None else params["FORCE_EVAL-DFT-SCF-MIXING-GMIX_P"]
         params["FORCE_EVAL-DFT-SCF-MIXING-MAX_GVEC_EXP"] = args.mixing_max_gvec_exp if "FORCE_EVAL-DFT-SCF-MIXING-MAX_GVEC_EXP" not in params or args.mixing_max_gvec_exp != None else params["FORCE_EVAL-DFT-SCF-MIXING-MAX_GVEC_EXP"]
