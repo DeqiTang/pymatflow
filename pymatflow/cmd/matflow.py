@@ -544,6 +544,19 @@ def main():
     gp.add_argument("--mixing-nbuffer", type=int, default=None, # default is 4
             help="Number of previous steps stored for the actual mixing scheme. default is 4")
 
+    gp.add_argument("--mixing-gmix-p", type=str, default=None,
+            choices=["TRUE", "FALSE", "true", "false"],
+            help="Activate the mixing of the denisty matrix, using the same mixing coefficient applied for the g-space mixing. default is false")
+
+    gp.add_argument("--mixing-max-gvec-exp", type=int, default=None,
+            help="Restricts the G-space mixing to lower part of G-vector spectrum, up to a G0, by assigning the exponent of the Gaussian that can be represented by vectors smaller than G0 within a certain accuracy. default is -1")            
+
+    gp.add_argument("--mixing-n-simple-mix", type=int, default=None,
+            help="Number of kerker damping iterations before starting other mixing procedures, default is 0")
+
+    gp.add_argument("--mixing-regularization", type=float, default=None,
+            help="Regularization parameter to stabilize the inversion of the residual matrix {Yn^t Yn} in the multisecant mixing scheme (noise)")
+
     # outer scf
     gp.add_argument("--outer-scf", type=str, default=None, # "FALSE",
             choices=["TRUE", "FALSE", "true", "false"],
@@ -2559,7 +2572,12 @@ def main():
         params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"] = args.mixing_alpha if "FORCE_EVAL-DFT-SCF-MIXING-ALPHA" not in params or  args.mixing_alpha != None else params["FORCE_EVAL-DFT-SCF-MIXING-ALPHA"]
         params["FORCE_EVAL-DFT-SCF-MIXING-BETA"] = args.mixing_beta if "FORCE_EVAL-DFT-SCF-MIXING-BETA" not in params or  args.mixing_beta != None else params["FORCE_EVAL-DFT-SCF-MIXING-BETA"]
         params["FORCE_EVAL-DFT-SCF-MIXING-NBUFFER"] = args.mixing_nbuffer if "FORCE_EVAL-DFT-SCF-MIXING-NBUFFER" not in params or  args.mixing_nbuffer != None else params["FORCE_EVAL-DFT-SCF-MIXING-NBUFFER"]        
-        
+        params["FORCE_EVAL-DFT-SCF-MIXING-GMIX_P"] = args.mixing_gmix_p if "FORCE_EVAL-DFT-SCF-MIXING-GMIX_P" not in params or  args.mixing_gmix_p != None else params["FORCE_EVAL-DFT-SCF-MIXING-GMIX_P"]
+        params["FORCE_EVAL-DFT-SCF-MIXING-MAX_GVEC_EXP"] = args.mixing_max_gvec_exp if "FORCE_EVAL-DFT-SCF-MIXING-MAX_GVEC_EXP" not in params or args.mixing_max_gvec_exp != None else params["FORCE_EVAL-DFT-SCF-MIXING-MAX_GVEC_EXP"]
+        params["FORCE_EVAL-DFT-SCF-MIXING-N_SIMPLE_MIX"] = args.mixing_n_simple_mix if "FORCE_EVAL-DFT-SCF-MIXING-N_SIMPLE_MIX" not in params or args.mixing_n_simple_mix != None else params["FORCE_EVAL-DFT-SCF-MIXING-N_SIMPLE_MIX"]
+        params["FORCE_EVAL-DFT-SCF-MIXING-REGULARIZATION"] = args.mixing_regularization if "FORCE_EVAL-DFT-SCF-MIXING-REGULARIZATION" not in params or args.mixing_regularization != None else params["FORCE_EVAL-DFT-SCF-MIXING-REGULARIZATION"]
+
+
         params["FORCE_EVAL-DFT-KPOINTS-SCHEME"] = args.kpoints_scheme if "FORCE_EVAL-DFT-KPOINTS-SCHEME" not in params or  args.kpoints_scheme != None else params["FORCE_EVAL-DFT-KPOINTS-SCHEME"]
         params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"] = args.vdw_potential_type if "FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE" not in params or  args.vdw_potential_type != None else params["FORCE_EVAL-DFT-XC-VDW_POTENTIAL-POTENTIAL_TYPE"]
         params["FORCE_EVAL-DFT-SCF-OT-PRECONDITIONER"] = args.ot_preconditioner if "FORCE_EVAL-DFT-SCF-OT-PRECONDITIONER" not in params or args.ot_preconditioner != None else params["FORCE_EVAL-DFT-SCF-OT-PRECONDITIONER"]
