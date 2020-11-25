@@ -444,7 +444,14 @@ def main():
             choices=["am1", "dftb", "gapw", "gapw_xc", "gpw", "lrigpw", "mndo", "mndod",
                 "ofgpw", "pdg", "pm3", "pm6", "pm6-fm", "pnnl", "rigpw", "rm1"],
             help="specify the electronic structure method that should be employed, default is gpw")
-            
+           
+    gp.add_argument("--qs-extrapolation", type=str, default=None,
+            choices=["ASPC", "FROZEN", "LINEAR_P", "LINEAR_PS", "PS", "USE_GUESS", "USE_PREV_P", "USE_PREV_RHO_R", "USE_PREV_WF", "aspc", "frozen", "linear_p", "linear_ps", "ps", "use_guess", "use_prev_p", "ues_prev_rho_r", "use_prev_wf"],
+            help="Extrapolation strategy for the wavefunction during e.g. MD. Not all options are available for all simulation methods. PS and ASPC are recommended, see also EXTRAPOLATION_ORDER. default is ASPC")
+
+    gp.add_argument("--qs-extrapolation-order", type=int, default=None,
+            help="Order for the PS or ASPC extrapolation (typically 2-4). Higher order might bring more accuracy, but comes, for large systems, also at some cost. In some cases, a high order extrapolation is not stable, and the order needs to be reduced. default is 3")
+    
     gp.add_argument("--lsd", type=str, default=None,
             choices=["TRUE", "FALSE", "true", "false"],
             help="Requests a spin-polarized calculation using alpha and beta orbitals, i.e. no spin restriction is applied.Alias names for this keyword: UNRESTRICTED_KOHN_SHAM, UKS, SPIN_POLARIZED")
@@ -497,6 +504,18 @@ def main():
                 "b3lyp", "beefvdw", "blyp", "bp", "lda", "pbe", "pade", "pbe0", "tpss"],
             help="shortcut for the most common functional combinations, default is PBE")
 
+    gp.add_argument("--xc-grid-use-finer-grid", type=str, default=None,
+            choices=["TRUE", "FALSE", "true", "false"],
+            help="Uses a finer grid only to calculate the xc")
+
+    gp.add_argument("--xc-grid-xc-deriv", type=str, default=None,
+            choices=["COLLOCATE", "NN10_SMOOTH", "NN4_SMOOTH", "NN50_SMOOTH", "NN6_SMOOTH", "PW", "SPLINE2", "SPLINE2_SMOOTH", "SPLINE3", "SPLINE3_SMOOTH", "collocate", "nn10_smooth", "nn4_smooth", "nn50_smooth", "nn6_smooth", "pw", "spline2", "spline2_smooth", "spline3", "spline3_smooth"],
+            help="The method used to compute the derivatives, default is PW")
+
+    gp.add_argument("--xc-grid-xc-smooth-rho", type=str, default=None,
+            choices=["NN10", "NN4", "NN50", "NN6", "NONE", "SPLINE2", "SPLINE3", "nn10", "nn4", "nn50", "nn6", "none", "spline2", "spline3"],
+            help="The density smoothing used for the xc calculation")
+
     gp.add_argument("--cutoff", type=int, default=None, #100,
             help="The cutoff of the finest grid level, default value: 100 Ry")
 
@@ -541,7 +560,7 @@ def main():
     gp.add_argument("--mixing-beta", type=float, default=0.5, 
             help="Denominator parameter in Kerker damping introduced to suppress charge sloshing: rho_mix(g) =rho_in(g) + alpha*g^2/(g^2 + beta^2)*(rho_out(g)-rho_in(g))")
 
-    gp.add_argument("--mixing-broy-wo", type=float, default=None,
+    gp.add_argument("--mixing-broy-w0", type=float, default=None,
             help="w0 parameter used in Broyden mixing, default is 0.01")
 
     gp.add_argument("--mixing-broy-wmax", type=float, default=None,
@@ -560,8 +579,20 @@ def main():
     gp.add_argument("--mixing-max-gvec-exp", type=int, default=None,
             help="Restricts the G-space mixing to lower part of G-vector spectrum, up to a G0, by assigning the exponent of the Gaussian that can be represented by vectors smaller than G0 within a certain accuracy. default is -1")            
 
+    gp.add_argument("--mixing-nmixing", type=int, default=None,
+            help="Minimal number of density mixing (should be greater than 0),before starting DIIS, default is 2")
+
+    gp.add_argument("--mixing-nskip", type=int, default=None,
+            help="Number of initial iteration for which the mixing is skipped, default is 0")
+
     gp.add_argument("--mixing-n-simple-mix", type=int, default=None,
             help="Number of kerker damping iterations before starting other mixing procedures, default is 0")
+
+    gp.add_argument("--mixing-pulay-alpha", type=float, default=None,
+            help="Fraction of new density to be added to the Pulay expansion. default is 0")
+
+    gp.add_argument("--mixing-pulay-beta", type=float, default=None,
+            help="Fraction of residual contribution to be added to Pulay expansion. default is 1")
 
     gp.add_argument("--mixing-regularization", type=float, default=None,
             help="Regularization parameter to stabilize the inversion of the residual matrix {Yn^t Yn} in the multisecant mixing scheme (noise)")
@@ -605,6 +636,10 @@ def main():
 
     gp.add_argument("--added-mos", type=int, default=None, #0,
             help="Number of additional MOS added for each spin")
+
+    gp.add_argument("--dft-scf-cholesky", type=str, default=None,
+            choices=["INVERSE", "INVERSE_DBCSR", "OFF", "REDUCE", "RESTORE", "inverse", "inverse_dbcsr", "off", "reduce", "restore"],
+            help="f the cholesky method should be used for computing the inverse of S, and in this case calling which Lapack routines. default is RESTORE")
 
     gp.add_argument("--electronic-temp", type=float, default=None, #300,
             help="Electronic temperature in the case of Fermi-Dirac smearing in unit of [K], default is 300")
@@ -2546,10 +2581,19 @@ def main():
         params["FORCE_EVAL-DFT-POISSON-PERIODIC"] = args.poisson_periodic if "FORCE_EVAL-DFT-POISSON-PERIODIC" not in params or args.poisson_periodic != None else params["FORCE_EVAL-DFT-POISSON-PERIODIC"]
         params["FORCE_EVAL-DFT-POISSON-POISSON_SOLVER"] = args.poisson_solver if "FORCE_EVAL-DFT-POISSON-POISSON_SOLVER" not in params or args.poisson_solver != None else params["FORCE_EVAL-DFT-POISSON-POISSON_SOLVER"]
         params["FORCE_EVAL-DFT-QS-METHOD"] = args.qs_method if "FORCE_EVAL-DFT-QS-METHOD" not in params or args.qs_method != None else params["FORCE_EVAL-DFT-QS-METHOD"]
+        params["FORCE_EVAL-DFT-QS-EXTRAPOLATION"] = args.qs_extrapolation if "FORCE_EVAL-DFT-QS-EXTRAPOLATION" not in params or args.qs_extrapolation != None else params["FORCE_EVAL-DFT-QS-EXTRAPOLATION"]
+        params["FORCE_EVAL-DFT-QS-EXTRAPOLATION_ORDER"] = args.qs_extrapolation_order if "FORCE_EVAL-DFT-QS-EXTRAPOLATION_ORDER" not in params or args.qs_extrapolation_order != None else params["FORCE_EVAL-DFT-QS-EXTRAPOLATION_ORDER"]
         params["FORCE_EVAL-DFT-MGRID-CUTOFF"] = args.cutoff if "FORCE_EVAL-DFT-MGRID-CUTOFF" not in params or args.cutoff != None else params["FORCE_EVAL-DFT-MGRID-CUTOFF"]
         params["FORCE_EVAL-DFT-MGRID-REL_CUTOFF"] = args.rel_cutoff if "FORCE_EVAL-DFT-MGRID-REL_CUTOFF" not in params or args.rel_cutoff != None else params["FORCE_EVAL-DFT-MGRID-REL_CUTOFF"]
         params["FORCE_EVAL-DFT-MGRID-NGRIDS"] = args.ngrids if "FORCE_EVAL-DFT-MGRID-NGRIDS" not in params or  args.ngrids != None else params["FORCE_EVAL-DFT-MGRID-NGRIDS"]
         params["FORCE_EVAL-DFT-XC-XC_FUNCTIONAL"] = args.xc_functional if "FORCE_EVAL-DFT-XC-XC_FUNCTIONAL" not in params or  args.xc_functional != None else params["FORCE_EVAL-DFT-XC-XC_FUNCTIONAL"]
+
+        params["FORCE_EVAL-DFT-XC-XC_GRID-USE_FINER_GRID"] = args.xc_grid_use_finer_grid if "FORCE_EVAL-DFT-XC-XC_GRID-USE_FINER_GRID" not in params or args.xc_grid_use_finer_grid != None else params["FORCE_EVAL-DFT-XC-XC_GRID-USE_FINER_GRID"]
+
+        params["FORCE_EVAL-DFT-XC-XC_GRID-XC_DERIV"] = args.xc_grid_xc_deriv if "FORCE_EVAL-DFT-XC-XC_GRID-XC_DERIV" not in params or args.xc_grid_xc_deriv != None else params["FORCE_EVAL-DFT-XC-XC_GRID-XC_DERIV"]
+        
+        params["FORCE_EVAL-DFT-XC-XC_GRID-XC_SMOOTH_RHO"] = args.xc_grid_xc_smooth_rho if "FORCE_EVAL-DFT-XC-XC_GRID-XC_SMOOTH_RHO" not in params or args.xc_grid_xc_smooth_rho != None else params["FORCE_EVAL-DFT-XC-XC_GRID-XC_SMOOTH_RHO"]
+        
         params["FORCE_EVAL-DFT-SCF-MAX_SCF"] = args.max_scf if "FORCE_EVAL-DFT-SCF-MAX_SCF" not in params or args.max_scf != None else params["FORCE_EVAL-DFT-SCF-MAX_SCF"]
         params["FORCE_EVAL-DFT-QS-EPS_DEFAULT"] = args.eps_default if "FORCE_EVAL-DFT-QS-EPS_DEFAULT" not in params or args.eps_default != None else params["FORCE_EVAL-DFT-QS-EPS_DEFAULT"]
         params["FORCE_EVAL-DFT-SCF-EPS_SCF"] = args.eps_scf if "FORCE_EVAL-DFT-SCF-EPS_SCF" not in params or  args.eps_scf != None else params["FORCE_EVAL-DFT-SCF-EPS_SCF"]
@@ -2557,6 +2601,7 @@ def main():
         params["FORCE_EVAL-DFT-SCF-MAX_SCF_HISTORY"] = args.max_scf_history if "FORCE_EVAL-DFT-SCF-MAX_SCF_HISTORY" not in params or args.max_scf_history != None else params["FORCE_EVAL-DFT-SCF-MAX_SCF_HISTORY"]
         params["FORCE_EVAL-DFT-SCF-MAX_DIIS"] = args.max_diis if "FORCE_EVAL-DFT-SCF-MAX_DIIS" not in params or args.max_diis != None else params["FORCE_EVAL-DFT-SCF-MAX_DIIS"]
         params["FORCE_EVAL-DFT-SCF-ADDED_MOS"] = args.added_mos if "FORCE_EVAL-DFT-SCF-ADDED_MOS" not in params or  args.added_mos != None else params["FORCE_EVAL-DFT-SCF-ADDED_MOS"]
+        params["FORCE_EVAL-DFT-SCF-CHOLESKY"] = args.dft_scf_cholesky if "FORCE_EVAL-DFT-SCF-CHOLESKY" not in params or args.dft_scf_cholesky != None else params["FORCE_EVAL-DFT-SCF-CHOLESKY"]
        
 
         params["FORCE_EVAL-DFT-SCF-OUTER_SCF"] = args.outer_scf if "FORCE_EVAL-DFT-SCF-OUTER_SCF" not in params or  args.outer_scf != None else params["FORCE_EVAL-DFT-SCF-OUTER_SCF"]
@@ -2583,11 +2628,14 @@ def main():
         params["FORCE_EVAL-DFT-SCF-MIXING-BROY_W0"] = args.mixing_broy_w0 if "FORCE_EVAL-DFT-SCF-MIXING-BROY_W0" not in params or  args.mixing_broy_w0 != None else params["FORCE_EVAL-DFT-SCF-MIXING-BROY_W0"]
         params["FORCE_EVAL-DFT-SCF-MIXING-BROY_WMAX"] = args.mixing_broy_wmax if "FORCE_EVAL-DFT-SCF-MIXING-BROY_WMAX" not in params or  args.mixing_broy_wmax != None else params["FORCE_EVAL-DFT-SCF-MIXING-BROY_WMAX"]
         params["FORCE_EVAL-DFT-SCF-MIXING-BROY_WREF"] = args.mixing_broy_wref if "FORCE_EVAL-DFT-SCF-MIXING-BROY_WREF" not in params or  args.mixing_broy_wref != None else params["FORCE_EVAL-DFT-SCF-MIXING-BROY_WREF"]
-        
         params["FORCE_EVAL-DFT-SCF-MIXING-NBUFFER"] = args.mixing_nbuffer if "FORCE_EVAL-DFT-SCF-MIXING-NBUFFER" not in params or  args.mixing_nbuffer != None else params["FORCE_EVAL-DFT-SCF-MIXING-NBUFFER"]        
         params["FORCE_EVAL-DFT-SCF-MIXING-GMIX_P"] = args.mixing_gmix_p if "FORCE_EVAL-DFT-SCF-MIXING-GMIX_P" not in params or  args.mixing_gmix_p != None else params["FORCE_EVAL-DFT-SCF-MIXING-GMIX_P"]
         params["FORCE_EVAL-DFT-SCF-MIXING-MAX_GVEC_EXP"] = args.mixing_max_gvec_exp if "FORCE_EVAL-DFT-SCF-MIXING-MAX_GVEC_EXP" not in params or args.mixing_max_gvec_exp != None else params["FORCE_EVAL-DFT-SCF-MIXING-MAX_GVEC_EXP"]
         params["FORCE_EVAL-DFT-SCF-MIXING-N_SIMPLE_MIX"] = args.mixing_n_simple_mix if "FORCE_EVAL-DFT-SCF-MIXING-N_SIMPLE_MIX" not in params or args.mixing_n_simple_mix != None else params["FORCE_EVAL-DFT-SCF-MIXING-N_SIMPLE_MIX"]
+        params["FORCE_EVAL-DFT-SCF-MIXING-NMIXING"] = args.mixing_nmixing if "FORCE_EVAL-DFT-SCF-MIXING-NMIXING" not in params or args.mixing_nmixing != None else params["FORCE_EVAL-DFT-SCF-MIXING-NMIXING"]
+        params["FORCE_EVAL-DFT-SCF-MIXING-NSKIP"] = args.mixing_nskip if "FORCE_EVAL-DFT-SCF-MIXING-NSKIP" not in params or args.mixing_nskip != None else params["FORCE_EVAL-DFT-SCF-MIXING-NSKIP"]
+        params["FORCE_EVAL-DFT-SCF-MIXING-PULAY_ALPHA"] = args.mixing_pulay_alpha if "FORCE_EVAL-DFT-SCF-MIXING-PULAY_ALPHA" not in params or args.mixing_pulay_alpha != None else params["FORCE_EVAL-DFT-SCF-MIXING-PULAY_ALPHA"]
+        params["FORCE_EVAL-DFT-SCF-MIXING-PULAY_BETA"] = args.mixing_pulay_beta if "FORCE_EVAL-DFT-SCF-MIXING-PULAY_BETA" not in params or args.mixing_pulay_beta != None else params["FORCE_EVAL-DFT-SCF-MIXING-PULAY_BETA"]
         params["FORCE_EVAL-DFT-SCF-MIXING-REGULARIZATION"] = args.mixing_regularization if "FORCE_EVAL-DFT-SCF-MIXING-REGULARIZATION" not in params or args.mixing_regularization != None else params["FORCE_EVAL-DFT-SCF-MIXING-REGULARIZATION"]
 
 

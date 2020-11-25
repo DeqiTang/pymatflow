@@ -135,6 +135,7 @@ class cp2k_dft:
         self.kpoints.status = True
         self.scf.status = True
         self.printout.status = False
+        self.xc.xc_grid.status = True
 
     def to_input(self, fout):
         """
