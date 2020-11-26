@@ -29,15 +29,21 @@ class hsd_block:
         if self.block_type == "method":
             out += indent + "%s = %s {\n" % (self.name, self.val if self.val != None else "")
         else:
-            out += indent + "%s = {\n"
+            out += indent + "%s = {\n" %(self.name)
 
         for item in self.scalar:
             out += indent + "%s = %s\n" % (item, self.scalar[item])
         for item in self.list_of_scalar:
-            out += indent + "%s ="
-            for val in self.list_of_scalar[item]:
-                out += " %s" % val
-            out += "\n"
+            if item == "":
+                out += indent
+                for val in self.list_of_scalar[item]:
+                    out += " %s" % val
+                out += "\n"
+            else:
+                out += indent + "%s ="
+                for val in self.list_of_scalar[item]:
+                    out += " %s" % val
+                out += "\n"
         for item in self.method:
             out += self.method[item].to_string()
         for item in self.list_of_property:

@@ -7,13 +7,15 @@ import sys
 import shutil
 
 from pymatflow.remote.server import server_handle
+from pymatflow.dftbplus.dftbplus import dftbplus
+
 from pymatflow.vasp.vasp import vasp
 
 """
 usage:
 """
 
-class opt_run(vasp):
+class opt_run(dftbplus, vasp):
     """
     """
     def __init__(self):
@@ -26,7 +28,7 @@ class opt_run(vasp):
         self.batch_c = None
 
 
-    def optimize(self, directory="tmp-vasp-optimization", runopt="gen", auto=0):
+    def optimize(self, directory="tmp-dftbplus-optimization", runopt="gen", auto=0):
         """
         directory: a place for all the generated files
         """
@@ -34,29 +36,23 @@ class opt_run(vasp):
             if os.path.exists(directory):
                 shutil.rmtree(directory)
             os.mkdir(directory)
-            shutil.copyfile("POTCAR", os.path.join(directory, "POTCAR"))
+            #shutil.copyfile("POTCAR", os.path.join(directory, "POTCAR"))
             os.system("cp %s %s/" % (self.poscar.xyz.file, directory))
 
-            with open(os.path.join(directory, "INCAR"), 'w') as fout:
-                self.incar.to_incar(fout)
-            with open(os.path.join(directory, "POSCAR"), 'w') as fout:
-                self.poscar.to_poscar(fout)
-
             # gen slurm script
-            self.gen_llhpc(directory=directory, cmd="$PMF_VASP_STD", scriptname="optimization.slurm")
+            self.gen_llhpc(directory=directory, cmd="$PMF_DFTBPLUS", scriptname="optimization.slurm")
             # gen pbs script
-            self.gen_pbs(directory=directory, cmd="$PMF_VASP_STD", scriptname="optimization.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            self.gen_pbs(directory=directory, cmd="$PMF_DFTBPLUS", scriptname="optimization.pbs", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
             # gen local bash script
-            self.gen_bash(directory=directory, cmd="$PMF_VASP_STD", scriptname="optimization.sh")
+            self.gen_bash(directory=directory, cmd="$PMF_DFTBPLUS", scriptname="optimization.sh")
             # gen lsf_sz script
-            self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="optimization.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
+            self.gen_lsf_sz(directory=directory, cmd="$PMF_DFTBPLUS", scriptname="optimization.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
             # gen lsf_sustc script
-            self.gen_lsf_sustc(directory=directory, cmd="$PMF_VASP_STD", scriptname="optimization.lsf_sustc", jobname=self.run_params["jobname"], np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
+            self.gen_lsf_sustc(directory=directory, cmd="$PMF_DFTBPLUS", scriptname="optimization.lsf_sustc", jobname=self.run_params["jobname"], np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
 
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
-            #os.system("vasp")
             os.system("bash optimization.sh")
             os.chdir("../")
         server_handle(auto=auto, directory=directory, jobfilebase="optimization", server=self.run_params["server"])
