@@ -17,7 +17,7 @@ class geometry:
         strout += "Geometry = {\n"
         strout += "  TypeNames = { "
         for element in self.xyz.specie_labels:
-            strout += "\"%s\" "
+            strout += "\"%s\" " % element
         strout += "  }\n"
         strout += "  TypesAndCoordinates [Angstrom] = {\n"
         element_order = {}
@@ -26,7 +26,7 @@ class geometry:
             element_order[element] = i
             i += 1
         for atom in self.xyz.atoms:
-            fout.write("    %d %f %f %f\n" % (element_order[atom.name], atom.x, atom.y, atom.z))
+            strout += "    %d %f %f %f\n" % (element_order[atom.name], atom.x, atom.y, atom.z)
         strout += "  }\n"
         strout += "  Periodic = Yes\n"
         strout += "  LatticeVectors [Angstrom] = {\n"
@@ -34,4 +34,5 @@ class geometry:
             strout += "    %f %f %f\n" % (self.xyz.cell[i][0], self.xyz.cell[i][1], self.xyz.cell[i][2])
         strout += "  }\n"
         strout += "}\n"
-
+    
+        return strout

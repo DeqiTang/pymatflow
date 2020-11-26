@@ -4,51 +4,23 @@
 
 import os 
 
-class dftb_mixer:
-    def __init__(self):
-        pass
-    def to_string(self):
-        pass
+from pymatflow.dftbplus.base.hsd import hsd_block
 
+def new_hamiltonian():
+    out = hsd_block(name="Hamiltonian", val="DFTB", block_type="method", level=0)
+    out.method["Mixer"] = hsd_block(name="Mixer", val="Broyden", block_type="method", level=1)
+    out.method["SpinPolarisation"] = hsd_block(name="SpinPolarisation", val=None, block_type="method", level=1)
+    out.method["SpinOrbit"] = hsd_block(name="SpinOrbit", block_type="method", level=1) 
 
-class dftb:
-    """
-    """
-    def __init__(self):
-        self.params = {
-                "SCC": "Yes",
-                "SCCTolerance": 1.0e-5,
-                "MaxSCCIterations": 100,
-        }
-        self.mixer = dftb_mixer()
-        self.maxangularmomentum = dftb_maxangularmomentum()
-        self.spinpolarisation = dftb_spinpolarisation()
-        self.spinconstants = dftb_spin_constants()
-        self.spinorbit = dftb_spinorbit()
-        self.solver = dftb_solver()
-        self.filling = dftb_filling()
-        self.nonaufbau = dftb_nonaufbau()
-        self.slaterkosterfiles = dftb_slaterkosterfiles()
-        self.polynomialrepulsive = dftb_polynoialrepulsive()
-        self.kpointsandweights = dftb_kpointsandweights()
-        self.orbitalpotential = dftb_orbitalpotential()
-        self.initialcharge = dftb_initialcharge()
-        self.electricfield = dftb_electricfield()
-        self.dispersion = dftb_dispersion()
+    out.list_of_property["MaxAngularMomentum"] = hsd_block(name="MaxAngularMomentum", block_type="property", level=1)
 
-    def to_string(self):
-        out = ""
+    out.scalar["Scc"] = "Yes"
+    out.scalar["SCCTolerance"] = 1.0e-5
+    out.scalar["Charge"] = 0
 
+    out.method["KPointsAndWeights"] = hsd_block(name="KPointsANdWeights", block_type="method", level=1)
 
+    out.status = True
+    out.method["Mixer"].status =True
 
-class hamiltonian:
-    """
-    """
-    def __init__(self):
-        self.method = "DFTB" # currently only dftb implemented in dftb+ 
-        self.methods = {}
-        self.dftb = dftb()
-
-    def to_string(self):
-        pass
-        
+    return out
