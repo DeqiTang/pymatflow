@@ -4,7 +4,7 @@
 
 import os 
 
-class Driver:
+class driver:
     """
     The driver is responsible for changing the geometry of the input structure during the calculation.
     """

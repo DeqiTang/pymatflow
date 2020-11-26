@@ -8,7 +8,7 @@ import re
 
 from pymatflow.base.xyz import base_xyz
 
-class Geometry:
+class geometry:
     def __init__(self):
         self.xyz = base_xyz()
 

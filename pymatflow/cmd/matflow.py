@@ -2336,7 +2336,11 @@ def main():
     gp.add_argument("--laechg", type=str, default=None,
             choices=[".TRUE.", ".FALSE.", "T", "F"],
             help="for bader analysis. when LAECHG=.TRUE. the all-electron charge density will be reconstructed explicitly and written out to file.")
-            
+           
+    gp.add_argument("--lvhar", type=str, default=None,
+            choices=[".TRUE.", ".FALSE.", "T", "F"],
+            help="This tag determines whether the total local potential (saved in the file LOCPOT) contains the entire local potential (ionic + Hartree + exchange correlation) or the electrostatic contributions only (ionic + Hartree).")
+
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
     # ==========================================================
@@ -3524,7 +3528,7 @@ def main():
         params["LSEPB"] = args.lsepb if "LSEPB" not in params or args.lsepb != None else params["LSEPB"]
         params["NBMOD"] = args.nbmod if "NBMOD" not in params or args.nbmod != None else params["NBMOD"]
         params["EINT"] = args.eint if "EINT" not in params or args.eint != None else params["EINT"]
-        
+        params["LVHAR"] = args.lvhar if "LVHAR" not in params or args.lvhar != None else params["LVHAR"] 
         
         if args.runtype == 0:
             # static
