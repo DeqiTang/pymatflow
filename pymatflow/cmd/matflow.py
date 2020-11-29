@@ -427,6 +427,10 @@ def main():
             choices=["DEBUG", "HIGH", "LOW", "MEDIUM", "SILENT", "debug", "high", "low", "medium", "silent"],
             help="How much output is written out.")
 
+    gp.add_argument("--extended-fft-lengths", type=str, default=None,
+            choices=["TRUE", "FALSE", "true", "false"],
+            help="Use fft library specific values for the allows number of points in FFTs. The default is to use the internal FFT lengths. For external fft libraries this may create an error at the external library level, because the length provided by cp2k is not supported by the external library. In this case switch on this keyword to obtain, with certain fft libraries, lengths matching the external fft library lengths, or larger allowed grids, or grids that more precisely match a given cutoff. IMPORTANT NOTE: in this case, the actual grids used in CP2K depends on the FFT library. A change of FFT library must therefore be considered equivalent to a change of basis, which implies a change of total energy.")
+
     # FORCE_EVAL/SUBSYS
     gp = subparser.add_argument_group(title="FORCE_EVAL/SUBSYS")
 
@@ -2783,6 +2787,7 @@ def main():
                 
         #print(params)
         params["GLOBAL-PRINT_LEVEL"] = args.print_level if "GLOBAL-PRINT_LEVEL" not in params or args.print_level != None else params["GLOBAL-PRINT_LEVEL"]
+        params["GLOBAL-EXTENDED_FFT_LENGTHS"] = args.extended_fft_lengths if "GLOBAL-EXTENDED_FFT_LENGTHS" not in params or args.extended_fft_lengths != None else params["GLOBAL-EXTENDED_FFT_LENGTHS"]
         
         params["FORCE_EVAL-SUBSYS-CELL-PERIODIC"] = args.cell_periodic if "FORCE_EVAL-SUBSYS-CELL-PERIODIC" not in params or args.cell_periodic != None else params["FORCE_EVAL-SUBSYS-CELL-PERIODIC"]
         params["FORCE_EVAL-SUBSYS-CELL-SYMMETRY"] = args.cell_symmetry if "FORCE_EVAL-SUBSYS-CELL-SYMMETRY" not in params or args.cell_symmetry != None else params["FORCE_EVAL-SUBSYS-CELL-SYMMETRY"]
@@ -4026,7 +4031,11 @@ def main():
             task.hamiltonian.method["SlaterKosterFiles"].scalar["Prefix"] = args.slako_dir
             for item in mam:
                 task.hamiltonian.list_of_property["MaxAngularMomentum"].scalar[item] = mam[item]
-            
+          
+            task.driver.val = "ConjugateGradient"  # "LBFGS"
+            task.driver.scalar["ConvergentForcesOnly"] = "No"
+            task.driver.scalar["AppendGeometries"] = "Yes"
+
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue) 
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.optimize(directory=args.directory, runopt=args.runopt, auto=args.auto)
