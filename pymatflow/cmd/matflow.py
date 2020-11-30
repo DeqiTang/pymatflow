@@ -423,7 +423,7 @@ def main():
     # GLOBAL
     gp = subparser.add_argument_group(title="GLOBAL")
 
-    gp.add_argument("--print-level", type=str, default=None,
+    gp.add_argument("--print-level", type=str, default="LOW", # None,
             choices=["DEBUG", "HIGH", "LOW", "MEDIUM", "SILENT", "debug", "high", "low", "medium", "silent"],
             help="How much output is written out.")
 
@@ -629,7 +629,11 @@ def main():
     gp.add_argument("--outer-scf-type", type=str, default=None,
             choices=["BASIS_CENTER_OPT", "CDFT_CONSTRAINT", "DDAPC_CONSTRAINT", "NONE", "S2_CONSTRAINT", "basis_center_opt", "cdft_constraint", "ddapc_constraint", "none"],
             help="Specifies which kind of outer SCF should be employed ")
-    
+   
+    gp.add_argument("--scf-guess", type=str, default=None,
+            choices=["ATOMIC", "CORE", "HISTORY_RESTART", "MOPAC", "NONE", "RANDOM", "RESTART", "SPARSE", "atomic", "core", "history_restart", "mopac", "none", "random", "restart", "sparse"],
+            help="Change the initial guess for the wavefunction.")
+
     # smear
     gp.add_argument("--smear", type=str, default=None, #"FALSE",
             choices=["TRUE", "FALSE", "true", "false"],
@@ -2839,6 +2843,8 @@ def main():
         params["FORCE_EVAL-DFT-SCF-OUTER_SCF-MAX_SCF"] = args.outer_scf_max_scf if "FORCE_EVAL-DFT-SCF-OUTER_SCF-MAX_SCF" not in params or  args.outer_scf_max_scf != None else params["FORCE_EVAL-DFT-SCF-OUTER_SCF-MAX_SCF"]
         params["FORCE_EVAL-DFT-SCF-OUTER_SCF-OPTIMIZER"] = args.outer_scf_optimizer if "FORCE_EVAL-DFT-SCF-OUTER_SCF-OPTIMIZER" not in params or  args.outer_scf_optimizer != None else params["FORCE_EVAL-DFT-SCF-OUTER_SCF-OPTIMIZER"]
         params["FORCE_EVAL-DFT-SCF-OUTER_SCF-TYPE"] = args.outer_scf_type if "FORCE_EVAL-DFT-SCF-OUTER_SCF-TYPE" not in params or  args.outer_scf_type != None else params["FORCE_EVAL-DFT-SCF-OUTER_SCF-TYPE"]
+
+        params["FORCE_EVAL-DFT-SCF-SCF_GUESS"] = args.scf_guess if "FORCE_EVAL-DFT-SCF-SCF_GUESS" not in params or args.scf_guess != None else params["FORCE_EVAL-DFT-SCF-SCF_GUESS"]
 
         params["FORCE_EVAL-DFT-SCF-SMEAR"] = args.smear if "FORCE_EVAL-DFT-SCF-SMEAR" not in params or  args.smear != None else params["FORCE_EVAL-DFT-SCF-SMEAR"]
         params["FORCE_EVAL-DFT-SCF-SMEAR-METHOD"] = args.smear_method if "FORCE_EVAL-DFT-SCF-SMEAR-METHOD" not in params or args.smear_method != None else params["FORCE_EVAL-DFT-SCF-SMEAR-METHOD"]

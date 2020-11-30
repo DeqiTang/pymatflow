@@ -26,7 +26,8 @@ class cp2k_glob:
     def to_input(self, fout):
         fout.write("&GLOBAL\n")
         for item in self.params:
-            fout.write("\t%s %s\n" % (item, self.params[item]))
+            if self.params[item] is not None:
+                fout.write("\t%s %s\n" % (item, self.params[item]))
         fout.write("&END GLOBAL\n")
         fout.write("\n")
 
