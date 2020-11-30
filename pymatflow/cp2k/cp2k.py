@@ -98,7 +98,7 @@ class cp2k:
             elif item.split("-")[0].upper() == "FORCE_EVAL":
                 self.force_eval.set_params({item.replace("FORCE_EVAL-", ""): params[item]})
             elif item.split("-")[0].upper() == "GLOBAL":
-                self.glob.set_params({item: params[item]})
+                self.glob.set_params({item.replace("GLOBAL-", ""): params[item]})
             elif item.split("-")[0].upper() == "MOTION":
                 self.motion.set_params({item.replace("MOTION-", ""): params[item]})
             elif item.split("-")[0].upper() == "MULTIPOLE_FORCE_EVALS":

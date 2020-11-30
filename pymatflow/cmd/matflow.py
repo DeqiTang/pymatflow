@@ -2458,6 +2458,14 @@ def main():
     gp.add_argument("--kpath-file", type=str, default="kpath.txt",
             help="set kpoints for band structure calculation manually from file")
 
+    # Driver
+    gp = subparser.add_argument_group(title="Driver")
+
+    gp.add_argument("--steps", type=int, default=None,
+            help="Number of MD steps to perform")
+
+    gp.add_argument("--timestep", type=float, default=None,
+            help="Time interval between two MD steps")
 
     #                     neb related PARAMETERS
     # --------------------------------------------------------------------------
@@ -4039,6 +4047,56 @@ def main():
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue) 
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.optimize(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 2:
+            # cubic
+            pass
+        elif args.runtype == 3:
+            # hexagonal
+            pass
+        elif args.runtype == 4:
+            # tetragonal
+            pass
+        elif args.runtype == 5:
+            from pymatflow.dftbplus.md import md_run
+            #  
+            #            
+            task = md_run()
+            task.get_xyz(xyzfile)
+
+            kp = []
+            kp.append(args.kpoints_mp[0])
+            kp.append(0)
+            kp.append(0)
+            kp.append(0)
+            kp.append(args.kpoints_mp[1])
+            kp.append(0)
+            kp.append(0)
+            kp.append(0)
+            kp.append(args.kpoints_mp[2])
+            kp.append(args.kpoints_mp[3])
+            kp.append(args.kpoints_mp[4])
+            kp.append(args.kpoints_mp[5])
+            task.hamiltonian.method["KPointsAndWeights"].list_of_scalar[""] = kp
+
+            task.hamiltonian.method["SlaterKosterFiles"].scalar["Prefix"] = args.slako_dir
+            for item in mam:
+                task.hamiltonian.list_of_property["MaxAngularMomentum"].scalar[item] = mam[item]
+          
+            task.driver.val = "VelocityVerlet"
+            task.driver.scalar["MDRestartFrequency"] = 1
+            task.driver.scalar["Steps"] = args.steps
+            task.driver.scalar["TimeStep"] = args.timestep
+            task.driver.scalar["ConvergentForcesOnly"] = "No"
+
+            task.driver.method["Thermostat"].status = True
+            task.driver.method["Thermostat"].val = "NoseHoover"
+            task.driver.method["Thermostat"].scalar["Temperature"] = 400
+            task.driver.method["Thermostat"].scalar["CouplingStrength"] = 3200
+
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue) 
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            task.md(directory=args.directory, runopt=args.runopt, auto=args.auto)
+
     # --------------------------------------------------------------------------
 
 
