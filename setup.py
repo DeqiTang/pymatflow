@@ -245,6 +245,7 @@ setup(
             "octoflow = pymatflow.octopus.octoflow:main",
             "excitingflow = pymatflow.exciting.excitingflow:main",
             "elkflow = pymatflow.elk.elkflow:main",
+            "xtbflow = pymatflow.xtb.xtbflow:main",
         ]
     },
 
