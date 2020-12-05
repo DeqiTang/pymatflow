@@ -710,6 +710,8 @@ class static_run(vasp):
             with open(os.path.join(directory, "static.lsf_sustc"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 fout.write("#BSUB -J %s\n" % self.run_params["jobname"])
+                fout.write("#BSUB -e %J.err\n")
+                fout.write("#BSUB -o %J.out\n")
                 fout.write("#BSUB -q %s\n" % self.run_params["queue"])
                 fout.write("#BSUB -n %s\n" % (self.run_params["nodes"] * self.run_params["ppn"])) #number of total cores
                 fout.write("#BSUB -R \"span[ptile=%d]\"\n" % self.run_params["ppn"])
@@ -1036,6 +1038,8 @@ class static_run(vasp):
             with open(os.path.join(directory, "static.lsf_sustc"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 fout.write("#BSUB -J %s\n" % self.run_params["jobname"])
+                fout.write("#BSUB -e %J.err\n")
+                fout.write("#BSUB -o %J.out\n")
                 fout.write("#BSUB -q %s\n" % self.run_params["queue"])
                 fout.write("#BSUB -n %s\n" % (self.run_params["nodes"] * self.run_params["ppn"])) #number of total cores
                 fout.write("#BSUB -R \"span[ptile=%d]\"\n" % self.run_params["ppn"])
@@ -1336,6 +1340,8 @@ class static_run(vasp):
             with open(os.path.join(directory, "static-optics.lsf_sustc"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 fout.write("#BSUB -J %s\n" % self.run_params["jobname"])
+                fout.write("#BSUB -e %J.err\n")
+                fout.write("#BSUB -o %J.out\n")
                 fout.write("#BSUB -q %s\n" % self.run_params["queue"])
                 fout.write("#BSUB -n %s\n" % (self.run_params["nodes"] * self.run_params["ppn"])) #number of total cores
                 fout.write("#BSUB -R \"span[ptile=%d]\"\n" % self.run_params["ppn"])
@@ -1793,6 +1799,8 @@ class static_run(vasp):
             with open(os.path.join(directory, "static-bse.lsf_sustc"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 fout.write("#BSUB -J %s\n" % self.run_params["jobname"])
+                fout.write("#BSUB -e %J.err\n")
+                fout.write("#BSUB -o %J.out\n")
                 fout.write("#BSUB -q %s\n" % self.run_params["queue"])
                 fout.write("#BSUB -n %s\n" % (self.run_params["nodes"] * self.run_params["ppn"])) #number of total cores
                 fout.write("#BSUB -R \"span[ptile=%d]\"\n" % self.run_params["ppn"])
@@ -2133,13 +2141,15 @@ class static_run(vasp):
                     fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_NCL\n")
                 else:
                     fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
-                fout.write("cp OUTCAR OUTCAR.parchg(stm\n")
+                fout.write("cp OUTCAR OUTCAR.parchg(stm)\n")
                 fout.write("cp vasprun.xml vasprun.xml.parchg(stm)\n")
 
             # gen lsf_sustc script
             with open(os.path.join(directory, "static.lsf_sustc"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 fout.write("#BSUB -J %s\n" % self.run_params["jobname"])
+                fout.write("#BSUB -e %J.err\n")
+                fout.write("#BSUB -o %J.out\n")
                 fout.write("#BSUB -q %s\n" % self.run_params["queue"])
                 fout.write("#BSUB -n %s\n" % (self.run_params["nodes"] * self.run_params["ppn"])) #number of total cores
                 fout.write("#BSUB -R \"span[ptile=%d]\"\n" % self.run_params["ppn"])
@@ -2179,7 +2189,7 @@ class static_run(vasp):
                     fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_NCL\n")
                 else:
                     fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")
-                fout.write("cp OUTCAR OUTCAR.parchg(stm\n")
+                fout.write("cp OUTCAR OUTCAR.parchg(stm)\n")
                 fout.write("cp vasprun.xml vasprun.xml.parchg(stm)\n")
 
         if runopt == "run" or runopt == "genrun":

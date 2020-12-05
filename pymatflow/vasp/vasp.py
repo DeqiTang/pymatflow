@@ -264,6 +264,8 @@ class vasp:
         with open(os.path.join(directory, scriptname), 'w') as fout:
             fout.write("#!/bin/bash\n")
             fout.write("#BSUB -J %s\n" % jobname)
+            fout.write("#BSUB -e %J.err\n")
+            fout.write("#BSUB -o %J.out\n")
             fout.write("#BSUB -q %s\n" % queue)
             fout.write("#BSUB -n %s\n" % np) #number of total cores
             fout.write("#BSUB -R \"span[ptile=%d]\"\n" % np_per_node)

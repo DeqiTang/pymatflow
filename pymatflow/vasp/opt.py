@@ -364,6 +364,8 @@ class opt_run(vasp):
             with open("opt-cubic-batch-%d.lsf_sustc" % (i_batch_a), 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 fout.write("#BSUB -J %s\n" % self.run_params["jobname"])
+                fout.write("#BSUB -e %J.err\n")
+                fout.write("#BSUB -o %J.out\n")
                 fout.write("#BSUB -q %s\n" % self.run_params["queue"])
                 fout.write("#BSUB -n %s\n" % (self.run_params["nodes"] * self.run_params["ppn"])) #number of total cores
                 fout.write("#BSUB -R \"span[ptile=%d]\"\n" % self.run_params["ppn"])
@@ -1063,6 +1065,8 @@ class opt_run(vasp):
                 with open("opt-hexagonal-%d-%d.lsf_sustc" % (i_batch_a, i_batch_c), 'w') as fout:
                     fout.write("#!/bin/bash\n")
                     fout.write("#BSUB -J %s\n" % self.run_params["jobname"])
+                    fout.write("#BSUB -e %J.err\n")
+                    fout.write("#BSUB -o %J.out\n")
                     fout.write("#BSUB -q %s\n" % self.run_params["queue"])
                     fout.write("#BSUB -n %s\n" % (self.run_params["nodes"] * self.run_params["ppn"])) #number of total cores
                     fout.write("#BSUB -R \"span[ptile=%d]\"\n" % self.run_params["ppn"])
@@ -1889,6 +1893,8 @@ class opt_run(vasp):
                 with open("opt-tetragonal-%d-%d.lsf_sustc" % (i_batch_a, i_batch_c), 'w') as fout:
                     fout.write("#!/bin/bash\n")
                     fout.write("#BSUB -J %s\n" % self.run_params["jobname"])
+                    fout.write("#BSUB -e %J.err\n")
+                    fout.write("#BSUB -o %J.out\n")
                     fout.write("#BSUB -q %s\n" % self.run_params["queue"])
                     fout.write("#BSUB -n %s\n" % (self.run_params["nodes"] * self.run_params["ppn"])) #number of total cores
                     fout.write("#BSUB -R \"span[ptile=%d]\"\n" % self.run_params["ppn"])
@@ -2473,6 +2479,8 @@ class opt_run(vasp):
                     with open("opt-abc-%d-%d-%d.lsf_sustc" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
                         fout.write("#!/bin/bash\n")
                         fout.write("#BSUB -J %s\n" % self.run_params["jobname"])
+                        fout.write("#BSUB -e %J.err\n")
+                        fout.write("#BSUB -o %J.out\n")
                         fout.write("#BSUB -q %s\n" % self.run_params["queue"])
                         fout.write("#BSUB -n %s\n" % (self.run_params["nodes"] * self.run_params["ppn"])) #number of total cores
                         fout.write("#BSUB -R \"span[ptile=%d]\"\n" % self.run_params["ppn"])

@@ -168,6 +168,8 @@ class phonopy_run(vasp):
             with open(os.path.join(directory, "phonopy-job.lsf_sustc"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 fout.write("#BSUB -J %s\n" % self.run_params["jobname"])
+                fout.write("#BSUB -e %J.err\n")
+                fout.write("#BSUB -o %J.out\n")
                 fout.write("#BSUB -q %s\n" % self.run_params["queue"])
                 fout.write("#BSUB -n %s\n" % (self.run_params["nodes"] * self.run_params["ppn"])) #number of total cores
                 fout.write("#BSUB -R \"span[ptile=%d]\"\n" % self.run_params["ppn"])
