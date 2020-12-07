@@ -1994,8 +1994,8 @@ class static_run(vasp):
                     fout.write("yhrun $PMF_VASP_NCL\n")
                 else:
                     fout.write("yhrun $PMF_VASP_STD \n")
-                fout.write("cp OUTCAR OUTCAR.parchg(stm)\n")
-                fout.write('cp vasprun.xml vasprun.xml.parchg(stm)\n')
+                fout.write("cp OUTCAR OUTCAR.parchg\n")
+                fout.write('cp vasprun.xml vasprun.xml.parchg\n')
 
 
             # gen pbs script
@@ -2045,8 +2045,8 @@ class static_run(vasp):
                 else:
                     #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE -genv I_MPI_FABRICS shm:tmi $PMF_VASP_STD \n")
                     fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_VASP_STD \n")
-                fout.write("cp OUTCAR OUTCAR.parchg(stm)\n")
-                fout.write("cp vasprun.xml vasprun.xml.parchg(stm)\n")
+                fout.write("cp OUTCAR OUTCAR.parchg\n")
+                fout.write("cp vasprun.xml vasprun.xml.parchg\n")
 
 
             # gen local bash script
@@ -2085,8 +2085,8 @@ class static_run(vasp):
                     fout.write("%s $PMF_VASP_NCL \n" % self.run_params["mpi"])
                 else:
                     fout.write("%s $PMF_VASP_STD \n" % self.run_params["mpi"])
-                fout.write("cp OUTCAR OUTCAR.parchg(stm)\n")
-                fout.write("cp vasprun.xml vasprun.xml.parchg(stm)\n")
+                fout.write("cp OUTCAR OUTCAR.parchg\n")
+                fout.write("cp vasprun.xml vasprun.xml.parchg\n")
 
 
             # gen lsf_sz script
@@ -2141,8 +2141,8 @@ class static_run(vasp):
                     fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_NCL\n")
                 else:
                     fout.write("mpirun -np $NP -machinefile $CURDIR/nodelist $PMF_VASP_STD\n")
-                fout.write("cp OUTCAR OUTCAR.parchg(stm)\n")
-                fout.write("cp vasprun.xml vasprun.xml.parchg(stm)\n")
+                fout.write("cp OUTCAR OUTCAR.parchg\n")
+                fout.write("cp vasprun.xml vasprun.xml.parchg\n")
 
             # gen lsf_sustc script
             with open(os.path.join(directory, "static.lsf_sustc"), 'w') as fout:
@@ -2189,8 +2189,8 @@ class static_run(vasp):
                     fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_NCL\n")
                 else:
                     fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")
-                fout.write("cp OUTCAR OUTCAR.parchg(stm)\n")
-                fout.write("cp vasprun.xml vasprun.xml.parchg(stm)\n")
+                fout.write("cp OUTCAR OUTCAR.parchg\n")
+                fout.write("cp vasprun.xml vasprun.xml.parchg\n")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

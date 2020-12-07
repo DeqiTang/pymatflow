@@ -1217,6 +1217,11 @@ def main():
     gp.add_argument("--noncolin", type=str, default=None,
             choices=[".true.", ".false."],
             help="if .true. the program will perform a noncollinear calculation.")
+
+    gp.add_argument("--lspinorb", type=str, default=None,
+            choices=[".true.", ".false."],
+            help="if .TRUE. the noncollinear code can use a pseudopotential with spin-orbit.")
+
     # DFT+U
     gp.add_argument("--lda-plus-u", type=str, default=None,
             choices=[".true.", ".false."],
@@ -3207,6 +3212,7 @@ def main():
         system["nspin"] = args.nspin if "nspin" not in system or args.nspin != None else system["nspin"]
         system["starting_magnetization"] = args.starting_magnetization if "starting_magnetization" not in system or args.starting_magnetization != None else system["starting_magnetization"]
         system["noncolin"] = args.noncolin if "noncolin" not in system or args.nnoncolin != None else system["noncolin"]
+        system["lspinorb"] = args.lspinorb if "lspinorb" not in system or args.lspinorb != None else system["lspinorb"]
         
         system["lda_plus_u"] = args.lda_plus_u if "lda_plus_u" not in system or args.lda_plus_u != None else system["lda_plus_u"]
         system["lda_plus_u_kind"] = args.lda_plus_u_kind if "lda_plus_u_kind" not in system or args.lda_plus_u_Kind != None else system["lda_plus_u_kind"]
