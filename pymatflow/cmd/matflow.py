@@ -830,6 +830,9 @@ def main():
     gp.add_argument("--cell-opt-keep-symmetry", type=str, default=None,
             help="Keep the requested initial cell symmetry (e.g. during a cell optimisation). The initial symmetry must be specified in the &CELL section.")
 
+    gp.add_argument("--cell-opt-constraint", type=str, default=None,
+            choices=["NONE", "X", "XY", "XZ", "Y", "YZ", "Z", "none", "x", "xy", "xz", "y", "yz", "z"],
+            help="Imposes a constraint on the pressure tensor by fixing the specified cell components.")
 
     # MOTION/GEO_OPT related parameters
     # --------------------------------------------------------------------------
@@ -2926,6 +2929,7 @@ def main():
         params["MOTION-CELL_OPT-PRESSURE_TOLERANCE"] = args.cell_opt_pressure_tolerance if "MOTION-CELL_OPT-PRESSURE_TOLERANCE" not in params or  args.cell_opt_pressure_tolerance != None else params["MOTION-CELL_OPT-PRESSURE_TOLERANCE"]
         params["MOTION-CELL_OPT-KEEP_ANGLES"] = args.cell_opt_keep_angles if "MOTION-CELL_OPT-KEEP_ANGLES" not in params or  args.cell_opt_keep_angles != None else params["MOTION-CELL_OPT-KEEP_ANGLES"]
         params["MOTION-CELL_OPT-KEEP_SYMMETRY"] = args.cell_opt_keep_symmetry if "MOTION-CELL_OPT-KEEP_SYMMETRY" not in params or  args.cell_opt_keep_symmetry != None else params["MOTION-CELL_OPT-KEEP_SYMMETRY"]
+        params["MOTION-CELL_OPT-CONSTRAINT"] = args.cell_opt_constraint if "MOTION-CELL_OPT-CONSTRAINT" not in params or args.cell_opt_constraint != None else params["MOTION-CELL_OPT-CONSTRAINT"]
 
         params["MOTION-BAND-BAND_TYPE"] = args.band_type if "MOTION-BAND-BAND_TYPE" not in params or  args.band_type != None else params["MOTION-BAND-BAND_TYPE"]
         params["MOTION-BAND-NUMBER_OF_REPLICA"] = args.number_of_replica if "MOTION-BAND-NUMBER_OF_REPLICA" not in params or  args.number_of_replica != None else params["MOTION-BAND-NUMBER_OF_REPLICA"]
