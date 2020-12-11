@@ -113,13 +113,13 @@ class opt_out:
         plt.savefig("total-energy-each-ion-step.png")
         plt.close()
 
-    def get_optimized_structure(self, xyztraj, geo_opt_inp, directory):
+    def get_optimized_structure_geo_opt(self, xyztraj, geo_opt_inp, directory):
         """
         :param xyztraj: output xxx.xyz trajectory file
         :param geo_opt_inp: input file for geo opt
         :param directory: directory to put the optimized structure
 
-        Note: now can only dealt with GEO_OPT
+        Note: deal with GEO_OPT
         """
 
         with open(geo_opt_inp, 'r') as fin:
@@ -155,7 +155,7 @@ class opt_out:
                 traj_lines.append(line)
         natom = int(traj_lines[0].split()[0])
         nimage = int(len(traj_lines)/(natom+2))
-        with open(os.path.join(directory, "optimized.xyz"), 'w') as fout:
+        with open(os.path.join(directory, "geo-opt-optimized.xyz"), 'w') as fout:
             fout.write("%d\n" %natom)
             fout.write("cell: %.9f %.9f %.9f | %.9f %.9f %.9f | %.9f %.9f %.9f\n" % (
                 cell[0][0], cell[0][1], cell[0][2],
@@ -165,10 +165,59 @@ class opt_out:
             for i in range((natom+2)*(nimage-1)+2, (natom+2)*nimage):
                 fout.write(traj_lines[i])
 
-        a = read_structure(filepath=os.path.join(directory, "optimized.xyz"))
-        write_structure(structure=a, filepath=os.path.join(directory, "optimized.cif"))
+        a = read_structure(filepath=os.path.join(directory, "geo-opt-optimized.xyz"))
+        write_structure(structure=a, filepath=os.path.join(directory, "geo-opt-optimized.cif"))
         # end get optimized structure
 
+    def get_optimized_structure_cell_opt(self, xyztraj, cell_opt_out, directory):
+        """
+        :param xyztraj: output xxx.xyz trajectory file
+        :param cell_opt_out: output file of cell opt
+        :param directory: directory to put the optimized structure
+        
+        Note: deal with CELL_OPT
+        """
+
+        with open(cell_opt_out, 'r') as fin:
+            cell_opt_out_lines = fin.readlines()
+        for i in range(len(cell_opt_out_lines)):
+            #if len(cell_opt_out_lines[i].split()) == 0:
+            #    continue
+            if "GEOMETRY OPTIMIZATION COMPLETED" in cell_opt_out_lines[i]:
+                a = []
+                b = []
+                c = []
+                for j in range(3):
+                    a.append(float(cell_opt_out_lines[i+6].split()[4+j]))
+                    b.append(float(cell_opt_out_lines[i+7].split()[4+j]))
+                    c.append(float(cell_opt_out_lines[i+8].split()[4+j]))
+
+        cell = []
+        cell.append(a)
+        cell.append(b)
+        cell.append(c)
+        
+        traj_lines = []
+        with open(xyztraj, 'r') as fin:
+            for line in fin:
+                if len(line.split()) == 0:
+                    continue
+                traj_lines.append(line)
+        natom = int(traj_lines[0].split()[0])
+        nimage = int(len(traj_lines)/(natom+2))
+        with open(os.path.join(directory, "cell-opt-optimized.xyz"), 'w') as fout:
+            fout.write("%d\n" %natom)
+            fout.write("cell: %.9f %.9f %.9f | %.9f %.9f %.9f | %.9f %.9f %.9f\n" % (
+                cell[0][0], cell[0][1], cell[0][2],
+                cell[1][0], cell[1][1], cell[1][2],
+                cell[2][0], cell[2][1], cell[2][2],
+            ))
+            for i in range((natom+2)*(nimage-1)+2, (natom+2)*nimage):
+                fout.write(traj_lines[i])
+
+        a = read_structure(filepath=os.path.join(directory, "cell-opt-optimized.xyz"))
+        write_structure(structure=a, filepath=os.path.join(directory, "cell-opt-optimized.cif"))
+        # end get optimized structure
 
 
     def markdown_report(self, md="opt-info.md"):
@@ -219,9 +268,14 @@ class opt_out:
         os.chdir("post-processing")
         self.plot_info()
         self.markdown_report()
-        self.get_optimized_structure(xyztraj="../ab-initio-pos-1.xyz", geo_opt_inp="../geo-opt.inp", directory="./")
-        with open("opt.json", 'w') as fout:
-            fout.write(self.to_json_string())
+        if self.params["RUN_TYPE"].upper() == "GEO_OPT":
+            self.get_optimized_structure_geo_opt(xyztraj="../ab-initio-pos-1.xyz", geo_opt_inp="../geo-opt.inp", directory="./")
+            with open("geo-opt.json", 'w') as fout:
+                fout.write(self.to_json_string())
+        elif self.params["RUN_TYPE"].upper() == "CELL_OPT":
+            self.get_optimized_structure_cell_opt(xyztraj="../ab-initio-pos-1.xyz", cell_opt_out="../cell-opt.out", directory="./")
+            with open("cell-opt.json", 'w') as fout:
+                fout.write(self.to_json_string())            
         os.chdir("../../")
 
 

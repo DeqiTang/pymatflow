@@ -177,7 +177,7 @@ setup(
         "pymatflow/scripts/chg-vasp.py",
         "pymatflow/scripts/cube-handle.py",
         "pymatflow/scripts/chg-diff-1d.py",
-        "pymatflow/scripts/chg-1d.py",
+        "pymatflow/scripts/chgflow.py",
         "pymatflow/scripts/cube-diff-1d.py",
         "pymatflow/scripts/cube-1d.py",
         "pymatflow/remote/scripts/thq.py",
