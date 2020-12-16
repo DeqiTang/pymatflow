@@ -86,7 +86,7 @@ class phonopy_post:
             if self.kpath[-1][3].upper() == "GAMMA":
                 fout.write(" $\Gamma$")
             else:
-                fout.write(" $%s$" % self.kpath[i][3])
+                fout.write(" $%s$" % self.kpath[-1][3])
             fout.write("\n")
 
         with open("post-processing/phonopy-analysis.sh", 'w') as fout:

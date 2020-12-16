@@ -141,28 +141,34 @@ if __name__ == "__main__":
         fout.write("BAND_CONNECTION = .TRUE.\n")
         fout.write("DIM = %d %d %d\n" % (args.supercell_n[0], args.supercell_n[1], args.supercell_n[2]))
         fout.write("BAND =")
-        for qpoint in qpath:
-            if qpoint[4] == None:
-                fout.write(" %f %f %f" % (qpoint[0], qpoint[1], qpoint[2]))
-            elif qpoint[4] == "|":
-                fout.write(" %f %f %f," % (qpoint[0], qpoint[1], qpoint[2]))
+        for i in range(len(qpath) - 1):
+            if qpath[i][4] == None:
+                fout.write(" %f %f %f" % (qpath[i][0], qpath[i][1], qpath[i][2]))
+            elif qpath[i][4] == "|":
+                fout.write(" %f %f %f," % (qpath[i][0], qpath[i][1], qpath[i][2]))
             else:
                 pass
+        fout.write(" %f %f %f" % (qpath[-1][0], qpath[-1][1], qpath[-1][2]))
         fout.write("\n")
+        
         fout.write("BAND_LABELS =")
-        for qpoint in qpath:
-            if qpoint[4] == None:
-                if qpoint[3].upper() == "GAMMA":
+        for i in range(len(qpath) - 1):
+            if qpath[i][4] == None:
+                if qpath[i][3].upper() == "GAMMA":
                     fout.write(" $\Gamma$")
                 else:
-                    fout.write(" $%s$" % qpoint[3])
-            elif qpoint[4] == "|":
-                if qpoint[3].upper() == "GAMMA":
+                    fout.write(" $%s$" % qpath[i][3])
+            elif qpath[i][4] == "|":
+                if qpath[i][3].upper() == "GAMMA":
                     fout.write(" $\Gamma$,")
                 else:
-                    fout.write(" $%s$," % qpoint[3])
+                    fout.write(" $%s$," % qpath[i][3])
             else:
                 pass
+        if qpath[-1][3].upper() == "GAMMA":
+            fout.write(" $\Gamma$")
+        else:
+            fout.write(" $%s$" % qpath[-1][3])            
         fout.write("\n")
 
     with open("phonopy-analysis.sh", 'w') as fout:
