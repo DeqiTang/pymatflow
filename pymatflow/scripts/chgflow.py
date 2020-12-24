@@ -108,6 +108,31 @@ def main():
 
     subparser.add_argument("-o", "--output", type=str, default="chg-merged",
         help="prefix of the output chg file name")
+
+    # slice
+    subparser = subparsers.add_parser("slice", help="slice CHG* to get 2d DATA")
+
+    subparser.add_argument("-i", "--input", type=str, required=True,
+        help="input vasp *CHG* file, -i *CHG* ")
+
+    subparser.add_argument("--output-structure", type=str, default="chg-slice",
+        help="output stucture contained in *CHG*")
+
+    subparser.add_argument("-o", "--output", type=str, default="chg",
+        help="prefix of the output image file name")
+    
+    subparser.add_argument("--levels", type=int, default=10,
+        help="levels of the color map or color bar")
+
+    subparser.add_argument("-z", "--z", type=float, default=1,
+        help="a value between 0 and 1, indicat height of in z direction to print the plot")
+        
+    subparser.add_argument("--cmap", type=str, default="gray",
+        choices=["gray", "hot", "afmhot", "Spectral", "plasma", "magma", "hsv", "rainbow", "brg"])
+        
+    subparser.add_argument("--abscissa", type=str, nargs="+", default=["a", "b", "c"], 
+        choices=["a", "b", "c"], 
+        help="choose the direction to do the dimension reduction")
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
     # ==========================================================
@@ -249,8 +274,77 @@ def main():
         for item in args.input:
             chgs.append(vasp_chg(item))
         pass
-        
-        
+       
+    elif args.driver == "slice":
+        chg = vasp_chg(args.input)
+        zi = int((chg.data.shape[0]-1) * args.z)
+        img = chg.data[zi, ::, ::]
+        img = (img-img.min()) / (img.max() - img.min())  * 255
+        # need to do a transform when the cell is not Orthorhombic
+        # skew the image
+        a = np.array(chg.structure.cell[0])
+        b = np.array(chg.structure.cell[1])
+        cosangle = a.dot(b) / (np.linalg.norm(a) * np.linalg.norm(b))
+        angle = np.arccos(cosangle) * 180 / np.pi
+        ax = plt.axes()
+        n1 = chg.ngxf
+        n2 = chg.ngyf
+        n1_right = n1
+        n1_left = -(n2 * np.tan((angle - 90) / 180 * np.pi))
+        #im = ax.imshow(img, cmap="gray", extent=[n1_left, n1_right, 0, n2], interpolation="none", origin="lower", clip_on=True)
+        im = ax.imshow(img, cmap="gray", extent=[0, n1, 0, n2], interpolation="none", origin="lower", clip_on=True)
+        #im = plt.imshow(data[i, :, :], cmap="gray")
+        trans_data = mtransforms.Affine2D().skew_deg(90-angle, 0) + ax.transData
+        im.set_transform(trans_data)
+        # display intended extent of the image
+        x1, x2, y1, y2 = im.get_extent()
+        # do not view the line, but it is needed to be plot so the intended image is dispalyed completely
+        ax.plot([x1, x2, x2, x1, x1], [y1, y1, y2, y2, y1], "y--", transform=trans_data, visible=False) 
+        #ax.set_xlim(n1_left, n1_right)
+        #ax.set_ylim(0, n2)
+        plt.colorbar(im)
+        ax.autoscale()
+        plt.tight_layout()
+        plt.savefig(args.output+"-z-%f.grayscale.png" % args.z)
+        plt.close()
+     
+        # -----------------------------------------------------------------------------
+        # 2D contour plot
+        #------------------------------------------------------------------------------
+    
+        nx = np.linspace(0, 1, chg.ngxf)
+        ny = np.linspace(0, 1, chg.ngyf)
+        X, Y = np.meshgrid(nx, ny) # now this mesh grid cannot be used directly, we have to calc the real x y for it
+        for xi in range(len(nx)):
+            for yi in range(len(ny)):
+                X[yi, xi] = chg.structure.cell[0][0] * nx[xi] + chg.structure.cell[1][0] * ny[yi]
+                Y[yi, xi] = chg.structure.cell[0][1] * nx[xi] + chg.structure.cell[1][1] * ny[yi]
+   
+        density_z = chg.data[zi, :, :] / chg.cell_volume
+        # export data
+        with open(args.output+'.slice-z.%f.data' % args.z, "w") as fout:
+            fout.write("# x y val(e/Angstrom^3)\n")
+            for xi in range(len(nx)):
+                for yi in range(len(ny)):
+                    fout.write("%f %f %f\n" % (X[xi, yi], Y[xi, yi], density_z[xi, yi]))
+
+        Z = chg.data[zi, :, :]
+        Z = (Z-Z.min()) / (Z.max() - Z.min()) * 255
+        # fill color, three color are divided into three layer(6)
+        # cmap = plt.cm.hot means using thermostat plot(graduated red yellow)
+        #cset = plt.contourf(x, y, z, levels=args.levels, cmap=plt.cm.hot)
+        #cset = plt.contourf(x, y, z, levels=args.levels, cmap=plt.cm.gray)
+        cset = plt.contourf(X, Y, Z, levels=args.levels, cmap=args.cmap)
+        contour = plt.contour(X, Y, Z, levels=[20, 40], colors='k')
+        plt.colorbar(cset)
+        plt.autoscale()
+        plt.tight_layout()
+        plt.axis("equal") # set axis equally spaced
+        #plt.show()
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.savefig(args.output+".2d-slice-z-%f.png" % args.z)
+        plt.close()   
 
 if __name__ == "__main__":
     main()
