@@ -3,7 +3,7 @@ import os
 import shutil
 
 
-class abinit_files:
+class AbinitFiles:
     """
     """
     def __init__(self):

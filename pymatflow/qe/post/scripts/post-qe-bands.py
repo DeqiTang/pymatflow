@@ -4,7 +4,7 @@
 import os
 import argparse
 
-from pymatflow.qe.post.bands import bands_post
+from pymatflow.qe.post.bands import BandsPost
 
 """
 usage:
@@ -27,6 +27,6 @@ if __name__ == "__main__":
 
 
     os.chdir(args.directory)
-    task = bands_post(pwxbandsin=args.pwxbandsin, bandsxout=args.bandsxout)
+    task = BandsPost(pwxbandsin=args.pwxbandsin, bandsxout=args.bandsxout)
     task.plot_band(option=args.engine, bandrange=args.bandrange)
     os.chdir("../")

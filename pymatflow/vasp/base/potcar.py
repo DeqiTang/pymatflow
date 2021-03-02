@@ -2,7 +2,7 @@
 # _*_ coding: utf-8
 
 
-class vasp_potcar:
+class VaspPotcar:
     """
     """
     def __init__(self, poscar):

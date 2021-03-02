@@ -2,7 +2,7 @@
 
 """
 
-class hsd_block:
+class HsdBlock:
     """
     a hsd_block may have one of the two types: property | method
     """

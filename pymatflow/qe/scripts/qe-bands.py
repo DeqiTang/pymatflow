@@ -4,7 +4,7 @@
 import os
 import argparse
 
-from pymatflow.qe.static import static_run
+from pymatflow.qe.static import StaticRun
 
 
 """
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     # --------------------------------------------------------------------
 
 
-    task = static_run()
+    task = StaticRun()
     task.get_xyz(args.file)
     task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp, crystal_b=crystal_b)
     task.set_params(control=control, system=system, electrons=electrons)

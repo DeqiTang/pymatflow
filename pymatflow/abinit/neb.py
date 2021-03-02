@@ -6,10 +6,10 @@ import shutil
 
 
 from pymatflow.remote.server import server_handle
-from pymatflow.abinit.abinit import abinit
-from pymatflow.abinit.base.system import abinit_system
+from pymatflow.abinit.abinit import Abinit
+from pymatflow.abinit.base.system import AbinitSystem
 
-class neb_run(abinit):
+class NebRun(Abinit):
     """
     """
     def __init__(self):

@@ -8,7 +8,7 @@ import sys
 usage:
 """
 
-class qe_cell:
+class QeCell:
     """
 
     """

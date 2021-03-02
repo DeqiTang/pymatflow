@@ -13,41 +13,41 @@ def read_structure(filepath):
     :param filepath: file path for the input structure file
         it will judge the file type by the suffix of the file
 
-    :return a: an instance of pymatflow.structure.crystal
+    :return a: an instance of pymatflow.structure.Crystal
     """
     if filepath.split(".")[-1] == "xyz":
-        from pymatflow.structure.crystal import crystal
-        a = crystal()
+        from pymatflow.structure.crystal import Crystal
+        a = Crystal()
         a.from_xyz_file(filepath)
     elif filepath.split(".")[-1] == "cif":
-        from pymatflow.structure.crystal import crystal
+        from pymatflow.structure.crystal import Crystal
         import pymatflow.third.aseio as aseio
-        a = crystal()
+        a = Crystal()
         a.cell, a.atoms = aseio.read_cif(filepath)
     elif filepath.split(".")[-1] == "xsd":
-        from pymatflow.structure.crystal import crystal
+        from pymatflow.structure.crystal import Crystal
         import pymatflow.third.aseio as aseio
-        a = crystal()
+        a = Crystal()
         a.cell, a.atoms = aseio.read_xsd(filepath)
     elif filepath.split(".")[-1] == "xsf":
-        from pymatflow.structure.crystal import crystal
+        from pymatflow.structure.crystal import Crystal
         import pymatflow.third.aseio as aseio
-        a = crystal()
+        a = Crystal()
         a.cell, a.atoms = aseio.read_xsf(filepath)
     elif filepath.split(".")[-1] == "cfg":
-        from pymatflow.structure.crystal import crystal
+        from pymatflow.structure.crystal import Crystal
         import pymatflow.third.aseio as aseio 
-        a = crystal()
+        a = Crystal()
         a.cell, a.atoms = aseio.read_cfg(filepath)    
     elif os.path.basename(filepath) == "POSCAR" or os.path.basename(filepath) == "CONTCAR":
-        from pymatflow.structure.crystal import crystal
+        from pymatflow.structure.crystal import Crystal
         import pymatflow.third.aseio as aseio
-        a = crystal()
+        a = Crystal()
         a.cell, a.atoms = aseio.read_poscar(filepath)
     elif filepath.split(".")[-1] == "lammps" or filepath.split(".")[-1] == "lmp":
-        from pymatflow.structure.crystal import crystal
+        from pymatflow.structure.crystal import Crystal
         import pymatflow.third.aseio as aseio
-        a = crystal()
+        a = Crystal()
         a.cell, a.atoms = aseio.read_lammps_data(filepath)
     else:
         pass
@@ -57,7 +57,7 @@ def read_structure(filepath):
 def write_structure(structure, filepath, frac=1):
     """
     write structure to file
-    :param structure: an instance of pymatflow.structure.crystal
+    :param structure: an instance of pymatflow.structure.Crystal
 
     :param filepath: file path for the output structure file
         it will judge the file type by the suffix
@@ -82,7 +82,7 @@ def write_structure(structure, filepath, frac=1):
         import pymatflow.third.aseio as aseio 
         aseio.write_cfg(cell=structure.cell, atoms=structure.atoms, filepath=filepath)
     elif os.path.basename(filepath) == "POSCAR" or os.path.basename(filepath) == "CONTCAR":
-        from pymatflow.structure.crystal import crystal
+        from pymatflow.structure.crystal import Crystal
         from pymatflow.vasp.base.poscar import vasp_poscar
         #import pymatflow.third.aseio as aseio
         poscar = vasp_poscar()
@@ -366,12 +366,12 @@ def main():
 
 
     if args.driver == "supercell":
-        from pymatflow.base.xyz import base_xyz
-        from pymatflow.structure.crystal import crystal
+        from pymatflow.base.xyz import BaseXyz
+        from pymatflow.structure.crystal import Crystal
         
         a = read_structure(filepath=args.input)
         supercell = a.build_supercell(args.supern)
-        new_structure = crystal()
+        new_structure = Crystal()
         new_structure.get_cell_atoms(cell=supercell["cell"], atoms=supercell["atoms"])
         write_structure(structure=new_structure, filepath=args.output)
         
@@ -673,7 +673,7 @@ def main():
         # output structure
         write_structure(structure=normalized, filepath=args.output)           
     elif args.driver == "cv":
-        from pymatflow.structure.crystal import crystal
+        from pymatflow.structure.crystal import Crystal
         from pymatflow.base.atom import Atom
         a = read_structure(filepath=args.input)
         print("=======================================================================\n")
@@ -694,7 +694,7 @@ def main():
             atom = atom + list(convmat.dot(np.array([a.atoms[i].x, a.atoms[i].y, a.atoms[i].z])))
             atoms_frac.append(atom)
         #
-        out = crystal()
+        out = Crystal()
         os.system("mkdir -p %s" % args.directory)
         for i, ratio_v in enumerate(np.arange(args.range[0], args.range[1], args.range[2])):
             ratio = np.power(ratio_v, 1/3)

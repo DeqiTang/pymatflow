@@ -23,23 +23,23 @@ def server_handle(auto, server, directory, jobfilebase):
     if auto == 0:
         pass
     elif auto == 1:
-        from pymatflow.remote.rsync import rsync
-        mover = rsync()
+        from pymatflow.remote.rsync import Rsync
+        mover = Rsync()
         if server == "pbs":
             mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_pbs.conf"))
         elif args.server == "llhpc":
             mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_llhpc.conf"))
         mover.copy_default(source=os.path.abspath(directory))
     elif auto == 2:
-        from pymatflow.remote.ssh import ssh
-        from pymatflow.remote.rsync import rsync
-        mover = rsync()
+        from pymatflow.remote.ssh import Ssh
+        from pymatflow.remote.rsync import Rsync
+        mover = Rsync()
         if server == "pbs":
             mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_pbs.conf"))
         elif server == "llhpc":
             mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_llhpc.conf"))
         mover.copy_default(source=os.path.abspath(directory))
-        ctl = ssh()
+        ctl = Ssh()
         if server == "pbs":
             ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_pbs.conf"))
             ctl.login()

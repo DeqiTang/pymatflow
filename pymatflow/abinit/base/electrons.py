@@ -4,7 +4,7 @@ in control of electrons step related parameters
 import sys
 import numpy as np
 
-class kpoints:
+class Kpoints:
     """
     default behavior:
         use koptopt = 1 and ngkpt = [1, 1, 1]
@@ -118,7 +118,7 @@ class kpoints:
             self.params[item] = kpoints[item]
 
 
-class abinit_electrons:
+class AbinitElectrons:
     """
     """
     def __init__(self):
@@ -130,7 +130,7 @@ class abinit_electrons:
             "prtden", "prtdos",
             ]
         self.status = True
-        self.kpoints = kpoints()
+        self.kpoints = Kpoints()
 
     def to_string(self, n=0):
         """

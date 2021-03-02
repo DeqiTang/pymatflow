@@ -6,9 +6,9 @@ import shutil
 
 
 from pymatflow.remote.server import server_handle
-from pymatflow.abinit.abinit import abinit
+from pymatflow.abinit.abinit import Abinit
 
-class md_run(abinit):
+class MdRun(abinit):
     """
     """
     def __init__(self):

@@ -7,13 +7,13 @@ import os
 import shutil
 
 from emuhelper.base.atom import Atom
-from emuhelper.base.xyz import base_xyz
+from emuhelper.base.xyz import BaseXyz
 
 """
 Usage:
 """
 
-class orca_xyz(base_xyz):
+class orca_xyz(BaseXyz):
     """
     a representation of xyz file
     """

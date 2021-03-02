@@ -7,7 +7,7 @@ import os
 import shutil
 
 from pymatflow.base.atom import Atom
-from pymatflow.base.xyz import base_xyz
+from pymatflow.base.xyz import BaseXyz
 
 """
 Usage:
@@ -19,7 +19,7 @@ Usage:
 """
 
 
-class cp2k_xyz(base_xyz):
+class cp2k_xyz(BaseXyz):
     """
     a representation of xyz file
     """

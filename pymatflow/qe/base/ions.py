@@ -8,7 +8,7 @@ import sys
 usage:
 """
 
-class qe_ions:
+class QeIons:
     """
 
     """

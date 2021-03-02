@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 
 
-class opt_out:
+class OptOut:
     """
     """
     def __init__(self):
@@ -18,7 +18,6 @@ class opt_out:
         self.job_completed = None # judge whether the calculation is finished
         self.opt_params = {}
         self.run_info = {}
-
 
 
     def get_info(self, filepath):
@@ -133,7 +132,7 @@ class opt_out:
 
 
 
-class opt_post:
+class OptPost:
     """
     """
     def __init__(self, outputfile):

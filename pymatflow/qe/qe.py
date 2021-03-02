@@ -1,8 +1,8 @@
-from pymatflow.qe.pwscf import pwscf
-from pymatflow.qe.dfpt import dfpt_run 
+from pymatflow.qe.pwscf import PwScf
+from pymatflow.qe.dfpt import DfptRun 
 
-class qe:
+class Qe:
     def __init__(self):
-        self.pwscf = pwscf()
-        self.dfpt = dfpt_run()
+        self.pwscf = PwScf()
+        self.dfpt = DfptRun()
 

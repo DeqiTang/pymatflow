@@ -13,7 +13,7 @@ Usage:
 """
 
 
-class siesta_ions:
+class SiestaIons:
     """
     """
     def __init__(self):

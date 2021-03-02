@@ -10,7 +10,7 @@ from pymatflow.remote.server import server_handle
 
 from pymatflow.cp2k.base.xyz import cp2k_xyz
 
-from pymatflow.cp2k.cp2k import cp2k
+from pymatflow.cp2k.cp2k import Cp2k
 #from pymatflow.cp2k.base.glob import cp2k_glob
 #from pymatflow.cp2k.base.force_eval import cp2k_force_eval
 
@@ -39,7 +39,7 @@ References:
 """
 
 
-class phonopy_run(cp2k):
+class PhonopyRun(Cp2k):
     """
     """
     def __init__(self):

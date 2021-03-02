@@ -15,10 +15,10 @@ Usage:
 """
 
 
-class crystal():
+class Crystal():
     """ an abstraction of crystal structure
     usage:
-        >>> a = crystal()
+        >>> a = Crystal()
     """
     def __init__(self):
         """
@@ -27,17 +27,17 @@ class crystal():
         self.atoms = None
         self.kpath = None
 
-    def from_base_xyz(self, basexyz):
+    def from_base_xyz(self, xyz):
         """
-        :param basexyz: instance of pymatflow.base.xyz.base_xyz
+        :param basexyz: instance of pymatflow.base.xyz.BaseXyz
         """
-        self.cell = basexyz.cell
-        self.atoms = basexyz.atoms
+        self.cell = xyz.cell
+        self.atoms = xyz.atoms
 
     def from_xyz_file(self, filepath):
         """
         """
-        xyz = base.base_xyz()
+        xyz = base.BaseXyz()
         xyz.get_xyz(filepath)
         self.cell = xyz.cell
         self.atoms = xyz.atoms
@@ -172,9 +172,9 @@ class crystal():
 
     def to_base_xyz(self):
         """
-        :return xyz: instance of pymatflow.base.xyz.base_xyz()
+        :return xyz: instance of pymatflow.base.xyz.BaseXyz()
         """
-        xyz = base.base_xyz()
+        xyz = base.BaseXyz()
         xyz.file=None
         xyz.cell = self.cell
         xyz.atoms = self.atoms

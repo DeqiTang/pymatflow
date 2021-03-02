@@ -4,7 +4,7 @@
 import os
 
 import argparse
-from pymatflow.remote.ssh import ssh
+from pymatflow.remote.ssh import Ssh
 
 
 """
@@ -17,7 +17,7 @@ if __name__ == "__main__":
             help="check all the queue for all user on server. yes: check all, 0: only check yours")
     args = parser.parse_args()
     # server handle
-    ctl = ssh()
+    ctl = Ssh()
     ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_yh.conf"))
     ctl.login()
     if args.all == "yes":

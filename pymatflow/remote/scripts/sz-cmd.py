@@ -4,7 +4,7 @@
 import os
 
 import argparse
-from pymatflow.remote.ssh import ssh
+from pymatflow.remote.ssh import Ssh
 
 
 """
@@ -16,7 +16,7 @@ if __name__ == "__main__":
             help="command line to execute on server")
     args = parser.parse_args()
     # server handle
-    ctl = ssh()
+    ctl = Ssh()
     ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_pbs.conf"))
     ctl.login()
     ctl.execute(args.cmd)

@@ -1,1 +1,1 @@
-from .dftbplus import dftbplus
+from .dftbplus import DftbPlus

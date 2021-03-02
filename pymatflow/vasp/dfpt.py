@@ -6,13 +6,13 @@ import sys
 import shutil
 
 from pymatflow.remote.server import server_handle
-from pymatflow.vasp.vasp import vasp
+from pymatflow.vasp.vasp import Vasp
 
 """
 usage:
 """
 
-class dfpt_run(vasp):
+class DfptRun(Vasp):
     """
     Note:
 

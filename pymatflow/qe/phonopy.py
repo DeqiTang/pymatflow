@@ -9,7 +9,7 @@ import numpy as np
 
 
 from pymatflow.remote.server import server_handle
-from pymatflow.qe.pwscf import pwscf
+from pymatflow.qe.pwscf import PwScf
 
 """
 Note:
@@ -22,7 +22,7 @@ Note:
 
 
 
-class phonopy_run(pwscf):
+class PhonopyRun(PwScf):
     """
     Note:
         kpoints as well as energy cutoff both will have a significant

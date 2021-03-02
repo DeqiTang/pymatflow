@@ -1,5 +1,5 @@
 
-class abinit_misc:
+class AbinitMisc:
     """
     """
     def __init__(self):

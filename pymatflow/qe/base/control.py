@@ -7,7 +7,7 @@ import sys
 usage:
 """
 
-class qe_control:
+class QeControl:
     """
 
     """

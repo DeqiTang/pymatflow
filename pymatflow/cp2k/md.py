@@ -8,7 +8,7 @@ import shutil
 
 
 from pymatflow.remote.server import server_handle
-from pymatflow.cp2k.cp2k import cp2k
+from pymatflow.cp2k.cp2k import Cp2k
 #from pymatflow.cp2k.base.glob import cp2k_glob
 #from pymatflow.cp2k.base.force_eval import cp2k_force_eval
 #from pymatflow.cp2k.base.motion import cp2k_motion
@@ -24,7 +24,7 @@ TODO: implementing VIBRATIONAL SPECTRA calculating following this tutorial:
     it will use cp2k and Travis tools.
 """
 
-class md_run(cp2k):
+class MdRun(Cp2k):
     """
     Note:
         md_run is the class as an agent for Molecular Dynamics running. currently

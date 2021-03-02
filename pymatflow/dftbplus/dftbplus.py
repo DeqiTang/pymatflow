@@ -5,26 +5,26 @@ import os
 import sys
 import shutil
 
-from pymatflow.dftbplus.base.geometry import geometry
+from pymatflow.dftbplus.base.geometry import Geometry
 from pymatflow.dftbplus.base.hamiltonian import new_hamiltonian
 from pymatflow.dftbplus.base.driver import new_driver
 
-from pymatflow.vasp.base.incar import vasp_incar
-from pymatflow.vasp.base.poscar import vasp_poscar
-from pymatflow.vasp.base.kpoints import vasp_kpoints
+from pymatflow.vasp.base.incar import VaspIncar
+from pymatflow.vasp.base.poscar import VaspPoscar
+from pymatflow.vasp.base.kpoints import VaspKpoints
 
 
-class dftbplus:
+class DftbPlus:
     """
     """
     def __init__(self):
-        self.geometry = geometry()
+        self.geometry = Geometry()
         self.hamiltonian = new_hamiltonian()
         self.driver = new_driver()
 
-        self.incar = vasp_incar()
-        self.poscar = vasp_poscar()
-        self.kpoints = vasp_kpoints()
+        self.incar = VaspIncar()
+        self.poscar = VaspPoscar()
+        self.kpoints = VaspKpoints()
 
         self._initialize()
 

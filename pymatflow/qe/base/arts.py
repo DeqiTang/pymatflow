@@ -8,14 +8,14 @@ import sys
 import re
 
 import pymatflow.base as base
-from pymatflow.base.xyz import base_xyz
+from pymatflow.base.xyz import BaseXyz
 
 
 """
 usage:
 """
 
-class qe_pseudo:
+class QePseudo:
     def __init__(self):
         self.dir = os.path.abspath("./") # default dir to put pseudo files
 
@@ -29,13 +29,13 @@ class qe_pseudo:
                     break
 
 
-class qe_arts:
+class QeArts:
     """
         an abstraction of part of input block for pwscf
     """
     def __init__(self):
-        self.xyz = base_xyz()
-        self.pseudo = qe_pseudo()
+        self.xyz = BaseXyz()
+        self.pseudo = QePseudo()
 
         self.cell_params = {
                 "cell_dynamics": None,

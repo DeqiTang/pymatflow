@@ -7,7 +7,7 @@ import sys
 import re
 
 import pymatflow.base as base
-from pymatflow.base.xyz import base_xyz
+from pymatflow.base.xyz import BaseXyz
 
 
 """
@@ -113,7 +113,7 @@ class system:
         self.species = species()
         self.velocities = velocities()
         
-        self.xyz = base_xyz()
+        self.xyz = BaseXyz()
         #self.pseudo = qe_pseudo()
         
         self.ifstatic = True # used to determine how to put atomic coordinates to input file

@@ -8,13 +8,13 @@ import shutil
 
 
 from pymatflow.remote.server import server_handle
-from pymatflow.cp2k.cp2k import cp2k
+from pymatflow.cp2k.cp2k import Cp2k
 
 """
 Usage:
 """
 
-class vib_run(cp2k):
+class VibRun(Cp2k):
     """
     Note:
         vib_run is the calss as an agent for Vibrational Analysis running.

@@ -4,7 +4,7 @@
 import os
 import shutil
 import argparse
-from pymatflow.vasp.base.poscar import vasp_poscar
+from pymatflow.vasp.base.poscar import VaspPoscar
 
 """
 currently only support auto generation of PAW_PBE type POTCAR
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     print("\n")
     print("Note: elements are in the order of atomic number\n")
 
-    poscar = vasp_poscar()
+    poscar = VaspPoscar()
     poscar.xyz.get_xyz(args.xyz)
 
     cmd = "cat "

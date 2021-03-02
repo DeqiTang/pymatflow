@@ -6,7 +6,7 @@ import datetime
 import argparse
 import matplotlib.pyplot as plt
 
-from pymatflow.qe.post.opt import opt_out
+from pymatflow.qe.post.opt import OptOut
 
 
 if __name__ == "__main__":
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     os.system("mkdir -p post-processing")
     os.chdir("post-processing")
 
-    opt = opt_out()
+    opt = OptOut()
     opt.get_info(file="../%s" % args.file)
 
     # now in the directory of post-processing, output informations:

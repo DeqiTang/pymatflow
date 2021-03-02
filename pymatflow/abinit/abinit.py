@@ -5,12 +5,12 @@ Overall representation of Abinit
 import os
 import shutil
 
-from pymatflow.abinit.base.input import abinit_input
-from pymatflow.abinit.base.files import abinit_files
+from pymatflow.abinit.base.input import AbinitInput
+from pymatflow.abinit.base.files import AbinitFiles
 
 
 
-class abinit:
+class Abinit:
     """
     Note: support for both single dataset mode and multiple data set mode now
         if you want to use only the single dataset mode use ndtset = 0
@@ -29,11 +29,11 @@ class abinit:
 
         self.dataset = []
         for i in range(self.ndtset+1):
-            self.dataset.append(abinit_input())
+            self.dataset.append(AbinitInput())
             self.dataset[-1].n = i
 
         self.dataset[0].electrons.basic_setting()
-        self.files = abinit_files()
+        self.files = AbinitFiles()
         self._initialize()
 
     def _initialize(self):
@@ -100,7 +100,7 @@ class abinit:
         """
         self.ndtset = ndtset
         while len(self.dataset) - 1 < ndtset:
-            self.dataset.append(abinit_input())
+            self.dataset.append(AbinitInput())
             self.dataset[-1].n = len(self.dataset) - 1
 
     def __getitem__(self, item):
@@ -116,7 +116,7 @@ class abinit:
             self.ndtset = len(self.dataset) - 1
             return self.dataset[item]
         elif item == len(self.dataset):
-            self.dataset.append(abinit_input())
+            self.dataset.append(AbinitInput())
             self.dataset[-1] = len(self.dataset) - 1
             self.ndtset = len(self.dataset) - 1
             return self.dataset[item]

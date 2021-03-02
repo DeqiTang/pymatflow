@@ -9,7 +9,7 @@ import shutil
 
 from pymatflow.remote.server import server_handle
 
-class tddfpt_run():
+class TddfptRun():
     """
     """
     def __init__(self):

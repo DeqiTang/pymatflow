@@ -5,7 +5,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-class dos_post:
+class DosPost:
     """
     Note:
         there are three columns in xxx.dos

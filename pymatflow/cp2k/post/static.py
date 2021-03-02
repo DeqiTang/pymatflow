@@ -5,7 +5,7 @@ import datetime
 import matplotlib.pyplot as plt
 
 
-class scf_post:
+class ScfPost:
     """
     """
     def __init__(self, output):

@@ -4,7 +4,7 @@ Guard: make sure that some rules is followed
 
 import sys
 
-class abinit_guard:
+class AbinitGuard:
     """
     in the before, abinit_guard only cheeck the errors, but will not try to correct the
     error automatically.

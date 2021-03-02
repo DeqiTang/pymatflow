@@ -5,26 +5,26 @@ import os
 import sys
 import shutil
 
-from pymatflow.qe.base.control import qe_control
-from pymatflow.qe.base.system import qe_system
-from pymatflow.qe.base.electrons import qe_electrons
-from pymatflow.qe.base.ions import qe_ions
-from pymatflow.qe.base.cell import qe_cell
-from pymatflow.qe.base.arts import qe_arts
+from pymatflow.qe.base.control import QeControl
+from pymatflow.qe.base.system import QeSystem
+from pymatflow.qe.base.electrons import QeElectrons
+from pymatflow.qe.base.ions import QeIons
+from pymatflow.qe.base.cell import QeCell
+from pymatflow.qe.base.arts import QeArts
 
 
-class pwscf:
+class PwScf:
     """
     About:
         this class provide a base representation of pwscf
     """
     def __init__(self):
-        self.control = qe_control()
-        self.system = qe_system()
-        self.electrons = qe_electrons()
-        self.ions = qe_ions()
-        self.cell = qe_cell()
-        self.arts = qe_arts()
+        self.control = QeControl()
+        self.system = QeSystem()
+        self.electrons = QeElectrons()
+        self.ions = QeIons()
+        self.cell = QeCell()
+        self.arts = QeArts()
 
         #self.control.basic_setting("scf")
         self.electrons.basic_setting()

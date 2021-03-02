@@ -7,7 +7,7 @@ import datetime
 import argparse
 import matplotlib.pyplot as plt
 
-from pymatflow.qe.post.scf import scf_out
+from pymatflow.qe.post.scf import ScfOut
 
 
 if __name__ == "__main__":
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     os.system("mkdir -p post-processing")
     os.chdir("post-processing")
 
-    scf = scf_out()
+    scf = ScfOut()
     scf.get_info(file="../%s" % args.file)
 
     # now in the directory of post-processing, output informations:

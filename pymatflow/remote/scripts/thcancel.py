@@ -4,7 +4,7 @@
 import os
 
 import argparse
-from pymatflow.remote.ssh import ssh
+from pymatflow.remote.ssh import Ssh
 
 
 """
@@ -16,7 +16,7 @@ if __name__ == "__main__":
             help="JOBID of the task to cancel")
     args = parser.parse_args()
     # server handle
-    ctl = ssh()
+    ctl = Ssh()
     ctl.get_info(os.path.join(os.path.expanduser('~'), ".pymatflow/server_yh.conf"))
     ctl.login()
     ctl.execute("yhcancel %s" % args.id)

@@ -34,11 +34,11 @@ class Atom:
         self.z = float(z)
 
 
-class base_xyz:
+class BaseXyz:
     """
     a representation of xyz structure
     usage:
-        a = base_xyz()
+        a = BaseXyz()
         a.get_xyz(xyzfile)
     """
     def __init__(self):

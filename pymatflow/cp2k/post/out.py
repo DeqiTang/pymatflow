@@ -3,7 +3,7 @@
 
 import re
 
-class out:
+class Out:
     """
 
     """

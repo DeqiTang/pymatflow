@@ -7,15 +7,15 @@ import sys
 import shutil
 
 from pymatflow.remote.server import server_handle
-from pymatflow.dftbplus.dftbplus import dftbplus
+from pymatflow.dftbplus.dftbplus import DftbPlus
 
-from pymatflow.vasp.vasp import vasp
+from pymatflow.vasp.vasp import Vasp
 
 """
 usage:
 """
 
-class md_run(dftbplus, vasp):
+class MdRun(DftbPlus, Vasp):
     """
     """
     def __init__(self):

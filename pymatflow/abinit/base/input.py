@@ -5,25 +5,25 @@
 import os
 import shutil
 
-from pymatflow.abinit.base.electrons import abinit_electrons
-from pymatflow.abinit.base.ions import abinit_ions
-from pymatflow.abinit.base.dfpt import abinit_dfpt
-from pymatflow.abinit.base.system import abinit_system
-from pymatflow.abinit.base.properties import abinit_properties
-from pymatflow.abinit.base.guard import abinit_guard
-from pymatflow.abinit.base.misc import abinit_misc
+from pymatflow.abinit.base.electrons import AbinitElectrons
+from pymatflow.abinit.base.ions import AbinitIons
+from pymatflow.abinit.base.dfpt import AbinitDfpt
+from pymatflow.abinit.base.system import AbinitSystem
+from pymatflow.abinit.base.properties import AbinitProperties
+from pymatflow.abinit.base.guard import AbinitGuard
+from pymatflow.abinit.base.misc import AbinitMisc
 
-class abinit_input:
+class AbinitInput:
     """
     """
     def __init__(self):
-        self.system = abinit_system()
-        self.electrons = abinit_electrons()
-        self.ions = abinit_ions()
-        self.dfpt = abinit_dfpt()
-        self.properties = abinit_properties()
-        self.guard = abinit_guard()
-        self.misc = abinit_misc()
+        self.system = AbinitSystem()
+        self.electrons = AbinitElectrons()
+        self.ions = AbinitIons()
+        self.dfpt = AbinitDfpt()
+        self.properties = AbinitProperties()
+        self.guard = AbinitGuard()
+        self.misc = AbinitMisc()
 
         self.n = 0 # this is used to control the construction of input string
 

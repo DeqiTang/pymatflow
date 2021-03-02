@@ -3,7 +3,7 @@
 
 import os
 import argparse
-from pymatflow.siesta.post.md import md_post
+from pymatflow.siesta.post.md import MdPost
 
 
 if __name__ == "__main__":
@@ -17,7 +17,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     os.chdir(args.directory)
-    task = md_post(outputfile=args.file)
+    task = MdPost(outputfile=args.file)
     task.export()
     if args.view_traj == "yes":
         task.view_trajectory()

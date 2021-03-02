@@ -8,7 +8,7 @@ import numpy as np
 
 
 from pymatflow.remote.server import server_handle
-from pymatflow.cp2k.cp2k import cp2k
+from pymatflow.cp2k.cp2k import Cp2k
 #from pymatflow.cp2k.base.glob import cp2k_glob
 #from pymatflow.cp2k.base.force_eval import cp2k_force_eval
 #from pymatflow.cp2k.base.atom import cp2k_atom
@@ -16,7 +16,7 @@ from pymatflow.cp2k.cp2k import cp2k
 """
 """
 
-class static_mp2_run(cp2k):
+class StaticMp2Run(Cp2k):
     """
     Note:
         static_run is the class as an agent for static mp2 type calculation, including

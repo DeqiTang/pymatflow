@@ -5,9 +5,9 @@ import os
 import sys
 import shutil
 
-from pymatflow.vasp.base.incar import vasp_incar
-from pymatflow.vasp.base.poscar import vasp_poscar
-from pymatflow.vasp.base.kpoints import vasp_kpoints
+from pymatflow.vasp.base.incar import VaspIncar
+from pymatflow.vasp.base.poscar import VaspPoscar
+from pymatflow.vasp.base.kpoints import VaspKpoints
 
 """
 in the past pymatflow.vasp will generate the INCAR directly,
@@ -24,13 +24,13 @@ calculation. and we can check the correspondig bash script
 to check the parameter used.
 """
 
-class vasp:
+class Vasp:
     """
     """
     def __init__(self):
-        self.incar = vasp_incar()
-        self.poscar = vasp_poscar()
-        self.kpoints = vasp_kpoints()
+        self.incar = VaspIncar()
+        self.poscar = VaspPoscar()
+        self.kpoints = VaspKpoints()
 
         self._initialize()
 

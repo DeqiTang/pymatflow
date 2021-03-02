@@ -7,7 +7,7 @@ from scipy import interpolate
 
 import matplotlib.pyplot as plt
 
-class element_pdos:
+class ElementPdos:
     """
     """
     def __init__(self, pdos_file):
@@ -38,14 +38,14 @@ class element_pdos:
             j += 1
         
 
-class pdos_post:
+class PdosPost:
     """
     an abstraction of the .PDOS file from cp2k running
     """
     def __init__(self, pdos_files, step=0.001, sigma=0.01):
         self.data = []
         for f in pdos_files:
-            self.data.append(element_pdos(f))
+            self.data.append(ElementPdos(f))
 
         self.step = step
         self.sigma = sigma

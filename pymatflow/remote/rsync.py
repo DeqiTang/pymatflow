@@ -4,7 +4,7 @@
 import os
 import configparser
 
-class rsync:
+class Rsync:
     def __init__(self):
         pass
     def get_info(self, conf):

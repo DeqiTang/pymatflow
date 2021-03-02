@@ -9,7 +9,7 @@ import seekpath
 
 
 from pymatflow.remote.server import server_handle
-from pymatflow.abinit.abinit import abinit
+from pymatflow.abinit.abinit import Abinit
 
 """
 Usage:
@@ -18,7 +18,7 @@ Note:
 """
 
 
-class phonopy_run(abinit):
+class PhonopyRun(Abinit):
     """
     """
     def __init__(self):

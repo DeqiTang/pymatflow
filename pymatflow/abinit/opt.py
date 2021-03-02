@@ -6,9 +6,9 @@ import shutil
 import numpy as np
 
 from pymatflow.remote.server import server_handle
-from pymatflow.abinit.abinit import abinit
+from pymatflow.abinit.abinit import Abinit
 
-class opt_run(abinit):
+class OptRun(Abinit):
     """
     """
     def __init__(self):
@@ -149,7 +149,7 @@ class opt_run(abinit):
             fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
 
             fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`\n")
-            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`)\n")
+            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`\n")
             fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
             fout.write("do\n")
             fout.write("  mkdir relax-${a}\n")
@@ -219,7 +219,7 @@ class opt_run(abinit):
             fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
 
             fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`\n")
-            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`)\n")
+            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`\n")
             fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
             fout.write("do\n")
             fout.write("  mkdir relax-${a}\n")
@@ -285,7 +285,7 @@ class opt_run(abinit):
             fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
 
             fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`\n")
-            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`)\n")
+            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`\n")
             fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
             fout.write("do\n")
             fout.write("  mkdir relax-${a}\n")
@@ -404,7 +404,7 @@ class opt_run(abinit):
             fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
 
             fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`\n")
-            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`)\n")
+            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`\n")
             if na >= 2:
                 # a is optimized
                 fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
@@ -536,7 +536,7 @@ class opt_run(abinit):
             fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
 
             fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`\n")
-            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`)\n")
+            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`\n")
             if na >= 2:
                 # a is optimized
                 fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
@@ -664,7 +664,7 @@ class opt_run(abinit):
             fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
 
             fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`\n")
-            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`)\n")
+            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`\n")
             if na >= 2:
                 # a is optimized
                 fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
@@ -902,7 +902,7 @@ class opt_run(abinit):
             fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
 
             fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`\n")
-            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`)\n")
+            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`\n")
 
             if na >= 2:
                 # a is optimized
@@ -1033,7 +1033,7 @@ class opt_run(abinit):
             fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
 
             fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`\n")
-            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`)\n")
+            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`\n")
 
             if na >= 2:
                 # a is optimized
@@ -1159,7 +1159,7 @@ class opt_run(abinit):
             fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
 
             fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`\n")
-            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`)\n")
+            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`\n")
 
             if na >= 2:
                 # a is optimized
@@ -1460,7 +1460,7 @@ class opt_run(abinit):
                         fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
 
                         fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`\n")
-                        fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`)\n")
+                        fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`\n")
 
 
                         fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
@@ -1540,7 +1540,7 @@ class opt_run(abinit):
                         fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
 
                         fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`\n")
-                        fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`)\n")
+                        fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`\n")
 
 
                         fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
@@ -1611,7 +1611,7 @@ class opt_run(abinit):
                         fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
 
                         fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`\n")
-                        fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`)\n")
+                        fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`\n")
 
 
                         fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
@@ -1699,7 +1699,7 @@ class opt_run(abinit):
                         fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
 
                         fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`\n")
-                        fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`)\n")
+                        fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`\n")
 
 
                         fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))

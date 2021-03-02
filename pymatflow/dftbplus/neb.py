@@ -6,14 +6,14 @@ import sys
 import shutil
 
 from pymatflow.remote.server import server_handle
-from pymatflow.vasp.vasp import vasp
-from pymatflow.vasp.base.poscar import vasp_poscar
+from pymatflow.vasp.vasp import Vasp
+from pymatflow.vasp.base.poscar import VaspPoscar
 
 """
 usage:
 """
 
-class neb_run(vasp):
+class NebRun(Vasp):
     """
     Note:
         in vasp running with vtst, the number of cpu cores used must be equal to
@@ -39,7 +39,7 @@ class neb_run(vasp):
         """
         self.poscars = []
         for image in images:
-            poscar = vasp_poscar()
+            poscar = VaspPoscar()
             poscar.xyz.get_xyz(image)
             self.poscars.append(poscar)
 

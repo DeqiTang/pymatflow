@@ -7,9 +7,9 @@ import shutil
 import numpy as np
 import pymatflow.base as base
 from pymatflow.remote.server import server_handle
-from pymatflow.qe.pwscf import pwscf
+from pymatflow.qe.pwscf import PwScf
 
-class opt_run(pwscf):
+class OptRun(PwScf):
     """
     structural optimization uses both energies and forces to locate the minima
     along serach directions. usually insufficient scf convergence will lead to

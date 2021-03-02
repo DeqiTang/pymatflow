@@ -7,12 +7,12 @@ import shutil
 import numpy as np
 
 from pymatflow.remote.server import server_handle
-from pymatflow.cp2k.cp2k import cp2k
+from pymatflow.cp2k.cp2k import Cp2k
 
 """
 """
 
-class static_run(cp2k):
+class StaticRun(Cp2k):
     """
     Usage:
         a = static_run()

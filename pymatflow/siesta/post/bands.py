@@ -17,7 +17,7 @@ About:
 """
 
 
-class bands_post:
+class BandsPost:
     def __init__(self):
         self.bands_file_lines = None
         self.specialk = None

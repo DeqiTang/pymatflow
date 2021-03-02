@@ -4,7 +4,7 @@
 import os
 import argparse
 
-from pymatflow.base.xyz import base_xyz
+from pymatflow.base.xyz import BaseXyz
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     engine = args.engine
     
-    xyz = base_xyz()
+    xyz = BaseXyz()
     xyz.get_xyz(args.file)
 
     # obtain the qpath

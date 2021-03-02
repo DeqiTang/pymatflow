@@ -59,28 +59,28 @@ def main():
         # will convert file type according to the suffix of the specified input
         # input structure
         if args.input.split(".")[-1] == "xyz":
-            from pymatflow.structure.crystal import crystal
-            a = crystal()
+            from pymatflow.structure.crystal import Crystal
+            a = Crystal()
             a.from_xyz_file(args.input)
         elif args.input.split(".")[-1] == "cif":
-            from pymatflow.structure.crystal import crystal
+            from pymatflow.structure.crystal import Crystal
             import pymatflow.third.aseio as aseio
-            a = crystal()
+            a = Crystal()
             a.cell, a.atoms = aseio.read_cif(args.input)
         elif args.input.split(".")[-1] == "xsd":
-            from pymatflow.structure.crystal import crystal
+            from pymatflow.structure.crystal import Crystal
             import pymatflow.third.aseio as aseio
-            a = crystal()
+            a = Crystal()
             a.cell, a.atoms = aseio.read_xsd(args.input)
         elif args.input.split(".")[-1] == "xsf":
-            from pymatflow.structure.crystal import crystal
+            from pymatflow.structure.crystal import Crystal
             import pymatflow.third.aseio as aseio
-            a = crystal()
+            a = Crystal()
             a.cell, a.atoms = aseio.read_xsf(args.input)
         elif os.path.basename(args.input) == "POSCAR" or os.path.basename(args.input) == "CONTCAR":
-            from pymatflow.structure.crystal import crystal
+            from pymatflow.structure.crystal import Crystal
             import pymatflow.third.aseio as aseio
-            a = crystal()
+            a = Crystal()
             a.cell, a.atoms = aseio.read_poscar(args.input)
 
         # output structure

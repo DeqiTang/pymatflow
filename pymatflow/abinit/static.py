@@ -5,10 +5,10 @@ import os
 import shutil
 
 from pymatflow.remote.server import server_handle
-from pymatflow.abinit.abinit import abinit
+from pymatflow.abinit.abinit import Abinit
 
 
-class static_run(abinit):
+class StaticRun(Abinit):
     """
     GOAL: support for both single dataset and multi-dataset mode in abinit,
           currently, only for single dataset mode

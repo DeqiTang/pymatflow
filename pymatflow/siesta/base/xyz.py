@@ -7,7 +7,7 @@ import os
 import shutil
 
 from pymatflow.base.atom import Atom
-from pymatflow.base.xyz import base_xyz
+from pymatflow.base.xyz import BaseXyz
 
 
 """
@@ -20,7 +20,7 @@ Usage:
 """
 
 
-class siesta_xyz(base_xyz):
+class SiestaXyz(BaseXyz):
     """
     a representation of xyz file
     """

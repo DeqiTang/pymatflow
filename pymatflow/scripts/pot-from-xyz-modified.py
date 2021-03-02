@@ -5,7 +5,7 @@ import os
 import re
 import shutil
 import argparse
-from pymatflow.base.xyz import base_xyz
+from pymatflow.base.xyz import BaseXyz
 
 """
 support for auto preparation of pseudopotential files for QE, Abinit, Siesta
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     print("generate PseudoPotential file from information on the xyz file.\n")
     print("\n")
 
-    xyz = base_xyz()
+    xyz = BaseXyz()
     xyz.get_xyz(args.xyz)
 
     # --------------------------------------------------------------------------

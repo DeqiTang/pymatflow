@@ -6,7 +6,7 @@ import re
 import matplotlib.pyplot as plt
 import sys
 
-class converge_post:
+class ConvergePost:
     def __init__(self):
         # analyse the result
         self.criteria_for_cutoff = 3.67e-4 # in unit of Hartree, 10 meV = 0.00036749308136648884 Hartree

@@ -8,10 +8,10 @@ import shutil
 import pymatflow.base as base
 
 from pymatflow.remote.server import server_handle
-from pymatflow.qe.pwscf import pwscf
-from pymatflow.qe.base.arts import qe_arts
+from pymatflow.qe.pwscf import PwScf
+from pymatflow.qe.base.arts import QeArts
 
-class neb_run(pwscf):
+class NebRun(PwScf):
     """
     Reference:
         http://www.quantum-espresso.org/Doc/INPUT_NEB.html
@@ -48,7 +48,7 @@ class neb_run(pwscf):
         """
         self.images = []
         for image in images:
-            arts = qe_arts()
+            arts = QeArts()
             arts.xyz.get_xyz(image)
             self.images.append(arts)
         self.system.basic_setting(self.images[0])
@@ -206,7 +206,7 @@ class neb_run(pwscf):
             if self.images[i].ifstatic == True:
                 for atom in self.images[i].xyz.atoms:
                     fout.write("%s\t%.9f\t%.9f\t%.9f\n" % (atom.name, atom.x, atom.y, atom.z))
-            elif self.images[i].ifstatic == False:
+            elif self.images[i].ifstatiwc == False:
                 for atom in self.images[i].xyz.atoms:
                     fout.write("%s\t%.9f\t%.9f\t%.9f" % (atom.name, atom.x, atom.y, atom.z))
                     for fix in atom.fix:

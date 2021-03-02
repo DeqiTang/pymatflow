@@ -6,14 +6,14 @@ import sys
 import shutil
 
 from pymatflow.remote.server import server_handle
-from pymatflow.dftbplus.dftbplus import dftbplus
-from pymatflow.vasp.vasp import vasp
+from pymatflow.dftbplus.dftbplus import DftbPlus
+from pymatflow.vasp.vasp import Vasp
 
 """
 usage:
 """
 
-class static_run(dftbplus, vasp):
+class StaticRun(DftbPlus, Vasp):
     """
     """
     def __init__(self):

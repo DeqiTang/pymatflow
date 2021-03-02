@@ -8,7 +8,7 @@ import shutil
 
 import pymatflow.base as base
 from pymatflow.base.atom import Atom
-from pymatflow.base.xyz import base_xyz
+from pymatflow.base.xyz import BaseXyz
 
 
 """
@@ -16,11 +16,11 @@ Usage:
 """
 
 
-class siesta_system:
+class SiestaSystem:
     """
     """
     def __init__(self, name="Siesta Job", label="siesta"):
-        self.xyz = base_xyz()
+        self.xyz = BaseXyz()
 
         self.name = name
         self.label = label

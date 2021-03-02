@@ -3,7 +3,7 @@
 
 import numpy as np
 
-class vasp_kpoints:
+class VaspKpoints:
     """
     """
     def __init__(self):

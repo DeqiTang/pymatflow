@@ -7,9 +7,9 @@ import shutil
 
 
 from pymatflow.remote.server import server_handle
-from pymatflow.qe.pwscf import pwscf
+from pymatflow.qe.pwscf import PwScf
 
-class md_run(pwscf):
+class MdRun(PwScf):
     """
     """
     def __init__(self):

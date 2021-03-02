@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
-from pymatflow.base.xyz import base_xyz
+from pymatflow.base.xyz import BaseXyz
 
 # ====================
 # CP2K / MOTION / BAND
@@ -709,7 +709,7 @@ class cp2k_motion_band:
 
     def get_images(self, images):
         for image in images:
-            xyz = base_xyz()
+            xyz = BaseXyz()
             xyz.get_xyz(image)
             self.images.append(xyz)
 

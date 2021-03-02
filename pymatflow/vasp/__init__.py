@@ -1,2 +1,2 @@
-from .vasp import vasp
-from .opt import opt_run
+from .vasp import Vasp
+from .opt import OptRun

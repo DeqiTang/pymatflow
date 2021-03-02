@@ -8,10 +8,10 @@ import shutil
 
 
 from pymatflow.remote.server import server_handle
-from pymatflow.qe.pwscf import pwscf
+from pymatflow.qe.pwscf import PwScf
 
 
-class static_run(pwscf):
+class StaticRun(PwScf):
     """
     About:
         static_run implements the control over scf, nscf and

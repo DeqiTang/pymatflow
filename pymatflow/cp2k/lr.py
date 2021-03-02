@@ -7,7 +7,7 @@ import os
 import shutil
 
 
-from pymatflow.cp2k.cp2k import cp2k
+from pymatflow.cp2k.cp2k import Cp2k
 #from pymatflow.cp2k.base.glob import cp2k_glob
 #from pymatflow.cp2k.base.force_eval import cp2k_force_eval
 #from emuhelper.cp2k.base.atom import cp2k_atom
@@ -16,7 +16,7 @@ from pymatflow.cp2k.cp2k import cp2k
 Usage:
 """
 
-class lr_run(cp2k):
+class LrRun(Cp2k):
     """
     Note:
         lr_run is the  class as an agent for Linear Response calculation.

@@ -12,7 +12,7 @@ Usage:
 """
 
 
-class siesta_properties:
+class SiestaProperties:
     """
     self.option:
         1: PDOS

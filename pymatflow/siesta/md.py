@@ -7,13 +7,13 @@ import os
 import shutil
 
 from pymatflow.remote.server import server_handle
-from pymatflow.siesta.siesta import siesta
-#from pymatflow.siesta.base.system import siesta_system
-#from pymatflow.siesta.base.electrons import siesta_electrons
-#from pymatflow.siesta.base.ions import siesta_ions
+from pymatflow.siesta.siesta import Siesta
+#from pymatflow.siesta.base.system import SiestaSystem
+#from pymatflow.siesta.base.electrons import SiestaElectrons
+#from pymatflow.siesta.base.ions import SiestaIons
 
 
-class md_run(siesta):
+class MdRun(Siesta):
     """
     """
     def __init__(self):

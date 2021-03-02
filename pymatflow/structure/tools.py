@@ -9,7 +9,7 @@ import numpy as np
 
 def move_along(structure, atoms_to_move, direc, disp):
     """
-    :param structure: an instance of pymatflow.structure.crystal.crystal()
+    :param structure: an instance of pymatflow.structure.crystal.Crystal()
     :params atoms_to_move: a list of atoms to move, counting starts with 0
     :param direc: three number to indicate the direction to move along
         namely the crystal orientation index
@@ -40,7 +40,7 @@ def move_along(structure, atoms_to_move, direc, disp):
 
 def remove_atoms(structure, atoms_to_remove):
     """
-    :param structure: an instance of pymatflow.structure.crystal.crystal()
+    :param structure: an instance of pymatflow.structure.crystal.Crystal()
     :params atoms_to_remove: a list of atoms to remove, counting starts with 0
     """
     # do some checking
@@ -59,7 +59,7 @@ def remove_atoms(structure, atoms_to_remove):
 
 def vacuum_layer(structure, plane, thickness):
     """
-    :param structure: an instance of pymatflow.structure.crystal.crystal()
+    :param structure: an instance of pymatflow.structure.crystal.Crystal()
     :param plane: the plane chosen to add vacuum layer, can be:
         1 -> ab plane
         2 -> ac plane
@@ -102,11 +102,11 @@ def vacuum_layer(structure, plane, thickness):
 
 def set_frac_min_to_zero(structure):
     """
-    :return an object of crystal()
+    :return an object of Crystal()
     Note:
         set the fractional coordinate minimum to zero, this is a way of standardize the cif file
     """
-    from pymatflow.structure.crystal import crystal
+    from pymatflow.structure.crystal import Crystal
     from pymatflow.base.atom import Atom
 
 
@@ -131,7 +131,7 @@ def set_frac_min_to_zero(structure):
     
             
     # now convert coord of atom in atoms_frac_within_new_cell to cartesian
-    out = crystal()
+    out = Crystal()
     out.atoms = []
     out.cell = structure.cell
     latcell = np.array(out.cell)
@@ -145,11 +145,11 @@ def set_frac_min_to_zero(structure):
         
 def set_frac_within_zero_and_one(structure):
     """
-    :return an object of crystal()
+    :return an object of Crystal()
     Note:
         set the fractional coordinate within the range of 0 and 1, this is a way of standardize the cif file
     """
-    from pymatflow.structure.crystal import crystal
+    from pymatflow.structure.Crystal import Crystal
     from pymatflow.base.atom import Atom
 
 
@@ -172,7 +172,7 @@ def set_frac_within_zero_and_one(structure):
                 atoms_frac[i][j] += 1
             
     # now convert coord of atom in atoms_frac_within_new_cell to cartesian
-    out = crystal()
+    out = Crystal()
     out.atoms = []
     out.cell = structure.cell
     latcell = np.array(out.cell)
@@ -188,7 +188,7 @@ def set_frac_within_zero_and_one(structure):
 def inverse_geo_center(structure):
     """
     calc the geometric center of the system and make an inversion against that center
-    :param structure: an instance of pymatflow.structure.crystal.crystal()
+    :param structure: an instance of pymatflow.structure.crystal.Crystal()
     """
     # calc the geometric center
     x = 0
@@ -211,7 +211,7 @@ def inverse_geo_center(structure):
 def inverse_point(structure, point):
     """
     calc the geometric center of the system and make an inversion against that center
-    :param structure: an instance of pymatflow.structure.crystal.crystal()
+    :param structure: an instance of pymatflow.structure.crystal.Crystal()
     :param point: the inverse center point, like [0.0, 0.0, 0.0]
     """
     # now get the symmetry image against the inverse center
@@ -224,7 +224,7 @@ def inverse_point(structure, point):
 def inverse_cell_center(structure):
     """
     make an inversion against the cell center
-    :param structure: an instance of pymatflow.structure.crystal.crystal()
+    :param structure: an instance of pymatflow.structure.crystal.Crystal()
     """
     # first transfer to fractional coordinate and inverse against [0.5, 0.5, 0.5]
     structure.natom = len(structure.atoms)
@@ -246,7 +246,7 @@ def inverse_cell_center(structure):
 def rotate_along_axis(structure, rotate_atoms=[], axis=[]):
     """
     rotate the specified atoms along the specified axis
-    :param structure: an instance of pymatflow.structure.crystal.crystal()
+    :param structure: an instance of pymatflow.structure.crystal.Crystal()
     """
     pass
     
@@ -353,7 +353,7 @@ def redefine_lattice(structure, a, b, c, precision=1.0e-8):
         same lattice as old.
     :param precision, a value that is less than 1 and infinitely close to 1
         used to judge whether one atom is in another periodic of the redefined cell
-    :return an object of crystal()
+    :return an object of Crystal()
     Method:
         first make a large enough supercell, which guarantee that all the atoms in the new lattice are inside
         the supercell.
@@ -368,7 +368,7 @@ def redefine_lattice(structure, a, b, c, precision=1.0e-8):
         the cartesian with general XYZ as reference. In the last all the coord of atoms and cell have the general 
         XYZ  system as reference. So it works!
     """
-    from pymatflow.structure.crystal import crystal
+    from pymatflow.structure.crystal import Crystal
     from pymatflow.base.atom import Atom
     old_cell = copy.deepcopy(structure.cell)
     new_cell = copy.deepcopy(structure.cell)
@@ -398,7 +398,7 @@ def redefine_lattice(structure, a, b, c, precision=1.0e-8):
             atoms_frac_within_new_cell.append(atom)
             
     # now convert coord of atom in atoms_frac_within_new_cell to cartesian
-    out = crystal()
+    out = Crystal()
     out.atoms = []
     latcell_new = np.array(new_cell)
     convmat_frac_to_cartesian = latcell_new.T
@@ -414,18 +414,18 @@ def redefine_lattice(structure, a, b, c, precision=1.0e-8):
     
 def cleave_surface(structure, direction, thickness=10, precision=1.0e-8):
     """
-    :param structure: an instance of crystal()
+    :param structure: an instance of Crystal()
     :param direction: direction of the surface plane, like [0, 0, 1], the reference of it is three lattice 
         vector a, b, c
     :param precision, a value that is less than 1 and infinitely close to 1
         used to judge whether one atom is in another periodic of the redefined cell used in cleave surface
         
-    :return an object of crystal()
+    :return an object of Crystal()
     
     Note: make use of redefine_lattice() to cleave surface.
         we try to find new_a and new_b which form the surface plane (the direction is normal to the plane)
     """
-    from pymatflow.structure.crystal import crystal
+    from pymatflow.structure.crystal import Crystal
     #from pymatflow.base.atom import Atom
     
     old_cell = copy.deepcopy(structure.cell)
@@ -501,19 +501,19 @@ def cleave_surface(structure, direction, thickness=10, precision=1.0e-8):
     
 def merge_layers(structure1, structure2, use_cell=None, distance=3.4, thickness=10):
     """
-    :param structure1: an instance of crystal()
-    :param structure2: an instance of crystal()    
+    :param structure1: an instance of Crystal()
+    :param structure2: an instance of Crystal()    
     :param use_cell: use cell parameter of structure 1 or 2 or None(average) to set the new a b cell parameter
         attention: c vector is not handled this way
         
     :param distance: the distance between layers
     :param thickness: the vaccum layer thickness of the combined system
     
-    :return an object of crystal()
+    :return an object of Crystal()
     Note:
         only merge layers with ab plane as the surface plane
     """
-    from pymatflow.structure.crystal import crystal
+    from pymatflow.structure.crystal import Crystal
     from pymatflow.base.atom import Atom                                            
     
     structure1 = set_frac_within_zero_and_one(structure1)
@@ -532,7 +532,7 @@ def merge_layers(structure1, structure2, use_cell=None, distance=3.4, thickness=
     for i in range(3):
         average_cell.append(list((np.array(old_cell_1[i]) + np.array(old_cell_2[i])) / 2))
     
-    out = crystal()
+    out = Crystal()
     
     if use_cell == 1:
         latcell_frac_to_cart_1 = old_cell_1
@@ -609,9 +609,9 @@ def merge_layers(structure1, structure2, use_cell=None, distance=3.4, thickness=
     
 def build_nanotube_ab(structure, axis="b"):
     """
-    :param structure: an instance of crystal()
+    :param structure: an instance of Crystal()
     :param axis: a or b
-    :return an object of crystal()
+    :return an object of Crystal()
     Note:
         build nanotube along an axis parallel to axis a or b
         only apply to film structure with ab as plane and a must be vertical to b.
@@ -722,9 +722,9 @@ def build_nanotube_ab(structure, axis="b"):
     
 def build_nanotube_ac(structure, axis="a"):
     """
-    :param structure: an instance of crystal()
+    :param structure: an instance of Crystal()
     :param axis: a or c
-    :return an object of crystal()
+    :return an object of Crystal()
     Note:
         build nanotube along an axis parallel to axis a or c
         only apply to film structure with ac as plane and a must be vertical to c.
@@ -833,9 +833,9 @@ def build_nanotube_ac(structure, axis="a"):
 
 def build_nanotube_bc(structure, axis="c"):
     """
-    :param structure: an instance of crystal()
+    :param structure: an instance of Crystal()
     :param axis: b or c
-    :return an object of crystal()
+    :return an object of Crystal()
     Note:
         build nanotube along an axis parallel to axis b or c
         only apply to film structure with bc as plane and b must be vertical to c.

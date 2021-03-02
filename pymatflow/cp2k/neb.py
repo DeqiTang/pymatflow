@@ -8,7 +8,7 @@ import shutil
 
 
 from pymatflow.remote.server import server_handle
-from pymatflow.cp2k.cp2k import cp2k
+from pymatflow.cp2k.cp2k import Cp2k
 
 
 """
@@ -26,7 +26,7 @@ Note:
 
 """
 
-class neb_run(cp2k):
+class NebRun(Cp2k):
     """
     """
     def __init__(self):

@@ -51,7 +51,7 @@ def epsilon_stress_strain(xyz):
     return new_cell
 
 
-class elastic_run:
+class ElasticRun:
     """
     """
     def __init__(self, xyz_f):

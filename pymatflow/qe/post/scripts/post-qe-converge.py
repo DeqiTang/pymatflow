@@ -3,7 +3,7 @@
 
 import os
 import argparse
-from pymatflow.qe.post.converge import converge_post
+from pymatflow.qe.post.converge import ConvergePost
 
 
 if __name__ == "__main__":
@@ -12,5 +12,5 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--converge", help="type of converge test(ecutwfc, ecutrho, kpoints)", type=str)
     args = parser.parse_args()
     
-    task = converge_post()
+    task = ConvergePost()
     task.postprocess(directory=args.directory, converge=args.converge)

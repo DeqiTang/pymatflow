@@ -3,7 +3,7 @@
 
 import argparse
 
-from pymatflow.qe.static import static_run
+from pymatflow.qe.static import StaticRun
 
 
 """
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     system_params["ecutwfc"] = args.ecutwfc
     system_params["ecutrho"] = args.ecutrho
 
-    task = static_run()
+    task = StaticRun()
     task.get_xyz(xyzfile)
     task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=kpoints_mp)
     task.set_params(control=control_params, system=system_params, electrons=electrons_params)

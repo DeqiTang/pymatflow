@@ -9,7 +9,7 @@ import shutil
 #from pymatflow.qe.base.system import qe_system
 #from pymatflow.qe.base.electrons import qe_electrons
 #from pymatflow.qe.base.arts import qe_arts
-from pymatflow.qe.static import static_run
+from pymatflow.qe.static import StaticRun
 
 
 

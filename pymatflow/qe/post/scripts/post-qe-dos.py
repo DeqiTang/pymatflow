@@ -3,7 +3,7 @@
 
 import argparse
 
-from pymatflow.qe.post.dos import dos_post
+from pymatflow.qe.post.dos import DosPost
 
 """
 usage: post-qe-dos.py xxx.dos
@@ -20,6 +20,6 @@ if __name__ == "__main__":
     directory = args.directory
     fildos = args.fildos
 
-    task = dos_post()
+    task = DosPost()
     task.get_data(directory=directory, fildos=fildos)
     task.export(directory=directory)

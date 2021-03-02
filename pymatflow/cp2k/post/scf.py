@@ -7,9 +7,9 @@ import datetime
 import matplotlib.pyplot as plt
 
 from pymatflow.base.atom import Atom
-from pymatflow.base.xyz import base_xyz
+from pymatflow.base.xyz import BaseXyz
 
-class scf_out:
+class ScfOut:
     """
     """
     def __init__(self):

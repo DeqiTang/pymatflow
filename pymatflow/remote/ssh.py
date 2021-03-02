@@ -6,7 +6,7 @@ import configparser
 from ssh2.session import Session
 
 
-class ssh:
+class Ssh:
     """
     format of the config file(eg. ~/.emuhelper/server.conf):
     [server]

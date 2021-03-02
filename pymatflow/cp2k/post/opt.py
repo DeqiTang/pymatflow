@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from pymatflow.cmd.structflow import read_structure, write_structure
 
 
-class opt_out:
+class OptOut:
     """
     """
     def __init__(self):

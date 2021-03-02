@@ -9,13 +9,13 @@ import numpy as np
 
 from pymatflow.remote.server import server_handle
 
-from pymatflow.qe.base.control import qe_control
-from pymatflow.qe.base.system import qe_system
-from pymatflow.qe.base.electrons import qe_electrons
-from pymatflow.qe.base.arts import qe_arts
+from pymatflow.qe.base.control import QeControl
+from pymatflow.qe.base.system import QeSystem
+from pymatflow.qe.base.electrons import QeElectrons
+from pymatflow.qe.base.arts import QeArts
 
 
-class dfpt_run:
+class DfptRun:
     """
     About:
         dfpt_run implements the control over ph.x, dynmat.x, q2r.x,
@@ -54,10 +54,10 @@ class dfpt_run:
         pw.x scf calculation and set loto_2d=.true. in q2r.x and matdyn.x calculation
     """
     def __init__(self):
-        self.control = qe_control()
-        self.system = qe_system()
-        self.electrons = qe_electrons()
-        self.arts = qe_arts()
+        self.control = QeControl()
+        self.system = QeSystem()
+        self.electrons = QeElectrons()
+        self.arts = QeArts()
 
         self.control.basic_setting("scf")
         self.electrons.basic_setting()

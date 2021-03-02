@@ -7,7 +7,7 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-class element_pdos:
+class ElementPdos:
     """
     """
     def __init__(self, pdos_file):
@@ -34,7 +34,7 @@ class element_pdos:
 
         
 
-class pdos_post:
+class PdosPost:
     """
     an abstraction of the .PDOS file from cp2k running
     Note:
@@ -47,7 +47,7 @@ class pdos_post:
 
     def get_data(self, pdos_files):
         for f in pdos_files:
-            self.data.append(element_pdos(f))
+            self.data.append(ElementPdos(f))
 
     def delta(self,emin,emax,npts,energy,width):
         """Return a delta-function centered at energy

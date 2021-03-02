@@ -3,12 +3,12 @@
 
 import sys
 
-from pymatflow.siesta.post.pdos import pdos
+from pymatflow.siesta.post.pdos import Pdos
 
 """
 usage: post-siesta-pdos.py xxx.PDOS.xml
 """
 
 if __name__ == "__main__":
-    task = pdos(sys.argv[1])
+    task = Pdos(sys.argv[1])
     task.projected_to_element()

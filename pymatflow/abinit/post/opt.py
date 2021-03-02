@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from pymatflow.base.atom import Atom
 
 
-class opt:
+class Opt:
     """
     Note:
     """
@@ -115,7 +115,7 @@ class opt:
                 for k in range(len(self.lines[i].split()) - 1):
                     self.info["outvars"]["before"]["typat"].append(int(self.lines[i].split()[k+1]))
                 j = i + 1
-                while len(self.lines[j].split()[1]) < 3:
+                while self.lines[j].split()[0].isdigit(): # and len(self.lines[j].split()[1]) < 3:
                     for k in range(len(self.lines[j].split())):
                         self.info["outvars"]["before"]["typat"].append(int(self.lines[j].split()[k]))
                     j = j + 1

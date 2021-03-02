@@ -4,14 +4,14 @@ in control of the system structure related parameters
 
 import numpy as np
 import pymatflow.base as base
-from pymatflow.base.xyz import base_xyz
+from pymatflow.base.xyz import BaseXyz
 
 
-class abinit_system:
+class AbinitSystem:
     """
     """
     def __init__(self):
-        self.xyz = base_xyz()
+        self.xyz = BaseXyz()
         self.status = True
         #
         self.coordtype = "cartesian" # can be cartesian or reduced

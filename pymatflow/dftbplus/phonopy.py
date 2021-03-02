@@ -7,7 +7,7 @@ import os
 import shutil
 
 from pymatflow.remote.server import server_handle
-from pymatflow.vasp.vasp import vasp
+from pymatflow.vasp.vasp import Vasp
 
 """
 Usage:
@@ -22,7 +22,7 @@ Note:
 
 """
 
-class phonopy_run(vasp):
+class PhonopyRun(Vasp):
     """
     """
     def __init__(self):

@@ -6,11 +6,11 @@ import os
 import sys
 import re
 
-from pymatflow.base.xyz import base_xyz
+from pymatflow.base.xyz import BaseXyz
 
-class geometry:
+class Geometry:
     def __init__(self):
-        self.xyz = base_xyz()
+        self.xyz = BaseXyz()
 
     def to_string(self):
         strout = ""

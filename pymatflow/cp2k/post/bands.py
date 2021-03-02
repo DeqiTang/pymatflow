@@ -5,7 +5,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-class bands_post:
+class BandsPost:
     """
     """
     def __init__(self):

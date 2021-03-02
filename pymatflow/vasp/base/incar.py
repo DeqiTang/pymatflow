@@ -18,7 +18,7 @@ in misc now, waiting for further classification:
     ALGO,
 """
 
-class vasp_incar:
+class VaspIncar:
     """
     """
     def __init__(self):

@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
-from .cp2k import cp2k
+from .cp2k import Cp2k
 
-from .static import static_run
+from .static import StaticRun
 
-from .opt import opt_run
+from .opt import OptRun
 
-from .phonopy import phonopy_run
+from .phonopy import PhonopyRun
 
-from .md import md_run
+from .md import MdRun

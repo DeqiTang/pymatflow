@@ -6,19 +6,19 @@ import sys
 import os
 import shutil
 
-from pymatflow.siesta.base.system import siesta_system
-from pymatflow.siesta.base.electrons import siesta_electrons
-from pymatflow.siesta.base.ions import siesta_ions
-from pymatflow.siesta.base.properties import siesta_properties
+from pymatflow.siesta.base.system import SiestaSystem
+from pymatflow.siesta.base.electrons import SiestaElectrons
+from pymatflow.siesta.base.ions import SiestaIons
+from pymatflow.siesta.base.properties import SiestaProperties
 
-class siesta:
+class Siesta:
     """
     """
     def __init__(self):
-        self.system = siesta_system()
-        self.electrons = siesta_electrons()
-        self.ions = siesta_ions()
-        self.properties = siesta_properties()
+        self.system = SiestaSystem()
+        self.electrons = SiestaElectrons()
+        self.ions = SiestaIons()
+        self.properties = SiestaProperties()
 
         self.electrons.basic_setting()
 

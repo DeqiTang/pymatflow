@@ -5,8 +5,8 @@ import os
 import sys
 
 import argparse
-from pymatflow.remote.ssh import ssh
-from pymatflow.remote.rsync import rsync
+from pymatflow.remote.ssh import Ssh
+from pymatflow.remote.rsync import Rsync
 
 
 """
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # server handle
 
-    mover = rsync()
+    mover = Rsync()
     mover.get_info(os.path.join(os.path.expanduser("~"), ".pymatflow/server_yh.conf"))
 
     mover.copy(source=os.path.join(mover.user+"@"+mover.ip+":"+mover.serverdir, args.directory)+"/", target=args.directory, exclude=args.exclude)

@@ -438,18 +438,18 @@ def main():
     if args.driver == "abinit":
         if args.runtype == 0:
             # static
-            from pymatflow.abinit.post.bands import post_bands
-            from pymatflow.base.xyz import base_xyz
-            xyz = base_xyz()
+            from pymatflow.abinit.post.bands import PostBands
+            from pymatflow.base.xyz import BaseXyz
+            xyz = BaseXyz()
             xyz.get_xyz(xyzfile)
-            post = post_bands()
+            post = PostBands()
             post.get_xcoord_k(kpath=get_kpath(args.kpath_manual, args.kpath_file), cell=xyz.cell)
             post.get_ebands_agr(filepath=os.path.join(args.directory, "static-o_DS3_EBANDS.agr"))
             post.export(directory=args.directory, bandrange=args.bandrange, option=args.engine)
         elif args.runtype == 1:
             # optimization
-            from pymatflow.abinit.post.opt import opt
-            post = opt()
+            from pymatflow.abinit.post.opt import Opt
+            post = Opt()
             post.parse(os.path.join(args.directory, "optimization.out"))
             post.export(directory=args.directory)
         elif args.runtype == 2:
@@ -485,23 +485,23 @@ def main():
         if args.runtype == 0:
             # static
             if "scf" in args.static:
-                from pymatflow.cp2k.post.scf import scf_out
-                task = scf_out()
+                from pymatflow.cp2k.post.scf import ScfOut
+                task = ScfOut()
                 task.get_info(os.path.join(args.directory, "static-scf.out"))
                 task.export(args.directory)
             if "band" in args.static:
-                from pymatflow.cp2k.post.bands import bands_post
+                from pymatflow.cp2k.post.bands import BandsPost
                 from pymatflow.cmd.structflow import read_structure
                 structure = read_structure(xyzfile)
-                task = bands_post()
+                task = BandsPost()
                 task.get_efermi(static_out=os.path.join(args.directory, "static-scf.out"))
                 task.get_kpath_and_bands(kpath=get_kpath(kpath_manual=args.kpath_manual, kpath_file=args.kpath_file), cell=structure.cell, bands=os.path.join(args.directory, "bands.bs"))
                 task.export(directory=args.directory, engine=args.engine, bandrange=args.bandrange, xrange=args.xrange, yrange=args.yrange)
                 task.print_gap()
                 task.print_effective_mass()
             if "pdos" in args.static:
-                from pymatflow.cp2k.post.pdos import pdos_post
-                task = pdos_post()
+                from pymatflow.cp2k.post.pdos import PdosPost
+                task = PdosPost()
                 files=[]
                 for f in os.listdir(args.directory):
                     if "ab-initio-k" in f and f.split(".")[-1] == "pdos":
@@ -511,13 +511,13 @@ def main():
                 os.system("mkdir -p %s" % os.path.join(args.directory, "post-processing"))
                 task.export_smearing(os.path.join(args.directory, "post-processing"))
         elif args.runtype == 1:
-            from pymatflow.cp2k.post.opt import opt_out 
-            task = opt_out()
+            from pymatflow.cp2k.post.opt import OptOut 
+            task = OptOut()
             task.get_info(os.path.join(args.directory, "geo-opt.out"))
             task.export(args.directory)
         elif args.runtype == 2:
-            from pymatflow.cp2k.post.opt import opt_out 
-            task = opt_out()
+            from pymatflow.cp2k.post.opt import OptOut 
+            task = OptOut()
             task.get_info(os.path.join(args.directory, "cell-opt.out"))
             task.export(args.directory)
         elif args.runtype == 3:
@@ -540,16 +540,16 @@ def main():
             pass
         elif args.runtype == 9:
             # converge test
-            from pymatflow.cp2k.post.converge import converge_post
-            task = converge_post()
+            from pymatflow.cp2k.post.converge import ConvergePost
+            task = ConvergePost()
             task.criteria_for_cutoff = args.criteria
             task.criteria_for_rel_cutoff = args.criteria
             task.criteria_for_kpoints = args.criteria
             task.postprocess(directory=args.directory, converge=args.converge)
         elif args.runtype == 10:
             # aimd
-            from pymatflow.cp2k.post.md import md_post
-            task = md_post(output=os.path.join(args.directory, "aimd.out"), run_type='MD')
+            from pymatflow.cp2k.post.md import MdPost
+            task = MdPost(output=os.path.join(args.directory, "aimd.out"), run_type='MD')
             task.export(args.directory)
         else:
             pass
@@ -558,22 +558,22 @@ def main():
 # ====================================================================================
     elif args.driver == "qe":
         if args.runtype == 0:
-            from pymatflow.qe.post.scf import scf_out
-            from pymatflow.qe.post.bands import bands_post
-            from pymatflow.qe.post.pdos import pdos_out
+            from pymatflow.qe.post.scf import ScfOut
+            from pymatflow.qe.post.bands import BandsPost
+            from pymatflow.qe.post.pdos import PdosOut
             os.chdir(args.directory)
-            task = bands_post(pwxbandsin="static-bands.in", bandsxout="bands.out", usefermi=args.use_fermi)
+            task = BandsPost(pwxbandsin="static-bands.in", bandsxout="bands.out", usefermi=args.use_fermi)
             task.plot_band(option=args.engine, bandrange=args.bandrange, xrange=args.xrange, yrange=args.yrange)
             task.print_gap()
             os.chdir("../")
-            task = pdos_out()
+            task = PdosOut()
             task.get_data(directory=args.directory, filpdos="projwfc", usefermi=args.use_fermi)
             task.export(directory=args.directory, plotrange=args.plotrange, atomtoproj=args.atomtoproj, fontsize=args.fontsize)
 
         elif args.runtype == 1:
             # relax
-            from pymatflow.qe.post.opt import opt_out
-            task = opt_out()
+            from pymatflow.qe.post.opt import OptOut
+            task = OptOut()
             #task.get_info(os.path.join(args.directory, "relax.out"))
             if args.opt_out == None:
                 # use default relax.out
@@ -582,8 +582,8 @@ def main():
             task.export(args.directory)
         elif args.runtype == 2:
             # vc-relax
-            from pymatflow.qe.post.opt import opt_out
-            task = opt_out()
+            from pymatflow.qe.post.opt import OptOut
+            task = OptOut()
             #task.get_info(os.path.join(args.directory, "vc-relax.out"))
             if args.opt_out == None:
                 # use default vc-relax.out
@@ -601,9 +601,9 @@ def main():
             os.system("cd %s; bash get_energy.sh; rm get_energy.sh; cd ../../" % os.path.join(args.directory, "post-processing"))
         elif args.runtype == 6:
             # nudged elastic band
-            from pymatflow.qe.post.neb import neb_post
+            from pymatflow.qe.post.neb import NebPost
             os.chdir(args.directory)
-            task = neb_post(nebout=args.nebout)
+            task = NebPost(nebout=args.nebout)
             os.chdir("../")
             task.export(directory=args.directory, nebint=args.nebint, nebdat=args.nebdat, md=args.md)
         elif args.runtype == 7:
@@ -613,8 +613,8 @@ def main():
             # phonopy phonon
             os.system("post-qe-phonopy.py -d %s -f %s --qpath-file %s --supercell-n %d %d %d --engine %s" % (args.directory, xyzfile, args.kpath_file, args.supercell_n[0], args.supercell_n[1], args.supercell_n[2], args.engine))
         elif args.runtype == 11:
-            from pymatflow.qe.post.converge import converge_post
-            task = converge_post()
+            from pymatflow.qe.post.converge import ConvergePost
+            task = ConvergePost()
             task.postprocess(directory=args.directory, converge=args.converge)
         else:
             pass
@@ -624,18 +624,18 @@ def main():
     elif args.driver == "siesta":
         if args.runtype == 0:
             # static
-            from pymatflow.siesta.post.pdos import pdos
-            task = pdos()
+            from pymatflow.siesta.post.pdos import Pdos
+            task = Pdos()
             task.get_info(os.path.join(args.directory, "siesta.PDOS.xml"))
             task.export(directory=args.directory)
-            from pymatflow.siesta.post.bands import bands_post
-            task = bands_post()
+            from pymatflow.siesta.post.bands import BandsPost
+            task = BandsPost()
             task.process(os.path.join(args.directory, "siesta.bands"))
             task.export(directory=args.directory, option=args.engine)
         elif args.runtype == 1:
             # optimization
-            from pymatflow.siesta.post.opt import opt_out
-            task = opt_out()
+            from pymatflow.siesta.post.opt import OptOut
+            task = OptOut()
             task.get_info(os.path.join(args.directory, "geometric-optimization.out"))
             task.export(directory=args.directory)
         elif args.runtype == 2:

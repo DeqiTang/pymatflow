@@ -2,7 +2,7 @@
 in control of properties calculation  related parameters
 """
 
-class abinit_properties:
+class AbinitProperties:
     """
     """
     def __init__(self):

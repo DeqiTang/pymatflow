@@ -6,7 +6,7 @@ import re
 import matplotlib.pyplot as plt
 import sys
 
-class converge_post:
+class ConvergePost:
     def __init__(self):
         # analyse the result
         self.criteria_for_ecutwfc = 7.35e-4 # 10 meV = 7.35e-4 Ry

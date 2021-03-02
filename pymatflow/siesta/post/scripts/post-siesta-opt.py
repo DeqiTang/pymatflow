@@ -4,7 +4,7 @@
 import os
 import argparse
 #from pymatflow.siesta.post.opt import opt_post
-from pymatflow.siesta.post.opt import opt_out
+from pymatflow.siesta.post.opt import OptOut
 
 
 if __name__ == "__main__":
@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
 
     os.chdir("args.directory")
-    opt = opt_out()
+    opt = OptOut()
     opt.get_info(file=args.file)
     os.system("mkdir -p post-processing")
 

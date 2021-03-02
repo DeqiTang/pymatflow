@@ -3,7 +3,7 @@
 
 import os
 import argparse
-from pymatflow.siesta.post.converge import converge_post
+from pymatflow.siesta.post.converge import ConvergePost
 
 
 if __name__ == "__main__":
@@ -12,5 +12,5 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--converge", help="type of converge test(MeshCutoff)", type=str, default="MeshCutoff")
     args = parser.parse_args()
     
-    task = converge_post()
+    task = ConvergePost()
     task.postprocess(directory=args.directory, converge=args.converge)

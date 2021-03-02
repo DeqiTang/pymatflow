@@ -4,7 +4,7 @@
 import os
 import argparse
 
-from pymatflow.siesta.post.bands import bands_post
+from pymatflow.siesta.post.bands import BandsPost
 
 """
 usage:
@@ -20,6 +20,6 @@ if __name__ == "__main__":
 
 
     os.chdir(args.directory)
-    task = bands_post()
+    task = BandsPost()
     task.process(args.bandsfile)
     task.plot_bands(bandsfile=args.bandsfile, option=args.option)

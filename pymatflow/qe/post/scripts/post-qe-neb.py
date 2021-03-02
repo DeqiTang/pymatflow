@@ -4,7 +4,7 @@
 import os
 import argparse
 
-from pymatflow.qe.post.neb import neb_post
+from pymatflow.qe.post.neb import NebPost
 
 
 
@@ -32,6 +32,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     os.chdir(args.directory)
-    task = neb_post(nebout=args.nebout)
+    task = NebPost(nebout=args.nebout)
     os.chdir("../")
     task.export(directory=args.directory, nebint=args.nebint, nebdat=args.nebdat, md=args.md)

@@ -26,7 +26,7 @@ from pymatflow.cp2k.base.vibrational_analysis import cp2k_vibrational_analysis
 """
 """
 
-class cp2k:
+class Cp2k:
     """
     Philosophy:
         I have to say the implementation way of cp2k.base.xxx and cp2k is actually

@@ -6,7 +6,7 @@ import subprocess
 import matplotlib.pyplot as plt
 
 
-class md_post:
+class MdPost:
     """
     """
     def __init__(self, outputfile):

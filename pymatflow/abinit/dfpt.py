@@ -38,12 +38,12 @@ import shutil
 
 
 from pymatflow.remote.server import server_handle
-from pymatflow.abinit.abinit import abinit
+from pymatflow.abinit.abinit import Abinit
 
-from pymatflow.abinit.base.guard import abinit_guard
+from pymatflow.abinit.base.guard import AbinitGuard
 
 
-class dfpt_elastic_piezo_dielec(abinit):
+class DfptElasticPiezoDielec(Abinit):
     """
     procedure for DFPT calculation:
         1) ground-state calculation
@@ -264,7 +264,7 @@ class dfpt_elastic_piezo_dielec(abinit):
 
 
 
-class dfpt_phonon(abinit):
+class DfptPhonon(Abinit):
     """
     procedure for DFPT calculation:
         1) ground-state calculation

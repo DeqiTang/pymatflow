@@ -49,9 +49,9 @@ def interpolate(initial, final, nimage, moving_atom):
     latcell = np.array(initial.cell)
     convmat = latcell.T
     from pymatflow.base.atom import Atom
-    from pymatflow.structure.crystal import crystal
+    from pymatflow.structure.crystal import Crystal
     for i in range(nimage):
-        img = crystal()
+        img = Crystal()
         img.atoms = []
         img.cell = initial.cell
         for atom in images_frac[i]:

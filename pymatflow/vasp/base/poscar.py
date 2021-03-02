@@ -8,7 +8,7 @@ import shutil
 
 
 
-from pymatflow.vasp.base.xyz import base_xyz
+from pymatflow.vasp.base.xyz import BaseXyz
 
 """
 Usage:
@@ -20,11 +20,11 @@ Note:
 
 """
 
-class vasp_poscar:
+class VaspPoscar:
     """
     """
     def __init__(self):
-        self.xyz = base_xyz()
+        self.xyz = BaseXyz()
         self.selective_dynamics = False
 
     def to_poscar(self, fout, coordtype="Cartesian"):

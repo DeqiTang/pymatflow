@@ -14,7 +14,7 @@ Usage:
 """
 
 
-class base_xyz:
+class BaseXyz:
     """
     a representation of xyz structure
     usage:

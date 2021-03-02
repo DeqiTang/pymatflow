@@ -1,7 +1,7 @@
 """
 in control of ions moving related parameters
 """
-class abinit_ions:
+class AbinitIons:
     """
     """
     def __init__(self):

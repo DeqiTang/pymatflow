@@ -7,7 +7,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
-class neb_post:
+class NebPost:
     def __init__(self, nebout="neb.out"):
         self.neb_params = {}
         self.run_info = {}

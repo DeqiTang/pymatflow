@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 
 
-class pdos_out:
+class PdosOut:
     """
     """
     def __init__(self):
@@ -459,7 +459,7 @@ class pdos_out:
 
 
 
-class pdos_post:
+class PdosPost:
     """
     """
     def __init__(self):

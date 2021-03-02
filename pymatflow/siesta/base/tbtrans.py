@@ -7,7 +7,7 @@ import os
 import shutil
 
 from pymatflow.base.atom import Atom
-from pymatflow.base.xyz import base_xyz
+from pymatflow.base.xyz import BaseXyz
 
 
 """
@@ -15,7 +15,7 @@ Usage:
 """
 
 
-class siesta_tbtrans:
+class SiestaTbtrans:
     """
     """
     def __init__(self):

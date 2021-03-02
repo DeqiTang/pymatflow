@@ -8,7 +8,7 @@ import shutil
 
 
 from pymatflow.remote.server import server_handle
-from pymatflow.cp2k.cp2k import cp2k
+from pymatflow.cp2k.cp2k import Cp2k
 #from pymatflow.cp2k.base.glob import cp2k_glob
 #from pymatflow.cp2k.base.force_eval import cp2k_force_eval
 #from pymatflow.cp2k.base.motion import cp2k_motion
@@ -16,7 +16,7 @@ from pymatflow.cp2k.cp2k import cp2k
 """
 """
 
-class opt_run(cp2k):
+class OptRun(Cp2k):
     """
     Note:
         opt_run is the calss as an agent for geometric optimization, including GEO_OPT

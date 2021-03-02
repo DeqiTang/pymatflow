@@ -6,7 +6,7 @@ import os
 import shutil
 import pymatflow.base as base
 
-from pymatflow.base.xyz import base_xyz
+from pymatflow.base.xyz import BaseXyz
 
 """
 Usage:
@@ -144,7 +144,7 @@ class cp2k_subsys:
     """
     def __init__(self):
         #super().__init__()
-        self.xyz = base_xyz()
+        self.xyz = BaseXyz()
         self.params = {
                 "SEED": None,
                 }

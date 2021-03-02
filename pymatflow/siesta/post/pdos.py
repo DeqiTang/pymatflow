@@ -6,7 +6,7 @@ import xml.etree.ElementTree
 import numpy as np
 import matplotlib.pyplot as plt
 
-class orbital:
+class Orbital:
     """
     """
     def __init__(self, orbital_xml):
@@ -22,7 +22,7 @@ class orbital:
         self.P = orbital_xml.attrib["P"]
         self.data = np.array([float(orbital_xml[0].text.split()[i]) for i in range(len(orbital_xml[0].text.split()))])
 
-class pdos:
+class Pdos:
     """
     """
     def __init__(self):
@@ -40,7 +40,7 @@ class pdos:
 
         self.orbitals = []
         for i in range(3, len(root)):
-            self.orbitals.append(orbital(root[i]))
+            self.orbitals.append(Orbital(root[i]))
 
     def projected_to_element(self):
         tree = xml.etree.ElementTree.parse(self.file)

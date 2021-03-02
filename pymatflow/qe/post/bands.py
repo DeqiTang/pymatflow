@@ -12,7 +12,7 @@ def calc_carrier_effective_mass():
 def calc_band_gap():
     pass
 
-class bands_post:
+class BandsPost:
     """
     """
     def __init__(self, pwxbandsin, bandsxout, usefermi="scf"):

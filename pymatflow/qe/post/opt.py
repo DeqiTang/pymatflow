@@ -10,11 +10,11 @@ import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pymatflow.base.xyz import base_xyz
+from pymatflow.base.xyz import BaseXyz
 from pymatflow.base.atom import Atom
 
 
-class opt_out:
+class OptOut:
     """
     """
     def __init__(self):
@@ -136,7 +136,7 @@ class opt_out:
 
         # ----------------------------------------------------------------------
         # get the input xyz structure from information extracted above:
-        self.xyz = base_xyz()
+        self.xyz = BaseXyz()
         self.xyz.natom = self.opt_params["nat"]
         begin = self.run_info["site_line_number"] + 1
         # Warning:

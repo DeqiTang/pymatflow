@@ -6,12 +6,12 @@ import sys
 import numpy as np
 import shutil
 
-from pymatflow.siesta.base.system import siesta_system
-from pymatflow.siesta.base.electrons import siesta_electrons
-from pymatflow.siesta.base.properties import siesta_properties
+from pymatflow.siesta.base.system import SiestaSystem
+from pymatflow.siesta.base.electrons import SiestaElectrons
+from pymatflow.siesta.base.properties import SiestaProperties
 
-from pymatflow.siesta.base.transiesta import siesta_transiesta
-from pymatflow.siesta.base.tbtrans import siesta_tbtrans
+from pymatflow.siesta.base.transiesta import SiestaTransiesta
+from pymatflow.siesta.base.tbtrans import SiestaTbtrans
 
 
 """
@@ -19,7 +19,7 @@ Note:
     Gamma-only calculation on electrode is not feasible in transiesta.
 """
 
-class ts_run:
+class TsRun:
     """
     """
     def __init__(self):
@@ -27,7 +27,7 @@ class ts_run:
         self.system_device = None
 
 
-        self.electrons = siesta_electrons()
+        self.electrons = SiestaElectrons()
 
         self.transiesta = siesta_transiesta()
 

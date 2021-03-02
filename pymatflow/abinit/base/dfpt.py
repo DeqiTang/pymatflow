@@ -5,7 +5,7 @@ import sys
 import numpy as np
 
 
-class abinit_dfpt:
+class AbinitDfpt:
     """
     Reference:
         https://docs.abinit.org/guide/respfn/
