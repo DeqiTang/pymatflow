@@ -158,8 +158,8 @@ class StaticRun(PwScf):
                 ecut_wfc = int(emin + i * step)
                 ecut_rho = ecut_wfc * 4 # using default value for ecut_rho: 4 * ecutwfc
                 inp_name = "ecutwfc-%d.in" % ecut_wfc
-                self.control.params['outdir'] = './tmp-' + str(ecut_wfc)
-                self.system.params['ecutwfc'] = ecut_wfc
+                self.control.set_params({'outdir': './tmp-' + str(ecut_wfc)})
+                self.system.set_params({'ecutwfc': ecut_wfc})
                 with open(inp_name, 'w') as fout:
                     self.control.to_in(fout)
                     self.system.to_in(fout)
@@ -316,7 +316,7 @@ class StaticRun(PwScf):
             for i in range(n_test + 1):
                 nk = nk_min + i * step # nk1 = nk2 = nk3 = nk
                 inp_name = "kpoints-%d.in" % nk
-                self.control.params['outdir'] = './tmp-' + str(nk)
+                self.control.set_params({'outdir': './tmp-' + str(nk)})
                 self.arts.set_kpoints([nk, nk, nk, 0, 0, 0])
                 with open(inp_name, 'w') as fout:
                     self.control.to_in(fout)
@@ -416,9 +416,9 @@ class StaticRun(PwScf):
             for i in range(n_test + 1):
                 degauss = degauss_min + i * step
                 inp_name = "degauss-%f.in" % degauss
-                self.control.params['outdir'] = './tmp-%f' % degauss
+                self.control.set_params({'outdir': './tmp-%f' % degauss})
                 #self.arts.set_kpoints([nk, nk, nk, 0, 0, 0]) # use the previously convered kpoints(automatic)
-                self.system.params['degauss'] = degauss
+                self.system.set_params({'degauss': degauss})
                 with open(inp_name, 'w') as fout:
                     self.control.to_in(fout)
                     self.system.to_in(fout)
@@ -546,8 +546,8 @@ class StaticRun(PwScf):
 
     def set_bands(self, bands_input={}):
         self.bands_input = {
-                "prefix": self.control.params["prefix"],
-                "outdir": self.control.params["outdir"],
+                "prefix": self.control.params["prefix"].as_val(t=str, dim=0),
+                "outdir": self.control.params["outdir"].as_val(t=str, dim=0),
                 "filband": "bands.dat",
                 "lsym": ".true."
                 }
@@ -632,8 +632,8 @@ class StaticRun(PwScf):
         """
         """
         self.projwfc_input = {
-                "prefix": self.control.params["prefix"],
-                "outdir": self.control.params["outdir"],
+                "prefix": self.control.params["prefix"].as_val(t=str, dim=0),
+                "outdir": self.control.params["outdir"].as_val(t=str, dim=0),
                 "filpdos": "projwfc",
                 "ngauss": "default",
                 "degauss": "default",
@@ -1101,7 +1101,7 @@ class StaticRun(PwScf):
             #
             # check hybrid functional
             # in pw.x non-scf calc, hybrid functional is not allowed
-            input_dft = self.system.params["input_dft"] if self.system.params["input_dft"] is not None else None
+            input_dft = self.system.params["input_dft"].as_val(t=str, dim=0) if self.system.params["input_dft"].as_val() is not None else None
 
 
             # 1) scf
@@ -1118,7 +1118,7 @@ class StaticRun(PwScf):
             # hybrid functional calc is not allowed in non-scf calc
             self.set_kpoints(kpoints_option="automatic", kpoints_mp=kpoints_mp_nscf)
             if input_dft.lower() == "pbe0" or input_dft.lower() == "b3lyp" or input_dft.lower() == "hse":
-                self.system.params["input_dft"] = "pbe"
+                self.system.set_params({"input_dft": "pbe"})
             with open(os.path.join(directory, "static-nscf.in"), 'w') as fout:
                 self.control.to_in(fout)
                 self.system.to_in(fout)

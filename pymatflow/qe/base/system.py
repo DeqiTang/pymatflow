@@ -3,17 +3,20 @@ responsible for structure information generation for pwscf
 """
 import sys
 
+from pymatflow.qe.group import QeVariableGroup
+from . import qe_variable_to_string
 
 """
 usage:
 """
 
-class QeSystem:
+class QeSystem(QeVariableGroup):
     """
 
     """
     def __init__(self):
-        self.params = {
+        super().__init__()
+        self.set_params({
                 "ibrav": None,
                 "celldm": None,
                 "A": None,
@@ -114,11 +117,15 @@ class QeSystem:
                 "block_1": None,
                 "block_2": None,
                 "block_height": None,
-                }
+        })
     def to_in(self, fout):
         """
         :param fout: a file stream for writing
         """
+        fout.write(self.to_string())
+    
+    def to_string(self):
+        out = ""
         # ==============================
         # checking legacy of parameters
         # if there is problem with it
@@ -126,45 +133,22 @@ class QeSystem:
         # ==============================
         self.check_all()
         # ==============================
-        fout.write("&system\n")
+        out += "&system\n"
         for item in self.params:
-            if self.params[item] is not None:
-                if item == "starting_magnetization":
-                    for i in range(len(self.params[item])):
-                        fout.write("starting_magnetization(%d) = %f\n" % (i+1, self.params[item][i]))
-                    continue
-                if item == "Hubbard_U":
-                    for i in range(len(self.params[item])):
-                        fout.write("Hubbard_U(%d) = %f\n" % (i+1, self.params[item][i]))
-                    continue
-                if item == "Hubbard_J0":
-                    for i in range(len(self.params[item])):
-                        fout.write("Hubbard_J0(%d) = %f\n" % (i+1, self.params[item][i]))
-                    continue
-                if item == "Hubbard_alpha":
-                    for i in range(len(self.params[item])):
-                        fout.write("Hubbard_alpha(%d) = %f\n" % (i+1, self.params[item][i]))
-                    continue
-                if item == "Hubbard_beta":
-                    for i in range(len(self.params[item])):
-                        fout.wrte("Hubbard_beta(%d) = %f\n" %(i+1, self.params[item][i]))
-                #
-                if type(self.params[item]) == str:
-                    if self.params[item] == ".true." or self.params[item] == ".false.":
-                        fout.write("%s = %s\n" % (item, str(self.params[item])))
-                    else:
-                        fout.write("%s = '%s'\n" % (item, str(self.params[item])))
-                else:
-                    fout.write("%s = %s\n" % (item, str(self.params[item])))
-        fout.write("/\n")
-        fout.write("\n")
+            if self.params[item].as_val() == None:
+                continue            
+            out += qe_variable_to_string(self.params[item])
+            out += "\n"
+        out += "/\n"
+        out += "\n"
+        return out
 
     def check_all(self):
         """
         """
         must_define = ["ibrav", "nat", "ntyp", "ecutwfc"]
         for item in must_define:
-            if self.params[item] is None:
+            if self.params[item].as_val() is None:
                 print("===================================\n")
                 print("          Warning !!!!!!\n")
                 print("===================================\n")
@@ -177,35 +161,35 @@ class QeSystem:
         """
         :param arts: an object of qe.base.arts.qe_arts
         """
-        self.params["ibrav"] = 0
-        self.params["nat"] = arts.xyz.natom
-        self.params["ntyp"] = arts.xyz.nspecies
+        self.set_param("ibrav", 0)
+        self.set_param("nat", arts.xyz.natom)
+        self.set_param("ntyp", arts.xyz.nspecies)
 
-        self.params["ecutwfc"] = 100
-        self.params["input_dft"] = 'PBE'
+        self.set_param("ecutwfc", 100)
+        self.set_param("input_dft", 'PBE')
 
         self.set_occupations() # default use gaussian smearing with degauss = 0.001
 
     def set_occupations(self, occupations="smearing", smearing="gaussian", degauss=0.001):
-        self.params["occupations"] = occupations
+        self.set_param("occupations", occupations)
         if occupations == "smearing":
-            self.params["smearing"] = smearing
-            self.params["degauss"] = degauss
+            self.set_param("smearing", smearing)
+            self.set_param("degauss", degauss)
         if occupations == "tetrahedra":
-            self.params["smearing"] = None
-            self.params["degauss"] = None
+            self.set_param("smearing", None)
+            self.set_param("degauss", None)
         if occupations == "tetrahedra_lin":
-            self.params["smearing"] = None
-            self.params["degauss"] = None
+            self.set_param("smearing", None)
+            self.set_param("degauss", None)
         if occupations == "tetrahedra_opt":
-            self.params["smearing"] = None
-            self.params["degauss"] = None
+            self.set_param("smearing", None)
+            self.set_param("degauss", None)
         if occupations == "fixed":
-            self.params["smearing"] = None
-            self.params["degauss"] = None
+            self.set_param("smearing", None)
+            self.set_param("degauss", None)
         if occupations == "from_input":
-            self.params["smearing"] = None
-            self.params["degauss"] = None
+            self.set_param("smearing", None)
+            self.set_param("degauss", None)
 
 
     def set_params(self, params):
@@ -220,4 +204,4 @@ class QeSystem:
 
         for item in params:
             if item != "occupations" and item != "smearing" and item != "degauss":
-                self.params[item] = params[item]
+                self.set_param(item, params[item])

@@ -37,11 +37,11 @@ class Siesta:
     def set_params(self, params={}):
         for item in params:
             if item in self.electrons.incharge:
-                self.electrons.set_params({item: params[item]})
+                self.electrons.set_param(item, params[item])
             elif item in self.ions.incharge:
-                self.ions.set_params({item: params[item]})
+                self.ions.set_param(item, params[item])
             elif item in self.system.incharge:
-                self.system.set_params({item: params[item]})
+                self.system.set_param(item, params[item])
             else:
                 continue
 

@@ -25,11 +25,11 @@ class MdRun(abinit):
         #
         self.dataset[0].electrons.set_scf_nscf("scf")
 
-        self.dataset[0].electrons.params["tolvrs"] = 1.0e-10
-        self.dataset[0].electrons.params["tolwrf"] = None
-        self.dataset[0].electrons.params["toldff"] = None
-        self.dataset[0].electrons.params["tolrff"] = None
-        self.dataset[0].electrons.params["toldfe"] = None #1.0e-6
+        self.dataset[0].electrons.set_param("tolvrs", 1.0e-10)
+        self.dataset[0].electrons.set_param("tolwrf", None)
+        self.dataset[0].electrons.set_param("toldff", None)
+        self.dataset[0].electrons.set_param("tolrff", None)
+        self.dataset[0].electrons.set_param("toldfe", None) #1.0e-6
 
         self.files.name = "molecular-dynamics.files"
         self.files.main_in = "molecular-dynamics.in"

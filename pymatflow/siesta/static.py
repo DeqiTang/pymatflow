@@ -38,9 +38,9 @@ class StaticRun(Siesta):
             # use self.properties.options to contorl the calculation of properties
             self.properties.options = properties
             with open(os.path.join(directory, inpname), 'w') as fout:
-                self.system.to_fdf(fout)
-                self.electrons.to_fdf(fout)
-                self.properties.to_fdf(fout)
+                fout.write(self.system.to_string())
+                fout.write(self.electrons.to_string())
+                fout.write(self.properties.to_string())
 
             # gen llhpc script
             self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="siesta")
@@ -73,9 +73,9 @@ class StaticRun(Siesta):
             # use self.properties.option to contorl the calculation of properties
             self.properties.options = properties
             with open(os.path.join(directory, inpname), 'w') as fout:
-                self.system.to_fdf(fout)
-                self.electrons.to_fdf(fout)
-                self.properties.to_fdf(fout)
+                fout.write(self.system.to_fdf())
+                fout.write(self.electrons.to_fdf())
+                fout.write(self.properties.to_fdf())
 
             # gen llhpc script
             self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="siesta")
@@ -102,17 +102,17 @@ class StaticRun(Siesta):
             for element in self.system.xyz.specie_labels:
                 shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
 
-            self.electrons.dm["UseSaveDM"] = "false"
+            self.electrons.set_param("DM.UseSaveDM", "false")
 
             n_test = int((emax - emin) / step)
             for i in range(n_test + 1):
                 meshcutoff = int(emin + i * step)
-                self.electrons.params["MeshCutoff"] = meshcutoff
+                self.electrons.set_param("MeshCutoff", meshcutoff, "Ry")
                 self.system.label = "siesta-" + str(meshcutoff)
                 with open(os.path.join(directory, "cutoff-%d.fdf" % meshcutoff), 'w') as fout:
-                    self.system.to_fdf(fout)
-                    self.electrons.to_fdf(fout)
-                    #self.properties.to_fdf(fout)
+                    fout.write(self.system.to_string())
+                    fout.write(self.electrons.to_string()))
+                    #fout.write(self.properties.to_string())
 
             # gen llhpc running script
             with open("converge-cutoff.slurm", 'w') as fout:

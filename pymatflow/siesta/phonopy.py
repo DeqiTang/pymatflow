@@ -57,14 +57,11 @@ class PhonopyRun(Siesta):
             head_fdf_name = "head.fdf" # without sele.electrons now
             with open(os.path.join(directory, head_fdf_name), 'w') as fout:
                 # we will add self.electrons.to_fdf after the supercell structure was append
-                #self.electrons.to_fdf(fout)
                 fout.write("SystemName %s\n" % self.system.name)
                 fout.write("SystemLabel %s\n" % self.system.label)
                 fout.write("NumberOfSpecies %s\n" % self.system.xyz.nspecies)
 
-                for item in self.system.params:
-                    if self.system.params[item] is not None:
-                        fout.write("%s %s\n" % (item, self.system.params[item]))
+                fout.write(self.system.to_string())
 
                 fout.write("%block ChemicalSpeciesLabel\n")
                 for element in self.system.xyz.specie_labels:
@@ -81,7 +78,7 @@ class PhonopyRun(Siesta):
 
             pos_fdf_name = "pos.fdf"
             with open(os.path.join(directory, pos_fdf_name), 'w') as fout:
-                self.system.to_fdf(fout)
+                fout.write(self.system.to_string())
 
             # set up the Phonopy calculation
             os.chdir(directory)
@@ -98,7 +95,7 @@ class PhonopyRun(Siesta):
                 with open("./disp-%s/supercell-%s.fdf" % (disp, disp), 'a') as fout:
                     fout.write("# =========================================================\n")
                     fout.write("\n\n")
-                    self.electrons.to_fdf(fout)
+                    fout.write(self.electrons.to_string())
                 #
                 os.system("cp *.psf ./disp-%s/" % disp)
                 os.system("rm supercell-%s.fdf" % disp)

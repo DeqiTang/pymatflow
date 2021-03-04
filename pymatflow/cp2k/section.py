@@ -66,14 +66,14 @@ class Cp2kSection:
     def clear(self):
         self.params.clear()
 
-    def get(self, key, t=str, shape=0):
+    def get(self, key, t=str, dim=0):
         """
         Note:
-            return a 2D array of t type if shape == 2
-            return a 1D array of t type if shape == 1
-            return a scalar of t type if shape == 0
+            return a 2D array of t type if dim == 2
+            return a 1D array of t type if dim == 1
+            return a scalar of t type if dim == 0
         """
-        return self.params[key].as_val(t=t, shape=shape)
+        return self.params[key].as_val(t=t, dim=dim)
 
 
         

@@ -54,11 +54,11 @@ class PhonopyRun(Vasp):
             # ======================================
 
             # constructing the INCAR for the phonon calculation
-            self.incar.params["ISMEAR"] = 0
-            self.incar.params["SIGMA"] = 0.2
-            self.incar.params["IBRION"] = -1
-            self.incar.params["LWAVE"] = "F"
-            self.incar.params["LCHARG"] = "F"
+            self.incar.set_param("ISMEAR", 0)
+            self.incar.set_param("SIGMA", 0.2)
+            self.incar.set_param("IBRION", -1)
+            self.incar.set_param("LWAVE", "F")
+            self.incar.set_param("LCHARG", "F")
 
             #with open(os.path.join(directory, "INCAR"), 'w') as fout:
             #    self.incar.to_incar(fout)

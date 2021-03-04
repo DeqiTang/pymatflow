@@ -1,12 +1,14 @@
 """
 in control of properties calculation  related parameters
 """
+from pymatflow.abinit.group import AbinitVariableGroup
 
-class AbinitProperties:
+
+class AbinitProperties(AbinitVariableGroup):
     """
     """
     def __init__(self):
-        self.params = {}
+        super().__init__()
         self.incharge = []
         self.status = True
 
@@ -19,10 +21,8 @@ class AbinitProperties:
         input_str += "# properties calculation related setting\n"
         input_str += "# ======================================\n"
         input_str += "\n"
-        for item in self.params:
-            if self.params[item] is not None:
-                input_str += "%s%s %s\n" % (item, n if n > 0 else "", str(self.params[item]))
-                input_str += "\n"
+        self.set_n(n)
+        input_str += super().to_string()
         input_str += "\n"
         input_str += "\n"
         return input_str
@@ -47,16 +47,16 @@ class AbinitProperties:
             pass
 
     def do_dos(self):
-        self.params["prtdos"] = 2
+        self.set_param("prtdos", 2)
 
     def do_elf(self):
-        self.params["prtelf"] = 1
+        self.set_param("prtelf", 1)
 
     def berry_phase(self):
-        self.params["berryopt"] = -1
-        self.params["nberry"] = 8
-        self.params["dberry"] = "1 1 1 1"
-        self.params["rfdir"] = "1 1 1"
+        self.set_param("berryopt", -1)
+        self.set_param("nberry", 8)
+        self.set_params("dberry", [1, 1, 1, 1])
+        self.set_param("rfdir", [1, 1, 1])
 
     def piezoelectric(self):
-        self.params["piezoflag"] = 3
+        self.set_param("piezoflag", 3)

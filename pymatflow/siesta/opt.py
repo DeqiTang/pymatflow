@@ -44,9 +44,9 @@ class OptRun(Siesta):
 
             self.set_opt_mode(mode=mode)
             with open(os.path.join(directory, inpname), 'w') as fout:
-                self.system.to_fdf(fout)
-                self.electrons.to_fdf(fout)
-                self.ions.to_fdf(fout)
+                fout.write(self.system.to_string())
+                fout.write(self.electrons.to_string())
+                fout.write(self.ions.to_string())
 
             # gen yhbatch script
             self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="siesta")
@@ -69,9 +69,9 @@ class OptRun(Siesta):
             1: variable cell
         """
         if mode == 0:
-            self.ions.md["VariableCell"] = "false"
+            self.ions.set_param("MD.VariableCell", "false")
         elif mode == 1:
-            self.ions.md["VariableCell"] = "true"
+            self.ions.set_param("MD.VariableCell", "true")
         else:
             print("==========================================\n")
             print("             WARNING !!!\n")
@@ -105,9 +105,9 @@ class OptRun(Siesta):
             fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
             fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
             fout.write("cat > optimization.fdf<<EOF\n")
-            self.system.to_fdf(fout)
-            self.electrons.to_fdf(fout)
-            self.ions.to_fdf(fout)
+            fout.write(self.system.to_string())
+            fout.write(self.electrons.to_string())
+            fout.write(self.ions.to_string())
             fout.write("EOF\n")
 
             a = np.sqrt(self.system.xyz.cell[0][0]**2+self.system.xyz.cell[0][1]**2+self.system.xyz.cell[0][2]**2)
@@ -166,9 +166,9 @@ class OptRun(Siesta):
             fout.write("\n")
             fout.write("cd $PBS_O_WORKDIR\n")
             fout.write("cat > optimization.fdf<<EOF\n")
-            self.system.to_fdf(fout)
-            self.electrons.to_fdf(fout)
-            self.ions.to_fdf(fout)
+            fout.write(self.system.to_string())
+            fout.write(self.electrons.to_string())
+            fout.write(self.ions.to_string())
             fout.write("EOF\n")
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
 
@@ -223,9 +223,9 @@ class OptRun(Siesta):
             fout.write("#!/bin/bash\n")
 
             fout.write("cat > optimization.fdf<<EOF\n")
-            self.system.to_fdf(fout)
-            self.electrons.to_fdf(fout)
-            self.ions.to_fdf(fout)
+            fout.write(self.system.to_string())
+            fout.write(self.electrons.to_string())
+            fout.write(self.ions.to_string())
             fout.write("EOF\n")
 
             a = np.sqrt(self.system.xyz.cell[0][0]**2+self.system.xyz.cell[0][1]**2+self.system.xyz.cell[0][2]**2)
@@ -334,9 +334,9 @@ class OptRun(Siesta):
             fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
             fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
             fout.write("cat > optimization.fdf<<EOF\n")
-            self.system.to_fdf(fout)
-            self.electrons.to_fdf(fout)
-            self.ions.to_fdf(fout)
+            fout.write(self.system.to_string())
+            fout.write(self.electrons.to_string())
+            fout.write(self.ions.to_string())
             fout.write("EOF\n")
 
             a = np.sqrt(self.system.xyz.cell[0][0]**2+self.system.xyz.cell[0][1]**2+self.system.xyz.cell[0][2]**2)
@@ -460,9 +460,9 @@ class OptRun(Siesta):
             fout.write("cd $PBS_O_WORKDIR\n")
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
             fout.write("cat > optimization.fdf<<EOF\n")
-            self.system.to_fdf(fout)
-            self.electrons.to_fdf(fout)
-            self.ions.to_fdf(fout)
+            fout.write(self.system.to_string())
+            fout.write(self.electrons.to_string())
+            fout.write(self.ions.to_string())
             fout.write("EOF\n")
 
             a = np.sqrt(self.system.xyz.cell[0][0]**2+self.system.xyz.cell[0][1]**2+self.system.xyz.cell[0][2]**2)
@@ -579,9 +579,9 @@ class OptRun(Siesta):
             fout.write("#!/bin/bash\n")
 
             fout.write("cat > optimization.fdf<<EOF\n")
-            self.system.to_fdf(fout)
-            self.electrons.to_fdf(fout)
-            self.ions.to_fdf(fout)
+            fout.write(self.system.to_string())
+            fout.write(self.electrons.to_string())
+            fout.write(self.ions.to_string())
             fout.write("EOF\n")
 
             a = np.sqrt(self.system.xyz.cell[0][0]**2+self.system.xyz.cell[0][1]**2+self.system.xyz.cell[0][2]**2)
@@ -804,9 +804,9 @@ class OptRun(Siesta):
             fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
             fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
             fout.write("cat > optimization.fdf<<EOF\n")
-            self.system.to_fdf(fout)
-            self.electrons.to_fdf(fout)
-            self.ions.to_fdf(fout)
+            fout.write(self.system.to_string())
+            fout.write(self.electrons.to_string())
+            fout.write(self.ions.to_string())
             fout.write("EOF\n")
 
             a = np.sqrt(self.system.xyz.cell[0][0]**2+self.system.xyz.cell[0][1]**2+self.system.xyz.cell[0][2]**2)
@@ -927,9 +927,9 @@ class OptRun(Siesta):
             fout.write("cd $PBS_O_WORKDIR\n")
             fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
             fout.write("cat > optimization.fdf<<EOF\n")
-            self.system.to_fdf(fout)
-            self.electrons.to_fdf(fout)
-            self.ions.to_fdf(fout)
+            fout.write(self.system.to_string())
+            fout.write(self.electrons.to_string())
+            fout.write(self.ions.to_string())
             fout.write("EOF\n")
 
             a = np.sqrt(self.system.xyz.cell[0][0]**2+self.system.xyz.cell[0][1]**2+self.system.xyz.cell[0][2]**2)
@@ -1044,9 +1044,9 @@ class OptRun(Siesta):
             fout.write("#!/bin/bash\n")
 
             fout.write("cat > optimization.fdf<<EOF\n")
-            self.system.to_fdf(fout)
-            self.electrons.to_fdf(fout)
-            self.ions.to_fdf(fout)
+            fout.write(self.system.to_string())
+            fout.write(self.electrons.to_string())
+            fout.write(self.ions.to_string())
             fout.write("EOF\n")
 
             a = np.sqrt(self.system.xyz.cell[0][0]**2+self.system.xyz.cell[0][1]**2+self.system.xyz.cell[0][2]**2)
@@ -1337,9 +1337,9 @@ class OptRun(Siesta):
                         
                         
                         fout.write("cat > optimization.fdf<<EOF\n")
-                        self.system.to_fdf(fout)
-                        self.electrons.to_fdf(fout)
-                        self.ions.to_fdf(fout)
+                        fout.write(self.system.to_string())
+                        fout.write(self.electrons.to_string())
+                        fout.write(self.ions.to_string())
                         fout.write("EOF\n")
 
                         fout.write("a_in=%f\n" % a)
@@ -1404,9 +1404,9 @@ class OptRun(Siesta):
                         fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
 
                         fout.write("cat > optimization.fdf<<EOF\n")
-                        self.system.to_fdf(fout)
-                        self.electrons.to_fdf(fout)
-                        self.ions.to_fdf(fout)
+                        fout.write(self.system.to_string())
+                        fout.write(self.electrons.to_string())
+                        fout.write(self.ions.to_string())
                         fout.write("EOF\n")
 
                         fout.write("a_in=%f\n" % a)
@@ -1464,9 +1464,9 @@ class OptRun(Siesta):
                         fout.write("#!/bin/bash\n")
 
                         fout.write("cat > optimization.fdf<<EOF\n")
-                        self.system.to_fdf(fout)
-                        self.electrons.to_fdf(fout)
-                        self.ions.to_fdf(fout)
+                        fout.write(self.system.to_string())
+                        fout.write(self.electrons.to_string())
+                        fout.write(self.ions.to_string())
                         fout.write("EOF\n")
 
 
@@ -1542,9 +1542,9 @@ class OptRun(Siesta):
                         fout.write("ndoelist=$(cat $CURDIR/nodelist | uniq | awk \'{print $1}\' | tr \'\n\' \',\')\n")
 
                         fout.write("cat > optimization.fdf<<EOF\n")
-                        self.system.to_fdf(fout)
-                        self.electrons.to_fdf(fout)
-                        self.ions.to_fdf(fout)
+                        fout.write(self.system.to_string())
+                        fout.write(self.electrons.to_string())
+                        fout.write(self.ions.to_string())
                         fout.write("EOF\n")
                         
                         

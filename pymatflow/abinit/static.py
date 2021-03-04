@@ -73,8 +73,8 @@ class StaticRun(Abinit):
         if runopt == "gen" or runopt == "genrun":
 
             #self.dataset[0].electrons.set_scf_nscf("scf")
-            self.dataset[0].electrons.params["irdwfk"] = 1
-            self.dataset[0].electrons.params["irdden"] = 1
+            self.dataset[0].electrons.set_param("irdwfk", 1)
+            self.dataset[0].electrons.set_param("irdden", 1)
 
             #
 
@@ -113,12 +113,12 @@ class StaticRun(Abinit):
             sys.exit(1)
         if runopt == "gen" or runopt == "genrun":
 
-            self.dataset[0].electrons.params["iscf"] = -2
-            self.dataset[0].electrons.params["nband"] = 8
-            self.dataset[0].electrons.params["tolwfr"] = 1.0e-12 # when kptopt < 0 namely band structure calculatin, we can only use tolwfr
-            self.dataset[0].electrons.params["tolvrs"] = None
-            self.dataset[0].electrons.params["toldfe"] = None
-            #self.dataset[0].electrons.params["irdden"] = 1 # actually irdden will be 1 by default if iscf < 0
+            self.dataset[0].electrons.set_param("iscf", -2)
+            self.dataset[0].electrons.set_param("nband", 8)
+            self.dataset[0].electrons.set_param("tolwfr", 1.0e-12) # when kptopt < 0 namely band structure calculatin, we can only use tolwfr
+            self.dataset[0].electrons.set_param("tolvrs", None)
+            self.dataset[0].electrons.set_param("toldfe", None)
+            #self.dataset[0].electrons.set_param("irdden", 1) # actually irdden will be 1 by default if iscf < 0
 
 
             # generate llhpc submit script
@@ -152,17 +152,17 @@ class StaticRun(Abinit):
             # 1) scf
 
             # 2) nscf
-            self.dataset[0].electrons.params["irdwfk"] = 1
-            self.dataset[0].electrons.params["irdden"] = 1
+            self.dataset[0].electrons.set_param("irdwfk", 1)
+            self.dataset[0].electrons.set_param("irdden", 1)
 
 
             # 3) bands
-            self.dataset[0].electrons.params["iscf"] = -2
-            self.dataset[0].electrons.params["nband"] = 8
-            self.dataset[0].electrons.params["tolwfr"] = 1.0e-12 # when kptopt < 0 namely band structure calculatin, we can only use tolwfr
-            self.dataset[0].electrons.params["tolvrs"] = None
-            self.dataset[0].electrons.params["toldfe"] = None
-            #self.dataset[0].electrons.params["irdden"] = 1 # actually irdden will be 1 by default if iscf < 0
+            self.dataset[0].electrons.set_param("iscf", -2)
+            self.dataset[0].electrons.set_param("nband", 8)
+            self.dataset[0].electrons.set_param("tolwfr", 1.0e-12) # when kptopt < 0 namely band structure calculatin, we can only use tolwfr
+            self.dataset[0].electrons.set_param("tolvrs", None)
+            self.dataset[0].electrons.set_param("toldfe", None)
+            #self.dataset[0].electrons.set_param("irdden", 1) # actually irdden will be 1 by default if iscf < 0
 
 
             # generate llhpc submit script
@@ -207,7 +207,7 @@ class StaticRun(Abinit):
                     for element in self.dataset[0].system.xyz.specie_labels:
                         fout.write("%s\n" % (element + ".psp8"))
                 #
-                self.dataset[0].electrons.params["ecut"] = cutoff
+                self.dataset[0].electrons.set_param("ecut", cutoff)
                 with open(inp_name, 'w') as fout:
                     #self.dataset[0].electrons.to_dataset[0](fout)
                     #self.dataset[0].system.to_dataset[0](fout)
@@ -298,27 +298,27 @@ class StaticRun(Abinit):
             os.system("cp %s %s/" % (self.dataset[0].system.xyz.file, directory))
 
             # 0) overall default dataset
-            self.dataset[0].electrons.params["iscf"] = 7
-            self.dataset[0].electrons.params["prtden"] = 1
+            self.dataset[0].electrons.set_param("iscf", 7)
+            self.dataset[0].electrons.set_param("prtden", 1)
             self.dataset[0].electrons.use_tol(tol="tolvrs", value=1.0e-8) # user must set it
 
             # 1) scf
-            self.dataset[1].electrons.params["iscf"] = 7
-            self.dataset[1].electrons.params["prtden"] = 1
+            self.dataset[1].electrons.set_param("iscf", 7)
+            self.dataset[1].electrons.param("prtden", 1)
             self.dataset[1].electrons.use_tol(tol="tolvrs", value=1.0e-8) # user must set it
 
             # 2) nscf dos
-            self.dataset[2].electrons.params["iscf"] = -3
-            self.dataset[2].electrons.params["prtdos"] = 1
-            self.dataset[2].electrons.params["getwfk"] = 1
-            self.dataset[2].electrons.params["getden"] = 1
+            self.dataset[2].electrons.set_param("iscf", -3)
+            self.dataset[2].electrons.set_param("prtdos", 1)
+            self.dataset[2].electrons.set_param("getwfk", 1)
+            self.dataset[2].electrons.set_param("getden", 1)
             self.dataset[2].electrons.use_tol(tol="tolvrs", value=1.0e-8) # user must set it
 
 
             # 3) nscf bands
-            self.dataset[3].electrons.params["iscf"] = -2
-            self.dataset[3].electrons.params["getwfk"] = 1
-            self.dataset[3].electrons.params["getden"] = 1
+            self.dataset[3].electrons.set_param("iscf", -2)
+            self.dataset[3].electrons.set_param("getwfk", 1)
+            self.dataset[3].electrons.set_param("getden", 1)
             # when kptopt < 0 namely band structure calculatin, we can only use
             self.dataset[3].electrons.use_tol(tol="tolwfr", value=1.0e-12)
 

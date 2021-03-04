@@ -3,6 +3,7 @@ Overall representation of Abinit
 """
 
 import os
+import sys
 import shutil
 
 from pymatflow.abinit.base.input import AbinitInput
@@ -46,13 +47,16 @@ class Abinit:
         # only get structure for the default dataset 0
         self.dataset[0].system.xyz.get_xyz(xyzfile)
 
-    def set_params(self, params={}):
-        # only set the parameters for default dataset 0
-        self.dataset[0].set_params(params)
+    def set_params(self, params={}, ndtset=0):
+        #self.dataset[0].set_params(params)
+        if ndtset > self.ndtset:
+            print("Abinit.set_params() trying to set params for ndtset > self.ndtset")
+            sys.exit(1)
+        self.dataset[ndtset].set_params(params)
 
     def set_kpoints(self, kpoints={}):
         # only set the kpoints for default dataset 0
-        self.dataset[0].electrons.kpoints.set_params(kpoints)
+        self.dataset[0].set_kpoints(kpoints)
 
     def set_properties(self, properties=[]):
         # only set the parameters for default dataset 0

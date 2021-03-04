@@ -67,7 +67,7 @@ class NebRun(PwScf):
         # must set "wf_collect = False", or it will come across with erros in davcio
         # Error in routine davcio (10):
         # error while reading from file ./tmp/pwscf_2/pwscf.wfc1
-        self.control.params["wf_collect"] = False
+        self.control.set_param("wf_collect", "False")
 
 
     def set_path(self, path={}):

@@ -92,8 +92,8 @@ class DfptRun(Vasp):
 
     def set_scf(self, directory="tmp-static-vasp", kpoints=[3, 3, 3]):
         self.kpoints.kpoints = kpoints
-        self.incar.electrons.params["ISTART"] = 0
-        self.incar.electrons.params["ICHARG"] = 2
+        self.incar.set_param("ISTART", 0)
+        self.incar.set_param("ICHARG", 2)
 
         self.incar.to_incar(os.path.join(directory, "INCAR"))
         self.kpoints.to_kpoints(os.path.join(directory, "KPOINTS"))

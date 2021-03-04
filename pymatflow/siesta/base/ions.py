@@ -6,52 +6,27 @@ import sys
 import os
 import shutil
 
-
+from pymatflow.siesta.group import SiestaVariableGroup
 
 """
 Usage:
 """
 
 
-class SiestaIons:
+class SiestaIons(SiestaVariableGroup):
     """
     """
     def __init__(self):
+        super().__init__()
         self.incharge = [
                 "WriteCoorXmol", "MD.TypeOfRun", "MD.TypeOfRun", "MD.VariableCell", "MD.ConstantVolume",
                 "MD.MaxForceTol", "MD.MaxStressTol", "MD.Steps", "MD.MaxDispl", "MD.PreconditionVariableCell",
                 ]
-        self.params = {}
-        self.md = {}
 
-    def to_fdf(self, fout):
-        for item in self.params:
-            if self.params[item] is not None:
-                fout.write("%s %s\n" % (item, str(self.params[item])))
-        for item in self.md:
-            if self.md[item] is not None:
-                if item == "InitialTemperature":
-                    fout.write("MD.%s %s K\n" % (item, str(self.md[item])))
-                elif item == "TargetTemperature":
-                    fout.write("MD.%s %s K\n" % (item, str(self.md[item])))
-                elif item == "TargetPressure":
-                    fout.write("MD.%s %s GPa\n" % (item, str(self.md[item])))
-                elif item == "LengthTimeStep":
-                    fout.write("MD.%s %s fs\n" % (item, str(self.md[item])))
-                elif item == "MaxForceTol":
-                    fout.write("MD.%s %s eV/Ang\n" % (item, str(self.md[item])))
-                elif item == "MaxStressTol":
-                    fout.write("MD.%s %s GPa\n" % (item, str(self.md[item])))
-                elif item == "MaxDispl":
-                    fout.write("MD.%s %s Bohr\n" % (item, str(self.md[item])))
-                elif item == "PreconditionVariableCell":
-                    fout.write("MD.%s %s Ang\n" % (item, str(self.md[item])))
-                elif item == "FCDispl":
-                    fout.write("MD.%s %f Bohr\n" % (item, self.md[item]))
-                else:
-                    fout.write("MD.%s %s\n" % (item, str(self.md[item])))
-        #
-        fout.write("\n")
+    def to_string(self):
+        out = ""
+        out += super().to_string()
+        return out
 
     def basic_setting(self, option="opt"):
         """
@@ -59,40 +34,34 @@ class SiestaIons:
             opt or md or phonon
         """
         if option == "opt":
-            self.md["TypeOfRun"] = "CG"   # CG, Broyden, 
-            self.md["VariableCell"] = "false"
-            self.md["ConstantVolume"] = "true"
-            self.md["MaxForceTol"] = 0.001 # eV/Ang
-            self.md["MaxStressTol"] = 0.01 # GPa
-            self.md["Steps"] = 60
-            self.md["MaxDispl"] = 0.2 # Bohr
-            self.md["PreconditionVariableCell"] = 5 # Ang
+            self.set_param("MD.TypeOfRun", "CG")   # CG, Broyden, 
+            self.set_param("MD.VariableCell", "false")
+            self.set_param("MD.ConstantVolume", "true")
+            self.set_param("MD.MaxForceTol", 0.001, "eV/Ang")
+            self.set_param("MD.MaxStressTol", 0.01, "GPa")
+            self.set_param("MD.Steps", 60)
+            self.set_param("MD.MaxDispl", 0.2, "Bohr")
+            self.set_param("MD.PreconditionVariableCell", 5, "Ang")
 
-            self.params["WriteCoorXmol"] = "true"
-            self.params["WriteMDXmol"] = "true"
+            self.set_param("WriteCoorXmol", "true")
+            self.set_param("WriteMDXmol", "true")
+
         elif option == "md":
-            self.md["TypeOfRun"] = "Verlet" # Verlet, Nose, ParrinelloRahman, NoseParrinelloRahman, Anneal
-            self.md["InitialTimeStep"] = 1
-            self.md["FinalTimeStep"] = 1000 # default is MD.Steps 
-            self.md["LengthTimeStep"] = 1
-            self.md["InitialTemperature"] = 0
-            self.md["TargetTemperature"] = 0
+            self.set_param("MD.TypeOfRun", "Verlet") # Verlet, Nose, ParrinelloRahman, NoseParrinelloRahman, Anneal
+            self.set_param("MD.InitialTimeStep", 1)
+            self.set_param("MD.FinalTimeStep", 1000) # default is MD.Steps 
+            self.set_param("MD.LengthTimeStep", 1, "fs")
+            self.set_param("MD.InitialTemperature", 0, "K")
+            self.set_param("MD.TargetTemperature", 0, "K")
 
             self.params["WriteCoorXmol"] = "true"
             self.params["WriteMDXmol"] = "true"
         elif option == "phonon":
             # Phonon Calculation SETTING
-            self.md["TypeOfRun"] = "FC"
-            self.md["FCDispl"] = 0.04
-            self.md["FCFirst"] = 1
-            self.md["FCLast"] = 1
+            self.set_param("MD.TypeOfRun", "FC")
+            self.set_param("MD.FCDispl", 0.04, "Bohr")
+            self.set_param("MD.FCFirst", 1)
+            self.set_param("MD.FCLast", 1)
  
         #
-
-    def set_params(self, params):
-        for item in params:
-            if len(item.split(".")) == 1:
-                self.params[item] = params[item]
-            elif len(item.split(".")) == 2 and item.split(".")[0] == "MD":
-                self.md[item.split(".")[1]] = params[item]
         #

@@ -43,13 +43,13 @@ class PhononRun(Siesta):
                 # along with force constants calculation.
                 self.properties.options = [6]
             #
-            self.ions.params["Eigenvectors"] = "True" # to get the siesta.vectors file
+            self.ions.set_param("Eigenvectors", "True") # to get the siesta.vectors file
             with open(os.path.join(directory, inpname), 'w') as fout:
-                self.system.to_fdf(fout)
-                self.electrons.to_fdf(fout)
-                self.ions.to_fdf(fout)
+                fout.write(self.system.to_string())
+                fout.self.electrons.to_string())
+                fout.ions.to_string())
                 if borncharge == True:
-                    self.properties.to_fdf(fout)
+                    fout.write(self.properties.to_string())
 
             # gen yhbatch script
             self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="siesta")

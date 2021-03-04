@@ -154,7 +154,7 @@ class StaticRun(Vasp):
             for i in range(n_test + 1):
                 encut = int(emin + i * step)
                 os.mkdir("encut-%d" % encut)
-                self.incar.params['ENCUT'] = encut
+                self.incar.set_param('ENCUT', encut)
                 with open(os.path.join("encut-%d" % encut, "INCAR"), 'w') as fout:
                     self.incar.to_incar(fout)
                 with open(os.path.join("encut-%d" % encut, "POSCAR"), 'w') as fout:
@@ -292,7 +292,7 @@ class StaticRun(Vasp):
             for i in range(n_test + 1):
                 sigma = sigma_min + i * step
                 os.mkdir("sigma-%.6f" % sigma)
-                self.incar.electrons.params['SIGMA'] = sigma
+                self.incar.electrons.set_param('SIGMA', sigma)
                 with open(os.path.join("sigma-%.6f" % sigma, "INCAR"), "w") as fout:
                     self.incar.to_incar(fout)
                 with open(os.path.join("sigma-%.6f" % sigma, "POSCAR"), 'w') as fout:
@@ -377,18 +377,18 @@ class StaticRun(Vasp):
             })
             # scf
             #self.set_kpoints(option="automatic", kpoints_mp=kpoints_mp_scf)
-            if (self.incar.params["LHFCALC"] == "T" or self.incar.params["LHFCALC"] == ".TRUE.") and (self.incar.params["HFSCREEN"] == 0.2 or self.incar.params["HFSCREEN"].split()[0] == "0.2"):
+            if (self.incar.params["LHFCALC"].as_val(t=str, dim=0) == "T" or self.incar.params["LHFCALC"].as_val(t=str, dim=0) == ".TRUE.") and (self.incar.params["HFSCREEN"].as_val(t=float, dim=0) == 0.2):
                 # trying to do HSE calculation
                 # acoording to tutorials on VASP Wiki, HSE is included in nscf calc, and is not needed in scf
                 # but actually we use hse_in_scf to control whether use HSE in scf here.
                 if hse_in_scf == False:
-                    self.incar.params["LHFCALC"] = None
-                    self.incar.params["HFSCREEN"] = None
+                    self.incar.set_param("LHFCALC", None)
+                    self.incar.set_param("HFSCREEN", None)
                     incar_scf = self.incar.to_string()
                     kpoints_scf = self.kpoints.to_string()
                     # now we set back the value for HSE so that they can be used in nscf
-                    self.incar.params["LHFCALC"] = "T"
-                    self.incar.params["HFSCREEN"] = 0.2
+                    self.incar.set_param("LHFCALC", "T")
+                    self.incar.set_param("HFSCREEN", 0.2)
                 else:
                     incar_scf = self.incar.to_string()
                     kpoints_scf = self.kpoints.to_string()
@@ -439,7 +439,7 @@ class StaticRun(Vasp):
                 #self.incar.to_incar(fout)
                 fout.write(incar_nscf)
                 fout.write("EOF\n")
-                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and float(self.incar.params["HFSCREEN"]) == 0.2:
+                if self.incar.params["LHFCALC"].as_val(t=str, dim=0) == ".TRUE." or self.incar.params["LHFCALC"].as_val(t=str, dim=0) == "T" and float(self.incar.params["HFSCREEN"].as_val(t=float, dim=0)) == 0.2:
                     fout.write("nk=`cat IBZKPT | head -n 2 | tail -n -1`\n")
                     nkpoint = 0
                     for i in range(len(kpath)-1):
@@ -515,7 +515,7 @@ class StaticRun(Vasp):
                 #self.incar.to_incar(fout)
                 fout.write(incar_nscf)
                 fout.write("EOF\n")
-                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and float(self.incar.params["HFSCREEN"]) == 0.2:
+                if self.incar.params["LHFCALC"].as_val(t=str, dim=0) == ".TRUE." or self.incar.params["LHFCALC"].as_val(t=str,dim=0) == "T" and float(self.incar.params["HFSCREEN"].as_val(t=float, dim=0)) == 0.2:
                     fout.write("nk=`cat IBZKPT | head -n 2 | tail -n -1`\n")
                     nkpoint = 0
                     for i in range(len(kpath)-1):
@@ -584,7 +584,7 @@ class StaticRun(Vasp):
                 #self.incar.to_incar(fout)
                 fout.write(incar_nscf)
                 fout.write("EOF\n")
-                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and float(self.incar.params["HFSCREEN"]) == 0.2:
+                if self.incar.params["LHFCALC"].as_val(t=str, dim=0) == ".TRUE." or self.incar.params["LHFCALC"].as_val(t=str, dim=0) == "T" and float(self.incar.params["HFSCREEN"].as_val(t=float, dim=0)) == 0.2:
                     fout.write("nk=`cat IBZKPT | head -n 2 | tail -n -1`\n")
                     nkpoint = 0
                     for i in range(len(kpath)-1):
@@ -667,7 +667,7 @@ class StaticRun(Vasp):
                 #self.incar.to_incar(fout)
                 fout.write(incar_nscf)
                 fout.write("EOF\n")
-                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and float(self.incar.params["HFSCREEN"]) == 0.2:
+                if self.incar.params["LHFCALC"].as_val(t=str, dim=0) == ".TRUE." or self.incar.params["LHFCALC"].as_val(t=str, dim=0) == "T" and float(self.incar.params["HFSCREEN"].as_val(t=float, dim=0)) == 0.2:
                     fout.write("nk=`cat IBZKPT | head -n 2 | tail -n -1`\n")
                     nkpoint = 0
                     for i in range(len(kpath)-1):
@@ -742,7 +742,7 @@ class StaticRun(Vasp):
                 #self.incar.to_incar(fout)
                 fout.write(incar_nscf)
                 fout.write("EOF\n")
-                if self.incar.params["LHFCALC"] == ".TRUE." or self.incar.params["LHFCALC"] == "T" and float(self.incar.params["HFSCREEN"]) == 0.2:
+                if self.incar.params["LHFCALC"].as_val(t=str, dim=0) == ".TRUE." or self.incar.params["LHFCALC"].as_val(t=str, dim=0) == "T" and float(self.incar.params["HFSCREEN"].as_val(t=float, dim=0)) == 0.2:
                     fout.write("nk=`cat IBZKPT | head -n 2 | tail -n -1`\n")
                     nkpoint = 0
                     for i in range(len(kpath)-1):
@@ -813,18 +813,17 @@ class StaticRun(Vasp):
             })
             # scf
             #self.set_kpoints(option="automatic", kpoints_mp=kpoints_mp_scf)
-            if (self.incar.params["LHFCALC"] == "T" or self.incar.params["LHFCALC"] == ".TRUE.") and (self.incar.params["HFSCREEN"] == 0.2 or self.incar.params["HFSCREEN"].split()[0] == "0.2"):
-                # trying to do HSE calculation
+            if self.incar.params["LHFCALC"].as_val(t=str, dim=0) == ".TRUE." or self.incar.params["LHFCALC"].as_val(t=str, dim=0) == "T" and float(self.incar.params["HFSCREEN"].as_val(t=float, dim=0)) == 0.2:
                 # acoording to tutorials on VASP Wiki, HSE is included in nscf calc, and is not needed in scf
                 # but actually we use hse_in_scf to control whether use HSE in scf here.
                 if hse_in_scf == False:
-                    self.incar.params["LHFCALC"] = None
-                    self.incar.params["HFSCREEN"] = None
+                    self.incar.set_param("LHFCALC", None)
+                    self.incar.set_param("HFSCREEN", None)
                     incar_scf = self.incar.to_string()
                     kpoints_scf = self.kpoints.to_string()
                     # now we set back the value for HSE so that they can be used in nscf
-                    self.incar.params["LHFCALC"] = "T"
-                    self.incar.params["HFSCREEN"] = 0.2
+                    self.incar.set_param("LHFCALC", "T")
+                    self.incar.set_param("HFSCREEN", 0.2)
                 else:
                     incar_scf = self.incar.to_string()
                     kpoints_scf = self.kpoints.to_string()
@@ -1111,30 +1110,30 @@ class StaticRun(Vasp):
             })
             # scf
             """
-            if (self.incar.params["LHFCALC"] == "T" or self.incar.params["LHFCALC"] == ".TRUE.") and (self.incar.params["HFSCREEN"] == 0.2 or self.incar.params["HFSCREEN"].split()[0] == "0.2"):
+            if self.incar.params["LHFCALC"].as_val(t=str, dim=0) == ".TRUE." or self.incar.params["LHFCALC"].as_val(t=str, dim=0) == "T" and float(self.incar.params["HFSCREEN"].as_val(t=float, dim=0)) == 0.2:
                 # trying to do HSE calculation
                 # acoording to tutorials on VASP Wiki, HSE is included in nscf calc, and is not needed in scf
-                self.incar.params["LHFCALC"] = None
-                self.incar.params["HFSCREEN"] = None
+                self.incar.set_param("LHFCALC", None)
+                self.incar.set_param("HFSCREEN", None)
                 incar_scf = self.incar.to_string()
                 kpoints_scf = self.kpoints.to_string()
                 # now we set back the value for HSE so that they can be used in nscf
-                self.incar.params["LHFCALC"] = "T"
-                self.incar.params["HFSCREEN"] = 0.2
+                self.incar.set_param("LHFCALC", "T")
+                self.incar.set_param("HFSCREEN", 0.2)
             else:
                 incar_scf = self.incar.to_string()
                 kpoints_scf = self.kpoints.to_string()
             """
             optics_params = {}
             if "LOPTICS" in self.incar.params:
-                optics_params["LOPTICS"] = self.incar.params["LOPTICS"]
-                self.incar.params["LOPTICS"] = None
+                optics_params["LOPTICS"] = self.incar.params["LOPTICS"].as_val(t=str, dim=2)
+                self.incar.set_param("LOPTICS", None)
             if "CSHIFT" in self.incar.params:
-                optics_params["CSHIFT"] = self.incar.params["CSHIFT"]
-                self.incar.params["CSHIFT"] = None
+                optics_params["CSHIFT"] = self.incar.params["CSHIFT"].as_val(t=str, dim=2)
+                self.incar.set_param("CSHIFT", None)
             if "NEDOS" in self.incar.params:
-                optics_params["NEDOS"] = self.incar.params["NEDOS"]
-                self.incar.params["NEDOS"] = None
+                optics_params["NEDOS"] = self.incar.params["NEDOS"].as_val(t=str, dim=2)
+                self.incar.set_param("NEDOS", None)
             incar_scf = self.incar.to_string()
             kpoints_scf = self.kpoints.to_string()
             # nscf: LOPTICS
@@ -1425,39 +1424,39 @@ class StaticRun(Vasp):
                 "IBRION": -1,
             })
             # scf
-            self.incar.params["LHFCALC"] = None
-            self.incar.params["HFSCREEN"] = None
+            self.incar.set_param("LHFCALC", None)
+            self.incar.set_param("HFSCREEN", None)
             incar_scf = self.incar.to_string()
             kpoints_scf = self.kpoints.to_string()
 
             if bse_level == 0:
                 pass
             elif bse_level == 1:
-                self.incar.params["LHFCALC"] = "T"
-                self.incar.params["HFSCREEN"] = 0.2
+                self.incar.set_param("LHFCALC", "T")
+                self.incar.set_param("HFSCREEN", 0.2)
                 incar_hse = self.incar.to_string()
             elif bse_level == 2:
-                self.incar.params["ALGO"] = algo_gw
-                self.incar.params["LWAVE"] = "T"
-                self.incar.params["LOPTICS"] = "T"
-                self.incar.params["LPEAD"] = "T"
+                self.incar.set_param("ALGO", algo_gw)
+                self.incar.set_param("LWAVE", "T")
+                self.incar.set_param("LOPTICS", "T")
+                self.incar.set_param("LPEAD", "T")
                 incar_gw = self.incar.to_string()
 
             # bse
-            self.incar.params["ALGO"] = "BSE"
+            self.incar.set_param("ALGO", "BSE")
             incar_bse = self.incar.to_string()
 
             """
             optics_params = {}
             if "LOPTICS" in self.incar.params:
-                optics_params["LOPTICS"] = self.incar.params["LOPTICS"]
-                self.incar.params["LOPTICS"] = None
+                optics_params["LOPTICS"] = self.incar.params["LOPTICS"].as_val(t=str, dim=2)
+                self.incar.set_param("LOPTICS", None)
             if "CSHIFT" in self.incar.params:
-                optics_params["CSHIFT"] = self.incar.params["CSHIFT"]
-                self.incar.params["CSHIFT"] = None
+                optics_params["CSHIFT"] = self.incar.params["CSHIFT"].as_val(t=str, dim=2)
+                self.incar.set_param("CSHIFT", None)
             if "NEDOS" in self.incar.params:
-                optics_params["NEDOS"] = self.incar.params["NEDOS"]
-                self.incar.params["NEDOS"] = None
+                optics_params["NEDOS"] = self.incar.params["NEDOS"].as_val(t=str, dim=2)
+                self.incar.set_param("NEDOS", None)
             incar_scf = self.incar.to_string()
             kpoints_scf = self.kpoints.to_string()
             """
@@ -1917,23 +1916,23 @@ class StaticRun(Vasp):
             
             parchg_stm_related = {}
             for item in ["LPARD", "LSEPK", "LSEPB", "NBMOD", "EINT"]:
-                if item in self.incar.params and self.incar.params[item] != None:
-                    parchg_stm_related[item] = self.incar.params[item]
-                    self.incar.params[item] = None
+                if item in self.incar.params and self.incar.params[item].as_val() != None:
+                    parchg_stm_related[item] = self.incar.params[item].as_val(t=str, dim=2)
+                    self.incar.set_param(item, None)
                     
             #self.set_kpoints(option="automatic", kpoints_mp=kpoints_mp_scf)
-            if (self.incar.params["LHFCALC"] == "T" or self.incar.params["LHFCALC"] == ".TRUE.") and (self.incar.params["HFSCREEN"] == 0.2 or self.incar.params["HFSCREEN"].split()[0] == "0.2"):
+            if self.incar.params["LHFCALC"].as_val(t=str, dim=0) == ".TRUE." or self.incar.params["LHFCALC"].as_val(t=str, dim=0) == "T" and float(self.incar.params["HFSCREEN"].as_val(t=float, dim=0)) == 0.2:
                 # trying to do HSE calculation
                 # acoording to tutorials on VASP Wiki, HSE is included in nscf calc, and is not needed in scf
                 # but actually we use hse_in_scf to control whether use HSE in scf here.
                 if hse_in_scf == False:
-                    self.incar.params["LHFCALC"] = None
-                    self.incar.params["HFSCREEN"] = None
+                    self.incar.set_param("LHFCALC", None)
+                    self.incar.set_param("HFSCREEN", None)
                     incar_scf = self.incar.to_string()
                     kpoints_scf = self.kpoints.to_string()
                     # now we set back the value for HSE so that they can be used in nscf
-                    self.incar.params["LHFCALC"] = "T"
-                    self.incar.params["HFSCREEN"] = 0.2
+                    self.incar.set_param("LHFCALC", "T")
+                    self.incar.set_param("HFSCREEN", 0.2)
                 else:
                     incar_scf = self.incar.to_string()
                     kpoints_scf = self.kpoints.to_string()
@@ -1948,7 +1947,7 @@ class StaticRun(Vasp):
                 "LORBIT": None,
             })
             for item in parchg_stm_related:
-                self.incar.params[item] = parchg_stm_related[item]
+                self.incar.set_param(item, parchg_stm_related[item])
             incar_parchg_stm = self.incar.to_string()
             kpoints_parchg_stm = self.kpoints.to_string()
 

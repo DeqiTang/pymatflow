@@ -9,6 +9,11 @@ from pymatflow.vasp.base.xc import xc_incharge
 from pymatflow.vasp.base.lr import lr_incharge
 from pymatflow.vasp.base.orbitalmagnet import orbitalmagnet_incharge
 
+
+from pymatflow.vasp.group import VaspVariableGroup
+
+from . import vasp_variable_to_string
+
 neb_incharge =  ["IOPT", "SPRING", "IMAGES", "LCLIMB", "ICHAIN", "LNEBCELL",
     "MAXMOVE", "LGLOBAL", "LAUTOSCALE", "INVCURV", "LLINEOPT", "FDSTEP"]
 
@@ -18,13 +23,13 @@ in misc now, waiting for further classification:
     ALGO,
 """
 
-class VaspIncar:
+class VaspIncar(VaspVariableGroup):
     """
     """
     def __init__(self):
         """
         """
-        self.params = {}
+        super().__init__()
 
         self.runtype = None
 
@@ -36,81 +41,12 @@ class VaspIncar:
         self.runtype = runtype
         self.basic_setting()
 
-    def set_params(self, params):
-        for item in params:
-            self.params[item] = params[item]
-
     def to_incar(self, fout):
-        # merge the list to single string if the value of one parameter is a list, like MAGMOM = 0.1 0.0
-        for item in self.params:
-            if type(self.params[item]) == list:
-                merge = ""
-                for i in range(len(self.params[item])):
-                    merge = merge + "%s " % self.params[item][i]
-                self.params[item] = merge
-            else:
-                continue
-        #
-        start = "# =============================\n# Start parameter\n# =============================\n"
-        electrons = "# =============================\n# Electrons related parameters\n# ======================================\n"
-        ions = "# =============================\n# Ions related parameters\n# =============================\n"
-        write = "# =============================\n# Write flags\n# =============================\n"
-        dipolecorrection = "# =============================\n# Dipole correction related parameters\n# =============================\n"
-        xc = "# =============================\n# Exchange correlation related parameters\n# =============================\n"
-        lr = "# =============================\n# Linear response parameters\n# =============================\n"
-        orbitalmagnet = "# =============================\n# Orbitalmagnet related parameters\n# =============================\n"
-        misc ="# =============================\n# Miscellaneous parameters\n# =============================\n"
-        neb = "# =============================\n# Neb related parameters\n# ================================\n"
-
-        for item in self.params:
-            if self.params[item] == None:
-                continue
-            if item in start_incharge:
-                start = start + "%s = %s\n\n" % (item, self.params[item])
-            elif item in electrons_incharge:
-                electrons = electrons + "%s = %s\n\n" % (item, self.params[item])
-            elif item in ions_incharge:
-                ions = ions + "%s = %s\n\n" % (item, self.params[item])
-            elif item in write_incharge:
-                write = write + "%s = %s\n\n" % (item, self.params[item])
-            elif item in dipolecorrection_incharge:
-                dipolecorrection = dipolecorrection + "%s = %s\n\n" % (item, self.params[item])
-            elif item in xc_incharge:
-                xc = xc + "%s = %s\n\n" % (item, self.params[item])
-            elif item in lr_incharge:
-                lr = lr + "%s = %s\n\n" % (item, self.params[item])
-            elif item in orbitalmagnet_incharge:
-                orbitalmagnet = orbitalmagnet + "%s = %s\n\n" % (item, self.params[item])
-            elif item in neb_incharge:
-                neb = neb + "%s = %s\n\n" % (item, self.params[item])
-            else:
-                misc = misc + "%s = %s\n\n" % (item, self.params[item])
-
-        if self.runtype in ["static", "opt", "md", "dfpt", "neb", "phonon"]:
-            fout.write(start)
-            fout.write(electrons)
-            fout.write(ions)
-        fout.write(xc)
-        fout.write(write)
-        fout.write(misc)
-
-        if self.runtype == "dfpt":
-            fout.write(lr)
-        if self.runtype == "neb":
-            fout.write(neb)
-
+        fout.write(self.to_string())
+        
     def to_string(self):
         incar_out = ""
-        # merge the list to single string if the value of one parameter is a list, like MAGMOM = 0.1 0.0
-        for item in self.params:
-            if type(self.params[item]) == list:
-                merge = ""
-                for i in range(len(self.params[item])):
-                    merge = merge + "%s " % self.params[item][i]
-                self.params[item] = merge
-            else:
-                continue
-        #
+
         start = "# =============================\n# Start parameter\n# =============================\n"
         electrons = "# =============================\n# Electrons related parameters\n# ======================================\n"
         ions = "# =============================\n# Ions related parameters\n# =============================\n"
@@ -123,29 +59,29 @@ class VaspIncar:
         neb = "# =============================\n# Neb related parameters\n# ================================\n"
 
         for item in self.params:
-            if self.params[item] == None:
+            if self.params[item].as_val() == None:
                 continue
             if item in start_incharge:
-                start = start + "%s = %s\n\n" % (item, self.params[item])
+                start = start + vasp_variable_to_string(self.params[item]) + "\n\n"
             elif item in electrons_incharge:
-                electrons = electrons + "%s = %s\n\n" % (item, self.params[item])
+                electrons = electrons + vasp_variable_to_string(self.params[item]) + "\n\n"
             elif item in ions_incharge:
-                ions = ions + "%s = %s\n\n" % (item, self.params[item])
+                ions = ions + vasp_variable_to_string(self.params[item]) + "\n\n"
             elif item in write_incharge:
-                write = write + "%s = %s\n\n" % (item, self.params[item])
+                write = write + vasp_variable_to_string(self.params[item]) + "\n\n"
             elif item in dipolecorrection_incharge:
-                dipolecorrection = dipolecorrection + "%s = %s\n\n" % (item, self.params[item])
+                dipolecorrection = dipolecorrection + vasp_variable_to_string(self.params[item]) + "\n\n"
             elif item in xc_incharge:
-                xc = xc + "%s = %s\n\n" % (item, self.params[item])
+                xc = xc + vasp_variable_to_string(self.params[item]) + "\n\n"
             elif item in lr_incharge:
-                lr = lr + "%s = %s\n\n" % (item, self.params[item])
+                lr = lr + vasp_variable_to_string(self.params[item]) + "\n\n"
             elif item in orbitalmagnet_incharge:
-                orbitalmagnet = orbitalmagnet + "%s = %s\n\n" % (item, self.params[item])
+                orbitalmagnet = orbitalmagnet + vasp_variable_to_string(self.params[item]) + "\n\n"
             elif item in neb_incharge:
-                neb = neb + "%s = %s\n\n" % (item, self.params[item])
+                neb = neb + vasp_variable_to_string(self.params[item]) + "\n\n"
             else:
-                misc = misc + "%s = %s\n\n" % (item, self.params[item])
-
+                misc = misc + vasp_variable_to_string(self.params[item]) + "\n\n"
+                
         if self.runtype in ["static", "opt", "md", "dfpt", "neb", "phonon"]:
             incar_out += start
             incar_out += electrons
@@ -240,22 +176,22 @@ class VaspIncar:
             3: Multiple Anderson
         """
         if ensemble == 0:
-            self.params["MDALGO"] = 0
-            self.params["SMASS"] = -3
+            self.set_param("MDALGO", 0)
+            self.set_param("SMASS", -3)
         elif ensemble == 1:
-            self.params["ISIF"] = 2
+            self.set_param("ISIF", 2)
             if thermostat == 0:
-                self.params["MDALGO"] = 1
+                self.set_param("MDALGO", 1)
             elif thermostat == 1:
-                self.params["MDALGO"] = 2
+                self.set_param("MDALGO", 2)
             elif thermostat == 2:
-                self.params["MDALGO"] = 3
+                self.set_param("MDALGO", 3)
             elif thermostat == 3:
-                self.params["MDALGO"] = 13
+                self.set_param("MDALGO", 13)
         elif ensemble == 2:
-            self.params["MDALGO"] = 3
-            self.params["ISIF"] = 3
+            self.set_param("MDALGO", 3)
+            self.set_param("ISIF", 3)
         elif ensemble == 3:
-            self.params["MDALGO"] = 3
-            self.params["ISIF"] = 3
-            self.params["LANGEVIN_GAMMA_L"] = 0.0
+            self.set_param("MDALGO", 3)
+            self.set_param("ISIF", 3)
+            self.set_param("LANGEVIN_GAMMA_L", 0.0)

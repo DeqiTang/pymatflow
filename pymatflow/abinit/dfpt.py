@@ -89,41 +89,41 @@ class DfptElasticPiezoDielec(Abinit):
             # overall defaultg dataset 0
             #self.dataset[0].electrons.set_scf_nscf("scf")
             # 1) ground state scf calculation
-            self.dataset[1].electrons.use_tol(tol="tolvrs", value=1.0e-10)
-            self.dataset[1].electrons.kpoints.params["ngkpt"] = self.dataset[0].electrons.kpoints.params["ngkpt"]
+            self.dataset[1].electrons.use_tol(tol="tolvrs", value=1.0e-18)
+            self.dataset[1].electrons.kpoints.set_param("ngkpt", self.dataset[0].electrons.kpoints.params["ngkpt"].as_val(t=int, dim=1))
 
             # 2) calculate ddk wave functions (iscf = -3, rfelfd =2, qpt = 0 0 0, rfdir = 1 1 1)
             # note here rfelfd = 2 means we only calculate perturbation to dk and
             # perturbation to electric field is not accounted! see https://docs.abinit.org/tutorial/elastic/
             self.dataset[2].electrons.use_tol(tol="tolwfr", value=1.0e-22)
-            self.dataset[2].electrons.params["getwfk"] = -1
-            self.dataset[2].electrons.kpoints.params["kptopt"] = 2
-            self.dataset[2].electrons.kpoints.params["ngkpt"] = self.dataset[0].electrons.kpoints.params["ngkpt"]
-            self.dataset[2].electrons.params["iscf"] = -3
-            self.dataset[2].dfpt.params["rfelfd"] = 2 # here we only do ddk calculation, no electric field perturbation
-            self.dataset[2].dfpt.params["rfdir"] = [1, 1, 1]
-            self.dataset[2].dfpt.params["nqpt"] = 1
-            self.dataset[2].dfpt.params["qpt"] = [0, 0, 0]
+            self.dataset[2].electrons.set_param("getwfk", -1)
+            self.dataset[2].electrons.kpoints.set_param("kptopt", 2)
+            self.dataset[2].electrons.kpoints.set_param("ngkpt", self.dataset[0].electrons.kpoints.params["ngkpt"].as_val(t=int, dim=1))
+            self.dataset[2].electrons.set_param("iscf", -3)
+            self.dataset[2].dfpt.set_param("rfelfd", 2) # here we only do ddk calculation, no electric field perturbation
+            self.dataset[2].dfpt.set_param("rfdir", [1, 1, 1])
+            self.dataset[2].dfpt.set_param("nqpt", 1)
+            self.dataset[2].dfpt.set_param("qpt", [0, 0, 0])
 
 
             # 3) calculate 2DTE for elastic and piezoelectric tensors (rfphon = 1, rfatpol, rfdir = 1 1 1, rfstrs = 3)
             self.dataset[3].electrons.use_tol(tol="tolvrs", value=1.0e-10)
-            self.dataset[3].electrons.kpoints.params["kptopt"] = 2
-            self.dataset[3].electrons.kpoints.params["ngkpt"] = self.dataset[0].electrons.kpoints.params["ngkpt"]
-            self.dataset[3].electrons.params["getddk"] = -1
-            self.dataset[3].electrons.params["getwfk"] = -2
-            self.dataset[3].dfpt.params["nqpt"] = 1
-            self.dataset[3].dfpt.params["qpt"] = [0, 0, 0]
-            self.dataset[3].dfpt.params["rfphon"] = 1
+            self.dataset[3].electrons.kpoints.set_param("kptopt", 2)
+            self.dataset[3].electrons.kpoints.set_param("ngkpt", self.dataset[0].electrons.kpoints.params["ngkpt"].as_val(t=int, dim=1))
+            self.dataset[3].electrons.set_param("getddk", -1)
+            self.dataset[3].electrons.set_param("getwfk", -2)
+            self.dataset[3].dfpt.set_param("nqpt", 1)
+            self.dataset[3].dfpt.set_param("qpt", [0, 0, 0])
+            self.dataset[3].dfpt.set_param("rfphon", 1)
             # in dataset 2 we only do the ddk calculation, and int the output file you can only find Effective charge
             # (from phonon response). now we can do electric field perturbation using rfelfd=3,
             # this way Born effective charge (from electric fiedl perturbation) will also be print out to the abinit output
             # and output of anaddb will contains information of Effective charge.
             # plus the output can be analysed further by anaddb and dielectric tensor can be calculated.
-            self.dataset[3].dfpt.params["rfelfd"] = 3 # you can also set it to None, if you want no perturbation to electric field
-            self.dataset[3].dfpt.params["rfatpol"] = [1, self.dataset[0].system.xyz.natom]
-            self.dataset[3].dfpt.params["rfdir"] = [1, 1, 1]
-            self.dataset[3].dfpt.params["rfstrs"] = 3
+            self.dataset[3].dfpt.set_param("rfelfd", 3) # you can also set it to None, if you want no perturbation to electric field
+            self.dataset[3].dfpt.set_param("rfatpol", [1, self.dataset[0].system.xyz.natom])
+            self.dataset[3].dfpt.set_param("rfdir", [1, 1, 1])
+            self.dataset[3].dfpt.set_param("rfstrs", 3)
 
             # llhpc jobsubmit script
             with open(os.path.join(directory, "dfpt-elastic-piezo-dielec.slurm"), 'w') as fout:
@@ -325,7 +325,7 @@ class DfptPhonon(Abinit):
 
             # overall default dataset
 
-            self.dataset[0].electrons.kpoints.params["kptopt"] = 3
+            self.dataset[0].electrons.kpoints.set_param("kptopt", 3)
             #self.dataset[0].dfpt.params["rfphon"]  = 1
             # If one of rfphon, rfddk, rfelfd, or rfstrs is non-zero, while optdriver is not defined in the input file,
             # ABINIT will set optdriver to 1 automatically(means for response function calc)
@@ -338,30 +338,30 @@ class DfptPhonon(Abinit):
             # 1) ground state scf calculation
             self.dataset[1].electrons.params["iscf"] = 7
             self.dataset[1].electrons.use_tol(tol="tolvrs", value=1.0e-10)
-            self.dataset[1].electrons.kpoints.params["ngkpt"] = self.dataset[0].electrons.kpoints.params["ngkpt"]
+            self.dataset[1].electrons.kpoints.set_param("ngkpt", self.dataset[0].electrons.kpoints.params["ngkpt"].as_val(t=int, dim=1))
 
 
             # 2) calculate ddk wave functions (iscf = -3, rfelfd =2, qpt = 0 0 0, rfdir = 1 1 1)
             self.dataset[2].electrons.use_tol(tol="tolwfr", value=1.0e-22)
             self.dataset[2].electrons.params["getwfk"] = -1
-            self.dataset[2].electrons.kpoints.params["kptopt"] = 2
-            self.dataset[2].electrons.kpoints.params["ngkpt"] = self.dataset[0].electrons.kpoints.params["ngkpt"]
-            self.dataset[2].electrons.params["iscf"] = -3
-            self.dataset[2].dfpt.params["rfelfd"] = 2
-            self.dataset[2].dfpt.params["rfphon"] = 0
-            self.dataset[2].dfpt.params["nqpt"] = 1
-            self.dataset[2].dfpt.params["qpt"] = [0, 0, 0]
+            self.dataset[2].electrons.kpoints.set_param("kptopt", 2)
+            self.dataset[2].electrons.kpoints.set_param("ngkpt", self.dataset[0].electrons.kpoints.params["ngkpt"].as_val(t=int, dim=1))
+            self.dataset[2].electrons.set_param("iscf", -3)
+            self.dataset[2].dfpt.set_param("rfelfd", 2)
+            self.dataset[2].dfpt.set_param("rfphon", 0)
+            self.dataset[2].dfpt.set_param("nqpt", 1)
+            self.dataset[2].dfpt.set_param("qpt", [0, 0, 0])
 
 
             # 3) Response function calculation of Q=0 phonons and electric field pert.
 
             self.dataset[3].electrons.params["getddk"] = 2
             self.dataset[3].electrons.params["getwfk"] = 1
-            self.dataset[3].electrons.kpoints.params["kptopt"] = 2
-            self.dataset[3].electrons.kpoints.params["ngkpt"] = self.dataset[0].electrons.kpoints.params["ngkpt"]
-            self.dataset[3].dfpt.params["rfelfd"] = 3
-            self.dataset[3].dfpt.params["nqpt"] = 1
-            self.dataset[3].dfpt.params["qpt"] = [0, 0, 0]
+            self.dataset[3].electrons.kpoints.set_param("kptopt", 2)
+            self.dataset[3].electrons.kpoints.set_param("ngkpt", self.dataset[0].electrons.kpoints.params["ngkpt"].as_val(t=int, dim=1))
+            self.dataset[3].dfpt.set_param("rfelfd", 3)
+            self.dataset[3].dfpt.set_param("nqpt", 1)
+            self.dataset[3].dfpt.set_param("qpt", [0, 0, 0])
             self.dataset[3].electrons.use_tol(tol="tolvrs", value=1.0e-8)
 
             # calculate for q point other than gamma in qpath
@@ -370,9 +370,9 @@ class DfptPhonon(Abinit):
                 for kpoint in self.qpath:
                     if kpoint[3] not in specialk:
                         self.dataset[i].electrons.params["getwfk"] = 1
-                        self.dataset[i].dfpt.params["qpt"] = kpoint[0:3]
+                        self.dataset[i].dfpt.set_param("qpt", kpoint[0:3])
                         self.dataset[i].electrons.use_tol(tol="tolvrs", value=1.0e-8)
-                        self.dataset[i].electrons.kpoints.params["ngkpt"] = self.dataset[0].electrons.kpoints.params["ngkpt"]
+                        self.dataset[i].electrons.kpoints.set_param("ngkpt", self.dataset[0].electrons.kpoints.params["ngkpt"].as_val(t=int, dim=1))
                         specialk.append(kpoint[3])
                     else:
                         pass

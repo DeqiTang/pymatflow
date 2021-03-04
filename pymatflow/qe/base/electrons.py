@@ -3,17 +3,19 @@ in control of &electrons /
 """
 import sys
 
-
+from pymatflow.qe.group import QeVariableGroup
+from . import qe_variable_to_string
 """
 usage:
 """
 
-class QeElectrons:
+class QeElectrons(QeVariableGroup):
     """
 
     """
     def __init__(self):
-        self.params = {
+        super().__init__()
+        self.set_params({
                 "electron_maxstep": None,
                 "scf_must_converge": None,
                 "conv_thr": None,
@@ -37,36 +39,31 @@ class QeElectrons:
                 "startingwfc": None,
                 "tqr": None,
                 "real_space": None,
-                }
+        })
     def to_in(self, fout):
         """
         ;param fout: a file stream for writing
         """
-        fout.write("&electrons\n")
+        fout.write(self.to_string())
+
+    def to_string(self):
+        out = ""        
+        out += "&electrons\n"
         for item in self.params:
-            if self.params[item] is not None:
-                if type(self.params[item]) is str:
-                    if self.params[item] == ".true." or self.params[item] == ".false.":
-                        fout.write("%s = %s\n" % (item, str(self.params[item])))
-                    else:
-                        fout.write("%s = '%s'\n" % (item, str(self.params[item])))
-                else:
-                    fout.write("%s = %s\n" % (item, str(self.params[item])))
-        fout.write("/\n")
-        fout.write("\n")
+            if self.params[item].as_val() == None:
+                continue            
+            out += qe_variable_to_string(self.params[item])
+            out += "\n"
+        out += "/\n"
+        out +=  "\n"
+        return out
 
     def basic_setting(self):
-        self.params["conv_thr"] = 1.0E-6
-        self.params["mixing_mode"] = "plain" # namely charge density Broyden mixing
-        self.params["mixing_beta"] = 0.7E0 # mixing factor for self-consistency
+        self.set_param("conv_thr", 1.0E-6)
+        self.set_param("mixing_mode", "plain") # namely charge density Broyden mixing
+        self.set_param("mixing_beta", 0.7E0) # mixing factor for self-consistency
         # number of iterations used in mixing scheme
         # if tight with memory, we can reduce it to 4
-        self.params["mixing_ndim"] = 8
-        self.params["diagonalization"] = 'david'
+        self.set_param("mixing_ndim", 8)
+        self.set_param("diagonalization", 'david')
 
-    def set_params(self, params):
-        """
-        :param params: a dict storing the parameters and values
-        """
-        for item in params:
-            self.params[item] = params[item]

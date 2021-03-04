@@ -55,20 +55,28 @@ class AbinitInput:
     def set_params(self, params={}):
         for item in params:
             if item in self.electrons.incharge:
-                self.electrons.params[item] = params[item]
+                #self.electrons.params[item] = params[item]
+                self.electrons.set_param(item, params[item])
                 continue
             elif item in self.ions.incharge:
-                self.ions.params[item] = params[item]
+                self.ions.set_param(item, params[item])
+                #self.ions.params[item] = params[item]
                 continue
             elif item in self.dfpt.incharge:
-                self.dfpt.params[item] = params[item]
+                #self.dfpt.params[item] = params[item]
+                self.dfpt.set_param(item, params[item])
             elif item in self.properties.incharge:
-                self.properties.params[item] = params[item]
+                #self.properties.params[item] = params[item]
+                self.properties.set_param(item, params[item])
             else:
-                self.misc.params[item] = params[item]
+                #self.misc.params[item] = params[item]
+                self.misc.set_param(item, params[item])
 
     def set_kpoints(self, kpoints={}):
-        self.electrons.kpoints.set_params(kpoints)
+        #self.electrons.kpoints.set_params(kpoints)
+        for item in kpoints:
+            if item in self.electrons.kpoints.incharge:
+                self.electrons.kpoints.set_param(item, kpoints[item])
 
     def set_properties(self, properties=[]):
         self.properties.get_option(option=properties)

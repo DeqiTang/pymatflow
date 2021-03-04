@@ -39,9 +39,9 @@ class MdRun(Siesta):
                 shutil.copyfile("%s.psf" % element, os.path.join(directory, "%s.psf" % element))
 
             with open(os.path.join(directory, inpname), 'w') as fout:
-                self.system.to_fdf(fout)
-                self.electrons.to_fdf(fout)
-                self.ions.to_fdf(fout)
+                fout.write(self.system.to_string())
+                fout.write(self.electrons.to_string())
+                fout.write(self.ions.to_string())
 
             # gen yhbatch script
             self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="siesta")

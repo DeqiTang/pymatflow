@@ -49,12 +49,12 @@ class NebRun(Vasp):
         directory: a place for all the generated files
         """
 
-        self.incar.params["IMAGES"] = self.nimage
+        self.incar.set_param("IMAGES", self.nimage)
         # in NEB calc you must set NSW manually, or it will default to 0
         # and the optimization will actually be scf
         # so we make a check here
-        if "NSW" not in self.incar.params or self.incar.params["NSW"] == None:
-            self.incar.params["NSW"] = 100 # set to 100 by default if it is not set
+        if "NSW" not in self.incar.params or self.incar.params["NSW"].as_val() == None:
+            self.incar.set_param("NSW", 100) # set to 100 by default if it is not set
 
         if runopt == "gen" or runopt == "genrun":
             if os.path.exists(directory):

@@ -134,8 +134,8 @@ class DfptRun:
             qpoints mesh: all value of nq1 nq2 nq3 in self.inputph is nonezero.
         """
         self.inputph = {
-                "outdir": self.control.params["outdir"],
-                "prefix": self.control.params["prefix"],
+                "outdir": self.control.params["outdir"].as_val(t=str, dim=0),
+                "prefix": self.control.params["prefix"].as_val(t=str, dim=0),
                 "fildyn": "phx.dyn",
                 "tr2_ph": 1.0e-14,
                 "nmix_ph": 4, # default value

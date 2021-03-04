@@ -9,27 +9,31 @@ import shutil
 from pymatflow.base.atom import Atom
 from pymatflow.base.xyz import BaseXyz
 
+from pymatflow.siesta.group import SiestaVariableGroup
 
 """
 Usage:
 """
 
 
-class SiestaTbtrans:
+class SiestaTbtrans(SiestaVariableGroup):
     """
     """
     def __init__(self):
-        pass
+        super().__init__()
 
-    def to_fdf(self, fout):
-        fout.write("TBT.Elecs.Eta    0.0001000000 eV\n")
-        fout.write("%block TBT.Contours\n")
-        fout.write("neq\n")
-        fout.write("%endblock TBT.Contours\n")
+    def to_string(self):
+        out = ""
+        out += "TBT.Elecs.Eta    0.0001000000 eV\n"
+        out += "%block TBT.Contours\n"
+        out += "neq\n"
+        out += "%endblock TBT.Contours\n"
  
-        fout.write("%block TBT.Contour.neq\n")
-        fout.write("part line\n")
-        fout.write("from   -4.00000 eV to    4.00000 eV\n")
-        fout.write("delta    0.04000 eV\n")
-        fout.write("method mid-rule\n")
-        fout.write("%endblock TBT.Contour.neq\n")
+        out += "%block TBT.Contour.neq\n"
+        out += "part line\n"
+        out += "from   -4.00000 eV to    4.00000 eV\n"
+        out += "delta    0.04000 eV\n"
+        out += "method mid-rule\n"
+        out += "%endblock TBT.Contour.neq\n"
+
+        return out

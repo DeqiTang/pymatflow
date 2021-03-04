@@ -1,9 +1,10 @@
+from pymatflow.abinit.group import AbinitVariableGroup
 
-class AbinitMisc:
+class AbinitMisc(AbinitVariableGroup):
     """
     """
     def __init__(self):
-        self.params = {}
+        super().__init__()
         #self.incharge = []
         self.status = True
 
@@ -16,15 +17,7 @@ class AbinitMisc:
         input_str += "# miscellaneous parameters\n"
         input_str += "# ============================\n"
         input_str += "\n"
-        for item in self.params:
-            if self.params[item] is not None:
-                input_str += "%s%s %s\n" % (item, n if n > 0 else "", str(self.params[item]))
-                input_str += "\n"
-        input_str += "\n\n"
+        self.set_n(n)
+        input_str += super().to_string()
         return input_str
         #
-
-
-    def set_params(self, params):
-        for item in params:
-            self.params[item] = params[item]

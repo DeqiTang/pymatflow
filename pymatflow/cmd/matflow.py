@@ -163,6 +163,7 @@ def main():
     gp.add_argument("--pot", type=str, default="./",
             help="specify the path to the directory containing all the needed pseudopotential, default behavior is find them in the current directory automatically. if you pass 'auto' to it, matflow will get the pots automatically(need simple configuration, see manual)")
 
+    # electronic structure
     gp = subparser.add_argument_group(title="electronic structure:",
             description="setting of electronic structure related parameters")
 
@@ -330,6 +331,7 @@ def main():
     gp.add_argument("--batch-c", type=int,
             default=None,
             help="number of structure each batch c")
+
             
 
     # --------------------------------------------------------------------------
@@ -2663,6 +2665,7 @@ def main():
     server = args.server if args.server != "tianhe2" else "llhpc"
 
     if args.driver == "abinit":
+
         params = {}
         kpoints = {}
 
@@ -2829,6 +2832,7 @@ def main():
             task.abc(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_b=args.range_b, range_c=args.range_c)
         else:
             pass
+
 # ==============================================================================
 # CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K CP2K C2PK CP2K
 # ==============================================================================

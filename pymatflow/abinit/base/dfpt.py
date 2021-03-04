@@ -4,8 +4,55 @@ in control of DFPT related parameters
 import sys
 import numpy as np
 
+from pymatflow.abinit.group import AbinitVariableGroup
 
-class AbinitDfpt:
+class AbinitDfpt(AbinitVariableGroup):
+    """
+    Reference:
+        https://docs.abinit.org/guide/respfn/
+        https://docs.abinit.org/tutorial/rf1/
+        https://docs.abinit.org/tutorial/rf2/
+        https://docs.abinit.org/tutorial/elastic/
+        https://docs.abinit.org/tutorial/ffield/
+        https://docs.abinit.org/tutorial/nlo/
+        https://docs.abinit.org/topics/DFPT/
+        https://docs.abinit.org/variables/dfpt/
+    """
+    def __init__(self):
+        super().__init__()
+        self.incharge = [
+            "rfatpol", "rfddk", "rfelfd", "rfphon", "rfstrs", "rfdir", "rfmagn",
+            "rfmeth", "asr", "dfpt_sciss",
+            ]
+        self.status = False
+
+    def to_string(self, n=0):
+        """
+        :return input_str is the string of all the set params
+        """
+        # ------------
+        # 检查输入参数
+        #self.check_all_params()
+        # ---------------
+        # 检查输入参数结束
+        input_str = ""
+        input_str += "# =====================================\n"
+        input_str += "# DFPT related setting\n"
+        input_str += "# =====================================\n"
+        input_str += "\n"
+        self.set_n(n)
+        input_str += super().to_string()
+
+        input_str += "\n"
+
+        return input_str
+
+
+    def basic_setting(self):
+        self.set_param("rfdir", [1, 1, 1])
+
+
+class AbinitDfptOld:
     """
     Reference:
         https://docs.abinit.org/guide/respfn/

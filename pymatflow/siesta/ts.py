@@ -29,9 +29,9 @@ class TsRun:
 
         self.electrons = SiestaElectrons()
 
-        self.transiesta = siesta_transiesta()
+        self.transiesta = SiestaTransiesta()
 
-        self.tbtrans = siesta_tbtrans()
+        self.tbtrans = SiestaTbtrans()
 
         self.electrons.basic_setting()
         #self.electrons.params["SolutionMethod"] = "transiesta"
@@ -65,7 +65,8 @@ class TsRun:
 
 
             self.electrons.kpoints_mp = kpoints_mp
-            self.electrons.set_params(electrons)
+            for item in electrons:
+                self.electrons.set_param(item, electrons[item])
             # use self.properties.options to contorl the calculation of properties
             #self.properties.options = properties
 
@@ -74,15 +75,17 @@ class TsRun:
             for i in range(len(self.system_electrodes)):
                 os.mkdir(os.path.join(directory, "electrodes", "electrode-%d" % i))
                 with open(os.path.join(directory, "electrodes", "electrode-%d" % i, "electrode.fdf"), 'w') as fout:
-                    self.system_electrodes[i].to_fdf(fout)
-                    self.electrons.set_params({
+                    fout.write(self.system_electrodes[i].to_string())
+                    params = {
                         "SolutionMethod": None,
                         #"TS.WriteHS": "true",
                         #"TS.HS.Save": "true",
                         #"TS.DE.Save": "true",
-                        })
-                    self.electrons.to_fdf(fout)
-                    #self.properties.to_fdf(fout)
+                        }
+                    for item in params:
+                        self.electrons.set_param(item, params[item])
+                    fout.write(self.electrons.to_string())
+                    #fout.write(self.properties.to_string())
                 for element in self.system_electrodes[i].xyz.specie_labels:
                     shutil.copyfile("%s.psf" % element, os.path.join(directory, "electrodes", "electrode-%d" % i, "%s.psf" % element))
                     shutil.copyfile(self.system_electrodes[i].xyz.file, os.path.join(directory, "electrodes", "electrode-%d/%s" % (i, self.system_electrodes[i].xyz.file)))
@@ -92,19 +95,19 @@ class TsRun:
             for v in np.arange(bias[0], bias[1], bias[2]):
                 os.mkdir(os.path.join(directory, "device", "bias-%.6f" % v))
                 with open(os.path.join(directory, "device", "bias-%.6f" % v, "device.fdf"), 'w') as fout:
-                    self.transiesta.ts["Voltage"] = v
+                    self.transiesta.set_param("TS.Voltage", v, "eV")
                     self.transiesta.set_params(ts={
                         "TS.WriteHS": "true",
                         "TS.HS.Save": "true",
                         "TS.DE.Save": "true",
                     })
-                    self.transiesta.to_fdf(fout)
-                    self.tbtrans.to_fdf(fout)
-                    self.system_device.to_fdf(fout)
+                    fout.write(self.transiesta.to_string())
+                    fout.write(self.tbtrans.to_string())
+                    fout.write(self.system_device.to_string())
                     self.electrons.set_params({
                         "SolutionMethod": "transiesta",
                     })
-                    self.electrons.to_fdf(fout)
+                    fout.write(self.electrons.to_string())
                 for element in self.system_device.xyz.specie_labels:
                     shutil.copyfile("%s.psf" % element, os.path.join(directory, "device/bias-%.6f/%s.psf" % (v, element)))
                 shutil.copyfile(self.system_device.xyz.file, os.path.join(directory, "device/bias-%.6f/" % v, self.system_device.xyz.file))
