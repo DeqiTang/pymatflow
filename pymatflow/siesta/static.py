@@ -111,7 +111,7 @@ class StaticRun(Siesta):
                 self.system.label = "siesta-" + str(meshcutoff)
                 with open(os.path.join(directory, "cutoff-%d.fdf" % meshcutoff), 'w') as fout:
                     fout.write(self.system.to_string())
-                    fout.write(self.electrons.to_string()))
+                    fout.write(self.electrons.to_string())
                     #fout.write(self.properties.to_string())
 
             # gen llhpc running script

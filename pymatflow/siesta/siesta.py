@@ -34,14 +34,14 @@ class Siesta:
         self.system.xyz.get_xyz(xyzfile)
         self.properties.set_xyz(self.system.xyz)
 
-    def set_params(self, params={}):
+    def set_params(self, params={}, units={}):
         for item in params:
             if item in self.electrons.incharge:
-                self.electrons.set_param(item, params[item])
+                self.electrons.set_param(item, params[item], unit=units[item] if item in units else None)
             elif item in self.ions.incharge:
-                self.ions.set_param(item, params[item])
+                self.ions.set_param(item, params[item], unit=units[item] if item in units else None)
             elif item in self.system.incharge:
-                self.system.set_param(item, params[item])
+                self.system.set_param(item, params[item], unit=units[item] if item in units else None)
             else:
                 continue
 

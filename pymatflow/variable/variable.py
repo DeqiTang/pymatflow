@@ -98,7 +98,7 @@ class Variable:
                 out += indent + self.key + n_to_string(self.n)
                 for item in self.value[0]:
                     out += " " + item
-                out += " " + unit_to_string(self.n)
+                out += " " + unit_to_string(self.unit)
         else:
             out += indent + self.key + n_to_string(self.n) # + " " + unit_to_string(self.n)
             for val in self.value[0]:

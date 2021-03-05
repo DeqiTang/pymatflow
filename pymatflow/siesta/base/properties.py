@@ -210,6 +210,7 @@ class SiestaProperties(SiestaVariableGroup):
         out += "%endblock PolarizationGrids\n"
         out += "BornCharge true\n"
         out += "\n"
+        return out
 
     def to_string_net_charge_dipole_elec_field(self):
         # Systems with net charge or dipole, and electric fields

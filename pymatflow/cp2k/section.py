@@ -1,13 +1,62 @@
 from pymatflow.variable import Variable
+from pymatflow.variable import VariableGroup
+from pymatflow.variable.variable import n_to_string, unit_to_string
 
 
-class Cp2kSection:
+def cp2k_variable_to_string_same_line(variable, indent=""):
+    """
+    Note:
+        compared to Variable().to_string_same_line()
+        this function will deal with @ which might exist in name of Cp2kSection.name
+        or Variable.key. Because in cp2k subsection name and variable can be duplicate.
+        And we use %s@%d to distinguish different variable with the same %s key.
+        However, when output to string, @%d need to be removed. so this function is defined
+        to do that.
+    """
+    if False == variable.status:
+        return ""
+    
+    if None == variable.value:
+        return ""
+    
+    out = ""
+    
+    if 0 == len(variable.value):
+        return out + variable.key.split("@")[0]
+    
+    if 1 == len(variable.value):
+        if 1 == len(variable.value[0]):
+            out += indent + variable.key.split("@")[0] + n_to_string(variable.n) + " " + variable.value[0][0] + " " + unit_to_string(variable.unit)
+        else:
+            out += indent + variable.key.split("@")[0] + n_to_string(variable.n)
+            for item in variable.value[0]:
+                out += " " + item
+            out += " " + unit_to_string(variable.unit)
+    else:
+        out += indent + variable.key.split("@")[0] + n_to_string(variable.n) # + " " + unit_to_string(variable.n)
+        for val in variable.value[0]:
+            out += " " + val
+        
+        out += "\n"
+        for row in range(1, len(variable.value)-1):
+            out += indent
+            for val in variable.value[row]:
+                out += " " + val
+            out += "\n"
+        out += indent
+        for val in variable.value[len(variable.value) - 1]:
+            out += " " + val
+    return out
+
+
+class Cp2kSection(VariableGroup):
     def __init__(self, name=""):
+        super().__init__()
         self.name = name
         self.section_parameter = ""
         self.section_var = Variable()
         self.status = True
-        self.params = {} # string -> Variable
+        #self.params = {} # string -> Variable
         self.subsections = {} # string -> Cp2kSection
 
     def to_string(self, indent="\t"):
@@ -15,19 +64,20 @@ class Cp2kSection:
             return ""
         out = ""
         
-        out += indent + "&" + self.name + " " + self.section_parameter + "\n"
+        out += indent + "&" + self.name.split("@")[0] + " " + self.section_parameter + "\n"
 
-        out += self.section_var.to_string(layout="same-line", indent=indent+indent) + "\n"
+        out += cp2k_variable_to_string_same_line(variable=self.section_var, indent=indent+indent) + "\n"
 
         for item in self.params:
-            out += indent + indent + self.params[item].to_string(layout="same-line", indent="") + "\n"
+            out += indent + indent + cp2k_variable_to_string_same_line(variable=self.params[item], indent="") + "\n"
 
         for item in self.subsections:
             out += "\n"
             out += self.subsections[item].to_string(indent+indent)
             out += "\n"
 
-        out += indent + "&end " + self.name
+        out += indent + "&end " + self.name.split("@")[0]
+
         return out
 
 
@@ -43,37 +93,7 @@ class Cp2kSection:
         if key in self.subsections:
             del self.subsections[key]
 
-    def set_param(self, key, value):
-        self.remove(key)
-        self.params[key] = Variable(key, value)
 
-    def contains(self, key):
-        if key in self.params:
-            return True
-        else:
-            return False
-
-    def set_status(self, key, status):
-        if False == self.contains(key):
-            return
-        else:
-            self.params[key].status = status
-
-    def remove(self, key):
-        if key in self.params:
-            del self.params[key]
-
-    def clear(self):
-        self.params.clear()
-
-    def get(self, key, t=str, dim=0):
-        """
-        Note:
-            return a 2D array of t type if dim == 2
-            return a 1D array of t type if dim == 1
-            return a scalar of t type if dim == 0
-        """
-        return self.params[key].as_val(t=t, dim=dim)
 
 
         

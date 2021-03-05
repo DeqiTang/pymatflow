@@ -39,3 +39,16 @@ def siesta_variable_to_string(variable):
         for val in variable.value[len(variable.value) - 1]:
             out += " " + val
     return out
+
+
+default_units = {
+    "MeshCutoff": "Ry",
+    "MD.MaxDispl": "Bohr",
+    "MD.PreconditionVariableCell": "Ang",
+    "MD.MaxForceTol": "eV/Ang",
+    "MD.MaxStressTol": "GPa",
+    "MD.LengthTimeStep": "fs",
+    "MD.InitialTemperature": "K",
+    "MD.TargetTemperature": "K",
+    "MD.FCDispl": "Bohr",
+}

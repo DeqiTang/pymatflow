@@ -348,6 +348,10 @@ def main():
     gp.add_argument("-d", "--directory", type=str, default="matflow-running",
             help="Directory to do the calculation")
 
+    gp.add_argument("--flow-cp2k-version", type=str, default="stable",
+            choices=["stable", "dev"],
+            help="choose pymatflow.cp2k version, eigher stable or dev.")
+
     # run option
     gp.add_argument("--runopt", type=str, default="gen",
             choices=["gen", "run", "genrun"],
@@ -3039,21 +3043,27 @@ def main():
                 sys.exit(1)
                 
         if args.runtype == 0:
-            from pymatflow.cp2k.static import StaticRun
+            if "stable" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version1 import StaticRun
+            elif "dev" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version2 import StaticRun
             task = StaticRun()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
             task.set_pot_basis(kind_basis=kind_basis, kind_pot=kind_pot, basis_set_file=basis_file, potential_file=pot_file)
             task.set_printout(option=args.printout_option)
             if 2 in args.printout_option:
-                task.force_eval.dft.printout.band_structure.set_band(kpath=get_kpath(args.kpath_manual, args.kpath_file))
+                task.set_band(kpath=get_kpath(args.kpath_manual, args.kpath_file))
             task.set_vdw(usevdw=True if args.vdw_potential_type.lower() != "none" else False)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.scf(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 1:
             # geo opt
-            from pymatflow.cp2k.opt import OptRun
+            if "stable" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version1 import OptRun
+            elif "dev" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version2 import OptRun
             task = OptRun()
             task.get_xyz(xyzfile)
             task.set_geo_opt()
@@ -3065,7 +3075,10 @@ def main():
             task.geo_opt(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 2:
             # cell opt
-            from pymatflow.cp2k.opt import OptRun
+            if "stable" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version1 import OptRun
+            elif "dev" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version2 import OptRun
             task = OptRun()
             task.get_xyz(xyzfile)
             task.set_cell_opt()
@@ -3077,7 +3090,10 @@ def main():
             task.cell_opt(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 3:
             # cubic cell opt
-            from pymatflow.cp2k.opt import OptRun
+            if "stable" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version1 import OptRun
+            elif "dev" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version2 import OptRun
             task = OptRun()
             task.get_xyz(xyzfile)
             task.set_geo_opt()
@@ -3093,7 +3109,10 @@ def main():
             task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a)
         elif args.runtype == 4:
             # hexagonal cell opt
-            from pymatflow.cp2k.opt import OptRun
+            if "stable" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version1 import OptRun
+            elif "dev" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version2 import OptRun
             task = OptRun()
             task.get_xyz(xyzfile)
             task.set_geo_opt()
@@ -3109,7 +3128,10 @@ def main():
             task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_c=args.range_c)
         elif args.runtype == 5:
             # tetragonal cell opt
-            from pymatflow.cp2k.opt import OptRun
+            if "stable" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version1 import OptRun
+            elif "dev" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version2 import OptRun
             task = OptRun()
             task.get_xyz(xyzfile)
             task.set_geo_opt()
@@ -3125,7 +3147,10 @@ def main():
             task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_c=args.range_c)
         elif args.runtype == 6:
             # neb
-            from pymatflow.cp2k.neb import NebRun
+            if "stable" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version1 import NebRun
+            elif "dev" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version2 import NebRun
             task = NebRun()
             task.get_images(images=images)
             task.set_params(params=params)
@@ -3137,7 +3162,10 @@ def main():
             task.neb(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 7:
             # phonopy
-            from pymatflow.cp2k.phonopy import PhonopyRun
+            if "stable" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version1 import PhonopyRun
+            elif "dev" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version2 import PhonopyRun
             task = PhonopyRun()
             task.get_xyz(xyzfile)
             task.supercell_n = args.supercell_n
@@ -3149,7 +3177,10 @@ def main():
             task.phonopy(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 8:
             # vibrational analysis
-            from pymatflow.cp2k.vib import VibRun
+            if "stable" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version1 import VibRun
+            elif "dev" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version2 import VibRun
             task = VibRun()
             task.get_xyz(xyzfile)
             task.set_printout(option=args.printout_option)
@@ -3161,7 +3192,10 @@ def main():
             task.vib(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 9:
             # converge test
-            from pymatflow.cp2k.static import StaticRun
+            if "stable" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version1 import StaticRun
+            elif "dev" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version2 import StaticRun
             task = StaticRun()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
@@ -3184,7 +3218,10 @@ def main():
                 task.converge_kpoints_manual(directory=args.directory, runopt=args.runopt, auto=args.auto, kpoints_list=kpoints)
         elif args.runtype == 10:
             # aimd
-            from pymatflow.cp2k.md import MdRun
+            if "stable" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version1 import MdRun
+            elif "dev" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version2 import MdRun
             task = MdRun()
             task.get_xyz(xyzfile)
             task.set_printout(option=args.printout_option)
@@ -3196,7 +3233,10 @@ def main():
             task.aimd(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 11:
             # abc cell opt
-            from pymatflow.cp2k.opt import OptRun
+            if "stable" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version1 import OptRun
+            elif "dev" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version2 import OptRun
             task = OptRun()
             task.get_xyz(xyzfile)
             task.set_geo_opt()
@@ -3211,7 +3251,10 @@ def main():
             task.abc(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_b=args.range_b, range_c=args.range_c)
         elif args.runtype == 12:
             # metadynamics
-            from pymatflow.cp2k.md import MdRun
+            if "stable" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version1 import MdRun
+            elif "dev" == args.flow_cp2k_version:
+                from pymatflow.cp2k.version2 import MdRun
             task = MdRun()
             task.get_xyz(xyzfile)
             task.set_params(params=params)
@@ -3570,6 +3613,7 @@ def main():
 # SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA
 # ==============================================================================
     elif args.driver == "siesta":
+        from pymatflow.siesta.base import default_units
         params = {}
 
         params["MeshCutoff"] = args.meshcutoff
@@ -3609,7 +3653,7 @@ def main():
             if 3 in args.properties:
                 task.properties.bandlines = get_kpath(args.kpath_manual, args.kpath_file)
 
-            task.set_params(params=params)
+            task.set_params(params=params, units=default_units)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -3623,7 +3667,7 @@ def main():
             params["MD.TargetPressure"] = args.targetpressure
             task = OptRun()
             task.get_xyz(xyzfile)
-            task.set_params(params=params)
+            task.set_params(params=params, units=default_units)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -3637,7 +3681,7 @@ def main():
             params["MD.TargetPressure"] = args.targetpressure
             task = OptRun()
             task.get_xyz(xyzfile)
-            task.set_params(params=params)
+            task.set_params(params=params, units=default_units)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -3651,7 +3695,7 @@ def main():
             params["MD.TargetPressure"] = args.targetpressure
             task = OptRun()
             task.get_xyz(xyzfile)
-            task.set_params(params=params)
+            task.set_params(params=params, units=default_units)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -3665,7 +3709,7 @@ def main():
             params["MD.TargetPressure"] = args.targetpressure
             task = OptRun()
             task.get_xyz(xyzfile)
-            task.set_params(params=params)
+            task.set_params(params=params, units=default_units)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -3675,7 +3719,7 @@ def main():
             from pymatflow.siesta.phonopy import PhonopyRun
             task = PhonopyRun()
             task.get_xyz(xyzfile)
-            task.set_params(params=params)
+            task.set_params(params=params, units=default_units)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.supercell_n = args.supercell_n
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
@@ -3690,7 +3734,7 @@ def main():
             params["MD.TargetTemperature"] = args.target_temp         
             task = MdRun()
             task.get_xyz(xyzfile)
-            task.set_params(params=params)
+            task.set_params(params=params, units=default_units)
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
@@ -3701,8 +3745,8 @@ def main():
             task = OptRun()
             task.get_xyz(xyzfile)
             task.set_relax()
-            task.set_kpoints(kpoints_option=args.kpoints_option, kpoints_mp=args.kpoints_mp)
-            task.set_params(control=control, system=system, electrons=electrons, ions=ions)
+            task.set_kpoints(kpoints_mp=args.kpoints_mp)
+            task.set_params(params=params, units=default_units)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.batch_a = args.batch_a     

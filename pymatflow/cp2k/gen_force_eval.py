@@ -1,7 +1,7 @@
 from .section import Cp2kSection
 
 
-def dft():
+def gen_dft():
     out = Cp2kSection("dft")
     
     out.set_param("basis_set_file_name", "basis_set")
@@ -34,12 +34,12 @@ def dft():
 
     return out
 
-def force_eval():
+def gen_force_eval():
     out = Cp2kSection("force_eval")
 
     out.set_param("method", "quickstep")
 
-    out.add_subsection("dft", dft())
+    out.add_subsection("dft", gen_dft())
 
     _print = out.add_subsection("print")
     _print.add_subsection("forces").section_parameter = "on"

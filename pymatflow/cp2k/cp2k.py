@@ -139,6 +139,9 @@ class Cp2k:
         else:
             self.force_eval.dft.xc.vdw_potential.status = False
 
+    def set_band(self, kpath):
+        self.force_eval.dft.printout.band_structure.set_band(kpath=kpath)
+
     def set_printout(self, option=[]):
         """
         Note:

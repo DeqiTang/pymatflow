@@ -2,7 +2,7 @@
 import os
 
 #import numpy as np
-from pymatflow.base.xyz import base_xyz
+from pymatflow.base.xyz import BaseXyz
 
 
 class phonon_post:
@@ -15,7 +15,7 @@ class phonon_post:
         self.kpath = kpath
 
     def get_xyz(self, filepath):
-        self.xyz = base_xyz()
+        self.xyz = BaseXyz()
         self.xyz.get_xyz(filepath)
 
 
