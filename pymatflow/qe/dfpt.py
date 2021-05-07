@@ -224,6 +224,8 @@ class DfptRun:
             self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_PHX")
             # gen pbs script
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_PHX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cdcloud script
+            self.gen_cdcloud(directory=directory, inpname=inpname, output=output, cmd="$PMF_PHX")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -275,6 +277,8 @@ class DfptRun:
             self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_Q2RX")
             # gen pbs script
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_Q2RX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cdcloud script
+            self.gen_cdcloud(directory=directory, inpname=inpname, output=output, cmd="$PMF_Q2RX")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -359,6 +363,9 @@ class DfptRun:
             self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_MATDYNX")
             # gen pbs script
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_MATDYNX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cdcloud script
+            self.gen_cdcloud(directory=directory, inpname=inpname, output=output, cmd="$PMF_MATDYNX")
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s $PMF_MATDYNX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
@@ -396,6 +403,9 @@ class DfptRun:
             self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_PLOTBANDX")
             # gen pbs script
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_PLOTBANDX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cdcloud script
+            self.gen_cdcloud(directory=directory, inpname=inpname, output=output, cmd="$PMF_PLOTBANDX")
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s $PMF_PLOTBANDX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
@@ -463,6 +473,8 @@ class DfptRun:
             self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_DYNMATX")
             # gen pbs script
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_DYNMATX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cdcloud script
+            self.gen_cdcloud(directory=directory, inpname=inpname, output=output, cmd="$PMF_DYNMATX")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

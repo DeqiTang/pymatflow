@@ -62,6 +62,8 @@ class StaticRun(Cp2k):
             self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_CP2K")
             # gen pbs server job comit file
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_CP2K", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cdcloud server job comit file
+            self.gen_cdcloud(cmd="$PMF_CP2K", directory=directory, inpname=inpname, output=output)
 
         if runopt == "run" or runopt == "genrun":
            os.chdir(directory)

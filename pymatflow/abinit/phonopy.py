@@ -105,6 +105,22 @@ class PhonopyRun(Abinit):
                     fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_ABINIT < supercell-%s.files\n" % disp)
                     fout.write("cd ../\n")
 
+            # generate cdcloud scripts
+            with open(os.path.join(directory, "phonopy-job.slurm_cd"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                fout.write("#\n")
+                fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+                fout.write("export FORT_BUFFERED=1\n")                
+                for disp in disps:
+                    fout.write("cd disp-%s\n" % disp)
+                    fout.write("srun --mpi=pmix_v3 $PMF_ABINIT < supercell-%s.files\n" % disp)
+                    fout.write("cd ../\n")
 
         if runopt == "run" or runopt == "genrun":
             # run the simulation

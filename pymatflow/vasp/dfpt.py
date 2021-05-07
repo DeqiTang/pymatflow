@@ -22,7 +22,7 @@ class DfptRun(Vasp):
         self.incar.set_runtype(runtype="dfpt")
 
 
-    def dfpt(self, directory="tmp-vasp-static", runopt="gen", mode=0, auto=0):
+    def dfpt(self, directory="tmp-vasp-dfpt", runopt="gen", mode=0, auto=0):
         """
         directory: a place for all the generated files
 
@@ -80,6 +80,8 @@ class DfptRun(Vasp):
             self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="dfpt.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
             # gen lsf_sustc script
             self.gen_lsf_sustc(directory=directory, cmd="$PMF_VASP_STD", scriptname="dfpt.lsf_sustc", jobname=self.run_params["jobname"], np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cd_cdcloud script
+            self.gen_cdcloud(directory=directory, cmd="$PMF_VASP_STD", scriptname="dfpt.slurm_cd")
 
 
         if runopt == "run" or runopt == "genrun":

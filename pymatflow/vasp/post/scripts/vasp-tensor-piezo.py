@@ -1,4 +1,4 @@
-#!/usr/bin/evn python
+#!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
 import os
@@ -41,7 +41,11 @@ if __name__ == "__main__":
         if len(outcar_lines[i].split()) == 0:
             continue
         #if outcar_lines[i].split()[0] == "PIEZOELECTRIC" and outcar_lines[i].split()[1] == "TENSOR" and outcar_lines[i].split()[2] == "for" and outcar_lines[i].split()[8].split("\n")[0] == "(C/m^2)":
-        if "PIEZOELECTRIC TENSOR  for field in x, y, z        (C/m^2)" in outcar_lines[i]:
+        possible1 = "PIEZOELECTRIC TENSOR  for field in x, y, z        (C/m^2)"
+        possible2 = "PIEZOELECTRIC TENSOR (including local field effects)  for field in x, y, z        (C/m^2)"
+        # different version of VASP or different method may generate different output
+        # so possible1 and possible2 should be dealt with at the same time.
+        if possible1 in outcar_lines[i] or possible2 in outcar_lines[i]:
             for j in range(i+3, i+6, 1):
                 tmp = []
                 for k in range(6):

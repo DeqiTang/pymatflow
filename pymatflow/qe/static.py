@@ -85,6 +85,8 @@ class StaticRun(PwScf):
             self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
             # gen pbs scripts
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cdcloud script
+            self.gen_cdcloud(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
 
         if runopt == 'genrun' or runopt == 'run':
             os.chdir(directory)
@@ -126,6 +128,8 @@ class StaticRun(PwScf):
             self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
             # gen pbs scripts
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cdcloud script
+            self.gen_cdcloud(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
 
         if runopt == 'genrun' or runopt == 'run':
             os.chdir(directory)
@@ -537,6 +541,8 @@ class StaticRun(PwScf):
             self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_DOSX")
             # gen pbs script
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_DOSX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cdcloud script
+            self.gen_cdcloud(directory=directory, inpname=inpname, output=output, cmd="$PMF_DOSX")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -620,6 +626,20 @@ class StaticRun(PwScf):
                 fout.write("NP=`cat $PBS_NODEFILE | wc -l`\n")
                 fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("$PMF_PWX", inpname1, output1))
                 fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("$PMF_BANDSX", inpname2, output2))
+            # gen cdcloud script
+            with open(os.path.join(directory, "band-structure.slurm_cd"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                fout.write("#\n")
+                fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+                fout.write("export FORT_BUFFERED=1\n")
+                fout.write("srun --mpi=pmix_v3 %s < %s > %s\n" % ("$PMF_PWX", inpname1, output1))
+                fout.write("srun --mpi=pmix_v3 %s < %s > %s\n" % ("$PMF_BANDSX", inpname2, output2))
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -722,6 +742,8 @@ class StaticRun(PwScf):
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="$PMF_PROJWFCX")
             # gen pbs script
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_PROJWFCX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cdcloud script
+            self.gen_cdcloud(directory=directory, inpname=inpname, output=output, cmd="$PMF_PROJWFCX")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -806,6 +828,8 @@ class StaticRun(PwScf):
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="$PMF_MOLECULARPDOSX")
             # gen pbs script
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_MOLECULARPDOSX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cdcloud script
+            self.gen_cdcloud(directory=directory, inpname=inpname, output=output, cmd="$PMF_MOLECULARPDOSX")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -837,7 +861,9 @@ class StaticRun(PwScf):
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="$PMF_FSX")
             # gen pbs script
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_FSX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
-        
+            # gen cdcloud script
+            self.gen_cdcloud(directory=directory, inpname=inpname, output=output, cmd="$PMF_FSX")
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("%s $PMF_FSX < %s | tee %s" % (self.run_params["mpi"], inpname, output))
@@ -927,6 +953,20 @@ class StaticRun(PwScf):
                 #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
                 for plot_num_i in self.inputpp["plot_num"]:
                     fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % ("$PMF_PPX", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
+            # gen cdcloud script
+            with open(os.path.join(directory, "pp.x.slurm_cd"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                fout.write("#\n")
+                fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+                fout.write("export FORT_BUFFERED=1\n")
+                for plot_num_i in self.inputpp["plot_num"]:
+                    fout.write("srun --mpi=pmix_v3 %s < %s > %s\n" % ("$PMF_PPX", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -1051,6 +1091,8 @@ class StaticRun(PwScf):
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="$PMF_XSPECTRAX")
             # gen pbs script
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_XSPECTRAX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cdcloud script
+            self.gen_cdcloud(directory=directory, inpname=inpname, output=output, cmd="$PMF_XSPECTRAX")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -1256,6 +1298,26 @@ class StaticRun(PwScf):
                 fout.write("%s $PMF_BANDSX < bands.in | tee bands.out\n" % self.run_params["mpi"])
                 for plot_num_i in self.inputpp["plot_num"]:
                     fout.write("%s $PMF_PPX < %s | tee %s\n" % (self.run_params["mpi"], prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
+
+            # gen cdcloud script
+            with open(os.path.join(directory, "static.slurm_cd"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                fout.write("#\n")
+                fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+                fout.write("export FORT_BUFFERED=1\n")
+                fout.write("srun --mpi=pmix_v3 $PMF_PWX < static-scf.in > static-scf.out\n")
+                fout.write("srun --mpi=pmix_v3 $PMF_PWX < static-nscf.in > static-nscf.out\n")
+                fout.write("srun --mpi=pmix_v3 $PMF_PROJWFCX < static-projwfc.in > static-projwfc.out\n")
+                fout.write("srun --mpi=pmix_v3 $PMF_PWX < static-bands.in > static-bands.out\n")
+                fout.write("srun --mpi=pmix_v3 $PMF_BANDSX < bands.in > bands.out\n")
+                for plot_num_i in self.inputpp["plot_num"]:
+                    fout.write("srun --mpi=pmix_v3 %s < %s > %s\n" % ("$PMF_PPX", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
 
         if runopt == 'genrun' or runopt == 'run':
             os.chdir(directory)

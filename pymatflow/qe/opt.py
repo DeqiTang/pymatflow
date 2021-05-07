@@ -65,6 +65,8 @@ class OptRun(PwScf):
             self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
             # gen pbs script
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cdcloud script
+            self.gen_cdcloud(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -114,6 +116,8 @@ class OptRun(PwScf):
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
             # gen pbs script
             self.gen_pbs(directory=directory, inpname=inpname, cmd="$PMF_PWX", output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cdcloud script
+            self.gen_cdcloud(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -417,6 +421,65 @@ class OptRun(PwScf):
                 fout.write("  %s $PMF_PWX < relax-${a}.in | tee relax-${a}.out\n" % self.run_params["mpi"])
                 fout.write("done\n")
 
+            # gen cdcloud script
+            with open("relax-cubic-%d.slurm_cd" % (i_batch_a), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s-%d\n" % (self.run_params["jobname"], i_batch_a))
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                fout.write("#\n")
+                fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+                fout.write("export FORT_BUFFERED=1\n")                
+                #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
+
+                a = np.sqrt(self.arts.xyz.cell[0][0]**2+self.arts.xyz.cell[0][1]**2+self.arts.xyz.cell[0][2]**2)
+                b = np.sqrt(self.arts.xyz.cell[1][0]**2+self.arts.xyz.cell[1][1]**2+self.arts.xyz.cell[1][2]**2)
+                c = np.sqrt(self.arts.xyz.cell[2][0]**2+self.arts.xyz.cell[2][1]**2+self.arts.xyz.cell[2][2]**2)
+
+                fout.write("a_in=%f\n" % a)
+                fout.write("b_in=%f\n" % b)
+                fout.write("c_in=%f\n" % c)
+
+                fout.write("a1=%f\n" % self.arts.xyz.cell[0][0])
+                fout.write("a2=%f\n" % self.arts.xyz.cell[0][1])
+                fout.write("a3=%f\n" % self.arts.xyz.cell[0][2])
+                fout.write("b1=%f\n" % self.arts.xyz.cell[1][0])
+                fout.write("b2=%f\n" % self.arts.xyz.cell[1][1])
+                fout.write("b3=%f\n" % self.arts.xyz.cell[1][2])
+                fout.write("c1=%f\n" % self.arts.xyz.cell[2][0])
+                fout.write("c2=%f\n" % self.arts.xyz.cell[2][1])
+                fout.write("c3=%f\n" % self.arts.xyz.cell[2][2])
+
+                range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
+                range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
+                # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                if range_a_end  > range_a[1]:
+                    range_a_end = range_a[1]
+
+                fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
+                fout.write("do\n")
+                fout.write("  cp relax.in.template relax-${a}.in\n")
+                fout.write("  vec11=$(printf \"%-.6f\" `echo \"scale=6; result=${a1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                fout.write("  vec12=$(printf \"%-.6f\" `echo \"scale=6; result=${a2} * ${a} / ${a_in}; print result\" | bc`)\n")                    
+                fout.write("  vec13=$(printf \"%-.6f\" `echo \"scale=6; result=${a3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                fout.write("  vec21=$(printf \"%-.6f\" `echo \"scale=6; result=${b1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                fout.write("  vec22=$(printf \"%-.6f\" `echo \"scale=6; result=${b2} * ${a} / ${a_in}; print result\" | bc`)\n")
+                fout.write("  vec23=$(printf \"%-.6f\" `echo \"scale=6; result=${b3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                fout.write("  vec31=$(printf \"%-.6f\" `echo \"scale=6; result=${c1} * ${a} / ${c_in}; print result\" | bc`)\n")
+                fout.write("  vec32=$(printf \"%-.6f\" `echo \"scale=6; result=${c2} * ${a} / ${c_in}; print result\" | bc`)\n")                                        
+                fout.write("  vec33=$(printf \"%-.6f\" `echo \"scale=6; result=${c3} * ${a} / ${c_in}; print result\" | bc`)\n")                                          
+                fout.write("  cat >> relax-${a}.in <<EOF\n")
+                fout.write("\n")
+                fout.write("CELL_PARAMETERS angstrom\n")
+                fout.write("${vec11} ${vec12} ${vec13}\n")
+                fout.write("${vec21} ${vec22} ${vec23}\n")
+                fout.write("${vec31} ${vec32} ${vec33}\n")
+                fout.write("EOF\n")
+                fout.write("  srun --mpi=pmix_v3 $PMF_PWX < relax-${a}.in > relax-${a}.out\n")
+                fout.write("done\n")
 
         # generate result analysis script
         os.system("mkdir -p post-processing")
@@ -928,6 +991,129 @@ class OptRun(PwScf):
                             fout.write("${vec31} ${vec32} ${vec33}\n")
                             fout.write("EOF\n")
                             fout.write("  %s $PMF_PWX < relax-${c}.in | tee relax-${c}.out\n" % self.run_params["mpi"])
+                            fout.write("done\n")
+                        else:
+                            # neither a or c is optimized
+                            pass
+
+                # gen cdcloud script
+                with open("relax-hexagonal-%d-%d.slurm_cd" % (i_batch_a, i_batch_c), 'w') as fout:
+                    fout.write("#!/bin/bash\n")
+                    fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                    fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                    fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                    fout.write("#SBATCH -J %s-%d-%d\n" % (self.run_params["jobname"], i_batch_a, i_batch_c))
+                    fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                    fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                    fout.write("#\n")
+                    fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+                    fout.write("export FORT_BUFFERED=1\n")
+                    #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
+
+                    a = np.sqrt(self.arts.xyz.cell[0][0]**2+self.arts.xyz.cell[0][1]**2+self.arts.xyz.cell[0][2]**2)
+                    b = np.sqrt(self.arts.xyz.cell[1][0]**2+self.arts.xyz.cell[1][1]**2+self.arts.xyz.cell[1][2]**2)
+                    c = np.sqrt(self.arts.xyz.cell[2][0]**2+self.arts.xyz.cell[2][1]**2+self.arts.xyz.cell[2][2]**2)
+
+                    fout.write("a_in=%f\n" % a)
+                    fout.write("b_in=%f\n" % b)
+                    fout.write("c_in=%f\n" % c)
+
+                    fout.write("a1=%f\n" % self.arts.xyz.cell[0][0])
+                    fout.write("a2=%f\n" % self.arts.xyz.cell[0][1])
+                    fout.write("a3=%f\n" % self.arts.xyz.cell[0][2])
+                    fout.write("b1=%f\n" % self.arts.xyz.cell[1][0])
+                    fout.write("b2=%f\n" % self.arts.xyz.cell[1][1])
+                    fout.write("b3=%f\n" % self.arts.xyz.cell[1][2])
+                    fout.write("c1=%f\n" % self.arts.xyz.cell[2][0])
+                    fout.write("c2=%f\n" % self.arts.xyz.cell[2][1])
+                    fout.write("c3=%f\n" % self.arts.xyz.cell[2][2])
+
+                    range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
+                    range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
+                    # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_a_end  > range_a[1]:
+                        range_a_end = range_a[1]
+
+                    range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
+                    range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
+                    # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_c_end  > range_c[1]:
+                        range_c_end = range_c[1]
+
+                    if na >= 2:
+                        # a is optimized                        
+                        fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
+                        fout.write("do\n")
+                        if nc >= 2:
+                            # optimize both a and c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                            fout.write("do\n")
+                            # here with the usage of length and scale in bs processing, we can make sure that number like '.123' will be correctly
+                            # set as '0.123', namely the ommited 0 by bs by default is not ommited now!
+                            fout.write("  cp relax.in.template relax-${a}-${c}.in\n")
+                            fout.write("  vec11=$(printf \"%-.6f\" `echo \"scale=6; result=${a1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec12=$(printf \"%-.6f\" `echo \"scale=6; result=${a2} * ${a} / ${a_in}; print result\" | bc`)\n")                    
+                            fout.write("  vec13=$(printf \"%-.6f\" `echo \"scale=6; result=${a3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec21=$(printf \"%-.6f\" `echo \"scale=6; result=${b1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec22=$(printf \"%-.6f\" `echo \"scale=6; result=${b2} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec23=$(printf \"%-.6f\" `echo \"scale=6; result=${b3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec31=$(printf \"%-.6f\" `echo \"scale=6; result=${c1} * ${c} / ${c_in}; print result\" | bc`)\n")
+                            fout.write("  vec32=$(printf \"%-.6f\" `echo \"scale=6; result=${c2} * ${c} / ${c_in}; print result\" | bc`)\n")                                        
+                            fout.write("  vec33=$(printf \"%-.6f\" `echo \"scale=6; result=${c3} * ${c} / ${c_in}; print result\" | bc`)\n")                                      
+                            fout.write("  cat >> relax-${a}-${c}.in <<EOF\n")
+                            fout.write("\n")
+                            fout.write("CELL_PARAMETERS angstrom\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  srun --mpi=pmix_v3 $PMF_PWX < relax-${a}-${c}.in > relax-${a}-${c}.out\n")
+                            fout.write("done\n")
+                        else:
+                            # only optimize a
+                            fout.write("  cp relax.in.template relax-${a}.in\n")
+                            fout.write("  vec11=$(printf \"%-.6f\" `echo \"scale=6; result=${a1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec12=$(printf \"%-.6f\" `echo \"scale=6; result=${a2} * ${a} / ${a_in}; print result\" | bc`)\n")                    
+                            fout.write("  vec13=$(printf \"%-.6f\" `echo \"scale=6; result=${a3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec21=$(printf \"%-.6f\" `echo \"scale=6; result=${b1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec22=$(printf \"%-.6f\" `echo \"scale=6; result=${b2} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec23=$(printf \"%-.6f\" `echo \"scale=6; result=${b3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec31=$(printf \"%-.6f\" `echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; print result\" | bc`)\n")
+                            fout.write("  vec32=$(printf \"%-.6f\" `echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; print result\" | bc`)\n")                                        
+                            fout.write("  vec33=$(printf \"%-.6f\" `echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; print result\" | bc`)\n")                                      
+                            fout.write("  cat >> relax-${a}.in <<EOF\n")
+                            fout.write("\n")
+                            fout.write("CELL_PARAMETERS angstrom\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  srun --mpi=pmix_v3 $PMF_PWX < relax-${a}.in > relax-${a}.out\n")
+                        fout.write("done\n")
+                    else:
+                       # a is not optimized
+                        if nc >= 2:
+                            # only optimize c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                            fout.write("do\n")
+                            fout.write("  cp relax.in.template relax-${c}.in\n")
+                            fout.write("  vec11=$(printf \"%-.6f\" `echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec12=$(printf \"%-.6f\" `echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; print result\" | bc`)\n")                    
+                            fout.write("  vec13=$(printf \"%-.6f\" `echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec21=$(printf \"%-.6f\" `echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec22=$(printf \"%-.6f\" `echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec23=$(printf \"%-.6f\" `echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec31=$(printf \"%-.6f\" `echo \"scale=6; result=${c1} * ${c} / ${c_in}; print result\" | bc`)\n")
+                            fout.write("  vec32=$(printf \"%-.6f\" `echo \"scale=6; result=${c2} * ${c} / ${c_in}; print result\" | bc`)\n")                                        
+                            fout.write("  vec33=$(printf \"%-.6f\" `echo \"scale=6; result=${c3} * ${c} / ${c_in}; print result\" | bc`)\n")                                      
+                            fout.write("  cat >> relax-${c}.in<<EOF\n")
+                            fout.write("\n")
+                            fout.write("CELL_PARAMETERS angstrom\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  srun --mpi=pmix_v3 $PMF_PWX < relax-${c}.in > relax-${c}.out\n")
                             fout.write("done\n")
                         else:
                             # neither a or c is optimized
@@ -1500,6 +1686,128 @@ class OptRun(PwScf):
                             # neither a or c is optimized
                             pass
 
+                # gen cdcloud script
+                with open("relax-tetragonal-%d-%d.slurm_cd" % (i_batch_a, i_batch_c), 'w') as fout:
+                    fout.write("#!/bin/bash\n")
+                    fout.write("#!/bin/bash\n")
+                    fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                    fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                    fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                    fout.write("#SBATCH -J %s-%d-%d\n" % (self.run_params["jobname"], i_batch_a, i_batch_c))
+                    fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                    fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                    fout.write("#\n")
+                    fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+                    fout.write("export FORT_BUFFERED=1\n")
+                    #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
+
+                    a = np.sqrt(self.arts.xyz.cell[0][0]**2+self.arts.xyz.cell[0][1]**2+self.arts.xyz.cell[0][2]**2)
+                    b = np.sqrt(self.arts.xyz.cell[1][0]**2+self.arts.xyz.cell[1][1]**2+self.arts.xyz.cell[1][2]**2)
+                    c = np.sqrt(self.arts.xyz.cell[2][0]**2+self.arts.xyz.cell[2][1]**2+self.arts.xyz.cell[2][2]**2)
+
+                    fout.write("a_in=%f\n" % a)
+                    fout.write("b_in=%f\n" % b)
+                    fout.write("c_in=%f\n" % c)
+
+                    fout.write("a1=%f\n" % self.arts.xyz.cell[0][0])
+                    fout.write("a2=%f\n" % self.arts.xyz.cell[0][1])
+                    fout.write("a3=%f\n" % self.arts.xyz.cell[0][2])
+                    fout.write("b1=%f\n" % self.arts.xyz.cell[1][0])
+                    fout.write("b2=%f\n" % self.arts.xyz.cell[1][1])
+                    fout.write("b3=%f\n" % self.arts.xyz.cell[1][2])
+                    fout.write("c1=%f\n" % self.arts.xyz.cell[2][0])
+                    fout.write("c2=%f\n" % self.arts.xyz.cell[2][1])
+                    fout.write("c3=%f\n" % self.arts.xyz.cell[2][2])
+
+                    range_a_start = range_a[0] + i_batch_a * self.batch_a * range_a[2]
+                    range_a_end = range_a[0] + (i_batch_a+1) * self.batch_a * range_a[2] - range_a[2] / 2
+                    # - range_a[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_a_end  > range_a[1]:
+                        range_a_end = range_a[1]
+
+                    range_c_start = range_c[0] + i_batch_c * self.batch_c * range_c[2]
+                    range_c_end = range_c[0] + (i_batch_c+1) * self.batch_c * range_c[2] - range_c[2] / 2
+                    # - range_c[2] / 2, so that the last value is ignored which is actually the begining of next batch
+                    if range_c_end  > range_c[1]:
+                        range_c_end = range_c[1]
+
+                    if na >= 2:
+                        # a is optimized
+                        fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
+                        fout.write("do\n")
+                        if nc >= 2:
+                            # optimize both a and c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                            fout.write("do\n")
+                            fout.write("    cp relax.in.template relax-${a}-${c}.in\n")
+                            fout.write("  vec11=$(printf \"%-.6f\" `echo \"scale=6; result=${a1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec12=$(printf \"%-.6f\" `echo \"scale=6; result=${a2} * ${a} / ${a_in}; print result\" | bc`)\n")                    
+                            fout.write("  vec13=$(printf \"%-.6f\" `echo \"scale=6; result=${a3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec21=$(printf \"%-.6f\" `echo \"scale=6; result=${b1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec22=$(printf \"%-.6f\" `echo \"scale=6; result=${b2} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec23=$(printf \"%-.6f\" `echo \"scale=6; result=${b3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec31=$(printf \"%-.6f\" `echo \"scale=6; result=${c1} * ${c} / ${c_in}; print result\" | bc`)\n")
+                            fout.write("  vec32=$(printf \"%-.6f\" `echo \"scale=6; result=${c2} * ${c} / ${c_in}; print result\" | bc`)\n")                                        
+                            fout.write("  vec33=$(printf \"%-.6f\" `echo \"scale=6; result=${c3} * ${c} / ${c_in}; print result\" | bc`)\n")                                  
+                            fout.write("    cat >> relax-${a}-${c}.in <<EOF\n")
+                            fout.write("\n")
+                            fout.write("CELL_PARAMETERS angstrom\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("    srun --mpi=pmix_v3 $PMF_PWX < relax-${a}-${c}.in > relax-${a}-${c}.out\n")
+                            fout.write("  done\n")
+                        else:
+                            # only optimize a
+                            fout.write("    cp relax.in.template relax-${a}.in\n")
+                            fout.write("  vec11=$(printf \"%-.6f\" `echo \"scale=6; result=${a1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec12=$(printf \"%-.6f\" `echo \"scale=6; result=${a2} * ${a} / ${a_in}; print result\" | bc`)\n")                    
+                            fout.write("  vec13=$(printf \"%-.6f\" `echo \"scale=6; result=${a3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec21=$(printf \"%-.6f\" `echo \"scale=6; result=${b1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec22=$(printf \"%-.6f\" `echo \"scale=6; result=${b2} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec23=$(printf \"%-.6f\" `echo \"scale=6; result=${b3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec31=$(printf \"%-.6f\" `echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; print result\" | bc`)\n")
+                            fout.write("  vec32=$(printf \"%-.6f\" `echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; print result\" | bc`)\n")                                        
+                            fout.write("  vec33=$(printf \"%-.6f\" `echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; print result\" | bc`)\n")                                  
+                            fout.write("    cat >> relax-${a}.in <<EOF\n")
+                            fout.write("\n")
+                            fout.write("CELL_PARAMETERS angstrom\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("    srun --mpi=pmix_v3 $PMF_PWX < relax-${a}.in > relax-${a}.out\n")
+                        fout.write("done\n")
+                    else:
+                        # a is not optimized
+                        if nc >= 2:
+                            # only optimize c
+                            fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                            fout.write("do\n")
+                            fout.write("  cp relax.in.template relax-${c}.in\n")
+                            fout.write("  vec11=$(printf \"%-.6f\" `echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec12=$(printf \"%-.6f\" `echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; print result\" | bc`)\n")                    
+                            fout.write("  vec13=$(printf \"%-.6f\" `echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec21=$(printf \"%-.6f\" `echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec22=$(printf \"%-.6f\" `echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec23=$(printf \"%-.6f\" `echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                            fout.write("  vec31=$(printf \"%-.6f\" `echo \"scale=6; result=${c1} * ${c} / ${c_in}; print result\" | bc`)\n")
+                            fout.write("  vec32=$(printf \"%-.6f\" `echo \"scale=6; result=${c2} * ${c} / ${c_in}; print result\" | bc`)\n")                                        
+                            fout.write("  vec33=$(printf \"%-.6f\" `echo \"scale=6; result=${c3} * ${c} / ${c_in}; print result\" | bc`)\n")              
+                            fout.write("  cat >> relax-${c}.in<<EOF\n")
+                            fout.write("\n")
+                            fout.write("CELL_PARAMETERS angstrom\n")
+                            fout.write("${vec11} ${vec12} ${vec13}\n")
+                            fout.write("${vec21} ${vec22} ${vec23}\n")
+                            fout.write("${vec31} ${vec32} ${vec33}\n")
+                            fout.write("EOF\n")
+                            fout.write("  srun --mpi=pmix_v3 $PMF_PWX < relax-${c}.in > relax-${c}.out\n")
+                            fout.write("done\n")
+                        else:
+                            # neither a or c is optimized
+                            pass
+
         # generate result analysis script
         os.system("mkdir -p post-processing")
 
@@ -1987,6 +2295,63 @@ class OptRun(PwScf):
                         fout.write("done\n")
                         fout.write("done\n")
 
+                    # gen cdcloud script
+                    with open("opt-abc-%d-%d-%d.slurm_cd" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
+                        fout.write("#!/bin/bash\n")
+                        fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                        fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                        fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                        fout.write("#SBATCH -J %s-%d-%d-%d\n" % (self.run_params["jobname"], i_batch_a, i_batch_b, i_batch_c))
+                        fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                        fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                        fout.write("#\n")
+                        fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+                        fout.write("export FORT_BUFFERED=1\n")
+
+                        fout.write("a_in=%f\n" % a)
+                        fout.write("b_in=%f\n" % b)
+                        fout.write("c_in=%f\n" % c)
+
+                        fout.write("a1=%f\n" % self.arts.xyz.cell[0][0])
+                        fout.write("a2=%f\n" % self.arts.xyz.cell[0][1])
+                        fout.write("a3=%f\n" % self.arts.xyz.cell[0][2])
+                        fout.write("b1=%f\n" % self.arts.xyz.cell[1][0])
+                        fout.write("b2=%f\n" % self.arts.xyz.cell[1][1])
+                        fout.write("b3=%f\n" % self.arts.xyz.cell[1][2])
+                        fout.write("c1=%f\n" % self.arts.xyz.cell[2][0])
+                        fout.write("c2=%f\n" % self.arts.xyz.cell[2][1])
+                        fout.write("c3=%f\n" % self.arts.xyz.cell[2][2])
+
+
+                        fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
+                        fout.write("do\n")
+                        fout.write("for b in `seq -w %f %f %f`\n" % (b+range_b_start, range_b[2], b+range_b_end))
+                        fout.write("do\n")
+                        fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                        fout.write("do\n")
+                        #fout.write("  mkdir relax-${a}-${b}-${c}\n")
+                        fout.write("  cp relax.in.template relax-${a}-${b}-${c}.in\n")
+                        fout.write("  vec11=$(printf \"%-.6f\" `echo \"scale=6; result=${a1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                        fout.write("  vec12=$(printf \"%-.6f\" `echo \"scale=6; result=${a2} * ${a} / ${a_in}; print result\" | bc`)\n")                   
+                        fout.write("  vec13=$(printf \"%-.6f\" `echo \"scale=6; result=${a3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                        fout.write("  vec21=$(printf \"%-.6f\" `echo \"scale=6; result=${b1} * ${b} / ${b_in}; print result\" | bc`)\n")
+                        fout.write("  vec22=$(printf \"%-.6f\" `echo \"scale=6; result=${b2} * ${b} / ${b_in}; print result\" | bc`)\n")
+                        fout.write("  vec23=$(printf \"%-.6f\" `echo \"scale=6; result=${b3} * ${b} / ${b_in}; print result\" | bc`)\n")
+                        fout.write("  vec31=$(printf \"%-.6f\" `echo \"scale=6; result=${c1} * ${c} / ${c_in}; print result\" | bc`)\n")
+                        fout.write("  vec32=$(printf \"%-.6f\" `echo \"scale=6; result=${c2} * ${c} / ${c_in}; print result\" | bc`)\n")                                       
+                        fout.write("  vec33=$(printf \"%-.6f\" `echo \"scale=6; result=${c3} * ${c} / ${c_in}; print result\" | bc`)\n")                         
+                        fout.write("    cat >> relax-${a}-${b}-${c}.in <<EOF\n")
+                        fout.write("\n")
+                        fout.write("CELL_PARAMETERS angstrom\n")
+                        fout.write("${vec11} ${vec12} ${vec13}\n")
+                        fout.write("${vec21} ${vec22} ${vec23}\n")
+                        fout.write("${vec31} ${vec32} ${vec33}\n")
+                        fout.write("EOF\n")
+                        fout.write("    srun --mpi=pmix_v3 $PMF_PWX < relax-${a}-${b}-${c}.in > relax-${a}-${b}-${c}.out\n")
+                        fout.write("done\n")
+                        fout.write("done\n")
+                        fout.write("done\n")
+                    
 
         # generate result analysis script
         os.system("mkdir -p post-processing")

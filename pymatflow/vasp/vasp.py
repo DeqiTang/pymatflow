@@ -45,7 +45,7 @@ class Vasp:
 
     def set_params(self, params, runtype):
         """
-        :param runtype: one onf 'static', 'opt', 'phonopy', 'phonon', 'neb', 'md'
+        :param runtype: one onf 'static', 'opt', 'phonopy', 'phonon', 'neb', 'md', 'custom'
         """
         static_allowed = [
             "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
@@ -128,6 +128,9 @@ class Vasp:
             for item in params:
                 if item in md_allowed:
                     self.incar.set_params({item: params[item]})
+        elif runtype == "custom":
+            for item in params:
+                self.incar.set_params({item: params[item]})
         else:
             pass
 
@@ -280,3 +283,35 @@ class Vasp:
             self.kpoints.to_kpoints(fout)
             fout.write("EOF\n")
             fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP %s\n" % cmd)
+
+
+    def set_cdcloud(self, partition="normal", nodes=1, ntask=32, jobname="matflow_job", stdout="slurm.out", stderr="slurm.err"):
+        self.run_params["partition"] = partition
+        self.run_params["jobname"] = jobname
+        self.run_params["nodes"] = nodes
+        self.run_params["ntask"] = ntask
+        self.run_params["stdout"] = stdout
+        self.run_params["stderr"] = stderr
+
+    def gen_cdcloud(self, directory, scriptname="vasp.sub", cmd="vasp_std"):
+        """
+        generating slurm job script for calculation
+        """
+        with open(os.path.join(directory, scriptname), 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+            fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+            fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+            fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+            fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+            fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+            fout.write("#\n")
+            fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+            fout.write("export FORT_BUFFERED=1\n")
+            fout.write("cat > INCAR<<EOF\n")
+            self.incar.to_incar(fout)
+            fout.write("EOF\n")
+            fout.write("cat > KPOINTS<<EOF\n")
+            self.kpoints.to_kpoints(fout)
+            fout.write("EOF\n")
+            fout.write("srun --mpi=pmix_v3 %s\n" % cmd)

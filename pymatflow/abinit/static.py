@@ -46,6 +46,9 @@ class StaticRun(Abinit):
             # generate local bash job run script
             self.gen_bash(directory=directory, script="static-scf.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])
 
+            # generate cdcloud submit script
+            self.gen_cdcloud(directory=directory, script="static-scf.slurm_cd", cmd="$PMF_ABINIT")
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("bash %s" % "static-scf.sh")
@@ -85,6 +88,9 @@ class StaticRun(Abinit):
 
             # generate local bash job run script
             self.gen_bash(directory=directory, script="static-nscf.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])
+
+            # generate cdcloud submit script
+            self.gen_cdcloud(directory=directory, script="static-nscf.slurm_cd", cmd="$PMF_ABINIT")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -129,6 +135,9 @@ class StaticRun(Abinit):
             # generate local bash job run script
             self.gen_bash(directory=directory, script="static-bands.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])
 
+            # generate cdcloud submit script
+            self.gen_cdcloud(directory=directory, script="static-bands.slurm_cd", cmd="$PMF_ABINIT")
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("bash %s" % "static-bands.sh")
@@ -172,6 +181,8 @@ class StaticRun(Abinit):
 
             # generate local bash job run script
             self.gen_bash(directory=directory, script="static-scf-nscf-dos-bands.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])
+            # generate cdcloud submit script
+            self.gen_cdcloud(directory=directory, script="static-scf-nscf-dos-bands.slurm_cd", cmd="$PMF_ABINIT")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -331,6 +342,9 @@ class StaticRun(Abinit):
 
             # generate local bash job run script
             self.gen_bash(directory=directory, script="static.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])
+
+            # generate cdcloud job submit script
+            self.gen_cdcloud(directory=directory, script="static.slurm_cd", cmd="$PMF_ABINIT")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

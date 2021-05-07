@@ -58,4 +58,6 @@ def server_handle(auto, server, directory, jobfilebase):
             os.system("chmod 755 %s; bsub %s" % (jobfilebase+".lsf_sz", jobfilebase+".lsf_sz"))
         elif server == "lsf_sustc":
             os.system("chmod 755 %s; bsub < %s" % (jobfilebase+".lsf_sustc", jobfilebase+".lsf_sustc"))            
+        elif server == "cdcloud":
+            os.system("sbatch < %s" % jobfilebase+".slurm_cd")
         os.chdir("../")

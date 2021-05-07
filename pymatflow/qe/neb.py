@@ -146,6 +146,8 @@ class NebRun(PwScf):
             self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_NEBX")
             # gen pbs script
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_NEBX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cdcloud script
+            self.gen_cdcloud(directory=directory, inpname=inpname, output=output, cmd="$PMF_NEBX")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

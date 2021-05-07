@@ -255,6 +255,54 @@ class DfptElasticPiezoDielec(Abinit):
                 fout.write("EOF\n")
                 fout.write("%s %s < %s\n" % (self.run_params["mpi"], "$PMF_ANADDB", "anaddb.files"))
 
+            # cdcloud jobsubmit script
+            with open(os.path.join(directory, "dfpt-elastic-piezo-dielec.slurm_cd"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                fout.write("#\n")
+                fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+                fout.write("export FORT_BUFFERED=1\n")                
+                fout.write("cat > %s<<EOF\n" % self.files.main_in)
+                fout.write(self.to_string())
+                fout.write("EOF\n")
+                fout.write("cat > %s<<EOF\n" % self.files.name)
+                fout.write(self.files.to_string(system=self.dataset[0].system))
+                fout.write("EOF\n")
+                fout.write("srun --mpi=pmix_v3 %s < %s\n" % ("$PMF_ABINIT", self.files.name))
+
+                # use anaddb to analyse DDB file generated previously
+                #with open(os.path.join(directory, "anaddb.in"), "w") as fout:
+                fout.write("cat > %s <<EOF\n" % "anaddb.in")
+                fout.write("elaflag 3\n")
+                fout.write("piezoflag 7\n")
+                # piezoflag = 7 means calculate all the possible piezoelectric tensors, including e (clamped and relaxed ion), d, g and h tensors
+                # if g and h tensor are to be calculated must set dieflag to 3 or 4, or it will print the wrong value
+                # but the calculation will continue
+                fout.write("instrflag 1\n")
+                fout.write("chneut 1\n")
+                fout.write("dieflag 1\n")
+                fout.write("# if ecut and kmesh is not sufficient, the calc of dielectric tensor might collapse\n")
+                #  The frequency-dependent dielectric tensor is calculated
+                # see https://docs.abinit.org/variables/anaddb/#dieflag
+                # if ecut and kmesh is not sufficient, the calc of dielectric tensor might collapse
+                fout.write("EOF\n")
+                #with open(os.path.join(directory, "anaddb.files"), 'w') as fout:
+                fout.write("cat > %s <<EOF\n" % "anaddb.files")
+                fout.write("anaddb.in\n")
+                fout.write("anaddb.out\n")
+                fout.write("%s_DS3_DDB\n" % self.files.wavefunc_out)
+                fout.write("dummy_moldyn\n")
+                fout.write("dummy_GKK\n")
+                fout.write("dummy_epout\n")
+                fout.write("dummy_ddk\n")
+                fout.write("EOF\n")
+                fout.write("srun --mpi=pmix_v3 %s < %s\n" % ("$PMF_ANADDB", "anaddb.files"))
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("bash dfpt-elastic-piezo-dielec.sh")
@@ -553,6 +601,68 @@ class DfptPhonon(Abinit):
                 fout.write("dummy_ddk\n")
                 fout.write("EOF\n")
                 #fout.write("%s %s < %s\n" % (self.run_params["mpi"], "$PMF_ANADDB", "anaddb.files"))
+
+            # cdcloud jobsubmit script
+            with open(os.path.join(directory, "dfpt-phonon.slurm_cd"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                fout.write("#\n")
+                fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+                fout.write("export FORT_BUFFERED=1\n")
+                fout.write("cat > %s<<EOF\n" % self.files.main_in)
+                fout.write(self.to_string())
+                fout.write("EOF\n")
+                fout.write("cat > %s<<EOF\n" % self.files.name)
+                fout.write(self.files.to_string(system=self.dataset[0].system))
+                fout.write("EOF\n")
+                fout.write("srun --mpi=pmix_v3 %s < %s\n" % ("$PMF_ABINIT", self.files.name))
+
+                # use mrgddb and anaddb to analyse DDB file generated previously
+                fout.write("cat %s <<EOF\n" % "mrgddb.in")
+                fout.write("mrgddb.ddb.out\n")
+                fout.write("xxx\n")
+                fout.write("%d\n" % (self.ndtset-2))
+                for i in range(3, self.ndtset+1):
+                    fout.write("dfpt-phonon-o_DS%d_DDB\n" % i)
+                fout.write("EOF\n")
+                fout.write("srun --mpi=pmix_v3 $PMF_MRGDDB < mrgddb.in\n")
+
+                # anaddb
+                fout.write("cat > %s <<EOF\n" % "anaddb.in")
+                fout.write("ifcflag 1\n")
+                fout.write("ifcout 0\n")
+                fout.write("! wavevector grid\n")
+                fout.write("brav 2\n")
+                fout.write("ngqpt 3 3 3\n")
+                fout.write("! effective charge\n")
+                fout.write("chneut 1\n")
+                fout.write("! interatomic force constant info\n")
+                fout.write("dipdip 1\n")
+                fout.write("! Phonon band structure output for band2eps\n")
+                fout.write("eivec 4\n")
+                fout.write("! wavevector list\n")
+
+
+
+                fout.write("EOF\n")
+
+
+                #with open(os.path.join(directory, "anaddb.files"), 'w') as fout:
+                fout.write("cat > %s <<EOF\n" % "anaddb.files")
+                fout.write("anaddb.in\n")
+                fout.write("anaddb.out\n")
+                fout.write("%s_DS3_DDB\n" % self.files.wavefunc_out)
+                fout.write("dummy_moldyn\n")
+                fout.write("dummy_GKK\n")
+                fout.write("dummy_epout\n")
+                fout.write("dummy_ddk\n")
+                fout.write("EOF\n")
+                #fout.write("srun --mpi=pmix_v3 %s < %s\n" % ("$PMF_ANADDB", "anaddb.files"))
 
 
         if runopt == "run" or runopt == "genrun":

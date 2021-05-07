@@ -186,6 +186,27 @@ class PhonopyRun(Vasp):
                     fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")
                     fout.write("cd ../\n")
 
+            # generate the cdcloud script
+            with open(os.path.join(directory, "phonopy-job.slurm_cd"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                fout.write("#\n")
+                fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+                fout.write("export FORT_BUFFERED=1\n")
+                fout.write("cat > INCAR<<EOF\n")
+                self.incar.to_incar(fout)
+                fout.write("EOF\n")                
+                for disp in disps:
+                    fout.write("cd disp-%s\n" % disp)
+                    fout.write("cp ../INCAR .\n")
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_STD\n")
+                    fout.write("cd ../\n")
+
             # non-analytical term correction (optional)
             # 参见: https://atztogo.github.io/phonopy/vasp.html
 

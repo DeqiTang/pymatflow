@@ -36,7 +36,7 @@ class VaspIncar(VaspVariableGroup):
 
     def set_runtype(self, runtype="static"):
         """
-        self.runtype: static | opt | md | dfpt | phonon | neb
+        self.runtype: static | opt | md | dfpt | phonon | neb | custom
         """
         self.runtype = runtype
         self.basic_setting()
@@ -57,6 +57,7 @@ class VaspIncar(VaspVariableGroup):
         orbitalmagnet = "# =============================\n# Orbitalmagnet related parameters\n# =============================\n"
         misc ="# =============================\n# Miscellaneous parameters\n# =============================\n"
         neb = "# =============================\n# Neb related parameters\n# ================================\n"
+
 
         for item in self.params:
             if self.params[item].as_val() == None:
@@ -82,7 +83,7 @@ class VaspIncar(VaspVariableGroup):
             else:
                 misc = misc + vasp_variable_to_string(self.params[item]) + "\n\n"
                 
-        if self.runtype in ["static", "opt", "md", "dfpt", "neb", "phonon"]:
+        if self.runtype in ["static", "opt", "md", "dfpt", "neb", "phonon", "custom"]:
             incar_out += start
             incar_out += electrons
             incar_out += ions
@@ -91,9 +92,9 @@ class VaspIncar(VaspVariableGroup):
         incar_out += write
         incar_out += misc
 
-        if self.runtype == "dfpt":
+        if self.runtype in ["dfpt", "custom"]:
             incar_out += lr
-        if self.runtype == "neb":
+        if self.runtype in ["neb", "custom"]:
             incar_out += neb
 
         print(incar_out)
@@ -102,7 +103,7 @@ class VaspIncar(VaspVariableGroup):
 
     def basic_setting(self):
         """
-        self.runtype: static | opt | md | dfpt | phonon | neb
+        self.runtype: static | opt | md | dfpt | phonon | neb | custom
         Note:
             basic_setting() will do the basic setting for incar
             according to the value of self.runtype
@@ -153,6 +154,8 @@ class VaspIncar(VaspVariableGroup):
             "IOPT": 1,
             "SPRING": -5,
             })
+        elif self.runtype == "neb":
+            pass
 
     def set_properties_calculation(self, option=[]):
         """

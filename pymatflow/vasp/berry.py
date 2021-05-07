@@ -64,6 +64,8 @@ class BerryRun(Vasp):
             self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="polarization-berry.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
             # gen lsf_sustc script
             self.gen_lsf_sustc(directory=directory, cmd="$PMF_VASP_STD", scriptname="polarization-berry.lsf_sustc", jobname=self.run_params["jobname"], np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cd_cdcloud script
+            self.gen_cdcloud(directory=directory, cmd="$PMF_VASP_STD", scriptname="polarization-berry.slurm_cd")
 
 
         if runopt == "run" or runopt == "genrun":

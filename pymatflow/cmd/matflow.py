@@ -109,8 +109,8 @@ def main():
             help="MPI command: like 'mpirun -np 4'")
 
     gp.add_argument("--server", type=str, default="pbs",
-            choices=["pbs", "llhpc", "tianhe2"],
-            help="type of remote server, can be pbs or llhpc or lsf_sz")
+            choices=["pbs", "llhpc", "tianhe2", "cdcloud"],
+            help="type of remote server, can be pbs or llhpc or lsf_sz, or tianhe2, cdcloud")
 
     gp.add_argument("--jobname", type=str, default="matflow-job",
             help="jobname on the pbs server")
@@ -1105,8 +1105,8 @@ def main():
             help="MPI command: like 'mpirun -np 4'")
 
     gp.add_argument("--server", type=str, default="pbs",
-            choices=["pbs", "llhpc", "tianhe2"],
-            help="type of remote server, can be pbs or llhpc")
+            choices=["pbs", "llhpc", "tianhe2", "cdcloud"],
+            help="type of remote server, can be pbs or llhpc, cdcloud")
 
     gp.add_argument("--jobname", type=str, default="matflow-job",
             help="jobname on the pbs server")
@@ -1875,8 +1875,8 @@ def main():
             help="directory to generate all the files, do not specify the current directory")
 
     gp.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->neb; 6->vasp-phonon; 7->phonopy; 8->surf pes; 9->abc; 10->AIMD")
+            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->neb; 6->vasp-phonon; 7->phonopy; 8->surf pes; 9->abc; 10->AIMD, 11->custom")
 
     # run option
     gp.add_argument("--runopt", type=str, default="gen",
@@ -1891,7 +1891,7 @@ def main():
             help="MPI command, used in single node running, namely --auto 0 --runopt genrun")
 
     gp.add_argument("--server", type=str, default="pbs",
-            choices=["pbs", "llhpc", "lsf_sz", "tianhe2", "lsf_sustc"],
+            choices=["pbs", "llhpc", "lsf_sz", "tianhe2", "lsf_sustc", "cdcloud"],
             help="type of remote server, can be pbs or llhpc or lsf_sz or lsf_sustc")
 
     gp.add_argument("--jobname", type=str, default="matflow-running",
@@ -2136,6 +2136,18 @@ def main():
 
     gp.add_argument("--pstress", type=float, default=None,
             help="controls whether Pulay corrections are added to the stress tensor or not.")
+
+    gp.add_argument("--lepsilon", type=str, default=None,
+            choices=["T", "F", ".TRUE.", ".FALSE."],
+            help="determines the static dielectric matrix, ion-clamped piezoelectric tensor and the Born effective charges using density functional perturbation theory.")
+
+    gp.add_argument("--lpead", type=str, default=None,
+            choices=["T", "F", ".TRUE.", ".FALSE."],
+            help="the derivative of the cell-periodic part of the orbitals w.r.t. k, |∇kunk〉, is calculated using finite differences.")
+
+    gp.add_argument("--lrpa", type=str, default=None,
+            choices=["T", "F", ".TRUE.", ".FALSE."],
+            help="includes local field effect on the Hartree level only.")
 
     # properties parameters
     gp.add_argument("--lelf", type=str, default=None,
@@ -3850,7 +3862,10 @@ def main():
         params["NBMOD"] = args.nbmod if "NBMOD" not in params or args.nbmod != None else params["NBMOD"]
         params["EINT"] = args.eint if "EINT" not in params or args.eint != None else params["EINT"]
         params["LVHAR"] = args.lvhar if "LVHAR" not in params or args.lvhar != None else params["LVHAR"] 
-        
+        params["LEPSILON"] = args.lepsilon if "LEPSILON" not in params or args.lepsilon != None else params["LEPSILON"]
+        params["LPEAD"] = args.lpead if "LPEAD" not in params or args.lpead != None else params["LPEAD"]
+        params["LRPA"] = args.lrpa if "LRPA" not in params or args.lrpa != None else params["LRPA"]
+
         if args.runtype == 0:
             # static
             from pymatflow.vasp.static import StaticRun
@@ -3958,6 +3973,7 @@ def main():
             task.poscar.selective_dynamics = True if args.selective_dynamics.upper()[0] == "T" else False
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            task.set_cdcloud(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.optimize(directory=args.directory, runopt=args.runopt, auto=args.auto)
         elif args.runtype == 2:
             # cubic cell
@@ -4098,6 +4114,19 @@ def main():
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.md(directory=args.directory, runopt=args.runopt, auto=args.auto)
+        elif args.runtype == 11:
+            # vasp custom
+            from pymatflow.vasp.custom import CustomRun
+            task = CustomRun() 
+            task.get_xyz(xyzfile)
+            task.set_params(params=params, runtype="custom")
+            task.set_kpoints(kpoints_mp=args.kpoints_mp)
+            task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+            task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            task.set_cdcloud(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            task.custom(directory=args.directory, runopt=args.runopt, auto=args.auto)            
+        else:
+            pass                        
     elif args.driver == "dftb+":
         #params = {}
         #params["xxx"] = "xxx"

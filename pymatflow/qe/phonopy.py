@@ -138,6 +138,22 @@ class PhonopyRun(PwScf):
                 for disp in disp_dirs:
                     fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE $PMF_PWX < supercell-%s-full.in > supercell-%s.out\n" % (disp, disp))
 
+            # gen cdcloud script
+            with open(os.path.join(directory, "phonopy-job.slurm_cd"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                fout.write("#\n")
+                fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+                fout.write("export FORT_BUFFERED=1\n")
+                fout.write("\n")
+                for disp in disp_dirs:
+                    fout.write("srun --mpi=pmix_v3 $PMF_PWX < supercell-%s-full.in > supercell-%s.out\n" % (disp, disp))
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             # run the dft

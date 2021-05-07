@@ -47,13 +47,14 @@ class MdRun(abinit):
             os.system("cp %s %s/" % (self.dataset[0].system.xyz.file, directory))
             #
 
-            # generate pbs job submit script
+            # generate llhpc job submit script
             self.gen_llhpc(directory=directory, script="molecular-dynamics.slurm", cmd="$PMF_ABINIT")
             # generate pbs job submit script
             self.gen_pbs(directory=directory, script="molecular-dynamics.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
             # generate local bash job run script
             self.gen_bash(directory=directory, script="molecular-dynamics.sh", cmd="$PMF_ABINIT", mpi=self.run_param["mpi"])
-
+            # generate cdcloud job submit script
+            self.gen_cdcloud(directory=directory, script="molecular-dynamics.slurm_cd", cmd="$PMF_ABINIT")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

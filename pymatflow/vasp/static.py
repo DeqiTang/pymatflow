@@ -51,6 +51,8 @@ class StaticRun(Vasp):
             self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-scf.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
             # gen lsf_sustc script
             self.gen_lsf_sustc(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-scf.lsf_sustc", jobname=self.run_params["jobname"], np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cd_cdcloud script
+            self.gen_cdcloud(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-scf.slurm_cd")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -90,7 +92,8 @@ class StaticRun(Vasp):
             self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-nscf.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
             # gen lsf_sustc script
             self.gen_lsf_sustc(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-nscf.lsf_sustc", jobname=self.run_params["jobname"], np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
-
+            # gen cd_cdcloud script
+            self.gen_cdcloud(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-nscf.slurm_cd")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -132,7 +135,8 @@ class StaticRun(Vasp):
             self.gen_lsf_sz(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-bands.lsf_sz", np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
             # gen lsf_sustc script
             self.gen_lsf_sustc(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-bands.lsf_sustc", jobname=self.run_params["jobname"], np=self.run_params["nodes"]*self.run_params["ppn"], np_per_node=self.run_params["ppn"], queue=self.run_params["queue"])
-
+            # gen cd_cdcloud script
+            self.gen_cdcloud(directory=directory, cmd="$PMF_VASP_STD", scriptname="static-bands.slurm_cd")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -781,6 +785,81 @@ class StaticRun(Vasp):
                 fout.write("cp OUTCAR OUTCAR.nscf\n")
                 fout.write("cp vasprun.xml vasprun.xml.nscf\n")
 
+            # gen cdcloud script
+            with open(os.path.join(directory, "static.slurm_cd"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                fout.write("#\n")
+                fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+                fout.write("export FORT_BUFFERED=1\n")                
+                fout.write("cat >POSCAR<<EOF\n")
+                self.poscar.to_poscar(fout)
+                fout.write("EOF\n")
+                fout.write("# scf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                fout.write(incar_scf)
+                fout.write("EOF\n")
+                fout.write("cat >KPOINTS<<EOF\n")
+                #self.kpoints.to_kpoints(fout)
+                fout.write(kpoints_scf)
+                fout.write("EOF\n")
+
+                if self.magnetic_status == "non-collinear":
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_NCL\n")
+                else:
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.scf\n")
+                fout.write("cp vasprun.xml vasprun.xml.scf\n")
+
+                fout.write("# nscf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                #self.incar.to_incar(fout)
+                fout.write(incar_nscf)
+                fout.write("EOF\n")
+                if self.incar.params["LHFCALC"].as_val(t=str, dim=0) == ".TRUE." or self.incar.params["LHFCALC"].as_val(t=str, dim=0) == "T" and float(self.incar.params["HFSCREEN"].as_val(t=float, dim=0)) == 0.2:
+                    fout.write("nk=`cat IBZKPT | head -n 2 | tail -n -1`\n")
+                    nkpoint = 0
+                    for i in range(len(kpath)-1):
+                        if kpath[i][4] != "|":
+                            nkpoint += kpath[i][4]
+                    fout.write("nk=`echo \"${nk}+%d\" | bc`\n" % nkpoint)
+                    fout.write("cat >KPOINTS<<EOF\n")
+                    fout.write("Kpoint for HSE band structure\n")
+                    fout.write("${nk}\n")
+                    fout.write("EOF\n")
+                    fout.write("cat IBZKPT | tail -n +3 >> KPOINTS\n")
+                    fout.write("cat >> KPOINTS<<EOF\n")
+                    #for kpoint in kpath:
+                    #    fout.write("%f %f %f 0.0 !%s\n" % (kpoint[0], kpoint[1], kpoint[2], kpoint[3]))
+                    for i in range(len(kpath)-1):
+                        if kpath[i][4] != "|":
+                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i][0], kpath[i][1], kpath[i][2], kpath[i][3]))
+                            for j in range(kpath[i][4]-2):
+                                x = (kpath[i+1][0] - kpath[i][0]) / (kpath[i][4]-1) * (j+1) + kpath[i][0]
+                                y = (kpath[i+1][1] - kpath[i][1]) / (kpath[i][4]-1) * (j+1) + kpath[i][1]
+                                z = (kpath[i+1][2] - kpath[i][2]) / (kpath[i][4]-1) * (j+1) + kpath[i][2]
+                                fout.write("%f %f %f 0.0\n" % (x, y, z))
+                            fout.write("%f %f %f 0.0 !%s\n" % (kpath[i+1][0], kpath[i+1][1], kpath[i+1][2], kpath[i+1][3]))
+                        else:
+                            continue
+                    fout.write("EOF\n")
+                else:
+                    fout.write("cat >KPOINTS<<EOF\n")
+                    fout.write(kpoints_nscf)
+                    fout.write("EOF\n")
+                
+                if self.magnetic_status == "non-collinear":
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_NCL\n")
+                else:
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.nscf\n")
+                fout.write('cp vasprun.xml vasprun.xml.nscf\n')
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("bash static.sh")
@@ -1080,6 +1159,56 @@ class StaticRun(Vasp):
                     fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")
                 fout.write("cp OUTCAR OUTCAR.nscf\n")
                 fout.write("cp vasprun.xml vasprun.xml.nscf\n")
+
+
+            # gen cdcloud script
+            with open(os.path.join(directory, "static.slurm_cd"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                fout.write("#\n")
+                fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+                fout.write("export FORT_BUFFERED=1\n")
+                fout.write("cat >POSCAR<<EOF\n")
+                self.poscar.to_poscar(fout)
+                fout.write("EOF\n")
+                fout.write("# scf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                fout.write(incar_scf)
+                fout.write("EOF\n")
+                fout.write("cat >KPOINTS<<EOF\n")
+                #self.kpoints.to_kpoints(fout)
+                fout.write(kpoints_scf)
+                fout.write("EOF\n")
+
+                if self.magnetic_status == "non-collinear":
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_NCL\n")
+                else:
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.scf\n")
+                fout.write("cp vasprun.xml vasprun.xml.scf\n")
+
+                fout.write("# nscf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                #self.incar.to_incar(fout)
+                fout.write(incar_nscf)
+                fout.write("EOF\n")
+
+                fout.write("cat >KPOINTS<<EOF\n")
+                fout.write(kpoints_nscf)
+                fout.write("EOF\n")
+                
+                if self.magnetic_status == "non-collinear":
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_NCL\n")
+                else:
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.nscf\n")
+                fout.write('cp vasprun.xml vasprun.xml.nscf\n')
+
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -1382,6 +1511,54 @@ class StaticRun(Vasp):
                     fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")
                 fout.write("cp OUTCAR OUTCAR.nscf\n")
                 fout.write("cp vasprun.xml vasprun.xml.nscf\n")
+            
+            
+            # gen cdcloud script
+            with open(os.path.join(directory, "static-optics.slurm_cd"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                fout.write("#\n")
+                fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+                fout.write("export FORT_BUFFERED=1\n")                
+                fout.write("cat >POSCAR<<EOF\n")
+                self.poscar.to_poscar(fout)
+                fout.write("EOF\n")
+                fout.write("# scf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                fout.write(incar_scf)
+                fout.write("EOF\n")
+                fout.write("cat >KPOINTS<<EOF\n")
+                #self.kpoints.to_kpoints(fout)
+                fout.write(kpoints_scf)
+                fout.write("EOF\n")
+
+                if self.magnetic_status == "non-collinear":
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_NCL\n")
+                else:
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.scf\n")
+                fout.write("cp vasprun.xml vasprun.xml.scf\n")
+
+                fout.write("# nscf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                #self.incar.to_incar(fout)
+                fout.write(incar_nscf)
+                fout.write("EOF\n")
+                fout.write("cat >KPOINTS<<EOF\n")
+                fout.write(kpoints_nscf)
+                fout.write("EOF\n")
+                
+                if self.magnetic_status == "non-collinear":
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_NCL\n")
+                else:
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.nscf\n")
+                fout.write('cp vasprun.xml vasprun.xml.nscf\n')
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -1878,6 +2055,90 @@ class StaticRun(Vasp):
                     fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")
                 fout.write('cp vasprun.xml vasprun.xml.bse\n')
 
+            # gen cdcloud script
+            with open(os.path.join(directory, "static-bse.slurm"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                fout.write("#\n")
+                fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+                fout.write("export FORT_BUFFERED=1\n")                
+                fout.write("cat >POSCAR<<EOF\n")
+                self.poscar.to_poscar(fout)
+                fout.write("EOF\n")
+                fout.write("# scf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                fout.write(incar_scf)
+                fout.write("EOF\n")
+                fout.write("cat >KPOINTS<<EOF\n")
+                #self.kpoints.to_kpoints(fout)
+                fout.write(kpoints_scf)
+                fout.write("EOF\n")
+
+                if self.magnetic_status == "non-collinear":
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_NCL\n")
+                else:
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.scf\n")
+                fout.write("cp vasprun.xml vasprun.xml.scf\n")
+
+                if bse_level == 0:
+                    pass
+                elif bse_level == 1:
+                    fout.write("# hse\n")
+                    fout.write("cat > INCAR<<EOF\n")
+                    fout.write(incar_hse)
+                    fout.write("EOF\n")
+                    fout.write("cat >KPOINTS<<EOF\n")
+                    fout.write(kpoints_scf)
+                    fout.write("EOF\n")
+                elif bse_level == 2:
+                    fout.write("# gw\n")
+                    fout.write("cat > INCAR<<EOF\n")
+                    fout.write(incar_gw)
+                    fout.write("EOF\n")
+                    fout.write("cat >KPOINTS<<EOF\n")
+                    fout.write(kpoints_scf)
+                    fout.write("EOF\n")
+            
+
+                if bse_level == 0:
+                    pass
+                elif bse_level == 1:
+                    if self.magnetic_status == "non-collinear":
+                        fout.write("srun --mpi=pmix_v3 $PMF_VASP_NCL\n")
+                    else:
+                        fout.write("srun --mpi=pmix_v3 $PMF_VASP_STD \n")                    
+                    fout.write("cp OUTCAR OUTCAR.hse\n")
+                    fout.write('cp vasprun.xml vasprun.xml.hse\n')
+                elif bse_level == 2:
+                    if self.magnetic_status == "non-collinear":
+                        fout.write("srun --mpi=pmix_v3 $PMF_VASP_NCL\n")
+                    else:
+                        fout.write("srun --mpi=pmix_v3 $PMF_VASP_STD \n")                    
+                    fout.write("cp OUTCAR OUTCAR.gw\n")
+                    fout.write("cp vasprun.xml vasprun.xml.gw\n")
+
+                fout.write("# bse\n")
+                fout.write("cat > INCAR<<EOF\n")
+                fout.write(incar_bse)
+                fout.write("EOF\n")
+                fout.write("cat >KPOINTS<<EOF\n")
+                fout.write(kpoints_scf)
+                fout.write("EOF\n")
+
+                if self.magnetic_status == "non-collinear":
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_NCL\n")
+                else:
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.bse\n")
+                fout.write('cp vasprun.xml vasprun.xml.bse\n')
+
+
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
             os.system("bash static-bse.sh")
@@ -2190,6 +2451,54 @@ class StaticRun(Vasp):
                     fout.write("mpirun -machinefile $LSB_DJOB_HOSTFILE -np $NP $PMF_VASP_STD\n")
                 fout.write("cp OUTCAR OUTCAR.parchg\n")
                 fout.write("cp vasprun.xml vasprun.xml.parchg\n")
+
+            # gen cdcloud script
+            with open(os.path.join(directory, "static.slurm_cd"), 'w') as fout:
+                fout.write("#!/bin/bash\n")
+                fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                fout.write("#\n")
+                fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+                fout.write("export FORT_BUFFERED=1\n")                
+                fout.write("cat >POSCAR<<EOF\n")
+                self.poscar.to_poscar(fout)
+                fout.write("EOF\n")
+                fout.write("# scf\n")
+                fout.write("cat > INCAR<<EOF\n")
+                fout.write(incar_scf)
+                fout.write("EOF\n")
+                fout.write("cat >KPOINTS<<EOF\n")
+                #self.kpoints.to_kpoints(fout)
+                fout.write(kpoints_scf)
+                fout.write("EOF\n")
+
+                if self.magnetic_status == "non-collinear":
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_NCL\n")
+                else:
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.scf\n")
+                fout.write("cp vasprun.xml vasprun.xml.scf\n")
+
+                fout.write("# parchg(stm)\n")
+                fout.write("cat > INCAR<<EOF\n")
+                #self.incar.to_incar(fout)
+                fout.write(incar_parchg_stm)
+                fout.write("EOF\n")
+
+                fout.write("cat >KPOINTS<<EOF\n")
+                fout.write(kpoints_parchg_stm)
+                fout.write("EOF\n")
+                
+                if self.magnetic_status == "non-collinear":
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_NCL\n")
+                else:
+                    fout.write("srun --mpi=pmix_v3 $PMF_VASP_STD \n")
+                fout.write("cp OUTCAR OUTCAR.parchg\n")
+                fout.write('cp vasprun.xml vasprun.xml.parchg\n')
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)

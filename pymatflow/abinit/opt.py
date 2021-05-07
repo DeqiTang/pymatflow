@@ -46,6 +46,8 @@ class OptRun(Abinit):
             self.gen_pbs(directory=directory, script="optimization.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
             # generate local bash job run script
             self.gen_bash(directory=directory, script="optimization.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])
+            # generate cdcloud job submit script
+            self.gen_cdcloud(directory=directory, script="optimization.slurm_cd", cmd="$PMF_ABINIT")
 
 
         if runopt == "run" or runopt == "genrun":
@@ -82,7 +84,8 @@ class OptRun(Abinit):
             self.gen_pbs(directory=directory, script="optimization.pbs", cmd="$PMF_ABINIT", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
             # generate local bash job run script
             self.gen_bash(directory=directory, script="optimization.sh", cmd="$PMF_ABINIT", mpi=self.run_params["mpi"])
-
+            # generate cdcloud job submit script
+            self.gen_cdcloud(directory=directory, script="optimization.slurm_cd", cmd="$PMF_ABINIT")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -308,6 +311,80 @@ class OptRun(Abinit):
             fout.write("  cat optimization.in | tail -n +${after_rprim_cell_line} >> relax-${a}/optimization.in\n")
             fout.write("  cd relax-${a}/\n")
             fout.write("  %s $PMF_ABINIT < optimization.files\n" % self.run_params["mpi"])
+            fout.write("  cd ../\n")
+            fout.write("done\n")
+
+        # gen cdcloud script
+        with open("opt-cubic.slurm_cd", 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+            fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+            fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+            fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+            fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+            fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+            fout.write("#\n")
+            fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+            fout.write("export FORT_BUFFERED=1\n")            
+            fout.write("cat > optimization.in<<EOF\n")
+            #self.dataset[0].to_input(fout)
+            self.dataset[0].system.coordtype = "reduced"
+            fout.write(self.dataset[0].to_string())
+            fout.write("EOF\n")
+            fout.write("cat > optimization.files<<EOF\n")
+            #self.files.name = "optimization.files"
+            self.files.main_in = "optimization.in"
+            self.files.main_out = "optimization.out"
+            self.files.wavefunc_in = "optimization-i"
+            self.files.wavefunc_out = "optimization-o"
+            self.files.tmp = "tmp"
+            #self.files.to_files(fout, self.dataset[0].system)
+            fout.write(self.files.to_string(system=self.dataset[0].system))
+            fout.write("EOF\n")
+
+
+            a = np.sqrt(self.dataset[0].system.xyz.cell[0][0]**2+self.dataset[0].system.xyz.cell[0][1]**2+self.dataset[0].system.xyz.cell[0][2]**2)
+            b = np.sqrt(self.dataset[0].system.xyz.cell[1][0]**2+self.dataset[0].system.xyz.cell[1][1]**2+self.dataset[0].system.xyz.cell[1][2]**2)
+            c = np.sqrt(self.dataset[0].system.xyz.cell[2][0]**2+self.dataset[0].system.xyz.cell[2][1]**2+self.dataset[0].system.xyz.cell[2][2]**2)
+
+            fout.write("a_in=%f\n" % a)
+            fout.write("b_in=%f\n" % b)
+            fout.write("c_in=%f\n" % c)
+
+            fout.write("a1=%f\n" % self.dataset[0].system.xyz.cell[0][0])
+            fout.write("a2=%f\n" % self.dataset[0].system.xyz.cell[0][1])
+            fout.write("a3=%f\n" % self.dataset[0].system.xyz.cell[0][2])
+            fout.write("b1=%f\n" % self.dataset[0].system.xyz.cell[1][0])
+            fout.write("b2=%f\n" % self.dataset[0].system.xyz.cell[1][1])
+            fout.write("b3=%f\n" % self.dataset[0].system.xyz.cell[1][2])
+            fout.write("c1=%f\n" % self.dataset[0].system.xyz.cell[2][0])
+            fout.write("c2=%f\n" % self.dataset[0].system.xyz.cell[2][1])
+            fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
+
+            fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`\n")
+            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`\n")
+            fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
+            fout.write("do\n")
+            fout.write("  mkdir relax-${a}\n")
+            fout.write("  cp  optimization.files *.psp8 *.GGA_PBE-JTH.xml relax-${a}/\n")
+            fout.write("  cat optimization.in | head -n +${rprim_line} > relax-${a}/optimization.in\n")
+            fout.write("  vec11=$(printf \"%-.6f\" `echo \"scale=6; result=${a1} * ${a} / ${a_in}; print result\" | bc`)\n")
+            fout.write("  vec12=$(printf \"%-.6f\" `echo \"scale=6; result=${a2} * ${a} / ${a_in}; print result\" | bc`)\n")                    
+            fout.write("  vec13=$(printf \"%-.6f\" `echo \"scale=6; result=${a3} * ${a} / ${a_in}; print result\" | bc`)\n")
+            fout.write("  vec21=$(printf \"%-.6f\" `echo \"scale=6; result=${b1} * ${a} / ${a_in}; print result\" | bc`)\n")
+            fout.write("  vec22=$(printf \"%-.6f\" `echo \"scale=6; result=${b2} * ${a} / ${a_in}; print result\" | bc`)\n")
+            fout.write("  vec23=$(printf \"%-.6f\" `echo \"scale=6; result=${b3} * ${a} / ${a_in}; print result\" | bc`)\n")
+            fout.write("  vec31=$(printf \"%-.6f\" `echo \"scale=6; result=${c1} * ${a} / ${c_in}; print result\" | bc`)\n")
+            fout.write("  vec32=$(printf \"%-.6f\" `echo \"scale=6; result=${c2} * ${a} / ${c_in}; print result\" | bc`)\n")                                        
+            fout.write("  vec33=$(printf \"%-.6f\" `echo \"scale=6; result=${c3} * ${a} / ${c_in}; print result\" | bc`)\n")                      
+            fout.write("  cat >> relax-${a}/optimization.in<<EOF\n")
+            fout.write("${vec11} ${vec12} ${vec13}\n")
+            fout.write("${vec21} ${vec22} ${vec23}\n")
+            fout.write("${vec31} ${vec32} ${vec33}\n")
+            fout.write("EOF\n")
+            fout.write("  cat optimization.in | tail -n +${after_rprim_cell_line} >> relax-${a}/optimization.in\n")
+            fout.write("  cd relax-${a}/\n")
+            fout.write("  srun --mpi=pmix_v3 $PMF_ABINIT < optimization.files\n")
             fout.write("  cd ../\n")
             fout.write("done\n")
 
@@ -753,6 +830,141 @@ class OptRun(Abinit):
                     # neither a or c is optimized
                     pass
 
+        # gen cdcloud script
+        with open("opt-hexagonal.slurm_cd", 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+            fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+            fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+            fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+            fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+            fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+            fout.write("#\n")
+            fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+            fout.write("export FORT_BUFFERED=1\n")
+            fout.write("cat > optimization.in<<EOF\n")
+            #self.dataset[0].to_input(fout)
+            self.dataset[0].system.coordtype = "reduced"            
+            fout.write(self.dataset[0].to_string())
+            fout.write("EOF\n")
+            fout.write("cat > optimization.files<<EOF\n")
+            #self.files.name = "optimization.files"
+            self.files.main_in = "optimization.in"
+            self.files.main_out = "optimization.out"
+            self.files.wavefunc_in = "optimization-i"
+            self.files.wavefunc_out = "optimization-o"
+            self.files.tmp = "tmp"
+            #self.files.to_files(fout, self.dataset[0].system)
+            fout.write(self.files.to_string(system=self.dataset[0].system))
+            fout.write("EOF\n")
+
+            a = np.sqrt(self.dataset[0].system.xyz.cell[0][0]**2+self.dataset[0].system.xyz.cell[0][1]**2+self.dataset[0].system.xyz.cell[0][2]**2)
+            b = np.sqrt(self.dataset[0].system.xyz.cell[1][0]**2+self.dataset[0].system.xyz.cell[1][1]**2+self.dataset[0].system.xyz.cell[1][2]**2)
+            c = np.sqrt(self.dataset[0].system.xyz.cell[2][0]**2+self.dataset[0].system.xyz.cell[2][1]**2+self.dataset[0].system.xyz.cell[2][2]**2)
+
+            fout.write("a_in=%f\n" % a)
+            fout.write("b_in=%f\n" % b)
+            fout.write("c_in=%f\n" % c)
+
+            fout.write("a1=%f\n" % self.dataset[0].system.xyz.cell[0][0])
+            fout.write("a2=%f\n" % self.dataset[0].system.xyz.cell[0][1])
+            fout.write("a3=%f\n" % self.dataset[0].system.xyz.cell[0][2])
+            fout.write("b1=%f\n" % self.dataset[0].system.xyz.cell[1][0])
+            fout.write("b2=%f\n" % self.dataset[0].system.xyz.cell[1][1])
+            fout.write("b3=%f\n" % self.dataset[0].system.xyz.cell[1][2])
+            fout.write("c1=%f\n" % self.dataset[0].system.xyz.cell[2][0])
+            fout.write("c2=%f\n" % self.dataset[0].system.xyz.cell[2][1])
+            fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
+
+            fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`\n")
+            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`\n")
+            if na >= 2:
+                # a is optimized
+                fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
+                fout.write("do\n")
+                if nc >= 2:
+                    # optimize both a and c
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("do\n")
+                    fout.write("  mkdir relax-${a}-${c}\n")
+                    fout.write("  cp  optimization.files *.psp8 *.GGA_PBE-JTH.xml relax-${a}-${c}/\n")
+                    fout.write("  cat optimization.in | head -n +${rprim_line} > relax-${a}-${c}/optimization.in\n")
+                    # here with the usage of length and scale in bs processing, we can make sure that number like '.123' will be correctly
+                    # set as '0.123', namely the ommited 0 by bs by default is not ommited now!
+                    fout.write("  vec11=$(printf \"%-.6f\" `echo \"scale=6; result=${a1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec12=$(printf \"%-.6f\" `echo \"scale=6; result=${a2} * ${a} / ${a_in}; print result\" | bc`)\n")                    
+                    fout.write("  vec13=$(printf \"%-.6f\" `echo \"scale=6; result=${a3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec21=$(printf \"%-.6f\" `echo \"scale=6; result=${b1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec22=$(printf \"%-.6f\" `echo \"scale=6; result=${b2} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec23=$(printf \"%-.6f\" `echo \"scale=6; result=${b3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec31=$(printf \"%-.6f\" `echo \"scale=6; result=${c1} * ${c} / ${c_in}; print result\" | bc`)\n")
+                    fout.write("  vec32=$(printf \"%-.6f\" `echo \"scale=6; result=${c2} * ${c} / ${c_in}; print result\" | bc`)\n")                                        
+                    fout.write("  vec33=$(printf \"%-.6f\" `echo \"scale=6; result=${c3} * ${c} / ${c_in}; print result\" | bc`)\n")                                  
+                    fout.write("  cat >> relax-${a}-${c}/optimization.in<<EOF\n")
+                    fout.write("${vec11} ${vec12} ${vec13}\n")
+                    fout.write("${vec21} ${vec22} ${vec23}\n")
+                    fout.write("${vec31} ${vec32} ${vec33}\n")
+                    fout.write("EOF\n")
+                    fout.write("  cat optimization.in | tail -n +${after_rprim_cell_line} >> relax-${a}-${c}/optimization.in\n")
+                    fout.write("  cd relax-${a}-${c}/\n")
+                    fout.write("  srun --mpi=pmix_v3 $PMF_ABINIT < optimization.files\n")
+                    fout.write("  cd ../\n")
+                    fout.write("done\n")
+                else:
+                    # only optimize a
+                    fout.write("  mkdir relax-${a}\n")
+                    fout.write("  cp optimization.files *.psp8 *.GGA_PBE-JTH.xml relax-${a}/\n")
+                    fout.write("  cat optimization.in | head -n +${rprim_line} > relax-${a}/optimization.in\n")
+                    fout.write("  cat >> relax-${a}/optimization.in<<EOF\n")
+                    fout.write("  vec11=$(printf \"%-.6f\" `echo \"scale=6; result=${a1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec12=$(printf \"%-.6f\" `echo \"scale=6; result=${a2} * ${a} / ${a_in}; print result\" | bc`)\n")                    
+                    fout.write("  vec13=$(printf \"%-.6f\" `echo \"scale=6; result=${a3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec21=$(printf \"%-.6f\" `echo \"scale=6; result=${b1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec22=$(printf \"%-.6f\" `echo \"scale=6; result=${b2} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec23=$(printf \"%-.6f\" `echo \"scale=6; result=${b3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec31=$(printf \"%-.6f\" `echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; print result\" | bc`)\n")
+                    fout.write("  vec32=$(printf \"%-.6f\" `echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; print result\" | bc`)\n")                                        
+                    fout.write("  vec33=$(printf \"%-.6f\" `echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; print result\" | bc`)\n")                            
+                    fout.write("${vec11} ${vec12} ${vec13}\n")
+                    fout.write("${vec21} ${vec22} ${vec23}\n")
+                    fout.write("${vec31} ${vec32} ${vec33}\n")
+                    fout.write("EOF\n")
+                    fout.write("  cat optimization.in | tail -n +${after_rprim_cell_line} >> relax-${a}/optimization.in\n")
+                    fout.write("  cd relax-${a}/\n")
+                    fout.write("  srun --mpi=pmix_v3 $PMF_ABINIT < optimization.files\n")
+                    fout.write("  cd ../\n")
+                fout.write("done\n")
+            else:
+                # a is not optimized
+                if nc >= 2:
+                    # only optimize c
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("do\n")
+                    fout.write("  mkdir relax-${c}\n")
+                    fout.write("  cp optimization.files *.psp8 *.GGA_PBE-JTH.xml relax-${c}/\n")
+                    fout.write("  cat optimization.in | head -n +${rprim_line} > relax-${c}/optimization.in\n")
+                    fout.write("  vec11=$(printf \"%-.6f\" `echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec12=$(printf \"%-.6f\" `echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; print result\" | bc`)\n")                    
+                    fout.write("  vec13=$(printf \"%-.6f\" `echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec21=$(printf \"%-.6f\" `echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec22=$(printf \"%-.6f\" `echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec23=$(printf \"%-.6f\" `echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec31=$(printf \"%-.6f\" `echo \"scale=6; result=${c1} * ${c} / ${c_in}; print result\" | bc`)\n")
+                    fout.write("  vec32=$(printf \"%-.6f\" `echo \"scale=6; result=${c2} * ${c} / ${c_in}; print result\" | bc`)\n")                                        
+                    fout.write("  vec33=$(printf \"%-.6f\" `echo \"scale=6; result=${c3} * ${c} / ${c_in}; print result\" | bc`)\n")                            
+                    fout.write("  cat >> relax-${c}/optimization.in<<EOF\n")
+                    fout.write("${vec11} ${vec12} ${vec13}\n")
+                    fout.write("${vec21} ${vec22} ${vec23}\n")
+                    fout.write("${vec31} ${vec32} ${vec33}\n")
+                    fout.write("EOF\n")
+                    fout.write("  cat optimization.in | tail -n +${after_rprim_cell_line} >> relax-${c}/optimization.in\n")
+                    fout.write("  cd relax-${c}/\n")
+                    fout.write("  srun --mpi=pmix_v3 $PMF_ABINIT < optimization.files\n")
+                    fout.write("  cd ../\n")
+                    fout.write("done\n")
+                else:
+                    # neither a or c is optimized
+                    pass
 
         # generate result analysis script
         os.system("mkdir -p post-processing")
@@ -1247,6 +1459,141 @@ class OptRun(Abinit):
                     # neither a or c is optimized
                     pass
 
+        # gen cdcloud script
+        with open("opt-tetragonal.slurm_cd", 'w') as fout:
+            fout.write("#!/bin/bash\n")
+            fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+            fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+            fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+            fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+            fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+            fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+            fout.write("#\n")
+            fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+            fout.write("export FORT_BUFFERED=1\n")
+            fout.write("cat > optimization.in<<EOF\n")
+            #self.dataset[0].to_input(fout)
+            self.dataset[0].system.coordtype = "reduced"            
+            fout.write(self.dataset[0].to_string())
+            fout.write("EOF\n")
+            fout.write("cat > optimization.files<<EOF\n")
+            #self.files.name = "optimization.files"
+            self.files.main_in = "optimization.in"
+            self.files.main_out = "optimization.out"
+            self.files.wavefunc_in = "optimization-i"
+            self.files.wavefunc_out = "optimization-o"
+            self.files.tmp = "tmp"
+            #self.files.to_files(fout, self.dataset[0].system)
+            fout.write(self.files.to_string(system=self.dataset[0].system))
+            fout.write("EOF\n")
+
+            a = np.sqrt(self.dataset[0].system.xyz.cell[0][0]**2+self.dataset[0].system.xyz.cell[0][1]**2+self.dataset[0].system.xyz.cell[0][2]**2)
+            b = np.sqrt(self.dataset[0].system.xyz.cell[1][0]**2+self.dataset[0].system.xyz.cell[1][1]**2+self.dataset[0].system.xyz.cell[1][2]**2)
+            c = np.sqrt(self.dataset[0].system.xyz.cell[2][0]**2+self.dataset[0].system.xyz.cell[2][1]**2+self.dataset[0].system.xyz.cell[2][2]**2)
+
+            fout.write("a_in=%f\n" % a)
+            fout.write("b_in=%f\n" % b)
+            fout.write("c_in=%f\n" % c)
+
+            fout.write("a1=%f\n" % self.dataset[0].system.xyz.cell[0][0])
+            fout.write("a2=%f\n" % self.dataset[0].system.xyz.cell[0][1])
+            fout.write("a3=%f\n" % self.dataset[0].system.xyz.cell[0][2])
+            fout.write("b1=%f\n" % self.dataset[0].system.xyz.cell[1][0])
+            fout.write("b2=%f\n" % self.dataset[0].system.xyz.cell[1][1])
+            fout.write("b3=%f\n" % self.dataset[0].system.xyz.cell[1][2])
+            fout.write("c1=%f\n" % self.dataset[0].system.xyz.cell[2][0])
+            fout.write("c2=%f\n" % self.dataset[0].system.xyz.cell[2][1])
+            fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
+
+            fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`\n")
+            fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`\n")
+
+            if na >= 2:
+                # a is optimized
+                fout.write("for a in `seq -w %f %f %f`\n" % (a-na/2*stepa, stepa, a+na/2*stepa))
+                fout.write("do\n")
+                if nc >= 2:
+                    # optimize both a and c
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("do\n")
+                    fout.write("  mkdir relax-${a}-${c}\n")
+                    fout.write("  cp  optimization.files *.psp8 *.GGA_PBE-JTH.xml relax-${a}-${c}/\n")
+                    fout.write("  cat optimization.in | head -n +${rprim_line} > relax-${a}-${c}/optimization.in\n")
+                    fout.write("  vec11=$(printf \"%-.6f\" `echo \"scale=6; result=${a1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec12=$(printf \"%-.6f\" `echo \"scale=6; result=${a2} * ${a} / ${a_in}; print result\" | bc`)\n")                    
+                    fout.write("  vec13=$(printf \"%-.6f\" `echo \"scale=6; result=${a3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec21=$(printf \"%-.6f\" `echo \"scale=6; result=${b1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec22=$(printf \"%-.6f\" `echo \"scale=6; result=${b2} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec23=$(printf \"%-.6f\" `echo \"scale=6; result=${b3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec31=$(printf \"%-.6f\" `echo \"scale=6; result=${c1} * ${c} / ${c_in}; print result\" | bc`)\n")
+                    fout.write("  vec32=$(printf \"%-.6f\" `echo \"scale=6; result=${c2} * ${c} / ${c_in}; print result\" | bc`)\n")                                        
+                    fout.write("  vec33=$(printf \"%-.6f\" `echo \"scale=6; result=${c3} * ${c} / ${c_in}; print result\" | bc`)\n")                            
+                    fout.write("  cat >> relax-${a}-${c}/optimization.in<<EOF\n")
+                    fout.write("${vec11} ${vec12} ${vec13}\n")
+                    fout.write("${vec21} ${vec22} ${vec23}\n")
+                    fout.write("${vec31} ${vec32} ${vec33}\n")
+                    fout.write("EOF\n")
+                    fout.write("  cat optimization.in | tail -n +${after_rprim_cell_line} >> relax-${a}-${c}/optimization.in\n")
+                    fout.write("  cd relax-${a}-${c}/\n")
+                    fout.write("  srun --mpi=pmix_v3 $PMF_ABINIT < optimization.files\n")
+                    fout.write("  cd ../\n")
+                    fout.write("done\n")
+                else:
+                    # only optimize a
+                    fout.write("  mkdir relax-${a}\n")
+                    fout.write("  cp  optimization.files *.psp8 *.GGA_PBE-JTH.xml relax-${a}/\n")
+                    fout.write("  cat optimization.in | head -n +${rprim_line} > relax-${a}/optimization.in\n")
+                    fout.write("  vec11=$(printf \"%-.6f\" `echo \"scale=6; result=${a1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec12=$(printf \"%-.6f\" `echo \"scale=6; result=${a2} * ${a} / ${a_in}; print result\" | bc`)\n")                    
+                    fout.write("  vec13=$(printf \"%-.6f\" `echo \"scale=6; result=${a3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec21=$(printf \"%-.6f\" `echo \"scale=6; result=${b1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec22=$(printf \"%-.6f\" `echo \"scale=6; result=${b2} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec23=$(printf \"%-.6f\" `echo \"scale=6; result=${b3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec31=$(printf \"%-.6f\" `echo \"scale=6; result=${c1} * ${c_in} / ${c_in}; print result\" | bc`)\n")
+                    fout.write("  vec32=$(printf \"%-.6f\" `echo \"scale=6; result=${c2} * ${c_in} / ${c_in}; print result\" | bc`)\n")                                        
+                    fout.write("  vec33=$(printf \"%-.6f\" `echo \"scale=6; result=${c3} * ${c_in} / ${c_in}; print result\" | bc`)\n")        
+                    fout.write("  cat >> relax-${a}/optimization.in<<EOF\n")
+                    fout.write("${vec11} ${vec12} ${vec13}\n")
+                    fout.write("${vec21} ${vec22} ${vec23}\n")
+                    fout.write("${vec31} ${vec32} ${vec33}\n")
+                    fout.write("EOF\n")
+                    fout.write("  cat optimization.in | tail -n +${after_rprim_cell_line} >> relax-${a}/optimization.in\n")
+                    fout.write("  cd relax-${a}/\n")
+                    fout.write("  srun --mpi=pmix_v3 $PMF_ABINIT < optimization.files\n")
+                    fout.write("  cd ../\n")
+                fout.write("done\n")
+            else:
+                # a is not optimized
+                if nc >= 2:
+                    # only optimize c
+                    fout.write("for c in `seq -w %f %f %f`\n" % (c-nc/2*stepc, stepc, c+nc/2*stepc))
+                    fout.write("do\n")
+                    fout.write("  mkdir relax-${c}\n")
+                    fout.write("  cp  optimization.files *.psp8 *.GGA_PBE-JTH.xml relax-${c}/\n")
+                    fout.write("  cat optimization.in | head -n +${rprim_line} > relax-${c}/optimization.in\n")
+                    fout.write("  vec11=$(printf \"%-.6f\" `echo \"scale=6; result=${a1} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec12=$(printf \"%-.6f\" `echo \"scale=6; result=${a2} * ${a_in} / ${a_in}; print result\" | bc`)\n")                    
+                    fout.write("  vec13=$(printf \"%-.6f\" `echo \"scale=6; result=${a3} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec21=$(printf \"%-.6f\" `echo \"scale=6; result=${b1} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec22=$(printf \"%-.6f\" `echo \"scale=6; result=${b2} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec23=$(printf \"%-.6f\" `echo \"scale=6; result=${b3} * ${a_in} / ${a_in}; print result\" | bc`)\n")
+                    fout.write("  vec31=$(printf \"%-.6f\" `echo \"scale=6; result=${c1} * ${c} / ${c_in}; print result\" | bc`)\n")
+                    fout.write("  vec32=$(printf \"%-.6f\" `echo \"scale=6; result=${c2} * ${c} / ${c_in}; print result\" | bc`)\n")                                        
+                    fout.write("  vec33=$(printf \"%-.6f\" `echo \"scale=6; result=${c3} * ${c} / ${c_in}; print result\" | bc`)\n")                            
+                    fout.write("  cat >> relax-${c}/optimization.in<<EOF\n")
+                    fout.write("${vec11} ${vec12} ${vec13}\n")
+                    fout.write("${vec21} ${vec22} ${vec23}\n")
+                    fout.write("${vec31} ${vec32} ${vec33}\n")
+                    fout.write("EOF\n")
+                    fout.write("  cat optimization.in | tail -n +${after_rprim_cell_line} >> relax-${c}/optimization.in\n")
+                    fout.write("  cd relax-${c}/\n")
+                    fout.write("  srun --mpi=pmix_v3 $PMF_ABINIT < optimization.files\n")
+                    fout.write("  cd ../\n")
+                    fout.write("done\n")
+                else:
+                    # neither a or c is optimized
+                    pass
+
         # generate result analysis script
         os.system("mkdir -p post-processing")
 
@@ -1733,6 +2080,83 @@ class OptRun(Abinit):
                         fout.write("done\n")
                         fout.write("done\n")
 
+                    # gen cdcloud script
+                    with open("opt-abc-%d-%d-%d.slurm_cd" % (i_batch_a, i_batch_b, i_batch_c), 'w') as fout:
+                        fout.write("#!/bin/bash\n")
+                        fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
+                        fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
+                        fout.write("#SBATCH -n %d\n" % self.run_params["ntask"])
+                        fout.write("#SBATCH -J %s\n" % self.run_params["jobname"])
+                        fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
+                        fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
+                        fout.write("#\n")
+                        fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
+                        fout.write("export FORT_BUFFERED=1\n")                        
+                        fout.write("cat > optimization.in<<EOF\n")
+                        #self.dataset[0].to_input(fout)
+                        self.dataset[0].system.coordtype = "reduced"            
+                        fout.write(self.dataset[0].to_string())
+                        fout.write("EOF\n")
+                        fout.write("cat > optimization.files<<EOF\n")
+                        #self.files.name = "optimization.files"
+                        self.files.main_in = "optimization.in"
+                        self.files.main_out = "optimization.out"
+                        self.files.wavefunc_in = "optimization-i"
+                        self.files.wavefunc_out = "optimization-o"
+                        self.files.tmp = "tmp"
+                        #self.files.to_files(fout, self.dataset[0].system)
+                        fout.write(self.files.to_string(system=self.dataset[0].system))
+                        fout.write("EOF\n")
+
+
+                        fout.write("a_in=%f\n" % a)
+                        fout.write("b_in=%f\n" % b)
+                        fout.write("c_in=%f\n" % c)
+
+                        fout.write("a1=%f\n" % self.dataset[0].system.xyz.cell[0][0])
+                        fout.write("a2=%f\n" % self.dataset[0].system.xyz.cell[0][1])
+                        fout.write("a3=%f\n" % self.dataset[0].system.xyz.cell[0][2])
+                        fout.write("b1=%f\n" % self.dataset[0].system.xyz.cell[1][0])
+                        fout.write("b2=%f\n" % self.dataset[0].system.xyz.cell[1][1])
+                        fout.write("b3=%f\n" % self.dataset[0].system.xyz.cell[1][2])
+                        fout.write("c1=%f\n" % self.dataset[0].system.xyz.cell[2][0])
+                        fout.write("c2=%f\n" % self.dataset[0].system.xyz.cell[2][1])
+                        fout.write("c3=%f\n" % self.dataset[0].system.xyz.cell[2][2])
+
+                        fout.write("rprim_line=`cat optimization.in | grep -n \'rprim\' | cut -d \":\" -f 1`\n")
+                        fout.write("after_rprim_cell_line=`echo \"${rprim_line} + 4\" | bc`\n")
+
+
+                        fout.write("for a in `seq -w %f %f %f`\n" % (a+range_a_start, range_a[2], a+range_a_end))
+                        fout.write("do\n")
+                        fout.write("for b in `seq -w %f %f %f`\n" % (b+range_b_start, range_b[2], b+range_b_end))
+                        fout.write("do\n")
+                        fout.write("for c in `seq -w %f %f %f`\n" % (c+range_c_start, range_c[2], c+range_c_end))
+                        fout.write("do\n")
+                        fout.write("  mkdir relax-${a}-${b}-${c}\n")
+                        fout.write("  cp  optimization.files *.psp8 *.GGA_PBE-JTH.xml relax-${a}-${b}-${c}/\n")
+                        fout.write("  cat optimization.in | head -n +${rprim_line} > relax-${a}-${b}-${c}/optimization.in\n")
+                        fout.write("  vec11=$(printf \"%-.6f\" `echo \"scale=6; result=${a1} * ${a} / ${a_in}; print result\" | bc`)\n")
+                        fout.write("  vec12=$(printf \"%-.6f\" `echo \"scale=6; result=${a2} * ${a} / ${a_in}; print result\" | bc`)\n")                   
+                        fout.write("  vec13=$(printf \"%-.6f\" `echo \"scale=6; result=${a3} * ${a} / ${a_in}; print result\" | bc`)\n")
+                        fout.write("  vec21=$(printf \"%-.6f\" `echo \"scale=6; result=${b1} * ${b} / ${b_in}; print result\" | bc`)\n")
+                        fout.write("  vec22=$(printf \"%-.6f\" `echo \"scale=6; result=${b2} * ${b} / ${b_in}; print result\" | bc`)\n")
+                        fout.write("  vec23=$(printf \"%-.6f\" `echo \"scale=6; result=${b3} * ${b} / ${b_in}; print result\" | bc`)\n")
+                        fout.write("  vec31=$(printf \"%-.6f\" `echo \"scale=6; result=${c1} * ${c} / ${c_in}; print result\" | bc`)\n")
+                        fout.write("  vec32=$(printf \"%-.6f\" `echo \"scale=6; result=${c2} * ${c} / ${c_in}; print result\" | bc`)\n")                                       
+                        fout.write("  vec33=$(printf \"%-.6f\" `echo \"scale=6; result=${c3} * ${c} / ${c_in}; print result\" | bc`)\n")                         
+                        fout.write("  cat >> relax-${a}-${b}-${c}/optimization.in<<EOF\n")
+                        fout.write("${vec11} ${vec12} ${vec13}\n")
+                        fout.write("${vec21} ${vec22} ${vec23}\n")
+                        fout.write("${vec31} ${vec32} ${vec33}\n")
+                        fout.write("EOF\n")
+                        fout.write("  cat optimization.in | tail -n +${after_rprim_cell_line} >> relax-${a}-${b}-${c}/optimization.in\n")
+                        fout.write("  cd relax-${a}-${b}-${c}/\n")
+                        fout.write("  srun --mpi=pmix_v3 $PMF_ABINIT < optimization.files\n")
+                        fout.write("  cd ../\n")
+                        fout.write("done\n")
+                        fout.write("done\n")
+                        fout.write("done\n")
 
         # generate result analysis script
         os.system("mkdir -p post-processing")

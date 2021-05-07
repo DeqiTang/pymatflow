@@ -72,6 +72,8 @@ class StaticMp2Run(Cp2k):
             self.gen_yh(directory=directory, cmd="$PMF_CP2K", inpname=inpname, output=output)
             # gen pbs server job comit file
             self.gen_pbs(directory=directory, cmd="$PMF_CP2K", inpname=inpname, output=output, jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cdcloud server job comit file
+            self.gen_cdcloud(cmd="$PMF_CP2K", directory=directory, inpname=inpname, output=output)
 
         if runopt == "run" or runopt == "genrun":
            os.chdir(directory)

@@ -55,6 +55,8 @@ class MdRun(PwScf):
             self.gen_llhpc(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
             # gen pbs script
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cdcloud script
+            self.gen_cdcloud(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
@@ -102,6 +104,8 @@ class MdRun(PwScf):
             self.gen_yh(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
             # gen pbs script
             self.gen_pbs(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX", jobname=self.run_params["jobname"], nodes=self.run_params["nodes"], ppn=self.run_params["ppn"], queue=self.run_params["queue"])
+            # gen cdcloud script
+            self.gen_cdcloud(directory=directory, inpname=inpname, output=output, cmd="$PMF_PWX")
 
         if runopt == "run" or runopt == "genrun":
             os.chdir(directory)
