@@ -166,6 +166,7 @@ setup(
         "pymatflow/scripts/xyz-modified-to-crystal.py",
         "pymatflow/scripts/kpath-seekpath.py",
         "pymatflow/scripts/kpath-cms-2010.py",
+        "pymatflow/scripts/kpoints-mp-suggest.py",
         "pymatflow/scripts/pot-from-xyz-modified.py",
         "pymatflow/scripts/vasp-potcar-from-xyz.py",
         "pymatflow/scripts/xyz-modified-to-poscar.py",

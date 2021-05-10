@@ -15,7 +15,7 @@ Usage:
 """
 
 
-class Crystal():
+class Crystal:
     """ an abstraction of crystal structure
     usage:
         >>> a = Crystal()

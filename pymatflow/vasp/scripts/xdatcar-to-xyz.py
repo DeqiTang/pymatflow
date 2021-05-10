@@ -4,7 +4,7 @@ import os
 import argparse
 import numpy as np
 
-from pymatflow.structure.crystal import crystal
+from pymatflow.structure.crystal import Crystal
 """
 """
 
@@ -66,7 +66,7 @@ if __name__ == "__main__":
     images = []
     
     for i in range(nimage):
-        image = crystal()
+        image = Crystal()
         image.cell = []
         if i == 0:
             for j in range(3):

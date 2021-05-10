@@ -7,6 +7,7 @@ def get_info(outcar):
     """
     get the timing information from OUTCAR of vasp run
     :return out a dict -> {
+        "total_cores": int,
         "job_done": bool,
         "start_time": xxx,
         "total_cpu_time": float,
@@ -28,6 +29,8 @@ def get_info(outcar):
         # if it is an empty line continue to next line
         if len(line.split()) == 0:
             continue
+        if "running on" in line and "total cores" in line:
+            out["total_cores"] = int(line.split()[2])
         if line.split()[0] == "executed" and line.split()[1] == "on" and line.split()[3] == "date":
             out["start_time"] = line.split("\n")[0]
         if line.split()[0] == "Total" and line.split()[1] == "CPU" and line.split()[2] == "time":
@@ -80,6 +83,9 @@ def main():
     print("  - in unit of sec  :  %.3f\n" % (info["elapsed_time"]))
     print("  - in unit of min  :  %.3f\n" % (info["elapsed_time"]/60))
     print("  - in unit of hour :  %.3f\n" % (info["elapsed_time"]/3600))
+    print("- Resources used:\n")
+    print("  - total cores used:  %d\n" % (info["total_cores"]))
+    print("  - core hours used :  %d\n" % (info["total_cores"] * info["elapsed_time"] / 3600))
 
 
 if __name__ == "__main__":
