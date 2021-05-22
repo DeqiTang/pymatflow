@@ -1963,7 +1963,20 @@ def main():
             help="PREC, default value: Normal")
 
     gp.add_argument("--ncore", type=int, default=None,
-            help="NCORE determines the number of compute cores that work on an individual orbital ")
+            help="NCORE determines the number of compute cores that work on an individual orbital.")
+
+    gp.add_argument("--npar", type=int, default=None,
+            help="NPAR determines the number of bands that are treated in parallel.")
+
+    gp.add_argument("--kpar", type=int, default=None,
+            help="KPAR determines the number of k-points that are to be treated in parallel")
+
+    gp.add_argument("--lplane", type=str, default=None,
+            choices=[".TRUE.", ".FALSE.", "T", "F"],
+            help="LPLANE switches on the plane-wise data distribution in real space. default is .TRUE.")
+
+    gp.add_argument("--nsim", type=int, default=None,
+            help="NSIM sets the number of bands that are optimized simultaneously by the RMM-DIIS algorithm. default NSIM=4")
 
     # incar->electrons
     gp = subparser.add_argument_group(title="incar->electron",
@@ -3799,6 +3812,10 @@ def main():
         params["NWRITE"] = args.nwrite if "NWRITE" not in params or args.nwrite != None else params["NWRITE"]
         params["PREC"] = args.prec if "PREC" not in params or args.prec != None else params["PREC"]
         params["NCORE"] = args.ncore if "NCORE" not in params or args.ncore != None else params["NCORE"]
+        params["NPAR"] = args.npar if "NPAR" not in params or args.npar != None else params["NPAR"]
+        params["KPAR"] = args.kpar if "KPAR" not in params or args.kpar != None else params["KPAR"]
+        params["LPLANE"] = args.lplane if "LPLANE" not in params or args.lplane != None else params["LPLANE"]
+        params["NSIM"] = args.nsim if "NSIM" not in params or args.nsim != None else params["NSIM"]
         params["ENCUT"] = args.encut if "ENCUT" not in params or args.encut != None else params["ENCUT"]
         params["EDIFF"] = args.ediff if "EDIFF" not in params or args.ediff != None else params["EDIFF"]
         params["NELM"] = args.nelm if "NELM" not in params or args.nelm != None else params["NELM"]

@@ -48,7 +48,7 @@ class Vasp:
         :param runtype: one onf 'static', 'opt', 'phonopy', 'phonon', 'neb', 'md', 'custom'
         """
         static_allowed = [
-            "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
+            "NWRITE", "PREC", "NCORE", "NPAR", "KPAR", "LPLANE", "NSIM", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
             "IVDW", "LORBIT", "LOPTICS", "CSHIFT", "NEDOS", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "LSORBIT","SAXIS", "LMAXMIX", "LHFCALC", "HFSCREEN", "AEXX", "LSUBROT", "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG", "LELF", "PSTRESS",
@@ -57,7 +57,7 @@ class Vasp:
             "LVHAR",
         ]
         opt_allowed = [
-            "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
+            "NWRITE", "PREC", "NCORE", "NPAR", "KPAR", "LPLANE", "NSIM", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
             "IVDW", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG", "LAECHG",
@@ -67,7 +67,7 @@ class Vasp:
             "LVHAR"
         ]
         phonopy_allowed = [
-            "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
+            "NWRITE", "PREC", "NCORE", "NPAR", "KPAR", "LPLANE", "NSIM", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
             "IVDW", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "ALGO", "IALGO", "ADDGRID", "LAECHG",
             "ISYM", "LREAL", "LWAVE", "LCHARG",
@@ -75,7 +75,7 @@ class Vasp:
             "KSPACING",
         ]
         neb_allowed = [
-            "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
+            "NWRITE", "PREC", "NCORE", "NPAR", "KPAR", "LPLANE", "NSIM", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
             "IVDW", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG",
@@ -86,7 +86,7 @@ class Vasp:
             "KSPACING",
         ]
         md_allowed = [
-            "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
+            "NWRITE", "PREC", "NCORE", "NPAR", "KPAR", "LPLANE", "NSIM", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
             "IVDW", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG", "LAECHG",
@@ -96,7 +96,7 @@ class Vasp:
             "MDALGO", "SMASS", "ANDERSON_PROB", "TEBEG", "TEEND",
         ]
         phonon_allowed = [
-            "NWRITE", "PREC", "NCORE", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
+            "NWRITE", "PREC", "NCORE", "NPAR", "KPAR", "LPLANE", "NSIM", "ENCUT", "EDIFF", "NELM", "NFREE", "ISMEAR", "SIGMA",
             "IVDW", "ISPIN", "MAGMOM", "LNONCOLLINEAR",
             "ALGO", "IALGO", "ADDGRID",
             "ISYM", "LREAL", "LWAVE", "LCHARG", "LAECHG",

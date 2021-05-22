@@ -46,8 +46,8 @@ class PhononRun(Siesta):
             self.ions.set_param("Eigenvectors", "True") # to get the siesta.vectors file
             with open(os.path.join(directory, inpname), 'w') as fout:
                 fout.write(self.system.to_string())
-                fout.self.electrons.to_string())
-                fout.ions.to_string())
+                fout.write(self.electrons.to_string())
+                fout.write(self.ions.to_string())
                 if borncharge == True:
                     fout.write(self.properties.to_string())
 
