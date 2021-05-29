@@ -11,7 +11,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-class post_bands:
+class PostBands:
     def __init__(self):
         pass
 
@@ -30,20 +30,39 @@ class post_bands:
         b3 = 1 / np.sqrt(cell[2][0]**2 + cell[2][1]**2 + cell[2][2]**2)
         # actually you will find that in vasp b1=1/a1, b2=1/a2, b3=1/a3
 
+        V = np.dot(cell[0], np.cross(cell[1], cell[2]))
+        b1_vec = np.cross(cell[1], cell[2]) * 2 * np.pi / V
+        b2_vec = np.cross(cell[2], cell[0]) * 2 * np.pi / V
+        b3_vec = np.cross(cell[0], cell[1]) * 2 * np.pi / V
+        
+        print("cell a:")
+        print("%f %f %f\n" % (cell[0][0], cell[0][1], cell[0][2]))
+        print("%f %f %f\n" % (cell[1][0], cell[1][1], cell[1][2]))
+        print("%f %f %f\n" % (cell[2][0], cell[2][1], cell[2][2]))
+        print("cell b:\n")
+        print("%f %f %f\n" % (b1_vec[0], b1_vec[1], b1_vec[2]))
+        print("%f %f %f\n" % (b2_vec[0], b2_vec[1], b2_vec[2]))
+        print("%f %f %f\n" % (b3_vec[0], b3_vec[1], b3_vec[2]))
+                
         self.xcoord_k.append(0.0000000)
         for i in range(len(self.kpath) - 1):
             # the step in the xcoord_k for each segment is different and it is actually
             # the distance between the two high symmetry kpoint in unit of reciprocal coordinates
             # divided by the conneciting number kpath[i][4]
             if self.kpath[i][4] != "|":
-                step = 0
-                delta_b_1 = b1*(self.kpath[i+1][0] - self.kpath[i][0])
-                delta_b_2 = b2*(self.kpath[i+1][1] - self.kpath[i][1])
-                delta_b_3 = b3*(self.kpath[i+1][2] - self.kpath[i][2])
-                step = np.sqrt(delta_b_1**2+delta_b_2**2+delta_b_3**2) / (self.kpath[i][4])
+                #delta_b_1 = b1*(self.kpath[i+1][0] - self.kpath[i][0])
+                #delta_b_2 = b2*(self.kpath[i+1][1] - self.kpath[i][1])
+                #delta_b_3 = b3*(self.kpath[i+1][2] - self.kpath[i][2])
+                #step = np.sqrt(delta_b_1**2+delta_b_2**2+delta_b_3**2) / (self.kpath[i][4])
+                # the above way to calculate step is only applicable when 
+                # b1 b2 b3 are perpendicular to each other so they are abandoned.
+                vec1 = self.kpath[i][0] * np.array(b1_vec) + self.kpath[i][1] * np.array(b2_vec) + self.kpath[i][2] * np.array(b3_vec)
+                vec2 = self.kpath[i+1][0] * np.array(b1_vec) + self.kpath[i+1][1] * np.array(b2_vec) + self.kpath[i+1][2] * np.array(b3_vec)
+                distance_in_b = np.linalg.norm(np.array(vec2)-np.array(vec1))
+                step = distance_in_b / (self.kpath[i][4])
 
                 for j in range(self.kpath[i][4]):
-                    self.xcoord_k.append(self.xcoord_k[-1]+step)
+                    self.xcoord_k.append(self.xcoord_k[-1] + step)
             else:
                 self.xcoord_k.append(self.xcoord_k[-1])
         # label for plot

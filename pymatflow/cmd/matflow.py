@@ -163,6 +163,14 @@ def main():
     gp.add_argument("--pot", type=str, default="./",
             help="specify the path to the directory containing all the needed pseudopotential, default behavior is find them in the current directory automatically. if you pass 'auto' to it, matflow will get the pots automatically(need simple configuration, see manual)")
 
+    # parallelism
+    gp = subparser.add_argument_group(title="parallelism",
+            description="set parameters for a parallel calculation with the ABINIT package.")
+    
+    gp.add_argument("--autoparal", type=int, default=None,
+            choices=[0, 1, 2, 3, 4],
+            help="AUTOmatisation of the PARALlelism")
+
     # electronic structure
     gp = subparser.add_argument_group(title="electronic structure:",
             description="setting of electronic structure related parameters")
@@ -365,7 +373,7 @@ def main():
             help="MPI command: like 'mpirun -np 4'")
 
     gp.add_argument("--server", type=str, default="pbs",
-            choices=["pbs", "llhpc", "tianhe2"],
+            choices=["pbs", "llhpc", "tianhe2", "cdcloud"],
             help="type of remote server, can be pbs or llhpc")
 
     gp.add_argument("--jobname", type=str, default="matflow-job",
@@ -2712,6 +2720,8 @@ def main():
         params["nband"] = args.nband
         params["occ"] = args.occ
 
+        params["autoparal"] = args.autoparal
+
 
         if args.runtype == 0:
             # static
@@ -2731,7 +2741,9 @@ def main():
             task.dataset[3].electrons.kpoints.set_band(kpath=get_kpath(args.kpath_manual, args.kpath_file))
             task.get_xyz(xyzfile)
             task.set_params(params=params)
-            task.set_kpoints(kpoints=kpoints)
+            task.set_kpoints(kpoints=kpoints, ndtset=0)
+            task.set_kpoints(kpoints=kpoints, ndtset=1)
+            task.set_kpoints(kpoints=kpoints, ndtset=2)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)
@@ -4007,6 +4019,7 @@ def main():
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            task.set_cdcloud(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.batch_a = args.batch_a
             task.cubic(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a)
         elif args.runtype == 3:
@@ -4018,6 +4031,7 @@ def main():
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            task.set_cdcloud(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.batch_a = args.batch_a
             task.batch_c = args.batch_c            
             task.hexagonal(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_c=args.range_c)
@@ -4030,6 +4044,7 @@ def main():
             task.set_kpoints(kpoints_mp=args.kpoints_mp)
             task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
             task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+            task.set_cdcloud(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
             task.batch_a = args.batch_a     
             task.batch_c = args.batch_c            
             task.tetragonal(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_c=args.range_c)

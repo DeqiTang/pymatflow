@@ -79,7 +79,7 @@ class QeControl(QeVariableGroup):
         if calc == "scf":
             self.set_param("outdir", "./tmp")
             self.set_param("pseudo_dir", "./")
-            self.set_param("wf_collect", "True")
+            self.set_param("wf_collect", ".true.")
         elif calc == "nscf":
             self.set_param("outdir", "./tmp")
             self.set_param("pseudo_dir", "./tmp")

@@ -180,7 +180,7 @@ class PwScf:
         generating yhbatch job script for calculation
         better pass in $PMF_PWX
         """
-        with open(os.path.join(directory, inpname.split(".in")[0]+".slurm"), 'w') as fout:
+        with open(os.path.join(directory, inpname.split(".in")[0]+".slurm_cd"), 'w') as fout:
             fout.write("#!/bin/bash\n")
             fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
             fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
@@ -190,5 +190,8 @@ class PwScf:
             fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
             fout.write("#\n")
             fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
-            fout.write("export FORT_BUFFERED=1\n")
+            #fout.write("export FORT_BUFFERED=1\n") 
+            # do not set this in the job submit file
+            # it will arouse "error reading file ./tmp/pwscf.save/charge-density" when doing
+            # nscf calculation.
             fout.write("srun --mpi=pmix_v3 %s < %s > %s\n" % (cmd, inpname, output))

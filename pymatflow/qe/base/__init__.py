@@ -1,9 +1,10 @@
 pwscf_character_var = [
-    "prefix", "outdir", "pseudo_dir", "calculation",
+    "prefix", "outdir", "wfcdir", "pseudo_dir", "calculation",
     "occupations", "smearing", "vdw_corr", "U_projection_type", 
-    "input_dft", "exxciv_teatment", "diagonalization", "ion_dynamics",
+    "input_dft", "exxdiv_treatment", "diagonalization", "ion_dynamics",
     "pot_extrapolation", "wfc_extrapolation", "ion_temperature", 
-    "cell_dofree", ""
+    "cell_dofree", "mixing_mode", "efield_phase", "cell_dynamics",
+    "verbosity", "title", "disk_io",
 ]
 
 def qe_variable_to_string(variable):

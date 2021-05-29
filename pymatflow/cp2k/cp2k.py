@@ -273,7 +273,7 @@ class Cp2k:
         generating yhbatch job script for calculation
         better pass in $PMF_CP2K
         """
-        with open(os.path.join(directory, inpname.split(".inp")[0]+".slurm"), 'w') as fout:
+        with open(os.path.join(directory, inpname.split(".inp")[0]+".slurm_cd"), 'w') as fout:
             fout.write("#!/bin/bash\n")
             fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
             fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])

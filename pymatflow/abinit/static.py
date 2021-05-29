@@ -315,7 +315,7 @@ class StaticRun(Abinit):
 
             # 1) scf
             self.dataset[1].electrons.set_param("iscf", 7)
-            self.dataset[1].electrons.param("prtden", 1)
+            self.dataset[1].electrons.set_param("prtden", 1)
             self.dataset[1].electrons.use_tol(tol="tolvrs", value=1.0e-8) # user must set it
 
             # 2) nscf dos

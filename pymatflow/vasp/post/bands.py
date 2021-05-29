@@ -6,7 +6,8 @@ post_bands:
     basis for reciprocal space.
 
     actually in vasp reci_basis is the reciprocal of the real space basis, namely
-    b1 = 1 / a1, b2 = 1 / a2 and b3 = 1 / a3.
+    b1 = 1 / a1, b2 = 1 / a2 and b3 = 1 / a3. the coefficient 2 * pi was neglected.
+    which we will take into account.
 """
 
 import os
@@ -72,53 +73,89 @@ class post_bands:
         """
         self.xcoord_k = []
         # get the lattice parameter and the reciprocal basis
-        a1 = np.sqrt(
-                float(self.vasprun.findall("structure")[0].getchildren()[0].getchildren()[0].getchildren()[0].text.split()[0])**2
-                + float(self.vasprun.findall("structure")[0].getchildren()[0].getchildren()[0].getchildren()[0].text.split()[1])**2
-                + float(self.vasprun.findall("structure")[0].getchildren()[0].getchildren()[0].getchildren()[0].text.split()[2])**2
-                )
-        a2 = np.sqrt(
-                float(self.vasprun.findall("structure")[0].getchildren()[0].getchildren()[0].getchildren()[1].text.split()[0])**2
-                + float(self.vasprun.findall("structure")[0].getchildren()[0].getchildren()[0].getchildren()[1].text.split()[1])**2
-                + float(self.vasprun.findall("structure")[0].getchildren()[0].getchildren()[0].getchildren()[1].text.split()[2])**2
-                )
-        a3 = np.sqrt(
-                float(self.vasprun.findall("structure")[0].getchildren()[0].getchildren()[0].getchildren()[2].text.split()[0])**2
-                + float(self.vasprun.findall("structure")[0].getchildren()[0].getchildren()[0].getchildren()[2].text.split()[1])**2
-                + float(self.vasprun.findall("structure")[0].getchildren()[0].getchildren()[0].getchildren()[2].text.split()[2])**2
-                )
+        cell = []
+        cell.append([
+            float(self.vasprun.findall("structure")[-1].getchildren()[0].getchildren()[0].getchildren()[0].text.split()[0]),
+            float(self.vasprun.findall("structure")[-1].getchildren()[0].getchildren()[0].getchildren()[0].text.split()[1]),
+            float(self.vasprun.findall("structure")[-1].getchildren()[0].getchildren()[0].getchildren()[0].text.split()[2])
+        ])
 
-        b1 = np.sqrt(
-                float(self.vasprun.findall("structure")[0].getchildren()[0].getchildren()[2].getchildren()[0].text.split()[0])**2
-                + float(self.vasprun.findall("structure")[0].getchildren()[0].getchildren()[2].getchildren()[0].text.split()[1])**2
-                + float(self.vasprun.findall("structure")[0].getchildren()[0].getchildren()[2].getchildren()[0].text.split()[2])**2
-                )
+        cell.append([
+            float(self.vasprun.findall("structure")[-1].getchildren()[0].getchildren()[0].getchildren()[1].text.split()[0]),
+            float(self.vasprun.findall("structure")[-1].getchildren()[0].getchildren()[0].getchildren()[1].text.split()[1]),
+            float(self.vasprun.findall("structure")[-1].getchildren()[0].getchildren()[0].getchildren()[1].text.split()[2])
+        ])
 
-        b2 = np.sqrt(
-                float(self.vasprun.findall("structure")[0].getchildren()[0].getchildren()[2].getchildren()[1].text.split()[0])**2
-                + float(self.vasprun.findall("structure")[0].getchildren()[0].getchildren()[2].getchildren()[1].text.split()[1])**2
-                + float(self.vasprun.findall("structure")[0].getchildren()[0].getchildren()[2].getchildren()[1].text.split()[2])**2
-                )
+        cell.append([
+            float(self.vasprun.findall("structure")[-1].getchildren()[0].getchildren()[0].getchildren()[2].text.split()[0]),
+            float(self.vasprun.findall("structure")[-1].getchildren()[0].getchildren()[0].getchildren()[2].text.split()[1]),
+            float(self.vasprun.findall("structure")[-1].getchildren()[0].getchildren()[0].getchildren()[2].text.split()[2])
+        ])
 
-        b3 = np.sqrt(
-                float(self.vasprun.findall("structure")[0].getchildren()[0].getchildren()[2].getchildren()[2].text.split()[0])**2
-                + float(self.vasprun.findall("structure")[0].getchildren()[0].getchildren()[2].getchildren()[2].text.split()[1])**2
-                + float(self.vasprun.findall("structure")[0].getchildren()[0].getchildren()[2].getchildren()[2].text.split()[2])**2
-                )
+        a1 = np.linalg.norm(cell[0])
+        a2 = np.linalg.norm(cell[1])
+        a3 = np.linalg.norm(cell[2])
 
+        cell_b_vasp = []
+        cell_b_vasp.append([
+            float(self.vasprun.findall("structure")[-1].getchildren()[0].getchildren()[2].getchildren()[0].text.split()[0]),
+            float(self.vasprun.findall("structure")[-1].getchildren()[0].getchildren()[2].getchildren()[0].text.split()[1]),
+            float(self.vasprun.findall("structure")[-1].getchildren()[0].getchildren()[2].getchildren()[0].text.split()[2])
+        ])
+
+        cell_b_vasp.append([
+            float(self.vasprun.findall("structure")[-1].getchildren()[0].getchildren()[2].getchildren()[1].text.split()[0]),
+            float(self.vasprun.findall("structure")[-1].getchildren()[0].getchildren()[2].getchildren()[1].text.split()[1]),
+            float(self.vasprun.findall("structure")[-1].getchildren()[0].getchildren()[2].getchildren()[1].text.split()[2])
+        ])
+
+        cell_b_vasp.append([
+            float(self.vasprun.findall("structure")[-1].getchildren()[0].getchildren()[2].getchildren()[2].text.split()[0]),
+            float(self.vasprun.findall("structure")[-1].getchildren()[0].getchildren()[2].getchildren()[2].text.split()[1]),
+            float(self.vasprun.findall("structure")[-1].getchildren()[0].getchildren()[2].getchildren()[2].text.split()[2])
+        ])
+
+        # we do not use cell_b_vasp as b1_vec, b2_vec and b3_vec
+        # because in vasp b1 = a2xa3/V and the 2 *pi is neglected.
+        # as a result, we will construct b1_vec, b2_vec and b3_vec
+        # from cell directly, considering both V and 2*pi coefficient.
+
+        V = np.dot(cell[0], np.cross(cell[1], cell[2]))
+        b1_vec = np.cross(cell[1], cell[2]) * 2 * np.pi / V
+        b2_vec = np.cross(cell[2], cell[0]) * 2 * np.pi / V
+        b3_vec = np.cross(cell[0], cell[1]) * 2 * np.pi / V
+
+        b1 = np.linalg.norm(b1_vec)
+        b2 = np.linalg.norm(b2_vec)
+        b3 = np.linalg.norm(b3_vec)
+
+        print("cell a:")
+        print("%f %f %f\n" % (cell[0][0], cell[0][1], cell[0][2]))
+        print("%f %f %f\n" % (cell[1][0], cell[1][1], cell[1][2]))
+        print("%f %f %f\n" % (cell[2][0], cell[2][1], cell[2][2]))
+        print("cell b:\n")
+        print("%f %f %f\n" % (b1_vec[0], b1_vec[1], b1_vec[2]))
+        print("%f %f %f\n" % (b2_vec[0], b2_vec[1], b2_vec[2]))
+        print("%f %f %f\n" % (b3_vec[0], b3_vec[1], b3_vec[2]))
+                
         # actually you will find that in vasp b1=1/a1, b2=1/a2, b3=1/a3
+        # and we will take into account the 2*pi coefficient.
         # now we use the reciprocal lattice constant and the kpoints in crystal coordinate to build the xcoord_k
-
 
         # in the past, we read kpoint from vasprun.xml but now we directly read kpoint from self.kpath!
         self.xcoord_k.append(0.0000000)
         for i in range(1, len(self.kpath)):
             if self.kpath[i-1][4] != "|":
-                step = 0
-                delta_b_1 = b1 * (self.kpath[i][0] - self.kpath[i-1][0])
-                delta_b_2 = b2 * (self.kpath[i][1] - self.kpath[i-1][1])
-                delta_b_3 = b3 * (self.kpath[i][2] - self.kpath[i-1][2])
-                step = np.sqrt(delta_b_1**2+delta_b_2**2+delta_b_3**2) / (self.kpath[i-1][4] - 1)
+                #delta_b_1 = b1 * (self.kpath[i][0] - self.kpath[i-1][0])
+                #delta_b_2 = b2 * (self.kpath[i][1] - self.kpath[i-1][1])
+                #delta_b_3 = b3 * (self.kpath[i][2] - self.kpath[i-1][2])
+                #step = np.sqrt(delta_b_1**2+delta_b_2**2+delta_b_3**2) / (self.kpath[i-1][4] - 1)
+                # the above way to calculate step is only applicable when 
+                # b1 b2 b3 are perpendicular to each other so they are abandoned.
+                vec1 = self.kpath[i-1][0] * np.array(b1_vec) + self.kpath[i-1][1] * np.array(b2_vec) + self.kpath[i-1][2] * np.array(b3_vec)
+                vec2 = self.kpath[i][0] * np.array(b1_vec) + self.kpath[i][1] * np.array(b2_vec) + self.kpath[i][2] * np.array(b3_vec)
+                distance_in_b = np.linalg.norm(np.array(vec2)-np.array(vec1))
+                step = distance_in_b / (self.kpath[i-1][4] - 1)
 
                 for j in range(self.kpath[i-1][4]-1):
                     self.xcoord_k.append(self.xcoord_k[-1]+step)
@@ -127,33 +164,6 @@ class post_bands:
                 else:
                     self.xcoord_k.append(self.xcoord_k[-1])
                         
-        # the old code to get kpoints from vasprun.xml and build xcoord_k
-        #divisions = int(self.vasprun.find("kpoints").find("generation").find("i").text)
-
-        #n_segment = int(len(self.vasprun.find("kpoints").findall("varray")[0].getchildren()) / divisions)
-
-        #for i in range(n_segment):
-            # xcoord_k of the first point of each segment equals to the
-            # last xcoord_k of the previous segment
-        #    if i == 0:
-        #        # begin from 0.0000000
-        #        self.xcoord_k.append(0.00000000)
-        #    else:
-        #        self.xcoord_k.append(self.xcoord_k[-1])
-
-            # the step in the xcoord_k for each segment is different and it is actually
-            # the distance between the two high symmetry kpoint in unit of reciprocal coordinates
-            # divided by (divisions - 1)
-        #    step = 0
-        #    delta_b_1 = b1*float(self.vasprun.find("kpoints").findall("varray")[0].getchildren()[i*divisions].text.split()[0]) - b1*float(self.vasprun.find("kpoints").findall("varray")[0].getchildren()[i*15+divisions-1].text.split()[0])
-
-        #    delta_b_2 = b2*float(self.vasprun.find("kpoints").findall("varray")[0].getchildren()[i*divisions].text.split()[1]) - b2*float(self.vasprun.find("kpoints").findall("varray")[0].getchildren()[i*15+divisions-1].text.split()[1])
-
-        #    delta_b_3 = b3*float(self.vasprun.find("kpoints").findall("varray")[0].getchildren()[i*divisions].text.split()[2]) - b3*float(self.vasprun.find("kpoints").findall("varray")[0].getchildren()[i*15+divisions-1].text.split()[2])
-        #    step = np.sqrt(delta_b_1**2+delta_b_2**2+delta_b_3**2) / (divisions-1)
-
-        #    for j in range(divisions-1):
-        #        self.xcoord_k.append(self.xcoord_k[-1]+step)
 
     def get_eigenval(self):
         """

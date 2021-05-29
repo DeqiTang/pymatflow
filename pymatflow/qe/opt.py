@@ -431,8 +431,7 @@ class OptRun(PwScf):
                 fout.write("#SBATCH -o %s\n" % self.run_params["stdout"])
                 fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 fout.write("#\n")
-                fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
-                fout.write("export FORT_BUFFERED=1\n")                
+                fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")           
                 #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
 
                 a = np.sqrt(self.arts.xyz.cell[0][0]**2+self.arts.xyz.cell[0][1]**2+self.arts.xyz.cell[0][2]**2)
@@ -1007,7 +1006,6 @@ class OptRun(PwScf):
                     fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                     fout.write("#\n")
                     fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
-                    fout.write("export FORT_BUFFERED=1\n")
                     #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
 
                     a = np.sqrt(self.arts.xyz.cell[0][0]**2+self.arts.xyz.cell[0][1]**2+self.arts.xyz.cell[0][2]**2)
@@ -1698,7 +1696,6 @@ class OptRun(PwScf):
                     fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                     fout.write("#\n")
                     fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
-                    fout.write("export FORT_BUFFERED=1\n")
                     #fout.write("mpirun -np $NP -machinefile $PBS_NODEFILE %s < %s > %s\n" % (cmd, inpname, output))
 
                     a = np.sqrt(self.arts.xyz.cell[0][0]**2+self.arts.xyz.cell[0][1]**2+self.arts.xyz.cell[0][2]**2)
@@ -2306,7 +2303,6 @@ class OptRun(PwScf):
                         fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                         fout.write("#\n")
                         fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
-                        fout.write("export FORT_BUFFERED=1\n")
 
                         fout.write("a_in=%f\n" % a)
                         fout.write("b_in=%f\n" % b)

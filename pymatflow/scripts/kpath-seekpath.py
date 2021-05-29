@@ -4,7 +4,7 @@ import numpy as np
 import seekpath
 import argparse
 
-from pymatflow.base.xyz import base_xyz
+from pymatflow.base.xyz import BaseXyz
 from pymatflow.cmd.structflow import read_structure
 from pymatflow.base.element import element
 """

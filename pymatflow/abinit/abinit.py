@@ -54,9 +54,12 @@ class Abinit:
             sys.exit(1)
         self.dataset[ndtset].set_params(params)
 
-    def set_kpoints(self, kpoints={}):
-        # only set the kpoints for default dataset 0
-        self.dataset[0].set_kpoints(kpoints)
+    def set_kpoints(self, kpoints={}, ndtset=0):
+        #self.dataset[0].set_kpoints(kpoints)
+        if ndtset > self.ndtset:
+            print("Abinit.set_kpoints() trying to set kpoints for ndtset > self.ndtset")
+            sys.exit(1)
+        self.dataset[ndtset].set_kpoints(kpoints)
 
     def set_properties(self, properties=[]):
         # only set the parameters for default dataset 0

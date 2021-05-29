@@ -149,7 +149,6 @@ class PhonopyRun(PwScf):
                 fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 fout.write("#\n")
                 fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
-                fout.write("export FORT_BUFFERED=1\n")
                 fout.write("\n")
                 for disp in disp_dirs:
                     fout.write("srun --mpi=pmix_v3 $PMF_PWX < supercell-%s-full.in > supercell-%s.out\n" % (disp, disp))

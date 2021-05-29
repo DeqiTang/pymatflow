@@ -637,7 +637,6 @@ class StaticRun(PwScf):
                 fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 fout.write("#\n")
                 fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
-                fout.write("export FORT_BUFFERED=1\n")
                 fout.write("srun --mpi=pmix_v3 %s < %s > %s\n" % ("$PMF_PWX", inpname1, output1))
                 fout.write("srun --mpi=pmix_v3 %s < %s > %s\n" % ("$PMF_BANDSX", inpname2, output2))
 
@@ -964,7 +963,6 @@ class StaticRun(PwScf):
                 fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 fout.write("#\n")
                 fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
-                fout.write("export FORT_BUFFERED=1\n")
                 for plot_num_i in self.inputpp["plot_num"]:
                     fout.write("srun --mpi=pmix_v3 %s < %s > %s\n" % ("$PMF_PPX", prefix+"-"+table[plot_num_i]+".in", prefix+"-"+table[plot_num_i]+".out"))
 
@@ -1145,6 +1143,7 @@ class StaticRun(PwScf):
             # in pw.x non-scf calc, hybrid functional is not allowed
             input_dft = self.system.params["input_dft"].as_val(t=str, dim=0) if self.system.params["input_dft"].as_val() is not None else None
 
+            self.control.set_params({"nstep": None})
 
             # 1) scf
             self.control.calculation("scf")
@@ -1310,7 +1309,6 @@ class StaticRun(PwScf):
                 fout.write("#SBATCH -e %s\n" % self.run_params["stderr"])
                 fout.write("#\n")
                 fout.write("export I_MPI_PMI_LIBRARY=/opt/gridview/slurm/lib/libpmi.so\n")
-                fout.write("export FORT_BUFFERED=1\n")
                 fout.write("srun --mpi=pmix_v3 $PMF_PWX < static-scf.in > static-scf.out\n")
                 fout.write("srun --mpi=pmix_v3 $PMF_PWX < static-nscf.in > static-nscf.out\n")
                 fout.write("srun --mpi=pmix_v3 $PMF_PROJWFCX < static-projwfc.in > static-projwfc.out\n")

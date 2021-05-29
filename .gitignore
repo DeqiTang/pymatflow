@@ -6,3 +6,6 @@ pymatflow.egg-info
 docs/_build/*
 
 .vscode
+
+__pycache__
+*.pyc
