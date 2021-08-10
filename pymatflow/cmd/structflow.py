@@ -83,9 +83,9 @@ def write_structure(structure, filepath, frac=1):
         aseio.write_cfg(cell=structure.cell, atoms=structure.atoms, filepath=filepath)
     elif os.path.basename(filepath) == "POSCAR" or os.path.basename(filepath) == "CONTCAR":
         from pymatflow.structure.crystal import Crystal
-        from pymatflow.vasp.base.poscar import vasp_poscar
+        from pymatflow.vasp.base.poscar import VaspPoscar
         #import pymatflow.third.aseio as aseio
-        poscar = vasp_poscar()
+        poscar = VaspPoscar()
         poscar.xyz.cell = structure.cell
         poscar.xyz.atoms = structure.atoms
         poscar.xyz.natom = len(poscar.xyz.atoms)

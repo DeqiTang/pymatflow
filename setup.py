@@ -183,6 +183,7 @@ setup(
         "pymatflow/scripts/chgflow.py",
         "pymatflow/scripts/cube-diff-1d.py",
         "pymatflow/scripts/cube-1d.py",
+        "pymatflow/scripts/veusz-flow.py",
         "pymatflow/remote/scripts/thq.py",
         "pymatflow/remote/scripts/thcancel.py",
         "pymatflow/remote/scripts/thpull.py",
