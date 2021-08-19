@@ -116,13 +116,13 @@ def main():
     subparser = subparsers.add_parser("supercell", help="using supercell subcommand")
 
     subparser.add_argument("-i", "--input", type=str, required=True,
-            help="input structure file")
+        help="input structure file")
 
     subparser.add_argument("-o", "--output", type=str, required=True,
-            help="output structure file")
+        help="output structure file")
 
     subparser.add_argument("-n", "--supern", nargs="+", type=int,
-            help="bulid supern:[int, int, int] supercell")
+        help="bulid supern:[int, int, int] supercell")
 
 
     # --------------------------------------------------------------------------
@@ -131,10 +131,10 @@ def main():
     subparser = subparsers.add_parser("fix", help="using fix subcommand")
 
     subparser.add_argument("-i", "--input", type=str, required=True,
-            help="input structure file")
+        help="input structure file")
 
     subparser.add_argument("-o", "--output", type=str, required=True,
-            help="output structure file")
+        help="output structure file")
 
     subparser.add_argument("--fix", help="list of fixed atoms, index start from 1, have privilege over --around-z", nargs='+', type=int, default=None)
 
@@ -151,10 +151,10 @@ def main():
     subparser = subparsers.add_parser("convert", help="using convert subcommand")
 
     subparser.add_argument("-i", "--input", type=str, required=True,
-            help="input structure file")
+        help="input structure file")
 
     subparser.add_argument("-o", "--output", type=str, required=True,
-            help="output structure file")
+        help="output structure file")
 
     # --------------------------------------------------------------------------
     # kpath
@@ -162,14 +162,14 @@ def main():
     subparser = subparsers.add_parser("kpath", help="using kpath subcommand")
 
     subparser.add_argument("-i", "--input", type=str, required=True,
-            help="input structure file")
+        help="input structure file")
 
     subparser.add_argument("--engine", type=str, default="seekpath",
-            choices=["seekpath"],
-            help="choose tool to generate kpath")
+        choices=["seekpath"],
+        help="choose tool to generate kpath")
 
     subparser.add_argument("--kpath-file", type=str, default="kpath-from-seekpath.txt",
-            help="the output kpoints file")
+        help="the output kpoints file")
 
 
     # ---------------------------------------------------------------------------------
@@ -178,19 +178,19 @@ def main():
     subparser = subparsers.add_parser("move", help="move atoms along one direction")
 
     subparser.add_argument("-i", "--input", type=str, required=True,
-            help="input structure file")
+        help="input structure file")
 
     subparser.add_argument("-o", "--output", type=str, required=True,
-            help="output structure file")
+        help="output structure file")
 
     subparser.add_argument("--atoms", type=int, nargs="+",
-            help="atoms to move, index start from 1")
+        help="atoms to move, index start from 1")
 
     subparser.add_argument("--direction", type=float, nargs=3,
-            help="direction to move the atoms, in format of crystal orientation index")
+        help="direction to move the atoms, in format of crystal orientation index")
 
     subparser.add_argument("--disp", type=float,
-            help="displacement along the moving direction, in unit of Anstrom")
+        help="displacement along the moving direction, in unit of Anstrom")
 
     # ---------------------------------------------------------------------------------
     # remove atoms
@@ -198,16 +198,16 @@ def main():
     subparser = subparsers.add_parser("remove", help="remove specified atoms")
 
     subparser.add_argument("-i", "--input", type=str, required=True,
-            help="input structure file")
+        help="input structure file")
 
     subparser.add_argument("-o", "--output", type=str, required=True,
-            help="output structure file")
+        help="output structure file")
 
     subparser.add_argument("--atoms", type=int, nargs="+",
-            help="atoms to remove, index start from 1")
+        help="atoms to remove, index start from 1")
 
     subparser.add_argument("--elements", type=str, nargs="+",
-            help="elements to remove")
+        help="elements to remove")
 
     # ---------------------------------------------------------------------------------
     # vacuum layer
@@ -215,16 +215,16 @@ def main():
     subparser = subparsers.add_parser("vacuum", help="add vacuum layer")
 
     subparser.add_argument("-i", "--input", type=str, required=True,
-            help="input structure file")
+        help="input structure file")
 
     subparser.add_argument("-o", "--output", type=str, required=True,
-            help="output structure file")
+        help="output structure file")
 
     subparser.add_argument("--plane", type=int, default=1,
-            help="on which plane to add vacuum layer. 1: ab, 2: ac, 3: bc")
+        help="on which plane to add vacuum layer. 1: ab, 2: ac, 3: bc")
 
     subparser.add_argument("--thick", type=float, default=10,
-            help="thickness of the vacuum layer, in unit of Angstrom, default is 10")
+        help="thickness of the vacuum layer, in unit of Angstrom, default is 10")
 
     # ---------------------------------------------------------------------------------
     # inverse atoms against geometric center
@@ -232,14 +232,14 @@ def main():
     subparser = subparsers.add_parser("inverse", help="inverse against geo center")
 
     subparser.add_argument("-i", "--input", type=str, required=True,
-            help="input structure file")
+        help="input structure file")
 
     subparser.add_argument("-o", "--output", type=str, required=True,
-            help="output structure file")
+        help="output structure file")
 
     subparser.add_argument("-c", "--center", type=str, default="cell",
-            choices=["geo", "cell"],
-            help="inversion center, can geo or cell")
+        choices=["geo", "cell"],
+        help="inversion center, can geo or cell")
             
     # ---------------------------------------------------------------------------------
     # redefine lattice
@@ -247,22 +247,22 @@ def main():
     subparser = subparsers.add_parser("redefine", help="redefine lattice")
 
     subparser.add_argument("-i", "--input", type=str, required=True,
-            help="input structure file")
+        help="input structure file")
 
     subparser.add_argument("-o", "--output", type=str, required=True,
-            help="output structure file")
+        help="output structure file")
 
     subparser.add_argument("-a", type=int, nargs=3, default=[1, 0, 0],
-            help="a from old a b c")
+        help="a from old a b c")
             
     subparser.add_argument("-b", type=int, nargs=3, default=[0, 1, 0],
-            help="b from old a b c")            
+        help="b from old a b c")            
             
     subparser.add_argument("-c", type=int, nargs=3, default=[0, 0, 1],
-            help="c from old a b c")            
+        help="c from old a b c")            
             
     subparser.add_argument("--precision", type=float, default=1.0e-8,
-            help="a value that is less than 1 and infinitely close to 1 used to judge whether one atom is in another periodic of the redefined cell")
+        help="a value that is less than 1 and infinitely close to 1 used to judge whether one atom is in another periodic of the redefined cell")
             
     # ---------------------------------------------------------------------------------
     # cleave surface
@@ -270,19 +270,19 @@ def main():
     subparser = subparsers.add_parser("cleave", help="cleave surface")
 
     subparser.add_argument("-i", "--input", type=str, required=True,
-            help="input structure file")
+        help="input structure file")
 
     subparser.add_argument("-o", "--output", type=str, required=True,
-            help="output structure file")
+        help="output structure file")
 
     subparser.add_argument("--direction", type=int, nargs=3, default=[0, 0, 1],
-            help="direction of the surface plane to cleave")            
+        help="direction of the surface plane to cleave")            
             
     subparser.add_argument("--thick", type=float,
-            help="thickness of the vacuum layer, in unit of Angstrom, default is 10")
+        help="thickness of the vacuum layer, in unit of Angstrom, default is 10")
             
     subparser.add_argument("--precision", type=float, default=1.0e-8,
-            help="a value that is large than 0 and infinitely close to 0 used to judge whether one atom is in another periodic of the redefined cell used in cleave surface")
+        help="a value that is large than 0 and infinitely close to 0 used to judge whether one atom is in another periodic of the redefined cell used in cleave surface")
             
     # ---------------------------------------------------------------------------------
     # merge layers | ab plane
@@ -290,23 +290,23 @@ def main():
     subparser = subparsers.add_parser("merge", help="merge layers | ab plane")
 
     subparser.add_argument("-i", "--input", type=str, nargs=2, required=True,
-            help="input structure files")
+        help="input structure files")
 
     subparser.add_argument("-o", "--output", type=str, required=True,
-            help="output structure file")
+        help="output structure file")
 
     #subparser.add_argument("--direction", type=int, nargs=3, default=[0, 0, 1],
     #        help="direction of the surface plane to cleave")            
             
     subparser.add_argument("--usecell", type=str, default="average",
-            choices=["1", "2", "average"],
-            help="use cell of structure 1 or 2 , otherwise average by default")            
+        choices=["1", "2", "average"],
+        help="use cell of structure 1 or 2 , otherwise average by default")            
             
     subparser.add_argument("--thick", type=float,
-            help="thickness of the vacuum layer, in unit of Angstrom, default is 10")
+        help="thickness of the vacuum layer, in unit of Angstrom, default is 10")
             
     subparser.add_argument("--distance", type=float,
-            help="distance between the layer, in unit of Angstrom, default is 3.4")
+        help="distance between the layer, in unit of Angstrom, default is 3.4")
             
     # ---------------------------------------------------------------------------------
     # nanotube builder
@@ -314,17 +314,17 @@ def main():
     subparser = subparsers.add_parser("tube", help="nanotube along b direction(a must be perpendicular to b and ab is the surface plane)")
 
     subparser.add_argument("-i", "--input", type=str, required=True,
-            help="input structure files")
+        help="input structure files")
 
     subparser.add_argument("-o", "--output", type=str, required=True,
-            help="output structure file")
+        help="output structure file")
             
     subparser.add_argument("--plane", type=int, default=1,
-            help="on which plane to add vacuum layer. 1: ab, 2: ac, 3: bc")
+        help="on which plane to add vacuum layer. 1: ab, 2: ac, 3: bc")
             
     subparser.add_argument("--axis", type=str, default="b",
-            choices=["a", "b", "c"],
-            help="build nanotube along an axis parallel to axis specified")
+        choices=["a", "b", "c"],
+        help="build nanotube along an axis parallel to axis specified")
      
     # -----------------------------------------------------------------------------------
     # set frac within zero and one
@@ -332,10 +332,10 @@ def main():
     subparser = subparsers.add_parser("std", help="set fractional coordinates within zero and one")
     
     subparser.add_argument("-i", "--input", type=str, required=True,
-            help="input structure file")
+        help="input structure file")
             
     subparser.add_argument("-o", "--output", type=str, required=True,
-            help="output structure file")
+        help="output structure file")
      
     # ------------------------------------------------------------------------------------
     # generate series of cell volume changed structures
@@ -343,13 +343,13 @@ def main():
     subparser = subparsers.add_parser("cv", help="generate series of cell volume changed structures")
 
     subparser.add_argument("-i", "--input", type=str, required=True,
-            help="input structure file")
+        help="input structure file")
 
     subparser.add_argument("-d", "--directory", type=str, default="./",
-            help="directory to put the generated structures")
+        help="directory to put the generated structures")
 
     subparser.add_argument("--range", type=float, nargs=3, default=[0.95, 1.05, 0.01],
-            help="cell volume change ratio, default is [0.95, 1.05, 0.01]")
+        help="cell volume change ratio, default is [0.95, 1.05, 0.01]")
 
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting

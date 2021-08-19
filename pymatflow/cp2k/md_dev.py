@@ -200,7 +200,7 @@ class MdRun(Cp2k):
                 })
 
             # need the EXT_RESTART block
-            self..set_params({
+            self.set_params({
                 "EXT_RESTART-EXTERNAL_FILE": "ab-initio-1.restart",
                 "EXT_RESTART-RESTART_THERMOSTAT": "FALSE",
                 })

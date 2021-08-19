@@ -86,49 +86,49 @@ def main():
     subparser = subparsers.add_parser("abinit", help="using abinit as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5, 6, 7],
-            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-opt; 3->hexagonal-opt; 4->tetragonal-opt; 5->dfpt-elastic-piezo-dielec; 6->dfpt-phonon; 7->phonopy")
+        choices=[0, 1, 2, 3, 4, 5, 6, 7],
+        help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-opt; 3->hexagonal-opt; 4->tetragonal-opt; 5->dfpt-elastic-piezo-dielec; 6->dfpt-phonon; 7->phonopy")
 
     subparser.add_argument("--kpath-manual", type=str, nargs="+", default=None,
-            help="manual input kpath for band structure calculation")
+        help="manual input kpath for band structure calculation")
 
     subparser.add_argument("--kpath-file", type=str,
-            help="file to read the kpath for band structure calculation")
+        help="file to read the kpath for band structure calculation")
 
 
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
-            help="Directory to do the calculation")
+        help="Directory to do the calculation")
 
     # structure file
     structfile = subparser.add_mutually_exclusive_group() # only one of them can be provided
     structfile.add_argument("--xyz", type=str, default=None,
-            help="The xyz structure file with the second line specifying the cell parameter")
+        help="The xyz structure file with the second line specifying the cell parameter")
 
     structfile.add_argument("--cif", type=str, default=None,
-            help="The cif structure file")
+        help="The cif structure file")
 
     structfile.add_argument("--xsd", type=str, default=None,
-            help="The xsd structure file")
+        help="The xsd structure file")
 
     structfile.add_argument("--xsf", type=str, default=None,
-            help="The xsf structure file")
+        help="The xsf structure file")
 
 
     subparser.add_argument("--plotrange", type=float, nargs="+",
-            default=[0, 1.0],
-            help="range to plot. in percentage")
+        default=[0, 1.0],
+        help="range to plot. in percentage")
 
     subparser.add_argument("--bandrange", type=float, nargs="+",
-            default=[0, 1.0],
-            help="band range to plot. in percentage")
+        default=[0, 1.0],
+        help="band range to plot. in percentage")
 
     subparser.add_argument("--engine", type=str, default="matplotlib",
-            choices=["matplotlib", "gnuplot"],
-            help="plot engine, matplotlib or gnuplot")
+        choices=["matplotlib", "gnuplot"],
+        help="plot engine, matplotlib or gnuplot")
 
     subparser.add_argument("--supercell-n", type=int, nargs="+",
-            default=[1, 1, 1],
-            help="supercell for phonopy, like [2, 2, 2]")
+        default=[1, 1, 1],
+        help="supercell for phonopy, like [2, 2, 2]")
 
     # --------------------------------------------------------------------------
     # CP2K
@@ -136,65 +136,65 @@ def main():
     subparser = subparsers.add_parser("cp2k", help="using cp2k as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default="static",
-            choices=[0, 1, 2, 3, 4 ,5, 6, 7, 8, 9, 10],
-            help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->neb; 7->phonopy; 8->vibrational_analysis; 9:converge test; 10->aimd")
+        choices=[0, 1, 2, 3, 4 ,5, 6, 7, 8, 9, 10],
+        help="choices of runtype. 0->static_run; 1->geo-opt; 2->cell-opt; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->neb; 7->phonopy; 8->vibrational_analysis; 9:converge test; 10->aimd")
 
     subparser.add_argument("--static", type=str, nargs="+", default=None,
-            choices=["scf", "band", "pdos"],
-            help="type of static calc, like band")
+        choices=["scf", "band", "pdos"],
+        help="type of static calc, like band")
 
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
-            help="Directory for the running.")
+        help="Directory for the running.")
 
     subparser.add_argument("--smearing-width", type=float, default=0.2,
-            help="smearing width for the processing of pdos data")
+        help="smearing width for the processing of pdos data")
 
     subparser.add_argument("--kpath-manual", type=str, nargs="+", default=None,
-            help="manual input kpath for band structure calculation")
+        help="manual input kpath for band structure calculation")
 
     subparser.add_argument("--kpath-file", type=str,
-            help="file to read the kpath for band structure calculation")
+        help="file to read the kpath for band structure calculation")
 
     subparser.add_argument("--bandrange", type=float, nargs="+",
-            default=[0, 1.0],
-            help="band range to plot. in percentage")
+        default=[0, 1.0],
+        help="band range to plot. in percentage")
 
     subparser.add_argument("--xrange", type=float, nargs=2,
-            default=None,
-            help="x range of the plot")
+        default=None,
+        help="x range of the plot")
 
     subparser.add_argument("--yrange", type=float, nargs=2,
-            default=None,
-            help="y range of the plot")
+        default=None,
+        help="y range of the plot")
 
     subparser.add_argument("--engine", type=str, default="matplotlib",
-            choices=["matplotlib", "gnuplot"],
-            help="plot engine, matplotlib or gnuplot")
+        choices=["matplotlib", "gnuplot"],
+        help="plot engine, matplotlib or gnuplot")
 
     # structure file
     structfile = subparser.add_mutually_exclusive_group() # only one of them can be provided
     structfile.add_argument("--xyz", type=str, default=None,
-            help="The xyz structure file with the second line specifying the cell parameter")
+        help="The xyz structure file with the second line specifying the cell parameter")
 
     structfile.add_argument("--cif", type=str, default=None,
-            help="The cif structure file")
+        help="The cif structure file")
 
     structfile.add_argument("--xsd", type=str, default=None,
-            help="The xsd structure file")
+        help="The xsd structure file")
 
     structfile.add_argument("--xsf", type=str, default=None,
-            help="The xsf structure file")
+        help="The xsf structure file")
 
     subparser.add_argument("--converge", type=str, default="cutoff",
-            choices=["cutoff", "rel_cutoff", "kpoints_auto", "kpoints_manual"],
-            help="choose type of converge test")
+        choices=["cutoff", "rel_cutoff", "kpoints_auto", "kpoints_manual"],
+        help="choose type of converge test")
 
     subparser.add_argument("--criteria", type=float, default=3.67e-4,
-            help="converge criteria for cutoff or rel_cutoff or kpoints in unit of Hartree")
+        help="converge criteria for cutoff or rel_cutoff or kpoints in unit of Hartree")
 
     subparser.add_argument("--supercell-n", type=int, nargs="+",
-            default=[1, 1, 1],
-            help="supercell for phonopy, like [2, 2, 2]")
+        default=[1, 1, 1],
+        help="supercell for phonopy, like [2, 2, 2]")
 
 
     # --------------------------------------------------------------------------
@@ -203,95 +203,95 @@ def main():
     subparser = subparsers.add_parser("qe", help="using quantum espresso as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 11],
-            help="choices of runtype. 0->static_run; 1->relax; 2->vc-relax; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->neb; 7->dfpt; 8->phonopy")
+        choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 11],
+        help="choices of runtype. 0->static_run; 1->relax; 2->vc-relax; 3->cubic-cell; 4->hexagonal-cell; 5->tetragonal-cell; 6->neb; 7->dfpt; 8->phonopy")
 
 
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
-            help="Directory for the running.")
+        help="Directory for the running.")
 
     subparser.add_argument("--kpath-manual", type=str, nargs="+", default=None,
-            help="manual input kpath in crystal_b, like --kpath-manual '0.000000 0.000000 0.000000 GAMMA 5' '0.500000 0.000000 0.000000 X 5' '0.0000 0.000 0.50000 A |' '0.5 0.5 0.5 R '")
+        help="manual input kpath in crystal_b, like --kpath-manual '0.000000 0.000000 0.000000 GAMMA 5' '0.500000 0.000000 0.000000 X 5' '0.0000 0.000 0.50000 A |' '0.5 0.5 0.5 R '")
 
     subparser.add_argument("--kpath-file", type=str,
-            help="manual input kpath in crystal_b read from the file")
+        help="manual input kpath in crystal_b read from the file")
 
     subparser.add_argument("--bandrange", type=float, nargs="+",
-            default=[0, 1.0],
-            help="band range to plot. in percentage")
+        default=[0, 1.0],
+        help="band range to plot. in percentage")
  
     subparser.add_argument("--use-fermi", type=str, default="scf",
-            choices=["scf", "nscf"],
-            help="choose to extracr fermi energy from scf or nscf output. default is scf")
+        choices=["scf", "nscf"],
+        help="choose to extracr fermi energy from scf or nscf output. default is scf")
 
     subparser.add_argument("--engine", type=str, default="matplotlib",
-            choices=["matplotlib", "gnuplot"],
-            help="plot engine, matplotlib or gnuplot")
+        choices=["matplotlib", "gnuplot"],
+        help="plot engine, matplotlib or gnuplot")
 
 
     subparser.add_argument("--plotrange", type=float, nargs="+",
-            default=[0, 1.0],
-            help="plot range (in percentage), like --plotrange 0.1 0.9")
+        default=[0, 1.0],
+        help="plot range (in percentage), like --plotrange 0.1 0.9")
 
     subparser.add_argument("--atomtoproj", type=int, nargs="+",
-            default=[],
-            help="atom to projection in atom projected dos. atom number starts with 1.")
+        default=[],
+        help="atom to projection in atom projected dos. atom number starts with 1.")
 
     subparser.add_argument("--fontsize", type=int, default=10,
-            help="fontsize for the plot.")
+        help="fontsize for the plot.")
             
     # structure file
     structfile = subparser.add_mutually_exclusive_group() # only one of them can be provided
     structfile.add_argument("--xyz", type=str, default=None,
-            help="The xyz structure file with the second line specifying the cell parameter")
+        help="The xyz structure file with the second line specifying the cell parameter")
 
     structfile.add_argument("--cif", type=str, default=None,
-            help="The cif structure file")
+        help="The cif structure file")
 
     structfile.add_argument("--xsd", type=str, default=None,
-            help="The xsd structure file")
+        help="The xsd structure file")
 
     structfile.add_argument("--xsf", type=str, default=None,
-            help="The xsf structure file")
+        help="The xsf structure file")
 
 
     subparser.add_argument("--nebint", type=str, default="pwscf.int",
-            help="xxx.int")
+        help="xxx.int")
 
     subparser.add_argument("--nebdat", type=str, default="pwscf.dat",
-            help="xxx.dat")
+        help="xxx.dat")
 
     subparser.add_argument("--inpname", type=str, default="min-energy-path.gp",
-            help="inpname for the gnuplot script")
+        help="inpname for the gnuplot script")
 
     subparser.add_argument("--md", type=str, default="neb-report.md",
-            help="Markdown report file name")
+        help="Markdown report file name")
 
     subparser.add_argument("--nebout", type=str, default="neb.out",
-            help="output file of neb calculation")
+        help="output file of neb calculation")
 
     subparser.add_argument("--supercell-n", type=int, nargs="+",
-            default=[1, 1, 1],
-            help="supercell for phonopy, like [2, 2, 2]")
+        default=[1, 1, 1],
+        help="supercell for phonopy, like [2, 2, 2]")
 
     subparser.add_argument("--opt-out", type=str, default=None,
-            help="path of the output file for relax or vc-relax")
+        help="path of the output file for relax or vc-relax")
 
 
     subparser.add_argument("--xrange", type=float, nargs=2,
-            default=None,
-            help="x range of the plot")
+        default=None,
+        help="x range of the plot")
 
     subparser.add_argument("--yrange", type=float, nargs=2,
-            default=None,
-            help="y range of the plot")
+        default=None,
+        help="y range of the plot")
 
     gp = subparser.add_argument_group(title="converge test",
-            description="converge test for ecutrho ecutwfc degauss kpoints")
-    
+        description="converge test for ecutrho ecutwfc degauss kpoints")
+
     gp.add_argument("--converge", type=str, default="ecutwfc",
-            choices=["ecutwfc", "ecutrho", "degauss", "kpoints"],
-            help="choose what to do converge test, ecutwfc or ecutrho or degauss, or kpoints")
+        choices=["ecutwfc", "ecutrho", "degauss", "kpoints"],
+        help="choose what to do converge test, ecutwfc or ecutrho or degauss, or kpoints")
 
 
     # --------------------------------------------------------------------------
@@ -300,109 +300,109 @@ def main():
     subparser = subparsers.add_parser("siesta", help="using siesta as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5],
-            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->phonpy")
+        choices=[0, 1, 2, 3, 4, 5],
+        help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->phonpy")
 
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
-            help="Directory for the running.")
+        help="Directory for the running.")
 
     subparser.add_argument("--kpath-manual", type=str, nargs="+", default=None,
-            help="manual input kpath like --kpath-manual '0.000000 0.000000 0.000000 GAMMA 5' '0.500000 0.000000 0.000000 X 5' '0.0000 0.000 0.50000 A |' '0.5 0.5 0.5 R '")
+        help="manual input kpath like --kpath-manual '0.000000 0.000000 0.000000 GAMMA 5' '0.500000 0.000000 0.000000 X 5' '0.0000 0.000 0.50000 A |' '0.5 0.5 0.5 R '")
 
     subparser.add_argument("--kpath-file", type=str,
-            help="manual input kpath read from the file")
+        help="manual input kpath read from the file")
 
 
     # structure file
     structfile = subparser.add_mutually_exclusive_group() # only one of them can be provided
     structfile.add_argument("--xyz", type=str, default=None,
-            help="The xyz structure file with the second line specifying the cell parameter")
+        help="The xyz structure file with the second line specifying the cell parameter")
 
     structfile.add_argument("--cif", type=str, default=None,
-            help="The cif structure file")
+        help="The cif structure file")
 
     structfile.add_argument("--xsd", type=str, default=None,
-            help="The xsd structure file")
+        help="The xsd structure file")
 
     structfile.add_argument("--xsf", type=str, default=None,
-            help="The xsf structure file")
+        help="The xsf structure file")
 
     subparser.add_argument("--supercell-n", type=int, nargs="+",
-            default=[1, 1, 1],
-            help="supercell for phonopy, like [2, 2, 2]")
+        default=[1, 1, 1],
+        help="supercell for phonopy, like [2, 2, 2]")
 
     subparser.add_argument("--engine", type=str, default="gnuplot",
-            choices=["matplotlib", "gnuplot"],
-            help="choose gnuplot or matplot lib to do the band plot")
+        choices=["matplotlib", "gnuplot"],
+        help="choose gnuplot or matplot lib to do the band plot")
     # --------------------------------------------------------------------------
     # VASP
     # --------------------------------------------------------------------------
     subparser = subparsers.add_parser("vasp", help="using vasp as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5, 6, 7, 10],
-            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->neb; 6->vasp-phonon; 7->phonopy; 10-md")
+        choices=[0, 1, 2, 3, 4, 5, 6, 7, 10],
+        help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->neb; 6->vasp-phonon; 7->phonopy; 10-md")
 
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
-            help="Directory for the running.")
+        help="Directory for the running.")
 
     
     subparser.add_argument("--static", type=str, default="band",
-            choices=["scf", "band", "dos", "optics", "bse"],
-            help="in case of band(default), run scf, nscf(bands) in a single run; in case of scf, run scf only, in case of optics, run scf and optics calc in a single run")
+        choices=["scf", "band", "dos", "optics", "bse"],
+        help="in case of band(default), run scf, nscf(bands) in a single run; in case of scf, run scf only, in case of optics, run scf and optics calc in a single run")
 
 
     subparser.add_argument("--kpath-manual", type=str, nargs="+", default=None,
-            help="manual input kpath like --kpath-manual '0.000000 0.000000 0.000000 GAMMA 5' '0.500000 0.000000 0.000000 X 5' '0.0000 0.000 0.50000 A |' '0.5 0.5 0.5 R '")
+        help="manual input kpath like --kpath-manual '0.000000 0.000000 0.000000 GAMMA 5' '0.500000 0.000000 0.000000 X 5' '0.0000 0.000 0.50000 A |' '0.5 0.5 0.5 R '")
 
     subparser.add_argument("--kpath-file", type=str,
-            help="manual input kpath read from the file")
+        help="manual input kpath read from the file")
 
     # structure file
     structfile = subparser.add_mutually_exclusive_group() # only one of them can be provided
     structfile.add_argument("--xyz", type=str, default=None,
-            help="The xyz structure file with the second line specifying the cell parameter")
+        help="The xyz structure file with the second line specifying the cell parameter")
 
     structfile.add_argument("--cif", type=str, default=None,
-            help="The cif structure file")
+        help="The cif structure file")
 
     structfile.add_argument("--xsd", type=str, default=None,
-            help="The xsd structure file")
+        help="The xsd structure file")
 
     structfile.add_argument("--xsf", type=str, default=None,
-            help="The xsf structure file")
+        help="The xsf structure file")
 
 
     subparser.add_argument("--efermi", type=str, default="scf",
-            choices=["scf", "nscf"],
-            help="choose to read the efermi from nscf or scf, default is scf")
+        choices=["scf", "nscf"],
+        help="choose to read the efermi from nscf or scf, default is scf")
 
     subparser.add_argument("--plotrange", type=float, nargs="+",
-            default=[0, 1.0],
-            help="range to plot. in percentage")
+        default=[0, 1.0],
+        help="range to plot. in percentage")
 
     subparser.add_argument("--bandrange", type=float, nargs="+",
-            default=[0, 1.0],
-            help="band range to plot. in percentage")
+        default=[0, 1.0],
+        help="band range to plot. in percentage")
 
     subparser.add_argument("--xrange", type=float, nargs=2,
-            default=None,
-            help="x range of the plot")
+        default=None,
+        help="x range of the plot")
 
     subparser.add_argument("--yrange", type=float, nargs=2,
-            default=None,
-            help="y range of the plot")
+        default=None,
+        help="y range of the plot")
 
     subparser.add_argument("--engine", type=str, default="matplotlib",
-            choices=["matplotlib", "gnuplot"],
-            help="plot engine, matplotlib or gnuplot")
+        choices=["matplotlib", "gnuplot"],
+        help="plot engine, matplotlib or gnuplot")
 
     subparser.add_argument("--supercell-n", type=int, nargs="+",
-            default=[1, 1, 1],
-            help="supercell for phonopy, like [2, 2, 2]")
+        default=[1, 1, 1],
+        help="supercell for phonopy, like [2, 2, 2]")
             
     subparser.add_argument("--tmax", type=float, default=1500,
-            help="phonopy thermo properties calc temperature max")
+        help="phonopy thermo properties calc temperature max")
 
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting

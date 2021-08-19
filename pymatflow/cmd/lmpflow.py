@@ -19,11 +19,11 @@ def main():
     subparser = subparsers.add_parser("lmp", help="using lammps as calculator")
 
     subparser.add_argument("-r", "--runtype", type=int, default=0,
-            choices=[0, 1, 2, 3, 4, 5, 6, 7],
-            help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->neb; 6->vasp-phonon; 7->phonopy")
+        choices=[0, 1, 2, 3, 4, 5, 6, 7],
+        help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-cell; 3->hexagonal-cell; 4->tetragonal-cell; 5->neb; 6->vasp-phonon; 7->phonopy")
 
     subparser.add_argument("-d", "--directory", type=str, default="matflow-running",
-            help="Directory for the running.")
+        help="Directory for the running.")
 
 
 
@@ -36,10 +36,10 @@ def main():
     subparser = subparsers.add_parser("data", help="lammps structure data operation")
 
     subparser.add_argument("-i", "--input", type=str,
-            help="input structure file, canbe xxx.cif, xxx.xyz, xxx.xsd, xxx.cube")
+        help="input structure file, canbe xxx.cif, xxx.xyz, xxx.xsd, xxx.cube")
 
     subparser.add_argument("-o", "--output", type=str, default="lammps.data",
-            help="output lammps data file containing the structure information")
+        help="output lammps data file containing the structure information")
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
     # ==========================================================
