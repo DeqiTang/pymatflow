@@ -17,7 +17,7 @@ class CleanCommand(Command):
 
 setup(
     name = "pymatflow",
-    version = '0.0.12a3',
+    version = '0.0.12',
     ## python3 setup.py build sdist bdist_wheel
     ## twine upload dist/*
     keywords = ("Ab intio ,DFT, workflow, input generation"),

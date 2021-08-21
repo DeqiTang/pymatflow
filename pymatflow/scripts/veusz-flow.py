@@ -26,7 +26,20 @@ Ref:
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
-def bandDataToVeuszEmbed(datafile, gplotfile, vszfile):
+def setAllNodesSameFont(node, font='Source Han Sans'):
+    """
+    Note:
+        Nodes: including WidgetNode, SettingGroupNode, SettingNode
+        node can start from Root
+    """
+    # setting the font of every children_widgets children_settinggroups 
+    # of Root to the specified font recursively
+    for child in list(node.children):
+        if 'font' in child.childnames:
+            child.font.val = font
+        setAllNodesSameFont(child, font=font)
+
+def bandDataToVeuszEmbed(datafile, gplotfile, vszfile, font="Source Han Sans"):
     """
     Note:
         datafile and gplotfile are files usually generated in post-processing dir by pymatflow
@@ -50,7 +63,7 @@ def bandDataToVeuszEmbed(datafile, gplotfile, vszfile):
     if 1 == line.split("using")[1].split(")")[0].split("$")[1].count("-"):
         efermi = float(line.split("using")[1].split(")")[0].split("$")[1].split("-")[-1])
     elif 2 == line.split("using")[1].split(")")[0].split("$")[1].count("-"):
-        efermi = 0 - float(line.split("using")[1].split(")")[0].split("$")[1].count("-")[-1])
+        efermi = 0 - float(line.split("using")[1].split(")")[0].split("$")[1].split("-")[-1])
 
 
     #  make a new page, but adding a page widget to the root widget
@@ -72,7 +85,9 @@ def bandDataToVeuszEmbed(datafile, gplotfile, vszfile):
         xy.xData.val ="data[%d, :, 0]" % i
         xy.yData.val ="data[%d, :, 1] - %f" % (i, efermi)
         xy.marker.val ="none"
-        xy.PlotLine.width.val = "1.5pt"
+        #xy.PlotLine.width.val = "1.5pt"
+        xy.PlotLine.width.val = "2pt"
+        xy.PlotLine.color.val = "black"
     # formatting
     # use widget.childnames to see what properties it has
 
@@ -81,8 +96,8 @@ def bandDataToVeuszEmbed(datafile, gplotfile, vszfile):
     y.direction.val = 'vertical'
 
     graph.y.label.val = 'Energy (E - E_{f})'
-    graph.y.Label.font.val = "Source Han Sans"
-    graph.y.TickLabels.font.val = "Source Han Sans"
+    graph.y.Label.font.val = font
+    graph.y.TickLabels.font.val = font
     graph.y.Label.size.val = "16pt"
     graph.y.TickLabels.size.val = "16pt"
     graph.y.Line.width.val = "3pt"
@@ -94,6 +109,9 @@ def bandDataToVeuszEmbed(datafile, gplotfile, vszfile):
     graph.y.MinorTicks.width.val = "1.5pt"
     graph.y.max.val = 4
     graph.y.min.val  = -4
+    graph.leftMargin.val = "2cm"
+    graph.rightMargin.val = "0.5cm"
+    graph.aspect.val = 1 # default is 'auto'
 
     # parse gnuplot file for high symmetry kpath
     # find and parse line like:
@@ -116,20 +134,23 @@ def bandDataToVeuszEmbed(datafile, gplotfile, vszfile):
     for item in klabel:
         line = graph.Add("line")
         line.mode.val = "length-angle"
-        line.positioning.val = "axes"
+        line.positioning.val = "relative"
         line.angle.val = [90]
-        line.xPos.val = [item["x"]]
-        line.yPos.val = [graph.y.max.val]
+        line.xPos.val = [item["x"] / klabel[-1]["x"]]
+        line.yPos.val = [1]
         line.length.val = [1]
         line.Line.style.val = "dashed"
         line.Line.width.val = "1pt"
         label = graph.Add("label")
-        label.Text.font.val = "Source Han Sans"
+        label.Text.font.val = font
         label.Text.size.val = "16pt"
-        label.positioning.val = "axes"
+        label.positioning.val = "relative"
         label.label.val = item["label"]
-        label.xPos.val = [item["x"]]
-        label.yPos.val = [graph.y.min.val-0.5]
+        # minus by shiftLabelX to set the label aligned with the verticalline by vertical center
+        # because by dfault the label will set its left bound to label.xPos.val
+        shiftLabelX = float(label.Text.size.val.split("pt")[0]) / 15 * 0.015
+        label.xPos.val = [item["x"] / klabel[-1]["x"] - shiftLabelX] 
+        label.yPos.val = [0 - 0.05] # a little bit lower than the bottom x axis
     # and Fermi horizontal line
     line = graph.Add("line")
     line.mode.val = "length-angle"
@@ -144,8 +165,12 @@ def bandDataToVeuszEmbed(datafile, gplotfile, vszfile):
     graph.x.autoExtend.val = False
     graph.x.autoExtendZero.val = False
 
+    # set all font to font
+    setAllNodesSameFont(embed.Root, font=font)
+
     # save to veusz project file
     embed.Save(vszfile)
+    #embed.Export("%s.png" % os.path.join(os.path.dirname(vszfile), os.path.basename(vszfile)), color=True, page=-1, dpi=300, antialias=True, quality=100, backcolor='#ffffff00', pdfdpi=150, svgtextastext=False)
     embed.Export("%s.png" % vszfile, color=True, page=-1, dpi=300, antialias=True, quality=100, backcolor='#ffffff00', pdfdpi=150, svgtextastext=False)
 
     #del os.environ["QT_QPA_PLATFORM"]
@@ -159,6 +184,9 @@ def main():
     parser.add_argument("--output-vsz", type=str, default="./auto-output.vsz",
         help="save to an veusz project file")
 
+    parser.add_argument("--font", type=str, default="Arial",
+        #choices=["Source Han Sans", "Aria", "Times New Roman", "Noto Sans CJK SC"],
+        help="set the font")
     args = parser.parse_args()
     #
     #
@@ -166,7 +194,9 @@ def main():
     bandDataToVeuszEmbed(
         datafile=args.input[0],
         gplotfile=args.input[1],
-        vszfile=args.output_vsz)
+        vszfile=args.output_vsz,
+        font=args.font
+    )
 
 if __name__ == "__main__":
     main()
