@@ -80,6 +80,64 @@ def get_kpath(kpath_manual=None, kpath_file=None):
     # -------------------------------------------------------------------
 
 
+def getXyzFile(args):
+    """
+    return-> xyzfile, images
+    """
+    # dealing wich structure files
+    xyzfile = None
+    images = []
+    if args.xyz != None:
+        xyzfile = args.xyz
+    elif args.cif != None:
+        os.system("structflow convert -i %s -o %s.xyz" % (args.cif, args.cif))
+        xyzfile = "%s.xyz" % args.cif
+    elif args.xsd != None:
+        os.system("structflow convert -i %s -o %s.xyz" % (args.xsd, args.xsd))
+        xyzfile = "%s.xyz" % args.xsd
+    elif args.xsf != None:
+        os.sytem("structflow convert -i % -o %s.xyz" % (args.xsf, args.xsf))
+        xyzfile = "%s.xyz" % args.xsf
+    else:
+        # neb caculattion with
+        images = []
+        for image in args.images:
+            if image.split(".")[-1] == "xyz":
+                images.append(image)
+            else:
+                os.system("structflow convert -i %s -o %s.xyz" % (image, image))
+                images.append("%s.xyz" % image)
+        xyzfile = images[0] # this set only for dealing with pseudo potential file
+        #
+    # dealing with pseudo potential file
+    if args.driver in ["dftb+"]:
+        pass
+    else:
+        if args.pot == "./":
+            #TODO make a simple check, whether there exists the potential file
+            pass
+        elif args.pot == "auto":
+            if args.driver == "abinit":
+                os.system("pot-from-xyz-modified.py -i %s -d ./ -p abinit --abinit-type=ncpp" % xyzfile)
+            elif args.driver == "qe":
+                if args.runtype == 6:
+                    os.system("pot-from-xyz-modified.py -i %s -d ./ -p qe --qe-type=%s" % (images[0]), args.pot_type)
+                else:
+                    os.system("pot-from-xyz-modified.py -i %s -d ./ -p qe --qe-type=%s" % (xyzfile, args.pot_type))
+            elif args.driver == "siesta":
+                print("=============================================================\n")
+                print("                     WARNING\n")
+                print("-------------------------------------------------------------\n")
+                print("support for auto preparation of pseudopotential file for siesta\n")
+                print("is not fully implemented now!\n")
+                print("please prepare it yourself\n")
+                sys.exit(1)
+            elif args.driver == "vasp":
+                os.system("vasp-potcar-from-xyz.py --type %s -i %s -o ./POTCAR" % (args.pot_type, xyzfile))
+        else:
+            os.system("cp %s/* ./" % args.pot)
+    return xyzfile, images
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -113,68 +171,7 @@ def main():
         print("which is not allowed.\n")
         print("try specify it to a new directory like -d matflow-running\n")
         sys.exit(1)
-
-    # dealing wich structure files
-    if args.xyz != None:
-        xyzfile = args.xyz
-    elif args.cif != None:
-        os.system("structflow convert -i %s -o %s.xyz" % (args.cif, args.cif))
-        xyzfile = "%s.xyz" % args.cif
-    elif args.xsd != None:
-        os.system("structflow convert -i %s -o %s.xyz" % (args.xsd, args.xsd))
-        xyzfile = "%s.xyz" % args.xsd
-    elif args.xsf != None:
-        os.sytem("structflow convert -i % -o %s.xyz" % (args.xsf, args.xsf))
-        xyzfile = "%s.xyz" % args.xsf
-    else:
-        # neb caculattion with
-        images = []
-        for image in args.images:
-            if image.split(".")[-1] == "xyz":
-                images.append(image)
-            else:
-                os.system("structflow convert -i %s -o %s.xyz" % (image, image))
-                images.append("%s.xyz" % image)
-        xyzfile = images[0] # this set only for dealing with pseudo potential file
-        #
-
-
-
-
-    # dealing with pseudo potential file
-    if args.driver in ["dftb+"]:
-        pass
-    else:
-        if args.pot == "./":
-            #TODO make a simple check, whether there exists the potential file
-            pass
-        elif args.pot == "auto":
-            if args.driver == "abinit":
-                os.system("pot-from-xyz-modified.py -i %s -d ./ -p abinit --abinit-type=ncpp" % xyzfile)
-            elif args.driver == "qe":
-                if args.runtype == 6:
-                    os.system("pot-from-xyz-modified.py -i %s -d ./ -p qe --qe-type=%s" % (images[0]), args.pot_type)
-                else:
-                    os.system("pot-from-xyz-modified.py -i %s -d ./ -p qe --qe-type=%s" % (xyzfile, args.pot_type))
-            elif args.driver == "siesta":
-                print("=============================================================\n")
-                print("                     WARNING\n")
-                print("-------------------------------------------------------------\n")
-                print("support for auto preparation of pseudopotential file for siesta\n")
-                print("is not fully implemented now!\n")
-                print("please prepare it yourself\n")
-                sys.exit(1)
-            elif args.driver == "vasp":
-                os.system("vasp-potcar-from-xyz.py --type %s -i %s -o ./POTCAR" % (args.pot_type, xyzfile))
-        else:
-            os.system("cp %s/* ./" % args.pot)
-
-
-    # server
-    # xxx.set_run can only deal with pbs, llhpc, lsf_sz server now 
-    # however both guangzhou chaosuan llhpc are build on tianhe2, so they can use the same job system(yhbatch...)
-    # we add tianhe2 option to args.server which cannot be handled by xxx.set_run. so we convert it to llhpc if tianhe2 is chosen
-    server = args.server if args.server != "tianhe2" else "llhpc"
+        
 
     if args.driver == "abinit":
         abinitDriver(args)

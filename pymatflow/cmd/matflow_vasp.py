@@ -1,3 +1,4 @@
+import os
 
 def vaspSubparser(subparsers):
     # --------------------------------------------------------------------------
@@ -89,6 +90,13 @@ def vaspSubparser(subparsers):
     # --------------------------------------------------------
     #                   INCAR PARAMETERS
     # --------------------------------------------------------
+    # allow manual setting of any INCAR paramaters by cmd line
+    gp = subparser.add_argument_group(title="incar->any",
+        description="manual setting of any INCAR parameters")
+    
+    gp.add_argument("--incar-manual", type=str, default=None,
+        help="manual setting of INCAR like this: --incar-manual \'ENCUT=100; PREC=A;\'")
+
     # incar->start parameters
     gp = subparser.add_argument_group(title="incar->start parameters",
         description="start parameters to be set in INCAR")
@@ -532,9 +540,15 @@ def vaspSubparser(subparsers):
         choices=[".TRUE.", ".FALSE.", "T", "F"],
         help="This tag determines whether the total local potential (saved in the file LOCPOT) contains the entire local potential (ionic + Hartree + exchange correlation) or the electrostatic contributions only (ionic + Hartree).")
 
-
 def vaspDriver(args):
-
+    from pymatflow.cmd.matflow import getXyzFile
+    xyzfile, images = getXyzFile(args)
+    # server
+    # xxx.set_run can only deal with pbs, llhpc, lsf_sz server now 
+    # however both guangzhou chaosuan llhpc are build on tianhe2, so they can use the same job system(yhbatch...)
+    # we add tianhe2 option to args.server which cannot be handled by xxx.set_run. so we convert it to llhpc if tianhe2 is chosen
+    server = args.server if args.server != "tianhe2" else "llhpc"
+        
     params = {}
     # deal with INCAR template specified by --incar
     if args.incar == None:
@@ -560,6 +574,16 @@ def vaspDriver(args):
                 params[line.split("=")[0].split()[0].upper()] = line.split("\n")[0].split("#")[0].split("=")[1].split()[0]
             else:
                 params[line.split("=")[0].split()[0].upper()] = line.split("\n")[0].split("#")[0].split("=")[1].split()
+    # deal with INCAR cmd line setting specified by --incar-manual
+    if args.incar_manual != None:
+        for pair in args.incar_manual.split(";"):
+            if pair == "":
+                continue
+            if len(pair.split("=")) == 2:
+                # in case of single value INCAR varialbe
+                params[pair.split("=")[0].split()[0].upper()] = pair.split("=")[1].split()[0]
+            else:
+                params[pair.split("=")[0].split()[0].upper()] = pair.split("=")[1].split()
     #
     # if xxx is alraedy in params(set from --incar) and args.xxx is None
     # params[xxx] will not be control by args.xxx

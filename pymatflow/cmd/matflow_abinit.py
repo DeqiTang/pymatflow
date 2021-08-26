@@ -1,3 +1,4 @@
+import os
 
 def abinitSubparser(subparsers):
     # --------------------------------------------------------------------------
@@ -263,7 +264,14 @@ def abinitSubparser(subparsers):
             
 
 def abinitDriver(args):
-
+    from pymatflow.cmd.matflow import getXyzFile
+    xyzfile, images = getXyzFile(args)
+    # server
+    # xxx.set_run can only deal with pbs, llhpc, lsf_sz server now 
+    # however both guangzhou chaosuan llhpc are build on tianhe2, so they can use the same job system(yhbatch...)
+    # we add tianhe2 option to args.server which cannot be handled by xxx.set_run. so we convert it to llhpc if tianhe2 is chosen
+    server = args.server if args.server != "tianhe2" else "llhpc"
+          
     params = {}
     kpoints = {}
 

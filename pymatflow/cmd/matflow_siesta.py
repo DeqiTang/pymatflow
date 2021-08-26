@@ -1,4 +1,6 @@
 
+import os
+
 def siestaSubparser(subparsers):
     # --------------------------------------------------------------------------
     # SIESTA
@@ -265,6 +267,14 @@ def siestaDriver(args):
     # ==============================================================================
     # SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA SIESTA
     # ==============================================================================
+    from pymatflow.cmd.matflow import getXyzFile
+    xyzfile, images = getXyzFile(args)
+    # server
+    # xxx.set_run can only deal with pbs, llhpc, lsf_sz server now 
+    # however both guangzhou chaosuan llhpc are build on tianhe2, so they can use the same job system(yhbatch...)
+    # we add tianhe2 option to args.server which cannot be handled by xxx.set_run. so we convert it to llhpc if tianhe2 is chosen
+    server = args.server if args.server != "tianhe2" else "llhpc"
+          
     from pymatflow.siesta.base import default_units
     params = {}
 
