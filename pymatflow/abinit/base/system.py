@@ -52,9 +52,13 @@ class AbinitSystem:
         input_str += "\n"
         input_str += "\n"
         if self.coordtype.lower() == "cartesian":
-            input_str += "xangst%s\n" % (n if n > 0 else "")
+            #input_str += "xangst%s\n" % (n if n > 0 else "")
+            # xangst is disabled since v9.2 
+            # now use xcart and specify the unit with angstrom
+            input_str += "xcart%s\n" % (n if n > 0 else "")
             for atom in self.xyz.atoms:
                 input_str += "%.9f %.9f %.9f\n" % (atom.x, atom.y, atom.z)
+            input_str += "Angstrom\n"
         elif self.coordtype.lower() == "reduced":
             latcell = np.array(self.xyz.cell)
             convmat = np.linalg.inv(latcell.T)

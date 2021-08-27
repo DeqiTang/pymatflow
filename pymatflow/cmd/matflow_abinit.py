@@ -10,8 +10,8 @@ def abinitSubparser(subparsers):
         description="control the overall running parameters")
 
     gp.add_argument("-r", "--runtype", type=int, default=0,
-        choices=[0, 1, 2, 3, 4, 5, 6, 7, 8],
-        help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-opt; 3->hexagonal-opt; 4->tetragonal-opt; 5->dfpt-elastic-piezo-dielec; 6->dfpt-phonon; 7->phonopy; 8->abc")
+        choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        help="choices of runtype. 0->static_run; 1->optimization; 2->cubic-opt; 3->hexagonal-opt; 4->tetragonal-opt; 5->dfpt-elastic-piezo-dielec; 6->dfpt-phonon; 7->phonopy; 8->abc; 9->Optic")
 
     gp.add_argument("-d", "--directory", type=str, default="matflow-running",
         help="Directory to do the calculation")
@@ -441,5 +441,17 @@ def abinitDriver(args):
         task.batch_b = args.batch_b
         task.batch_c = args.batch_c     
         task.abc(directory=args.directory, runopt=args.runopt, auto=args.auto, range_a=args.range_a, range_b=args.range_b, range_c=args.range_c)
+    elif args.runtype == 9:
+        # optic
+        params["ecutsm"] = args.ecutsm
+
+        from pymatflow.abinit.optic import OpticRun
+        task = OpticRun()
+        task.get_xyz(xyzfile)
+        task.set_params(params=params)
+        task.set_kpoints(kpoints=kpoints)
+        task.set_run(mpi=args.mpi, server=server, jobname=args.jobname, nodes=args.nodes, ppn=args.ppn, queue=args.queue)
+        task.set_llhpc(partition=args.partition, nodes=args.nodes, ntask=args.ntask, jobname=args.jobname, stdout=args.stdout, stderr=args.stderr)
+        task.run(directory=args.directory, runopt=args.runopt, auto=args.auto)    
     else:
         pass

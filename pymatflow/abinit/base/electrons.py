@@ -67,7 +67,7 @@ class Kpoints(AbinitVariableGroup):
         if 3 == self.params["kptopt"].as_val(t=int, dim=0):
             # typically for rf calculation
             input_str += "kptopt%s %d\n" % (n if n > 0 else "", self.params["kptopt"].as_val(t=int, dim=0))
-            ngkpt_list = self.parmas["ngkpt"].as_val(t=int, dim=1)
+            ngkpt_list = self.params["ngkpt"].as_val(t=int, dim=1)
             input_str += "ngkpt%s %d %d %d\n\n" %(n if n > 0 else "", ngkpt_list[0], ngkpt_list[1], ngkpt_list[2])
             #input_str += "nshiftk %d\n\n" % self.params["nshiftk"].as_val(t=int, dim=0)
             #input_str += "shiftk\n"
@@ -184,8 +184,6 @@ class AbinitElectrons(AbinitVariableGroup):
                 super().set_param(item, None)
         #self.set_param(tol, value)
         super().set_param(tol, value)
-
-
 
     def check_scf_criteria(self):
         """

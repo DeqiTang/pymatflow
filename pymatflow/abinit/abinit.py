@@ -42,6 +42,7 @@ class Abinit:
         """
         self.run_params  = {}
         self.set_run()
+        self.pseudo_setting_string = ""
 
     def get_xyz(self, xyzfile):
         # only get structure for the default dataset 0
@@ -70,6 +71,18 @@ class Abinit:
         # only set the parameters for default dataset 0
         self.dataset[0].electrons.dft_plus_u()
 
+    def set_pseudos(self, directory):
+        self.pseudo_setting_string = "pp_dirpath \"%s\"\n" % directory
+        self.pseudo_setting_string += "pseudos \""
+
+        for element in self.dataset[0].system.xyz.specie_labels:
+            self.pseudo_setting_string += " %s," % (element + ".psp8")
+            # self.pseudo_setting_string += " %s," % (element + ".GGA_PBE-JTH.xml")
+        
+        # remove last comma
+        self.pseudo_setting_string = self.pseudo_setting_string[:-1]
+        self.pseudo_setting_string += "\"\n"
+
     def set_run(self, mpi="", server="pbs", jobname="abinit", nodes=1, ppn=32, queue=None):
         self.run_params["mpi"] = mpi
         self.run_params["server"] = server
@@ -92,6 +105,9 @@ class Abinit:
             self.dataset[i].system.status = False
             head = "# -----------------------Dataset: %d ---------------------------\n" % (i)
             inp_str += head + self.dataset[i].to_string()
+        
+        # pseudoo
+        inp_str += self.pseudo_setting_string #
         return inp_str
 
 
@@ -119,7 +135,7 @@ class Abinit:
             but if item is larger than length of self.dataset, it will
             print out warning, and exit the program.
         """
-        if item < len(selfl.dataset):
+        if item < len(self.dataset):
             self.ndtset = len(self.dataset) - 1
             return self.dataset[item]
         elif item == len(self.dataset):
@@ -246,3 +262,4 @@ class Abinit:
             fout.write(self.files.to_string(system=self.dataset[0].system))
             fout.write("EOF\n")
             fout.write("srun --mpi=pmix_v3 %s < %s\n" % (cmd, self.files.name))
+
