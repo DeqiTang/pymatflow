@@ -7,7 +7,8 @@ procedure for Optic calculation:
     5)
     6)
 References:
-    https://docs.abinit.org/tutorial/optic/index.html
+    * https://docs.abinit.org/tutorial/optic/index.html
+    * https://docs.abinit.org/guide/optic/
 """
 import os
 import sys
@@ -31,7 +32,8 @@ class OpticRun(Abinit):
         5)
         6)
     Reference:
-        https://docs.abinit.org/tutorial/optic/index.html
+        * https://docs.abinit.org/tutorial/optic/index.html
+        * https://docs.abinit.org/guide/optic/
     Procedure:
 
     """
@@ -141,4 +143,4 @@ class OpticRun(Abinit):
             self.dataset[6].electrons.kpoints.set_param("kptopt",3)
 
         from pymatflow.abinit.optic_namelist import Optic
-        submit(abinit=self, directory=directory, prefix="optic-run", runopt=runopt, auto=auto, optic=Optic())
+        submit(abinit=self, directory=directory, prefix="optic-run", runopt=runopt, auto=auto, optic=Optic(system=self.dataset[0].system))

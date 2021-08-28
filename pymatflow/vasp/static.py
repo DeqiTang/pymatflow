@@ -1607,10 +1607,13 @@ class StaticRun(Vasp):
             kpoints_scf = self.kpoints.to_string()
 
             if bse_level == 0:
-                pass
+                self.incar.set_param("LOPTICS", "T")
+                self.incar.set_param("LPEAD", "T")                
             elif bse_level == 1:
                 self.incar.set_param("LHFCALC", "T")
                 self.incar.set_param("HFSCREEN", 0.2)
+                self.incar.set_param("LOPTICS", "T")
+                self.incar.set_param("LPEAD", "T")                
                 incar_hse = self.incar.to_string()
             elif bse_level == 2:
                 self.incar.set_param("ALGO", algo_gw)
@@ -2056,7 +2059,7 @@ class StaticRun(Vasp):
                 fout.write('cp vasprun.xml vasprun.xml.bse\n')
 
             # gen cdcloud script
-            with open(os.path.join(directory, "static-bse.slurm"), 'w') as fout:
+            with open(os.path.join(directory, "static-bse.slurm_cd"), 'w') as fout:
                 fout.write("#!/bin/bash\n")
                 fout.write("#SBATCH -p %s\n" % self.run_params["partition"])
                 fout.write("#SBATCH -N %d\n" % self.run_params["nodes"])
