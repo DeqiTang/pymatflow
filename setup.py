@@ -142,16 +142,17 @@ try:
     import pybind11
 except:
     subprocess.run(["pip3", "install", "--user", "pybind11[global]==2.7.1"])
+os.environ["PATH"] + os.environ["PATH"] + ":%s" % os.path.join(os.path.expanduser("~"), ".local/bin")
+sub = subprocess.run(["pybind11-config", "--includes"], stdout=subprocess.PIPE)
+pybind11_include_paths = sub.stdout.decode().replace("\n", "")
+# there might be more than one dir in output of pybind11-config --includes
+list_paths = pybind11_include_paths.replace(" ", "").split("-I")
+while "" in list_paths:
+    list_paths.remove("")
 if "CPLUS_INCLUDE_PATH" not in os.environ:
-    os.environ["CPLUS_INCLUDE_PATH"] = os.path.join(
-        os.path.expanduser("~"),
-        ".local/include"
-    )
+    os.environ["CPLUS_INCLUDE_PATH"] = ":".join(list_paths)
 else:
-    os.environ["CPLUS_INCLUDE_PATH"] = os.environ["CPLUS_INCLUDE_PATH"] + ":%s" % os.path.join(
-        os.path.expanduser("~"),
-        ".local/include"
-    )
+    os.environ["CPLUS_INCLUDE_PATH"] = os.environ["CPLUS_INCLUDE_PATH"] + ":%s" % ":".join(list_paths)
 
 
 setup(
