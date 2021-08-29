@@ -2,6 +2,7 @@ build
 dist
 pymatflow.egg-info
 *.egg-info
+*.eggs
 
 docs/_build/*
 
@@ -9,3 +10,5 @@ docs/_build/*
 
 __pycache__
 *.pyc
+
+_skbuild
