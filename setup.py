@@ -135,6 +135,24 @@ class CMakeBuild(build_ext):
             ["cmake", "--build", "."] + build_args, cwd=self.build_temp
         )
 
+# -----------------------------
+# make sure pybind11 is working
+# -----------------------------
+try:
+    import pybind11
+except:
+    subprocess.run(["pip3", "install", "--user", "pybind11[global]==2.7.1"])
+if "CPLUS_INCLUDE_PATH" not in os.environ:
+    os.environ["CPLUS_INCLUDE_PATH"] = os.path.join(
+        os.path.expanduser("~"),
+        ".local/include"
+    )
+else:
+    os.environ["CPLUS_INCLUDE_PATH"] = os.environ["CPLUS_INCLUDE_PATH"] + ":%s" % os.path.join(
+        os.path.expanduser("~"),
+        ".local/include"
+    )
+
 
 setup(
     name = "pymatflow",
@@ -146,12 +164,13 @@ setup(
     license = "MIT",
     url = "https://gitlab.com/deqitang/pymatflow",
     author_email = "pymatflow@163.com",
-    packages = find_packages(),
+    #packages = find_packages(),
+    packages = find_packages(include=["pymatflow"]),
     #data_files
     include_package_data = True,
     platforms = "any",
     python_requires = ">=3.0",
-    install_requires = ["ase"],
+    install_requires = ["ase", "pybind11", "numpy", "scipy", "matplotlib"],
     # -----------------------------------------------
     # cpp extension using native setuptools (working)
     # -----------------------------------------------
@@ -163,7 +182,9 @@ setup(
     # ------------------------------------------
     # cpp extension using scikit-build (working)
     # ------------------------------------------
-    cmake_source_dir="cpp",
+    cmake_source_dir="cpp", # where CMakeLists.txt exists
+    cmake_install_dir="pymatflow/cpp", # from pymatflow.cpp import pyaskit
+    #cmake_install_dir="cpp/cppmatflow", # from cpp/cppmatflow import pyaskit
     cmdclass = {
         'clean': CleanCommand,
     },

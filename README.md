@@ -7,8 +7,10 @@ To install the current stable release, just use pip to install Pymatflow from Py
 ```
 $ pip install pymatflow
 ```
-to install the current develpment version, you can clone the project and manually install it after chdir to the project root directory:
+to install the current develpment version, you can clone the project and manually install it after chdir to the project root directory. Before that make sure you
+have scikit-build installed:
 ```
+$ pip3 install scikit-build
 $ git clone https://gitlab.com/deqitang/pymatflow.git
 $ cd pymatflow
 $ python setup.py install
