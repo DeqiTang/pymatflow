@@ -14,10 +14,8 @@ docker run -v /path/to/pymatflow:/root/pymatflow  -it quay.io/pypa/manylinux_2_2
 # -----------------------
 apt update
 apt install libatlas-dev libblas-dev liblapack-dev  # needed for python3.10 to build scipy
-# add pybind11 support, need to add pybind11 to PATH and CPLUS_INCLUDE_PATH
-# or pybind11 will not be found by cmake
-export PATH=$PATH:${HOME}/.local/bin
-export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:${HOME}/.local/include
+# need working pip3 command
+apt install python3-pip
 
 for py in cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39 cp310-cp310
 do
@@ -45,7 +43,8 @@ docker run -v /path/to/pymatflow:/root/pymatflow  -it quay.io/pypa/manylinux2014
 # -----------------------
 # inside docker container
 # -----------------------
-
+# need working pip3 command
+yum install python3-pip
 yum install atlas blas lapack  # needed for python3.10 to build scipy
 
 # add pybind11 support, need to add pybind11 to PATH and CPLUS_INCLUDE_PATH

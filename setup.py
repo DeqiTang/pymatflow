@@ -142,7 +142,7 @@ try:
     import pybind11
 except:
     subprocess.run(["pip3", "install", "--user", "pybind11[global]==2.7.1"])
-os.environ["PATH"] + os.environ["PATH"] + ":%s" % os.path.join(os.path.expanduser("~"), ".local/bin")
+os.environ["PATH"] = os.environ["PATH"] + ":%s" % os.path.join(os.path.expanduser("~"), ".local/bin")
 sub = subprocess.run(["pybind11-config", "--includes"], stdout=subprocess.PIPE)
 pybind11_include_paths = sub.stdout.decode().replace("\n", "")
 # there might be more than one dir in output of pybind11-config --includes
@@ -165,8 +165,7 @@ setup(
     license = "MIT",
     url = "https://gitlab.com/deqitang/pymatflow",
     author_email = "pymatflow@163.com",
-    #packages = find_packages(),
-    packages = find_packages(include=["pymatflow"]),
+    packages = find_packages(),
     #data_files
     include_package_data = True,
     platforms = "any",
