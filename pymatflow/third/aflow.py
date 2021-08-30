@@ -7,7 +7,7 @@ import json
 import numpy as np
 
 from urllib.request import urlopen
-from pymatflow.structure.crystal import crystal
+from pymatflow.structure.crystal import Crystal
 from pymatflow.base.atom import Atom
 
 def search_from_url(url):

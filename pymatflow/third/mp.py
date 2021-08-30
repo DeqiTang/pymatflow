@@ -22,6 +22,10 @@ def _get_from_uri(uri):
     return out
 
 def get_from_api(request_type, identifier, parameters=None):
+    """
+    :param request_type: can be materials, tasks, battery
+    :param identifier: a materials composition, like Fe2O3
+    """
     config = configparser.ConfigParser()
     config.read(os.path.join(os.path.expanduser("~"), ".pymatflow/mp.conf"))
     api_key = config["MaterialsProject"]["API_KEY"]
