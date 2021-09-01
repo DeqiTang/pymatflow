@@ -148,6 +148,11 @@ class Vasp:
         self.run_params["nodes"] = nodes
         self.run_params["ppn"] = ppn
         self.run_params["queue"] = queue
+        #
+        self.run_params["partition"] = "default"
+        self.run_params["ntask"] = 24
+        self.run_params["stdout"] = "xxx.out"
+        self.run_params["stderr"] = "xxx.err"
 
     def set_llhpc(self, partition="free", nodes=1, ntask=24, jobname="matflow_job", stdout="slurm.out", stderr="slurm.err"):
         self.run_params["partition"] = partition

@@ -7,6 +7,7 @@ import re
 import subprocess
 from glob import glob
 
+import setuptools
 #from setuptools import setup
 from skbuild import setup  # replace setuptools setup
 from setuptools import find_packages, Extension
@@ -154,6 +155,31 @@ if "CPLUS_INCLUDE_PATH" not in os.environ:
 else:
     os.environ["CPLUS_INCLUDE_PATH"] = os.environ["CPLUS_INCLUDE_PATH"] + ":%s" % ":".join(list_paths)
 
+# ---------------
+# fortran support
+# ---------------
+#ar crv libbasic.a crystal_mod.o constant_mod.o cube_mod.o
+# gfortran -shared -o libbasic.so crystal_mod.o constant_mod.o cube_mod.o
+from numpy.distutils.core import Extension as npExtension
+f_ext_modules = [
+    npExtension(
+        # module name:
+        'cube2vtk',
+        # source file: 
+        sources = [
+            'fortran/pyx/cube_to_vtk.pyx',
+            'fortran/src/cube_to_vtk_c_binding_mod.f90'
+        ],
+        # other compile args for gcc
+        #extra_compile_args=['-fPIC', '-O3'],
+        # other files to link to
+        #extra_link_args=['fortran/src/libbasic.so'],
+        extra_link_args=['fortran/src/libbasic.so'],
+        language="fortran"
+    ),
+]
+
+
 
 setup(
     name = "pymatflow",
@@ -189,6 +215,11 @@ setup(
         'clean': CleanCommand,
     },
     #cmake_args=["-DXXX=XX"],
+    # -------
+    # fortran
+    # -------
+    #ext_modules = f_ext_modules,
+    # ----
     scripts = [
         #"pymatflow/abinit/scripts/abinit-md.py",
         #"pymatflow/abinit/scripts/abinit-opt.py",

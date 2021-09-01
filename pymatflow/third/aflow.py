@@ -1,6 +1,9 @@
 """
 wrapper for AFLOW RESTFUL API
 AFLOW preovide REST-API and Search-API at the same time
+
+References:
+    * http://aflowlib.duke.edu/aflowwiki/
 """
 import os
 import json
