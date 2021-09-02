@@ -14,3 +14,7 @@ __pycache__
 _skbuild
 
 MANIFEST
+
+*.o
+*.a
+*.so

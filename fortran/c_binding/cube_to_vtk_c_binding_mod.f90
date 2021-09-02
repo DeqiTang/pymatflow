@@ -1,13 +1,23 @@
 module cube_to_vtk_c_binding_mod
     ! Usage:
-    use iso_c_binding, only : c_char
+    ! Reference:
+    !   http://fortranwiki.org/fortran/show/c_interface_module
+    use iso_c_binding
     use askit_crystal_mod
     use askit_cube_mod
     use askit_constant_mod
+
     implicit none
 
+    character(len=1,kind=C_char), parameter :: NUL = C_NULL_char
+
+    interface c_f_string
+        module procedure c_f_string_chars
+        module procedure c_f_string_ptr
+    end interface
+
     contains
-    subroutine c_cube_to_vtk(cube_file_in, vtk_file_out) bind(c)
+    subroutine c_cube_to_vtk(cube_file_in_c, vtk_file_out_c) bind(c)
         integer :: i, j, k
         integer :: ngridx, ngridy, ngridz
 
@@ -16,8 +26,12 @@ module cube_to_vtk_c_binding_mod
         real :: cell_volume, cell_volume_per_unit, tmp, tmp_vec(3)
         real :: a, b, c, x, y, z, total_electron
 
-        ! character, allocatable :: cube_file_in
-        character(c_char) :: cube_file_in, vtk_file_out
+        type(c_ptr), target, intent(in) :: cube_file_in_c, vtk_file_out_c
+        !character(c_char), intent(in) :: cube_file_in_c, vtk_file_out_c
+        character(len=128) :: cube_file_in, vtk_file_out
+
+        call c_f_string(c_loc(cube_file_in_c), cube_file_in)
+        call c_f_string(c_loc(vtk_file_out_c), vtk_file_out)
 
         ! command line output 
         write(*, *) "*******************************************************************************"
@@ -132,4 +146,35 @@ module cube_to_vtk_c_binding_mod
         real, intent(out) :: z 
         z = x(1) * y(1) + x(2) * y(2) + x(3) * y(3)
     end subroutine dot_3
+    !
+    subroutine c_f_string_chars(c_string, f_string)
+        character(len=1, kind=c_char), intent(in) :: c_string(*)
+        character(len=*), intent(out) :: f_string
+        integer :: i
+        i = 1
+        do while (c_string(i) /= nul .and. i <= len(f_string))
+            f_string(i:i) = c_string(i)
+            i = i + 1
+        end do
+        if (i < len(f_string)) f_string(i:) = ' '
+    end subroutine c_f_string_chars
+
+    subroutine c_f_string_ptr(c_string, f_string)
+        type(C_ptr), intent(in) :: C_string
+        character(len=*), intent(out) :: F_string
+        character(len=1,kind=C_char), dimension(:), pointer :: p_chars
+        integer :: i
+        if (.not. C_associated(C_string)) then
+            F_string = ' '
+
+        else
+            call C_F_pointer(C_string,p_chars,[huge(0)])
+            i=1
+            do while(p_chars(i)/=NUL .and. i<=len(F_string))
+                F_string(i:i) = p_chars(i)
+                i=i+1
+            end do
+            if (i<len(F_string)) F_string(i:) = ' '
+        end if
+    end subroutine C_F_string_ptr
 end module cube_to_vtk_c_binding_mod
