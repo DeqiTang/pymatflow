@@ -1,0 +1,60 @@
+#
+#
+
+CC = gcc
+CXX = g++ #g++-10 # g++ #mpicxx
+NVCC = nvcc
+
+CPPFLAGS = -g 
+CPPFLAGS += -I../include
+
+CFLAGS = -g
+CXXFLAGS = -g # -DARMA_USE_LAPACK -UARMA_USE_BLAS
+#NVCCFLAGS = -g -arch sm_50 ## here use "nvcc -h" to find an allowed or supported value in --gpu-architecture.
+
+CXXFLAGS += -fopenmp
+
+#LDFLAGS = -lcppunit -ldl -lcudart -lcufft -lmpi
+LDFLAGS += --std=c++11 -lboost_filesystem -lboost_system
+LDFLAGS += -lboost_program_options -larmadillo -llapack -lblas
+LDFLAGS += -fopenmp
+
+#src_cu = $(wildcard ./*.cu ../src/*.cu)
+#obj_cu = $(patsubst %.cu, %.cu.o, $(src_cu))
+
+all: skit skit-traj skit-cube askit-calc
+
+skit:
+	$(CXX) -c skit.cpp $(CPPFLAGS) $(CXXFLAGS) 
+	make -C ../ -f makefile.linux
+	${CXX} -o skit.x skit.o ../libatomscikit.a $(LDFLAGS)
+
+
+skit-traj:
+	$(CXX) -c skit_traj.cpp $(CPPFLAGS) $(CXXFLAGS)
+	make -C ../ -f makefile.linux
+	${CXX} -o skit-traj.x skit_traj.o ../libatomscikit.a $(LDFLAGS)
+
+skit-cube:
+	$(CXX) -c skit_cube.cpp $(CPPFLAGS) $(CXXFLAGS)
+	make -C ../ -f makefile.linux
+	${CXX} -o skit-cube.x skit_cube.o ../libatomscikit.a $(LDFLAGS)
+
+askit-calc:
+	$(CXX) -c askit_calc.cpp $(CPPFLAGS) $(CXXFLAGS)
+	make -C ../ -f makefile.linux
+	$(CXX) -o askit-calc.x askit_calc.o ../libatomscikit.a $(LDFLAGS)
+
+install: all
+	make install -C ../ -f makefile.linux
+	cp skit.x ${HOME}/.local/bin
+	cp skit-traj.x ${HOME}/.local/bin
+	cp skit-cube.x ${HOME}/.local/bin
+	cp askit-calc.x ${HOME}/.local/bin
+
+.PHONY: clean
+
+clean:
+	make clean -C ../ -f makefile.linux
+	rm -rf $(obj) *.a *.so *.x *.o
+

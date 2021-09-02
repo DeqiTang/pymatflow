@@ -161,9 +161,9 @@ ext_modules_fortran = cythonize(
             # other files to link to
             extra_link_args=[
                 #'fortran/c_binding/libaskitf-c-binding.a',
-                'fortran/build/libaskitf-c-binding.a',
-                #'fortran/src/libaskitf.a',
-                'fortran/build/libaskitf.a',
+                'fortran/build/libatomscikitf-c-binding.a',
+                #'fortran/src/libatomscikitf.a',
+                'fortran/build/libatomscikitf.a',
                 "-lgfortran",
                 "-fopenmp" # important for OpenMP dependency
             ],
@@ -230,13 +230,13 @@ setup(
         # --------------------------------------------
         # cpp extension using CustomBuildExt (working)
         # --------------------------------------------
-        #CMakeExtension(name="pyaskit", sourcedir="cpp")
+        #CMakeExtension(name="cpptest", sourcedir="cpp/pybind11")
         # --------------------------------------------
     ]+ext_modules_fortran,
     # ------------------------------------------
     # cpp extension using scikit-build (working)
     # ------------------------------------------
-    cmake_source_dir="cpp", # where CMakeLists.txt exists
+    cmake_source_dir="cpp/pybind11", # where CMakeLists.txt exists
     cmake_install_dir="pymatflow/cpp", # from pymatflow.cpp import pyaskit
     cmake_args=["-DCMAKE_BUILD_TYPE=Debug"],
     # ------------------------------------------

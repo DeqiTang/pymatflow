@@ -1,5 +1,4 @@
 build/*
-pybind11/build/*
 *.x
 *.o
 *.a
