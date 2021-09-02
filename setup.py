@@ -145,52 +145,62 @@ if "CPLUS_INCLUDE_PATH" not in os.environ:
 else:
     os.environ["CPLUS_INCLUDE_PATH"] = os.environ["CPLUS_INCLUDE_PATH"] + ":%s" % ":".join(list_paths)
 
-# ---------------
+# --------------------------------
 # fortran support
-# ---------------
-
+# --------------------------------
 from Cython.Build import cythonize
 ext_modules_fortran = cythonize(
     [
         Extension(
-            'cube2vtk',
+            'cube_handle',
             sources=[
-                "fortran/pyx/cube_to_vtk.pyx"
+                "fortran/pyx/cube_handle.pyx"
             ],
             # other compile args for gcc
             extra_compile_args=['-fPIC', '-O3'],
             # other files to link to
-            #extra_link_args=['fortran/src/libbasic.so'],
             extra_link_args=[
-                'fortran/c_binding/libbasiccbinding.a',
-                'fortran/src/libbasic.a',
-                "-lgfortran"
+                #'fortran/c_binding/libaskitf-c-binding.a',
+                'fortran/build/libaskitf-c-binding.a',
+                #'fortran/src/libaskitf.a',
+                'fortran/build/libaskitf.a',
+                "-lgfortran",
+                "-fopenmp" # important for OpenMP dependency
             ],
             language="c"
         ),
     ],
     language_level="3"
 )
+
 ext_modules_all = []
 ext_modules_all += ext_modules_fortran
 
+ext_modules_fortran_names = []
+for ext in ext_modules_fortran:
+    ext_modules_fortran_names.append(ext.name)
+
 def fortran_build_ext(builder, ext):
     builder.build_extension(ext)
-    if ext.name in ["cube2vtk"]:
-        # TODO: more strong code here
-        os.system("mv _skbuild/linux-x86_64-*/setuptools/lib.linux-x86_64-*/%s.*.so _skbuild/linux-x86_64-*/setuptools/lib.linux-x86_64-*/pymatflow/fortran/" % ext.name)
+    # TODO: more strong code here
+    os.system("mv _skbuild/linux-x86_64-*/setuptools/lib.linux-x86_64-*/%s.*.so _skbuild/linux-x86_64-*/setuptools/lib.linux-x86_64-*/pymatflow/fortran/" % ext.name)
 
 
 class CustomBuildExt(build_ext):
     """
     """
     def run(self):
-        os.system("make -C ./fortran/src")
-        os.system("make -C ./fortran/c_binding")
+        #os.system("make -C ./fortran/src")
+        #os.system("make -C ./fortran/cmd")
+        #os.system("make -C ./fortran/c_binding")
+        os.system("mkdir -p ./fortran/build")
+        os.chdir("./fortran/build")
+        os.system("cmake ..; make")
+        os.chdir("../../")
         super().run()
 
     def build_extension(self, ext):
-        if ext.name in ["cube2vtk"]:
+        if ext.name in ext_modules_fortran_names:
             fortran_build_ext(super(), ext)
         else:
             pybind11_build_ext(self, ext)
@@ -216,19 +226,20 @@ setup(
         'clean': CleanCommand,
         'build_ext': CustomBuildExt
     },    
-    # -----------------------------------------------
-    # cpp extension using native setuptools (working)
-    # -----------------------------------------------
     ext_modules=[
+        # --------------------------------------------
+        # cpp extension using CustomBuildExt (working)
+        # --------------------------------------------
         #CMakeExtension(name="pyaskit", sourcedir="cpp")
+        # --------------------------------------------
     ]+ext_modules_fortran,
     # ------------------------------------------
     # cpp extension using scikit-build (working)
     # ------------------------------------------
     cmake_source_dir="cpp", # where CMakeLists.txt exists
     cmake_install_dir="pymatflow/cpp", # from pymatflow.cpp import pyaskit
-    #cmake_args=["-DXXX=XX"],
-    # ----
+    cmake_args=["-DCMAKE_BUILD_TYPE=Debug"],
+    # ------------------------------------------
     scripts = [
         "pymatflow/scripts/xyz-build-supercell.py",
         "pymatflow/scripts/cluster_sphere.py",

@@ -28,20 +28,22 @@ all: $(modobj) lib askit-cube-1d.x askit-cube-diff-1d.x askit-cube-to-vtk.x
 askit-cube-1d.x: $(obj)
 	#ar crv ./src/$(target) $(obj) $(LDFLAGS)
 	#$(FC) -o $@	$(FCFLAGS) $(FPPFLAGS) $(obj) $(LIBS) $(LDFLAGS) 
-	$(FC) -o $@	$(FCFLAGS) $(FPPFLAGS) cube_1d.o $(LIBS) $(LDFLAGS) 
+	$(FC) -o $@	$(FCFLAGS) $(FPPFLAGS) cube_1d_program.o $(LIBS) $(LDFLAGS) 
 
 askit-cube-diff-1d.x: $(obj)
 	#ar crv ./src/$(target) $(obj) $(LDFLAGS)
 	#$(FC) -o $@	$(FCFLAGS) $(FPPFLAGS) $(obj) $(LIBS) $(LDFLAGS) 
-	$(FC) -o $@	$(FCFLAGS) $(FPPFLAGS) cube_diff_1d.o $(LIBS) $(LDFLAGS) 
+	$(FC) -o $@	$(FCFLAGS) $(FPPFLAGS) cube_diff_1d_program.o $(LIBS) $(LDFLAGS) 
 
 askit-cube-to-vtk.x: $(obj)
-	$(FC) -o $@ $(FCFLAGS) $(FPPFLAGS) cube_to_vtk.o $(LIBS) $(LDFLAGS)
+	$(FC) -o $@ $(FCFLAGS) $(FPPFLAGS) cube_to_vtk_program.o $(LIBS) $(LDFLAGS)
 
-lib: $(obj)
+lib: $(obj) src
+	make -C ../src
+src:
 	make -C ../src
 
-%.o: %.f90
+%.o: %.f90 src
 	$(FC) -c $(FPPFLAGS) $(FCFLAGS) $< -o $@
 
 $(modobj): $(modsrc)
@@ -56,4 +58,5 @@ install:
 .PHONY: clean
 
 clean:
+	make clean -C ../src
 	rm -rf *.x *.mod *.a *.so *.o $(obj) core 

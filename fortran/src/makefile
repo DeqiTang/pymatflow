@@ -26,10 +26,10 @@ obj = $(patsubst %.f90, %.o, $(src))
 all: $(modobj) lib
 
 lib: $(obj)
-	ar crv libbasic.a $(obj) $(LIBS)
-	$(FC) -shared -o libbasic.so $(FCFLAGS) $(FPPFLAGS) $(obj) $(LIBS) $(LDFLAGS)
+	ar crv libaskitf.a $(obj) $(LIBS)
+	$(FC) -shared -o libaskitf.so $(FCFLAGS) $(FPPFLAGS) $(obj) $(LIBS) $(LDFLAGS)
 
-%.o: %.f90
+%.o: %.f90 $(modobj)
 	$(FC) -c $(FPPFLAGS) $(FCFLAGS) $< -o $@
 
 $(modobj): $(modsrc)

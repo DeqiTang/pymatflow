@@ -55,6 +55,16 @@ def main():
     gp.add_argument("-o", "--output", type=str, default="cube.vtk",
         help="output vtk file")
 
+    # -------------------------------------------------------------------------
+    # cube diff 1d
+    # -------------------------------------------------------------------------
+    subparser = subparsers.add_parser("diff-1d", help="using diff-1d subcommand")
+
+    gp = subparser.add_argument_group("basic parameters")
+
+    gp.add_argument("-i", "--input", nargs=3, type=str, required=True,
+        help="input three cube file")
+
     # ==========================================================
     # transfer parameters from the arg subparser to static_run setting
     # ==========================================================
@@ -179,8 +189,11 @@ def main():
         plt.close()
     elif args.driver == "vtk":
         # convert from cube to vtk
-        from pymatflow.fortran import cube2vtk
-        cube2vtk.cube_to_vtk(args.input, args.output)
+        from pymatflow.fortran import cube_handle
+        cube_handle.cube_to_vtk(args.input, args.output)
+    elif args.driver == "diff-1d":
+        from pymatflow.fortran import cube_handle
+        cube_handle.cube_diff_1d(args.input[0], args.input[1], args.input[2])        
     else:
         pass
 

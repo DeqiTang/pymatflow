@@ -23,11 +23,11 @@ src = $(wildcard ./*.f90)
 obj = $(patsubst %.f90, %.o, $(src))
 
 
-all: lib $(modobj) $(obj)
+all: $(modobj) $(obj) lib
 
 lib: $(obj)
 	make -C ../src
-	ar crv libbasiccbinding.a $(obj) $(LIBS)
+	ar crv libaskitf-c-binding.a $(obj) $(LIBS)
 
 %.o: %.f90
 	$(FC) -c $(FPPFLAGS) $(FCFLAGS) $< -o $@
