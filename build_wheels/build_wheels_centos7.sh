@@ -1,7 +1,11 @@
 
 # need working pip3 command
 yum install -y python3-pip
+# boost only is not enough. need boost-devel which contains headers and libraries needed
+# also for armadillo, you need armadillo-devel where -devel means develpment env including headers and libs
+yum install -y armadillo-devel boost-devel 
 yum install -y atlas-devel blas lapack  # needed for python3.10 to build scipy
+
 
 for py in cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39 cp310-cp310
 do

@@ -7,6 +7,8 @@ project(atomscikit-pybind11 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(Boost COMPONENTS program_options filesystem system REQUIRED)
+include_directories( ${Boost_INCLUDE_DIR}  )
 
 include_directories("../atomscikit/include")
 
@@ -29,6 +31,12 @@ if(OPENMP_FOUND)
     set(CMAKE_EXE_LINKER_FLAGS"${CMAKE_EXE_LINKER_FLAGS}${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
+find_package(Armadillo REQUIRED)
+include_directories(${ARMADILLO_INCLUDE_DIRS})
+link_libraries(${ARMADILLO_LIBRARIES})
+
+find_package(LAPACK REQUIRED)
+find_package(BLAS REQUIRED)
 
 # -----------------------------------------------------
 # for pybind11 and scikit-build
@@ -37,10 +45,18 @@ file(GLOB CPPTEST_SOURCES
     "./cpptest/*.cpp"
     "../atomscikit/src/cpptest/*.cpp"
 )
-
 pybind11_add_module(cpptest MODULE ${CPPTEST_SOURCES})
+
+file(GLOB CUBE_HANDLE_SOURCES
+    "./cube_handle/*.cpp"
+    "../atomscikit/src/cube_handle/*.cpp"
+    "../atomscikit/src/parser/*.cpp"
+    "../atomscikit/src/base/*.cpp"
+)
+pybind11_add_module(cube_handle MODULE ${CUBE_HANDLE_SOURCES})
 
 # scikit-build
 if(SKBUILD)
     install(TARGETS cpptest DESTINATION .)
+    install(TARGETS cube_handle DESTINATION .)
 endif()

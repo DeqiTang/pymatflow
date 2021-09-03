@@ -40,12 +40,14 @@ file(GLOB PROJECT_LIB_SOURCES
     "./src/abinit/*.cpp"
     "./src/cp2k/*.cpp"
     "./src/qe/*.cpp"
+    "./src/cube_handle/*.cpp"
     "./include/askit/*.h"
     "./include/askit/base/*.h"
     "./include/askit/parser/*.h"
     "./include/askit/abinit/*.h"
     "./include/askit/cp2k/*.h"
     "./include/askit/qe/*.h"
+    "./include/askit/cube_handle/*.h"
     )
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)

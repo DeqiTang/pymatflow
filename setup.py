@@ -194,6 +194,7 @@ class CustomBuildExt(build_ext):
         #os.system("make -C ./fortran/cmd")
         #os.system("make -C ./fortran/c_binding")
         os.system("mkdir -p ./fortran/build")
+        os.system("rm -rf ./fortran/build/*") # in case there is previous build in a defferent environment
         os.chdir("./fortran/build")
         os.system("cmake ..; make")
         os.chdir("../../")
@@ -208,7 +209,7 @@ class CustomBuildExt(build_ext):
 
 setup(
     name = "pymatflow",
-    version = '0.1.1a1',
+    version = '0.1.1a2',
     ## python3 setup.py build sdist bdist_wheel
     ## twine upload dist/*
     keywords = ("Ab intio ,DFT, workflow, input generation"),

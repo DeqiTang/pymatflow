@@ -4,7 +4,7 @@
 #   https://realpython.com/python-wheels/#different-types-of-wheels
 #   https://github.com/pypa/manylinux
 # Multi Platform Support
-#Debian
+# Debian 9 stretch
 DOCKER_IMAGE=quay.io/pypa/manylinux_2_24_x86_64
 PLAT=manylinux_2_24_x86_64
 docker pull "$DOCKER_IMAGE"
