@@ -92,3 +92,48 @@ def get_final_structure_from_aurl(aurl):
         out.atoms.append(Atom(name=elements_list[i], x=cartesian[0], y=cartesian[1], z=cartesian[2]))
     #
     return out
+
+def get_chgcar_from_aurl(aurl):
+    """
+    key :param ->  keyword
+    Note: get result from aurl through AFLOW RESTful API.
+        aflowlib.duke.edu:AFLOWDATA/LIB3_RAW/Bi_dRh_pvTi_sv/T0003.ABC:LDAU2
+        aflowlib.duke.edu:AFLOWDATA/ICSD_WEB/CUB/Cl1Na1_ICSD_622368
+
+        run get_val_from_aurl(aurl="xxx", key="keywords")
+        to see all the keywords supported to be passed to key
+    """
+    from pymatflow.charge.chg_vasp import VaspCHG
+    os.system("mkdir -p /tmp/pymatflow/third/aflow")
+    os.system("curl -C - -Lo %s %s" % 
+        (
+            "/tmp/pymatflow/third/aflow/CHGCAR.static.xz",
+            "http://" + aurl.replace(":AFLOWDATA", "/AFLOWDATA") + "/CHGCAR.static.xz"
+        )
+    )
+    vaspchg = VaspCHG()
+    # apt install xz-utils
+    os.system("xz -d /tmp/pymatflow/third/aflow/CHGCAR.static.xz")
+    vaspchg.get_chg("/tmp/pymatflow/third/aflow/CHGCAR.static")
+    return vaspchg
+
+def download_chgcar_from_aurl(aurl, directory="./"):
+    """
+    key :param ->  keyword
+    Note: get result from aurl through AFLOW RESTful API.
+        aflowlib.duke.edu:AFLOWDATA/LIB3_RAW/Bi_dRh_pvTi_sv/T0003.ABC:LDAU2
+        aflowlib.duke.edu:AFLOWDATA/ICSD_WEB/CUB/Cl1Na1_ICSD_622368
+
+        run get_val_from_aurl(aurl="xxx", key="keywords")
+        to see all the keywords supported to be passed to key
+    """
+    os.system("mkdir -p %s" % directory)
+    os.system("curl -C - -Lo %s %s" % 
+        (
+            os.path.join(directory, "CHGCAR.static.xz"),
+            "http://" + aurl.replace(":AFLOWDATA", "/AFLOWDATA") + "/CHGCAR.static.xz"
+        )
+    )
+    # apt install xz-utils
+    os.system("xz -d %s" % os.path.join(directory, "CHGCAR.static.xz"))
+    return os.path.join(directory, "CHGCAR.static")

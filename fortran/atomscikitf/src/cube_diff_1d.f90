@@ -1,12 +1,11 @@
-module cube_diff_1d_mod
+module askitf_cube_diff_1d
 
-    use askit_crystal_mod
-    use askit_cube_mod
-    use askit_constant_mod
+    use askitf_crystal, only : write_xyz
+    use askitf_cube, only : cube
+    use askitf_constants
 
     implicit none
     
-    !real, parameter :: bohr_to_angstrom = 0.529177249
 
     contains 
     
@@ -16,11 +15,11 @@ module cube_diff_1d_mod
 
         integer :: i, j, k
         integer :: natom, ngridx, ngridy, ngridz
-        real, allocatable :: data_diff(:, :, :), data_red_a(:), data_red_b(:), data_red_c(:)
+        real(kind=dp), allocatable :: data_diff(:, :, :), data_red_a(:), data_red_b(:), data_red_c(:)
 
-        real :: cell_volume, cell_volume_per_unit, tmp, tmp_vec(3)
-        real :: a, b, c
-        real :: total_electron
+        real(kind=dp) :: cell_volume, cell_volume_per_unit, tmp, tmp_vec(3)
+        real(kind=dp) :: a, b, c
+        real(kind=dp) :: total_electron
 
         character(len=128), dimension(3), intent(in) :: cube_file_in_iii
 
@@ -157,8 +156,8 @@ module cube_diff_1d_mod
 
     subroutine cross_3(x, y, z)
         implicit none
-        real, dimension(3), intent(in) :: x, y
-        real, dimension(3), intent(out) :: z
+        real(kind=dp), dimension(3), intent(in) :: x, y
+        real(kind=dp), dimension(3), intent(out) :: z
 
         z(1) = x(2) * y(3) - x(3) * y(2)
         z(2) = x(3) * y(1) - x(1) * y(3)
@@ -167,8 +166,8 @@ module cube_diff_1d_mod
 
     subroutine dot_3(x, y, z)
         implicit none
-        real, dimension(3), intent(in) :: x, y 
-        real, intent(out) :: z 
+        real(kind=dp), dimension(3), intent(in) :: x, y 
+        real(kind=dp), intent(out) :: z 
         z = x(1) * y(1) + x(2) * y(2) + x(3) * y(3)
     end subroutine dot_3
-end module cube_diff_1d_mod
+end module askitf_cube_diff_1d

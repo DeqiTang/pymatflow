@@ -1,14 +1,12 @@
-module cube_diff_1d_c_binding_mod
+module cube_diff_1d_c_binding
     ! Usage:
     use iso_c_binding
 
-    use c_f_string_mod
+    use c_f_string_c_binding
 
-    use cube_diff_1d_mod
+    use askitf_cube_diff_1d, only : cube_diff_1d
 
     implicit none
-    
-    !real, parameter :: bohr_to_angstrom = 0.529177249
 
     contains 
     
@@ -25,4 +23,4 @@ module cube_diff_1d_c_binding_mod
 
         call cube_diff_1d(cube_file_in_iii)
     end subroutine c_cube_diff_1d
-end module cube_diff_1d_c_binding_mod
+end module cube_diff_1d_c_binding

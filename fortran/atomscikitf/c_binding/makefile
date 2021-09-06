@@ -6,7 +6,7 @@ CXX = g++
 FC = gfortran #mpif90
 
 CPPFLAGS = 
-FPPFLAGS = 
+FPPFLAGS = -I ../src
 CFLAGS = 
 CXXFLAGS = 
 FCFLAGS = -g -fopenmp -fPIC
@@ -14,32 +14,31 @@ FCFLAGS = -g -fopenmp -fPIC
 LDFLAGS = 
 LDFLAGS += -fopenmp
 
-LIBS +=
+LIBS += ../src/libatomscikitf.a
 
-modsrc = $(wildcard ./*_mod.f90)
+modsrc = $(wildcard ./*.f90)
 modobj = $(patsubst %.f90, %.o, $(modsrc))
 
-src = $(wildcard ./*.f90)
-obj = $(patsubst %.f90, %.o, $(src))
+all: lib $(modobj)
 
+lib:
+	make -C ../src
+	ar crv libatomscikitf-c-binding.a $(obj) $(LIBS)
 
-all: $(modobj) lib
-
-lib: $(obj)
-	ar crv libaskitf.a $(obj) $(LIBS)
-	$(FC) -shared -o libaskitf.so $(FCFLAGS) $(FPPFLAGS) $(obj) $(LIBS) $(LDFLAGS)
-
-%.o: %.f90 $(modobj)
+%.o: %.f90
 	$(FC) -c $(FPPFLAGS) $(FCFLAGS) $< -o $@
 
 $(modobj): $(modsrc)
 	#$(FC) $(FPPFLAGS) $(FCFLAGS) -c $^
-	$(shell $(FC) $(FPPFLAGS) $(FCFLAGS) -c *_mod.f90)
+	$(shell $(FC) $(FPPFLAGS) $(FCFLAGS) -c *.f90)
 
 install: 
-	#
-	#
+	cp askit-cube-1d.x ${HOME}/.local/bin
+	cp askit-cube-diff-1d.x ${HOME}/.local/bin
+	cp askit-cube-to-vtk.x ${HOME}/.local/bin
+
 .PHONY: clean
 
 clean:
+	make clean -C ../src
 	rm -rf *.x *.mod *.a *.so *.o $(obj) core 

@@ -1,10 +1,10 @@
-module cube_to_vtk_c_binding_mod
+module cube_to_vtk_c_binding
     ! Usage:
     ! Reference:
     !   http://fortranwiki.org/fortran/show/c_interface_module
     use iso_c_binding
-    use c_f_string_mod
-    use cube_to_vtk_mod, only : cube_to_vtk
+    use c_f_string_c_binding, only : c_f_string
+    use askitf_cube_to_vtk, only : cube_to_vtk
 
     implicit none
 
@@ -19,4 +19,4 @@ module cube_to_vtk_c_binding_mod
 
         call cube_to_vtk(cube_file_in, vtk_file_out)
     end subroutine c_cube_to_vtk
-end module cube_to_vtk_c_binding_mod
+end module cube_to_vtk_c_binding

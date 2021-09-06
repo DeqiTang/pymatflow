@@ -1,6 +1,7 @@
-module askit_crystal_mod
+module askitf_crystal
 
-    use askit_constant_mod
+    use askitf_constants
+    use askitf_kinds, only : dp
 
     implicit none
     
@@ -12,15 +13,15 @@ module askit_crystal_mod
     !real, parameter :: bohr_to_angstrom = 0.529177249
 
     type :: crystal
-        real, dimension(3, 3) :: cell
+        real(kind=dp), dimension(3, 3) :: cell
         integer :: natom
         character(len=2), dimension(:), allocatable :: name
-        real, dimension(:, :), allocatable :: xyz
+        real(kind=dp), dimension(:, :), allocatable :: xyz
     end type crystal
 
     type :: element
         integer :: number
-        real :: mass
+        real(kind=dp) :: mass
         character(len=2) :: symbol
     end type element
 
@@ -30,7 +31,7 @@ module askit_crystal_mod
         procedure :: initialize => initialize_element_map
         procedure :: get_element_symbol
         procedure :: get_element_number
-    end type 
+    end type
 
     contains
     subroutine read_xyz(cryst, filename)
@@ -353,4 +354,4 @@ module askit_crystal_mod
             end if
         end do
     end function
-end module askit_crystal_mod
+end module askitf_crystal

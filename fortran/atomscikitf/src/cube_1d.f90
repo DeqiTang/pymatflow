@@ -1,9 +1,10 @@
-module cube_1d_mod
+module askitf_cube_1d
 
-    use askit_crystal_mod
-    use askit_cube_mod
-    use askit_constant_mod
-    
+    use askitf_crystal, only : write_xyz
+    use askitf_cube, only : cube
+    use askitf_constants
+    use askitf_kinds, only : dp
+
     implicit none
 
     contains
@@ -12,12 +13,12 @@ module cube_1d_mod
         integer :: i, j, k
         integer :: ngridx, ngridy, ngridz
 
-        real, allocatable :: data_red_a(:), data_red_b(:), data_red_c(:)
+        real(kind=dp), allocatable :: data_red_a(:), data_red_b(:), data_red_c(:)
         type(cube) :: cube_i
 
-        real :: cell_volume, cell_volume_per_unit, tmp, tmp_vec(3)
-        real :: a, b, c
-        real :: total_electron
+        real(kind=dp) :: cell_volume, cell_volume_per_unit, tmp, tmp_vec(3)
+        real(kind=dp) :: a, b, c
+        real(kind=dp) :: total_electron
 
         ! character, allocatable :: cube_file_in
         character(len=128), intent(in) :: cube_file_in
@@ -26,7 +27,6 @@ module cube_1d_mod
         write(*, *) "*******************************************************************************"
         write(*, *) "***                 CUBE FILE PROCESSOR FROM ATOMSCIKIT                     ***"
         write(*, *) "*******************************************************************************"
-
 
         ! read cube file
         write(*, *) "On getting the command line argument:"
@@ -120,7 +120,6 @@ module cube_1d_mod
         call dot_3(cube_i%cube_crystal%cell(3, :), cube_i%cube_crystal%cell(3, :), c)
         c = sqrt(c)
 
-
         ! output dimension reduced data
         open(unit=11, file="charge.1d.c.data", action="write")
         write(11, *) "#c(angstrom) rho(e) (number of electron per Angstrom)"
@@ -145,15 +144,18 @@ module cube_1d_mod
 
         ! output the total structure
         call write_xyz(cube_i%cube_crystal, "charge-1d-structure.xyz")
-
-
+        
+        deallocate(data_red_a)
+        deallocate(data_red_b)
+        deallocate(data_red_c) 
+        
         stop
     end subroutine cube_1d
 
     subroutine cross_3(x, y, z)
         implicit none
-        real, dimension(3), intent(in) :: x, y
-        real, dimension(3), intent(out) :: z
+        real(kind=dp), dimension(3), intent(in) :: x, y
+        real(kind=dp), dimension(3), intent(out) :: z
 
         z(1) = x(2) * y(3) - x(3) * y(2)
         z(2) = x(3) * y(1) - x(1) * y(3)
@@ -162,8 +164,8 @@ module cube_1d_mod
 
     subroutine dot_3(x, y, z)
         implicit none
-        real, dimension(3), intent(in) :: x, y 
-        real, intent(out) :: z 
+        real(kind=dp), dimension(3), intent(in) :: x, y 
+        real(kind=dp), intent(out) :: z
         z = x(1) * y(1) + x(2) * y(2) + x(3) * y(3)
     end subroutine dot_3
-end module cube_1d_mod
+end module askitf_cube_1d

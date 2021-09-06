@@ -1,13 +1,10 @@
 program cube_diff_1d_program
     ! Usage:
     ! askit-cube-diff-1d.x CUBEFILE1 CUBEFILE2 CUBEFILE3
-    use cube_diff_1d_mod
+    use askitf_cube_diff_1d, only : cube_diff_1d
 
     implicit none
     
-    !real, parameter :: bohr_to_angstrom = 0.529177249
-
-
     character(len=128), dimension(3) :: cube_file_in_iii
 
     ! command line output 

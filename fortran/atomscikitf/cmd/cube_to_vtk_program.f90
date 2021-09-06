@@ -1,7 +1,7 @@
 program cube_to_vtk_program
     ! Usage:
     ! askit-cube-to-vtk.x CUBEFILE VTKFILE
-    use cube_to_vtk_mod, only : cube_to_vtk
+    use askitf_cube_to_vtk, only : cube_to_vtk
 
     implicit none
 

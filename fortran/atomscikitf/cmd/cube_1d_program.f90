@@ -2,7 +2,7 @@ program cube_1d_program
     ! Usage:
     ! askit-cube-1d.x CUBEFILE
 
-    use cube_1d_mod, only : cube_1d
+    use askitf_cube_1d, only : cube_1d
 
     implicit none
 

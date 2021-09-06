@@ -1,23 +1,21 @@
-module askit_cube_mod
+module askitf_cube
     ! Usage:
     ! askit-cube-1d.x CUBEFILE
-    use askit_crystal_mod, only : crystal
-    use askit_crystal_mod, only : element_map
-    use askit_constant_mod
+    use askitf_crystal, only : crystal
+    use askitf_crystal, only : element_map
+    use askitf_constants
+    use askitf_kinds, only : dp
     
     implicit none
 
     type :: cube
         type(crystal) :: cube_crystal
         integer :: ngridx, ngridy, ngridz
-        real, allocatable :: data(:, :, :)
+        real(kind=dp), allocatable :: data(:, :, :)
         contains
         !procedure :: read_cube_file
         procedure, pass :: read_cube_file
     end type
-    
-
-
     
     contains
     subroutine read_cube_file(this, filename)
@@ -25,15 +23,13 @@ module askit_cube_mod
         class(cube) :: this
         character(len=*), intent(in) :: filename
 
-        !real, parameter :: bohr_to_angstrom = 0.529177249
-
         type(element_map) :: ele_map 
 
-        real :: tmp_real
+        real(kind=dp) :: tmp_real
 
         integer :: i, j, k, tmp_int, last_z_n_data, least_n_six, m
         integer :: ngridx, ngridy, ngridz
-        real, allocatable :: data(:)
+        real(kind=dp), allocatable :: data(:)
     
         
         ! read in the input cube file
@@ -115,4 +111,4 @@ module askit_cube_mod
         close(unit=10)
     end subroutine
 
-end module askit_cube_mod
+end module askitf_cube
