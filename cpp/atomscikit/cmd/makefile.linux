@@ -6,7 +6,7 @@ CXX = g++ #g++-10 # g++ #mpicxx
 NVCC = nvcc
 
 CPPFLAGS = -g 
-CPPFLAGS += -I../include
+CPPFLAGS += -I../src
 
 CFLAGS = -g
 CXXFLAGS = -g # -DARMA_USE_LAPACK -UARMA_USE_BLAS

@@ -26,7 +26,8 @@ link_libraries(${ARMADILLO_LIBRARIES})
 find_package(LAPACK REQUIRED)
 find_package(BLAS REQUIRED)
 
-include_directories("./include")
+#include_directories("./include")
+include_directories("./src")
 
 #AUX_SOURCE_DIRECTORY(./src PROJECT_LIB_SOURCES)
 #file(GLOB_RECURSE PROJECT_LIB_SOURCES 
@@ -34,23 +35,23 @@ include_directories("./include")
 #    "./include/*"
 #    )
 file(GLOB PROJECT_LIB_SOURCES
-    "./src/*.cpp"
-    "./src/base/*.cpp"
-    "./src/parser/*.cpp"
-    "./src/abinit/*.cpp"
-    "./src/cp2k/*.cpp"
-    "./src/qe/*.cpp"
-    "./src/cube_handle/*.cpp"
+    "./src/askit/*.cpp"
+    "./src/askit/base/*.cpp"
+    "./src/askit/parser/*.cpp"
+    "./src/askit/abinit/*.cpp"
+    "./src/askit/cp2k/*.cpp"
+    "./src/askit/qe/*.cpp"
+    "./src/askit/cube_handle/*.cpp"
 )
 
 file(GLOB PROJECT_HEADER_FILES
-    "./include/askit/*.h"
-    "./include/askit/base/*.h"
-    "./include/askit/parser/*.h"
-    "./include/askit/abinit/*.h"
-    "./include/askit/cp2k/*.h"
-    "./include/askit/qe/*.h"
-    "./include/askit/cube_handle/*.h"
+    "./src/askit/*.h"
+    "./src/askit/base/*.h"
+    "./src/askit/parser/*.h"
+    "./src/askit/abinit/*.h"
+    "./src/askit/cp2k/*.h"
+    "./src/askit/qe/*.h"
+    "./src/askit/cube_handle/*.h"
 )
 
 # set output path 
@@ -63,7 +64,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 # set install
 install(
-    DIRECTORY ${CMAKE_SOURCE_DIR}/include/
+    DIRECTORY ${CMAKE_SOURCE_DIR}/src/
     DESTINATION include #include/askit
     FILES_MATCHING
     PATTERN "*.h"

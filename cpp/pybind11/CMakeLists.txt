@@ -10,7 +10,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Boost COMPONENTS program_options filesystem system REQUIRED)
 include_directories( ${Boost_INCLUDE_DIR}  )
 
-include_directories("../atomscikit/include")
+#include_directories("../atomscikit/include")
+include_directories("../atomscikit/src")
 
 # scikit-build
 if(SKBUILD)
@@ -49,9 +50,9 @@ pybind11_add_module(cpptest MODULE ${CPPTEST_SOURCES})
 
 file(GLOB CUBE_HANDLE_SOURCES
     "./cube_handle/*.cpp"
-    "../atomscikit/src/cube_handle/*.cpp"
-    "../atomscikit/src/parser/*.cpp"
-    "../atomscikit/src/base/*.cpp"
+    "../atomscikit/src/askit/cube_handle/*.cpp"
+    "../atomscikit/src/askit/parser/*.cpp"
+    "../atomscikit/src/askit/base/*.cpp"
 )
 pybind11_add_module(cube_handle MODULE ${CUBE_HANDLE_SOURCES})
 

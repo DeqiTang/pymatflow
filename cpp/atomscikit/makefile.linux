@@ -6,7 +6,7 @@ CXX = g++ # g++ #mpicxx
 NVCC = nvcc
 
 CPPFLAGS = -g -fPIC # -fPIC is needed to build shared library
-CPPFLAGS += -I./include
+CPPFLAGS += -I./src
 
 CFLAGS = -g
 CXXFLAGS = -g  # -DARMA_USE_LAPACK -UARMA_USE_BLAS
@@ -18,7 +18,7 @@ CXXFLAGS += -fopenmp
 LDFLAGS = -larmadillo -llapack -lblas
 LDFLAGS += -fopenmp
 
-src = $(wildcard ./src/base/*.cpp ./src/parser/*.cpp ./src/*.cpp ./src/abinit/*.cpp ./src/cp2k/*.cpp ./src/qe/*.cpp)
+src = $(wildcard ./src/askit/base/*.cpp ./src/askit/parser/*.cpp ./src/askit/*.cpp ./src/askit/abinit/*.cpp ./src/askit/cp2k/*.cpp ./src/askit/qe/*.cpp ./src/askit/cube_handle/*.cpp)
 #src = $(wildcard ./src/**/*.cpp)
 #src = $(shell find ./src -name *.cpp)
 obj = $(patsubst %.cpp, %.o, $(src))
