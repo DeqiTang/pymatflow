@@ -160,8 +160,8 @@ ext_modules_fortran = cythonize(
             extra_compile_args=['-fPIC', '-O3'],
             # other files to link to
             extra_link_args=[
-                'fortran/atomscikitf/build/libatomscikitf-c-binding.a',
-                'fortran/atomscikitf/build/libatomscikitf.a',
+                'fortran/atomscikitf/build/lib/libatomscikitf-c-binding.a',
+                'fortran/atomscikitf/build/lib/libatomscikitf.a',
                 "-lgfortran",
                 "-fopenmp" # important for OpenMP dependency
             ],

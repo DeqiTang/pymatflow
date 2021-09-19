@@ -21,7 +21,8 @@ module askitf_cube_1d
         real(kind=dp) :: total_electron
 
         ! character, allocatable :: cube_file_in
-        character(len=128), intent(in) :: cube_file_in
+        !character(len=128), intent(in) :: cube_file_in
+        character(len=*), intent(in) :: cube_file_in
 
         ! command line output 
         write(*, *) "*******************************************************************************"

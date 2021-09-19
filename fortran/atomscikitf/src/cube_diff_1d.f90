@@ -21,7 +21,8 @@ module askitf_cube_diff_1d
         real(kind=dp) :: a, b, c
         real(kind=dp) :: total_electron
 
-        character(len=128), dimension(3), intent(in) :: cube_file_in_iii
+        !character(len=128), dimension(3), intent(in) :: cube_file_in_iii
+        character(len=*), dimension(3), intent(in) :: cube_file_in_iii
 
         ! command line output 
         write(*, *) "*******************************************************************************"

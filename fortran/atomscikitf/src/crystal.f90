@@ -10,8 +10,6 @@ module askitf_crystal
     !    character(len=128) :: name
     !end type atom
     
-    !real, parameter :: bohr_to_angstrom = 0.529177249
-
     type :: crystal
         real(kind=dp), dimension(3, 3) :: cell
         integer :: natom
@@ -43,7 +41,8 @@ module askitf_crystal
         type(element_map) :: ele_map
 
         integer :: i, j, tmp_int
-        character(len=128) :: tmp_str_vec(4)
+        !character(len=128) :: tmp_str_vec(4)
+        character(len=128), dimension(4) :: tmp_str_vec
 
         open(unit=101, file=filename, status="OLD", action="READ")
 

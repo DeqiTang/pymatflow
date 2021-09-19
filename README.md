@@ -37,13 +37,13 @@ O    0.000000    2.585050    4.077973
 ```
 make sure you put the xyz structure file and the needed pseudopotential file for H and O in the same directory and in that dir, do:
 ```
-$ qe-scf.py -f h2o.xyz -d h2o-scf --ecutwfc 60 --conv-thr 1.0e-5 --kpoints-option gamma --runopt=genrun --auto=0
+$ mflow qe --xyz h2o.xyz -d h2o-scf --ecutwfc 60 --conv-thr 1.0e-5 --kpoints-option gamma --runopt=genrun --auto=0
 ```
 The above command assumes you want to run the pw.x directly on your computer, and all the calculation happens inside directory`h2o-scf`.
 Usually, we do DFT calculations on powerful cluster, and pymatflow can also automatically submit the job. However, only pbs job manager and modified version of slurm on TianHe II is supported now!
 For doing the calculation on the server, you should run the command on your server, and modifying the value of `--runopt` and `--auto` as follows:
 ```
-$ qe-scf.py -f h2o.xyz -d h2o-scf --ecutwfc 60 --kpoints-option gamma --runopt=gen --auto=3 --servere=pbs
+$ mflow qe --xyz h2o.xyz -d h2o-scf --ecutwfc 60 --kpoints-option gamma --runopt=gen --auto=3 --servere=pbs
 ```
 Which is actually the default setting for value of `--runopt` and `--auto`. This way pymatgen will automatically generate the input file and submit the job the pbs job manager. The support for other type of jobnamager is  actually not hard to implement. If you have the need, you can get in touch with me through pymatflow@163.com.
 

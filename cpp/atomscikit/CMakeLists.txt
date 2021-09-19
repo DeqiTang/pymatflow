@@ -41,6 +41,9 @@ file(GLOB PROJECT_LIB_SOURCES
     "./src/cp2k/*.cpp"
     "./src/qe/*.cpp"
     "./src/cube_handle/*.cpp"
+)
+
+file(GLOB PROJECT_HEADER_FILES
     "./include/askit/*.h"
     "./include/askit/base/*.h"
     "./include/askit/parser/*.h"
@@ -48,44 +51,61 @@ file(GLOB PROJECT_LIB_SOURCES
     "./include/askit/cp2k/*.h"
     "./include/askit/qe/*.h"
     "./include/askit/cube_handle/*.h"
-    )
+)
 
+# set output path 
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib) # static lib
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib) # 
+set(LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib) # 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+
+
+# set install
+install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/include/
+    DESTINATION include #include/askit
+    FILES_MATCHING
+    PATTERN "*.h"
+)
+install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/ DESTINATION lib)
+install(DIRECTORY ${PROJECT_BINARY_DIR}/bin/ DESTINATION bin)
+
 
 add_library(atomscikit STATIC
     ${PROJECT_LIB_SOURCES}
-    )
+)
 
 
 add_executable(skit.x 
-    ${PROJECT_LIB_SOURCES}
     "./cmd/skit.cpp"
-    )
+)
 target_link_libraries(skit.x
+    atomscikit
     ${Boost_LIBRARIES}
-    )
+)
 
 
 add_executable(skit-traj.x
     "./cmd/skit_traj.cpp"
-    ${PROJECT_LIB_SOURCES}
-    )
+)
 target_link_libraries(skit-traj.x
+    atomscikit
     ${Boost_LIBRARIES}
-    )
+)
 
 add_executable(skit-cube.x
     "./cmd/skit_cube.cpp"
-    ${PROJECT_LIB_SOURCES}
-    )
+)
 target_link_libraries(skit-cube.x
+    atomscikit
     ${Boost_LIBRARIES}
-    )
+)
 
 add_executable(askit-calc.x
     "./cmd/askit_calc.cpp"
-    ${PROJECT_LIB_SOURCES}
-    )
+)
 target_link_libraries(askit-calc.x
+    atomscikit
     ${Boost_LIBRARIES}
-    )
+)

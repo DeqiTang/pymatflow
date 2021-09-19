@@ -19,7 +19,8 @@ module askitf_cube_to_vtk
         real(kind=dp) :: a, b, c, x, y, z, total_electron
 
         ! character, allocatable :: cube_file_in
-        character(len=128), intent(in) :: cube_file_in, vtk_file_out
+        !character(len=128), intent(in) :: cube_file_in, vtk_file_out
+        character(len=*), intent(in) :: cube_file_in, vtk_file_out
 
         ! command line output
         write(*, *) "*******************************************************************************"
