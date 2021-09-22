@@ -7,6 +7,8 @@ project(atomscikit-pybind11 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC ")
+
 find_package(Boost COMPONENTS program_options filesystem system REQUIRED)
 include_directories( ${Boost_INCLUDE_DIR}  )
 

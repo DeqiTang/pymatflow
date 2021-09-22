@@ -1,11 +1,22 @@
+# Usage:
+#   find_package(atomscikit)
+#   include_directories(${ATOMSCIKIT_INCLUDE_DIR})
+#   link_libraries(${ATOMSCIKIT_LIBRARIES})
+# if atomscikit install dir is not in CMAKE MODULE PATH
+# cmake -DCMAKE_PREFIX_PATH=/PATH/TO/ATOMSCIKIT/CMAKE_INSTALL_PREFIX
+# or add it to the CMAKE_MODULE_PATH environment variable
+
+
 cmake_minimum_required(VERSION 3.5)
 
-project(atomscikit LANGUAGES CXX)
+project(atomscikit LANGUAGES CXX VERSION 0.0.1)
 
 #set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC ")
 
 find_package(Boost COMPONENTS program_options filesystem system REQUIRED)
 include_directories( ${Boost_INCLUDE_DIR}  )
@@ -62,17 +73,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 
-# set install
-install(
-    DIRECTORY ${CMAKE_SOURCE_DIR}/src/
-    DESTINATION include #include/askit
-    FILES_MATCHING
-    PATTERN "*.h"
-)
-install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/ DESTINATION lib)
-install(DIRECTORY ${PROJECT_BINARY_DIR}/bin/ DESTINATION bin)
-
-
 add_library(atomscikit STATIC
     ${PROJECT_LIB_SOURCES}
 )
@@ -109,4 +109,36 @@ add_executable(askit-calc.x
 target_link_libraries(askit-calc.x
     atomscikit
     ${Boost_LIBRARIES}
+)
+
+# set install
+install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/src/
+    DESTINATION include #include/askit
+    FILES_MATCHING
+    PATTERN "*.h"
+)
+#install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/ DESTINATION lib)
+#install(TARGETS atomscikit EXPORT atomscikit DESTINATION lib)
+#install(DIRECTORY ${PROJECT_BINARY_DIR}/bin/ DESTINATION bin)
+#install(TARGETS skit.x skit-traj.x skit-cube.x askit-calc.x  DESTINATION bin)
+
+install(
+    TARGETS atomscikit skit.x skit-traj.x skit-cube.x askit-calc.x
+    EXPORT atomscikit
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+)
+
+install(
+    EXPORT atomscikit
+    FILE atomscikit.cmake
+    DESTINATION lib/cmake/atomscikit
+)
+
+configure_file(./cmake/atomscikit-config.cmake.in ${PROJECT_BINARY_DIR}/atomscikit-config.cmake @ONLY)
+install(
+    FILES ${CMAKE_BINARY_DIR}/atomscikit-config.cmake
+    DESTINATION lib/cmake/atomscikit
 )
