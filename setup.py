@@ -160,8 +160,8 @@ ext_modules_fortran = cythonize(
             extra_compile_args=['-fPIC', '-O3'],
             # other files to link to
             extra_link_args=[
-                'fortran/atomscikitf/build/lib/libatomscikitf-c-binding.a',
-                'fortran/atomscikitf/build/lib/libatomscikitf.a',
+                'fortran/atomsciflowf/build/lib/libatomsciflowf-c-binding.a',
+                'fortran/atomsciflowf/build/lib/libatomsciflowf.a',
                 "-lgfortran",
                 "-fopenmp" # important for OpenMP dependency
             ],
@@ -191,9 +191,9 @@ class CustomBuildExt(build_ext):
         #os.system("make -C ./fortran/src")
         #os.system("make -C ./fortran/cmd")
         #os.system("make -C ./fortran/c_binding")
-        os.system("mkdir -p ./fortran/atomscikitf/build")
-        os.system("rm -rf ./fortran/atomsdcikitf/build/*") # in case there is previous build in a defferent environment
-        os.chdir("./fortran/atomscikitf/build")
+        os.system("mkdir -p ./fortran/atomsciflowf/build")
+        os.system("rm -rf ./fortran/atomsciflowf/build/*") # in case there is previous build in a defferent environment
+        os.chdir("./fortran/atomsciflowf/build")
         os.system("cmake ..; make")
         os.chdir("../../../")
         super().run()

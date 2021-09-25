@@ -1,0 +1,55 @@
+#
+#
+
+CC = gcc
+CXX = g++ # g++ #mpicxx
+NVCC = nvcc
+
+CPPFLAGS = -g -fPIC # -fPIC is needed to build shared library
+CPPFLAGS += -I./src
+
+CFLAGS = -g
+CXXFLAGS = -g  # -DARMA_USE_LAPACK -UARMA_USE_BLAS
+#NVCCFLAGS = -g -arch sm_50 ## here use "nvcc -h" to find an allowed or supported value in --gpu-architecture.
+CXXFLAGS += -fopenmp
+
+
+#LDFLAGS = -lcppunit -ldl -lcudart -lcufft -lmpi
+LDFLAGS = -larmadillo -llapack -lblas
+LDFLAGS += -fopenmp
+
+src = $(wildcard ./src/atomsciflow/base/*.cpp ./src/atomsciflow/parser/*.cpp ./src/atomsciflow/*.cpp ./src/atomsciflow/abinit/*.cpp ./src/atomsciflow/cp2k/*.cpp ./src/atomsciflow/qe/*.cpp ./src/atomsciflow/cube_handle/*.cpp)
+#src = $(wildcard ./src/**/*.cpp)
+#src = $(shell find ./src -name *.cpp)
+obj = $(patsubst %.cpp, %.o, $(src))
+
+#src_cu = $(wildcard ./*.cu ../src/*.cu)
+#obj_cu = $(patsubst %.cu, %.cu.o, $(src_cu))
+
+libatomsciflow: $(obj)
+	ar crv libatomsciflow.a $(obj) #$(LDFLAGS)
+	$(CXX) -shared -fPIC -o libatomsciflow.so ${obj} $(LDFLAGS)
+
+%.o: %.cpp
+	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $< -o $@
+
+
+%.cu.o: %.cu
+	$(NVCC) -c $(CPPFLAGS) $(CXXFLAGS) $< -o $@
+
+install: libatomsciflow
+	rm -rf ${HOME}/.local/atomsciflow
+	mkdir -p ${HOME}/.local/atomsciflow/include
+	mkdir -p ${HOME}/.local/atomsciflow/lib
+	cp -r include/* ${HOME}/.local/atomsciflow/include/
+	cp libatomsciflow.a ${HOME}/.local/atomsciflow/lib/
+	cp libatomsciflow.so ${HOME}/.local/atomsciflow/lib/
+
+uninstall:
+	rm -rf ${HOME}/.local/atomsciflow
+
+.PHONY: clean
+
+clean:
+	rm -rf $(obj) *.a *.so
+

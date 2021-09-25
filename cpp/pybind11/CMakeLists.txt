@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(atomscikit-pybind11 LANGUAGES CXX)
+project(atomsciflow-pybind11 LANGUAGES CXX)
 
 #set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -12,8 +12,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC ")
 find_package(Boost COMPONENTS program_options filesystem system REQUIRED)
 include_directories( ${Boost_INCLUDE_DIR}  )
 
-#include_directories("../atomscikit/include")
-include_directories("../atomscikit/src")
+#include_directories("../atomsciflow/include")
+include_directories("../atomsciflow/src")
 
 # scikit-build
 if(SKBUILD)
@@ -46,15 +46,15 @@ find_package(BLAS REQUIRED)
 # -----------------------------------------------------
 file(GLOB CPPTEST_SOURCES
     "./cpptest/*.cpp"
-    "../atomscikit/src/cpptest/*.cpp"
+    "../atomsciflow/src/cpptest/*.cpp"
 )
 pybind11_add_module(cpptest MODULE ${CPPTEST_SOURCES})
 
 file(GLOB CUBE_HANDLE_SOURCES
     "./cube_handle/*.cpp"
-    "../atomscikit/src/askit/cube_handle/*.cpp"
-    "../atomscikit/src/askit/parser/*.cpp"
-    "../atomscikit/src/askit/base/*.cpp"
+    "../atomsciflow/src/atomsciflow/cube_handle/*.cpp"
+    "../atomsciflow/src/atomsciflow/parser/*.cpp"
+    "../atomsciflow/src/atomsciflow/base/*.cpp"
 )
 pybind11_add_module(cube_handle MODULE ${CUBE_HANDLE_SOURCES})
 
