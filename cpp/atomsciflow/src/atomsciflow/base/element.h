@@ -5,8 +5,8 @@ https://en.wikipedia.org/wiki/Periodic_table
 -----------------------------------------------------------
 */
 
-#ifndef atomsciflow_INCLUDE_ASKIT_BASE_ELEMENT_H_
-#define atomsciflow_INCLUDE_ASKIT_BASE_ELEMENT_H_
+#ifndef ATOMSCIFLOW_BASE_ELEMENT_H_
+#define ATOMSCIFLOW_BASE_ELEMENT_H_
 
 #include <map>
 #include <string>
@@ -158,4 +158,4 @@ inline std::map<std::string, Element> get_element_number_map() {
 
 } // end namespace atomsciflow
 
-#endif // atomsciflow_INCLUDE_ASKIT_H_
+#endif // ATOMSCIFLOW_BASE_ELEMENT_H_

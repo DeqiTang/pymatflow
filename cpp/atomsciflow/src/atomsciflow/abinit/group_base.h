@@ -5,8 +5,8 @@
     > Created Time: Sat 30 Jan 2021 08:14:26 PM CST
 ************************************************************************/
 
-#ifndef atomsciflow_INCLUDE_ASKIT_ABINIT_GROUP_BASE_H_
-#define atomsciflow_INCLUDE_ASKIT_ABINIT_GROUP_BASE_H_
+#ifndef ATOMSCIFLOW_ABINIT_GROUP_BASE_H_
+#define ATOMSCIFLOW_ABINIT_GROUP_BASE_H_
 
 #include <map>
 #include <iostream>
@@ -44,5 +44,5 @@ class AbinitVariableGroupBase {
 
 } // namespace atomsciflow
 
-#endif // atomsciflow_INCLUDE_ASKIT_ABINIT_GROUP_BASE_H_
+#endif // ATOMSCIFLOW_ABINIT_GROUP_BASE_H_
 

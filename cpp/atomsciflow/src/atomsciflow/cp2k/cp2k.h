@@ -4,8 +4,8 @@
     > Mail: deqi_tang@163.com 
     > Created Time: Sun 31 Jan 2021 07:24:18 PM CST
 ************************************************************************/
-#ifndef atomsciflow_INCLUDE_ASKIT_CP2K_CP2K_H_
-#define atomsciflow_INCLUDE_ASKIT_CP2K_CP2K_H_
+#ifndef ATOMSCIFLOW_CP2K_CP2K_H_
+#define ATOMSCIFLOW_CP2K_CP2K_H_
 
 #include <string>
 
@@ -34,7 +34,6 @@ public:
         return out;
     }
 
-
     Cp2kSectionV1& set_subsys(Crystal crystal);
 
     std::map<std::string, Cp2kSectionV1> sections;
@@ -50,4 +49,4 @@ private:
 } // namespace atomsciflow
 
 
-#endif // atomsciflow_INCLUDE_ASKIT_CP2K_CP2K_H_
+#endif // ATOMSCIFLOW_CP2K_CP2K_H_

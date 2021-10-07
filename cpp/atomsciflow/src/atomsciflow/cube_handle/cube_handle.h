@@ -1,5 +1,5 @@
-#ifndef atomsciflow_INCLUDE_atomsciflow_CUBE_HANDLE_H_
-#define atomsciflow_INCLUDE_atomsciflow_CUBE_HANDLE_H_
+#ifndef ATOMSCIFLOW_CUBE_HANDLE_H_
+#define ATOMSCIFLOW_CUBE_HANDLE_H_
 
 #include <iostream>
 #include <vector>
@@ -12,4 +12,4 @@ int cube_diff_1d(std::vector<std::string> input_files, std::string output_file, 
 
 } // namespace atomsciflow
 
-#endif // atomsciflow_INCLUDE_atomsciflow_CUBE_HANDLE_H_
+#endif // ATOMSCIFLOW_CUBE_HANDLE_H_

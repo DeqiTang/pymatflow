@@ -6,8 +6,8 @@
 ************************************************************************/
 
 
-#ifndef atomsciflow_INCLUDE_ASKIT_QE_PW_H_
-#define atomsciflow_INCLUDE_ASKIT_QE_PW_H_
+#ifndef ATOMSCIFLOW_QE_PW_H_
+#define ATOMSCIFLOW_QE_PW_H_
 
 #include <map>
 
@@ -41,4 +41,4 @@ class QePw {
 } // namespace atomsciflow
 
 
-#endif // atomsciflow_INCLUDE_ASKIT_QE_PW_H_
+#endif // ATOMSCIFLOW_QE_PW_H_

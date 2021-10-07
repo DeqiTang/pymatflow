@@ -1,5 +1,5 @@
-#ifndef atomsciflow_INCLUDE_atomsciflow_PARSER_CUBE_H_
-#define atomsciflow_INCLUDE_atomsciflow_PARSER_CUBE_H_
+#ifndef ATOMSCIFLOW_PARSER_CUBE_H_
+#define ATOMSCIFLOW_PARSER_CUBE_H_
 
 #include <vector>
 #include <string>
@@ -28,4 +28,4 @@ class CubeElectronDensity {
 } // namespace atomsciflow
 
 
-#endif // atomsciflow_INCLUDE_atomsciflow_PARSER_CUBE_H_
+#endif // ATOMSCIFLOW_PARSER_CUBE_H_

@@ -5,8 +5,8 @@
     > Created Time: Tue 02 Feb 2021 04:29:35 PM CST
 ************************************************************************/
 
-#ifndef atomsciflow_INCLUDE_ASKIT_CP2K_STATIC_H_
-#define atomsciflow_INCLUDE_ASKIT_CP2K_STATIC_H_
+#ifndef ATOMSCIFLOW_CP2K_STATIC_H_
+#define ATOMSCIFLOW_CP2K_STATIC_H_
 
 namespace atomsciflow {
 
@@ -22,4 +22,4 @@ class Cp2kStatic: public Cp2k {
 
 } // namespace atomsciflow
 
-#endif // atomsciflow_INCLUDE_ASKIT_CP2K_STATIC_H_
+#endif // ATOMSCIFLOW_CP2K_STATIC_H_

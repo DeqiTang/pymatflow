@@ -5,8 +5,8 @@
     > Created Time: Tue 02 Feb 2021 05:30:54 PM CST
 ************************************************************************/
 
-#ifndef atomsciflow_INCLUDE_atomsciflow_QE_GEN_NAMELIST_V1_H_
-#define atomsciflow_INCLUDE_atomsciflow_QE_GEN_NAMELIST_V1_H_
+#ifndef ATOMSCIFLOW_QE_GEN_NAMELIST_V1_H_
+#define ATOMSCIFLOW_QE_GEN_NAMELIST_V1_H_
 
 #include "atomsciflow/qe/namelist_v1.h"
 
@@ -31,5 +31,5 @@ QeNamelistV1 cell();
 } // namespace atomsciflow
 
 
-#endif // atomsciflow_INCLUDE_atomsciflow_QE_GEN_NAMELIST_V1_H_
+#endif // ATOMSCIFLOW_QE_GEN_NAMELIST_V1_H_
 

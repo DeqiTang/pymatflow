@@ -2,8 +2,8 @@
 atoms are a collection of atom
 */
 
-#ifndef atomsciflow_INCLUDE_ASKIT_BASE_ATOM_H_
-#define atomsciflow_INCLUDE_ASKIT_BASE_ATOM_H_
+#ifndef ATOMSCIFLOW_BASE_ATOM_H_
+#define ATOMSCIFLOW_BASE_ATOM_H_
 
 //#include "element.h"
 #include <vector>
@@ -61,4 +61,4 @@ class Atom {
 
 } //namespace atomsciflow
 
-#endif // atomsciflow_INCLUDE_ASKIT_BASE_ATOM_H_
+#endif // ATOMSCIFLOW_BASE_ATOM_H_

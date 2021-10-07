@@ -5,8 +5,8 @@
     > Created Time: Tue 02 Feb 2021 04:53:09 PM CST
 ************************************************************************/
 
-#ifndef atomsciflow_INCLUDE_ASKIT_QE_NAMELIST_V1_H_
-#define atomsciflow_INCLUDE_ASKIT_QE_NAMELIST_V1_H_
+#ifndef ATOMSCIFLOW_QE_NAMELIST_V1_H_
+#define ATOMSCIFLOW_QE_NAMELIST_V1_H_
 
 #include <map>
 
@@ -66,4 +66,4 @@ class QeNamelistV1 {
 
 } // namespace atomsciflow
 
-#endif // atomsciflow_INCLUDE_ASKIT_QE_NAMELIST_V1_H_
+#endif // ATOMSCIFLOW_QE_NAMELIST_V1_H_

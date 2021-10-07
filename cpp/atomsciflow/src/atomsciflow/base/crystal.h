@@ -2,8 +2,8 @@
 module for crystal structure manipulation
 */
 
-#ifndef atomsciflow_INCLUDE_atomsciflow_BASE_CRYSTAL_H_
-#define atomsciflow_INCLUDE_atomsciflow_BASE_CRYSTAL_H_
+#ifndef ATOMSCIFLOW_BASE_CRYSTAL_H_
+#define ATOMSCIFLOW_BASE_CRYSTAL_H_
 
 #include <vector>
 #include <string>
@@ -80,4 +80,4 @@ class Crystal {
 
 } //namespace atomsciflow
 
-#endif // atomsciflow_INCLUDE_atomsciflow_BASE_CRYSTAL_H_
+#endif // ATOMSCIFLOW_BASE_CRYSTAL_H_

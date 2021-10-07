@@ -5,8 +5,8 @@
     > Created Time: Sun 31 Jan 2021 07:46:25 PM CST
 ************************************************************************/
 
-#ifndef atomsciflow_INCLUDE_ASKIT_CP2K_SECTION_V1_H_
-#define atomsciflow_INCLUDE_ASKIT_CP2K_SECTION_V1_H_
+#ifndef ATOMSCIFLOW_CP2K_SECTION_V1_H_
+#define ATOMSCIFLOW_CP2K_SECTION_V1_H_
 
 #include <map>
 
@@ -71,5 +71,5 @@ class Cp2kSectionV1 {
 
 
 
-#endif // atomsciflow_INCLUDE_ASKIT_CP2K_SECTION_V1_H_
+#endif // ATOMSCIFLOW_CP2K_SECTION_V1_H_
 

@@ -4,7 +4,7 @@ project(atomsciflow-pybind11 LANGUAGES CXX)
 
 #set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC ")
@@ -58,8 +58,25 @@ file(GLOB CUBE_HANDLE_SOURCES
 )
 pybind11_add_module(cube_handle MODULE ${CUBE_HANDLE_SOURCES})
 
+file(GLOB BASE_SOURCES
+    "./base/*.cpp"
+    "../atomsciflow/src/atomsciflow/base/*.cpp"
+)
+pybind11_add_module(base MODULE ${BASE_SOURCES})
+
+file(GLOB CP2K_SOURCES
+    "./cp2k/*.cpp"
+    "../atomsciflow/src/atomsciflow/base/*.cpp"
+    "../atomsciflow/src/atomsciflow/cp2k/*.cpp" 
+    "../atomsciflow/src/atomsciflow/abinit/*.cpp"
+)
+pybind11_add_module(cp2k MODULE ${CP2K_SOURCES})
+
+
 # scikit-build
 if(SKBUILD)
     install(TARGETS cpptest DESTINATION .)
     install(TARGETS cube_handle DESTINATION .)
+    install(TARGETS cp2k DESTINATION .)
+    install(TARGETS base DESTINATION .)
 endif()

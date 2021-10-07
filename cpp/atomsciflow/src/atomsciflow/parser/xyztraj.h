@@ -1,5 +1,5 @@
-#ifndef atomsciflow_INCLUDE_atomsciflow_PARSER_XYZTRAJ_H_
-#define atomsciflow_INCLUDE_atomsciflow_PARSER_XYZTRAJ_H_
+#ifndef ATOMSCIFLOW_PARSER_XYZTRAJ_H_
+#define ATOMSCIFLOW_PARSER_XYZTRAJ_H_
 
 #include <fstream>
 #include <iostream>
@@ -25,6 +25,6 @@ int write_xyztraj_file(std::vector<atomsciflow::Crystal>& traj, std::string file
 } //end namespace atomsciflow
 
 
-#endif // atomsciflow_INCLUDE_atomsciflow_PARSER_XYZTRAJ_H_
+#endif // ATOMSCIFLOW_PARSER_XYZTRAJ_H_
 
 

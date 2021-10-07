@@ -5,8 +5,8 @@
     > Created Time: Sun 31 Jan 2021 12:31:04 AM CST
 ************************************************************************/
 
-#ifndef atomsciflow_INCLUDE_ASKIT_ABINIT_ABINIT_H_
-#define atomsciflow_INCLUDE_ASKIT_ABINIT_ABINIT_H_
+#ifndef ATOMSCIFLOW_ABINIT_ABINIT_H_
+#define ATOMSCIFLOW_ABINIT_ABINIT_H_
 
 #include "atomsciflow/abinit/electrons.h"
 
@@ -34,5 +34,5 @@ class Abinit {
 
 } // namespace atomsciflow
 
-#endif // atomsciflow_INCLUDE_ASKIT_ABINIT_ABINIT_H_
+#endif // ATMSCIFLOW_ABINIT_ABINIT_H_
 

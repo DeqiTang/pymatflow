@@ -1,5 +1,5 @@
-#ifndef atomsciflow_INCLUDE_atomsciflow_UTILS_H_
-#define atomsciflow_INCLUDE_atomsciflow_UTILS_H_
+#ifndef ATOMSCIFLOW_UTILS_H_
+#define ATOMSCIFLOW_UTILS_H_
 
 #include "atomsciflow/base/crystal.h"
 #include "atomsciflow/base/atom.h"
@@ -40,4 +40,4 @@ atomsciflow::Crystal build_nanotube_ac(atomsciflow::Crystal* structure, std::str
 atomsciflow::Crystal build_nanotube_bc(atomsciflow::Crystal* structure, std::string axis);
 
 
-#endif // atomsciflow_INCLUDE_atomsciflow_UTILS_H_
+#endif // ATOMSCIFLOW_UTILS_H_

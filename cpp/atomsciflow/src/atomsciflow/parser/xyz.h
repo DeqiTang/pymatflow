@@ -1,5 +1,5 @@
-#ifndef atomsciflow_INCLUDE_atomsciflow_PARSER_XYZ_H_
-#define atomsciflow_INCLUDE_atomsciflow_PARSER_XYZ_H_
+#ifndef ATOMSCIFLOW_PARSER_XYZ_H_
+#define ATOMSCIFLOW_PARSER_XYZ_H_
 
 #include <fstream>
 #include <iostream>
@@ -34,4 +34,4 @@ int write_xyz_file(atomsciflow::Crystal* crystal, std::string filepath);
 
 } // namespace atomsciflow
 
-#endif // atomsciflow_INCLUDE_atomsciflow_PASER_XYZ_H_
+#endif // ATOMSCIFLOW_PASER_XYZ_H_

@@ -5,8 +5,8 @@
     > Created Time: Mon 25 Jan 2021 07:39:31 PM CST
 ************************************************************************/
 
-#ifndef atomsciflow_INCLUDE_ASKIT_BASE_KPATH_H_
-#define atomsciflow_INCLUDE_ASKIT_BASE_KPATH_H_
+#ifndef ATOMSCIFLOW_BASE_KPATH_H_
+#define ATOMSCIFLOW_BASE_KPATH_H_
 
 #include <vector>
 
@@ -48,5 +48,5 @@ class Kpath {
 
 } // namespace atomsciflow
 
-#endif // atomsciflow_INCLUDE_ASKIT_BASE_KPATH_H_
+#endif // ATOMSCIFLOW_BASE_KPATH_H_
 

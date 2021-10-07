@@ -2,8 +2,8 @@
 module for xyz structure
 */
 
-#ifndef atomsciflow_INCLUDE_ASKIT_BASE_XYZ_H_
-#define atomsciflow_INCLUDE_ASKIT_BASE_XYZ_H_
+#ifndef ATOMSCIFLOW_BASE_XYZ_H_
+#define ATOMSCIFLOW_BASE_XYZ_H_
 
 #include <map>
 #include <vector>
@@ -58,4 +58,4 @@ class XYZ {
 
 } //namespace atomsciflow
 
-#endif // atomsciflow_INCLUDE_ASKIT_BASE_XYZ_H_
+#endif // ATOMSCIFLOW_BASE_XYZ_H_

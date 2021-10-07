@@ -6,8 +6,8 @@ Information of the atomic radius from:
 -----------------------------------------------------------
 */
 
-#ifndef atomsciflow_BASE_ATOMIC_RADIUS_H_
-#define atomsciflow_BASE_ATOMIC_RADIUS_H_
+#ifndef ATOMSCIFLOW_BASE_ATOMIC_RADIUS_H_
+#define ATOMSCIFLOW_BASE_ATOMIC_RADIUS_H_
 
 #include <map>
 #include <string>
@@ -446,4 +446,4 @@ inline void AtomicRadius::_initialize() {
 
 } // end namespace atomsciflow
 
-#endif // atomsciflow_BASE_ATOMIC_RADIUS_H_
+#endif // ATOMSCIFLOW_BASE_ATOMIC_RADIUS_H_

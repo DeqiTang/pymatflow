@@ -1,5 +1,5 @@
-#ifndef atomsciflow_INCLUDE_atomsciflow_PARSER_CIF_H_
-#define atomsciflow_INCLUDE_atomsciflow_PARSER_CIF_H_
+#ifndef ATOMSCIFLOW_PARSER_CIF_H_
+#define ATOMSCIFLOW_PARSER_CIF_H_
 
 #include <fstream>
 #include <iostream>
@@ -27,4 +27,4 @@ int write_cif_file(atomsciflow::Crystal* crystal, std::string filepath);
 
 } // namespace atomsciflow
 
-#endif // atomsciflow_INCLUDE_atomsciflow_PASER_CIF_H_
+#endif // ATOMSCIFLOW_PASER_CIF_H_
