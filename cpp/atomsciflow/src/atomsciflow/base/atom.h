@@ -55,7 +55,6 @@ class Atom {
     
   private:
     //double cartesian[3];
-
 };
 
 

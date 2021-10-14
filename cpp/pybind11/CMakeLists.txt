@@ -44,12 +44,6 @@ find_package(BLAS REQUIRED)
 # -----------------------------------------------------
 # for pybind11 and scikit-build
 # -----------------------------------------------------
-file(GLOB CPPTEST_SOURCES
-    "./cpptest/*.cpp"
-    "../atomsciflow/src/cpptest/*.cpp"
-)
-pybind11_add_module(cpptest MODULE ${CPPTEST_SOURCES})
-
 file(GLOB CUBE_HANDLE_SOURCES
     "./cube_handle/*.cpp"
     "../atomsciflow/src/atomsciflow/cube_handle/*.cpp"
@@ -75,7 +69,6 @@ pybind11_add_module(cp2k MODULE ${CP2K_SOURCES})
 
 # scikit-build
 if(SKBUILD)
-    install(TARGETS cpptest DESTINATION .)
     install(TARGETS cube_handle DESTINATION .)
     install(TARGETS cp2k DESTINATION .)
     install(TARGETS base DESTINATION .)

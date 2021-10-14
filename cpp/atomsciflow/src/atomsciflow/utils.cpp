@@ -13,6 +13,12 @@ providing tools for structure manipulation
 #include <cmath>
 #include <armadillo>
 
+namespace atomsciflow {
+
+std::string version() {
+    return "0.0.0";
+}
+
 int move_along(atomsciflow::Crystal* structure, std::vector<int> atoms_to_move, std::vector<int> direc, double disp) {
     /*
     :param structure: an instance of atomsciflow::Crystal()
@@ -1448,5 +1454,5 @@ atomsciflow::Crystal build_nanotube_bc(atomsciflow::Crystal* structure, std::str
     return out;
 }
 
-
+} //namespace atomsciflow
 

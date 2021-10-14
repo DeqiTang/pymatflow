@@ -2,8 +2,6 @@
 #include <iostream>
 #include <pybind11/pybind11.h>
 
-#include "cpptest/test.h"
-#include "cpptest/test2.h"
 #include "atomsciflow/cp2k/cp2k.h"
 
 namespace py = pybind11;

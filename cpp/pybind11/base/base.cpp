@@ -2,8 +2,6 @@
 #include <iostream>
 #include <pybind11/pybind11.h>
 
-#include "cpptest/test.h"
-#include "cpptest/test2.h"
 #include "atomsciflow/base/crystal.h"
 
 namespace py = pybind11;

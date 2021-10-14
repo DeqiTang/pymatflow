@@ -1,9 +1,14 @@
 #ifndef ATOMSCIFLOW_UTILS_H_
 #define ATOMSCIFLOW_UTILS_H_
 
+#include <string>
+
 #include "atomsciflow/base/crystal.h"
 #include "atomsciflow/base/atom.h"
 
+namespace atomsciflow {
+
+std::string version();
 
 int move_along(atomsciflow::Crystal* structure, std::vector<int> atoms_to_move, std::vector<int> direc, double disp);
 
@@ -39,5 +44,6 @@ atomsciflow::Crystal build_nanotube_ac(atomsciflow::Crystal* structure, std::str
 
 atomsciflow::Crystal build_nanotube_bc(atomsciflow::Crystal* structure, std::string axis);
 
+} //namespace atomsciflow
 
 #endif // ATOMSCIFLOW_UTILS_H_
