@@ -1,8 +1,0 @@
-build/*
-pybind11/build/*
-*.x
-*.o
-*.a
-*.so
-*.mod
-.vscode

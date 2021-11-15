@@ -1,7 +1,0 @@
-build/*
-*.x
-*.o
-*.a
-*.so
-*.mod
-.vscode
