@@ -3,8 +3,8 @@
 
 import argparse
 
-from pymatflow.base.xyz import base_xyz
-from pymatflow.structure.crystal import crystal
+from pymatflow.base.xyz import BaseXyz
+from pymatflow.structure.crystal import Crystal
 
 """
 usage:
@@ -28,10 +28,10 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    xyz = base_xyz()
+    xyz = BaseXyz()
     xyz.get_xyz(args.input)
-    structure = crystal()
-    new_structure = crystal()
+    structure = Crystal()
+    new_structure = Crystal()
     structure.from_base_xyz(xyz)
     supercell = structure.build_supercell(args.supern)
     new_structure.get_cell_atoms(cell=supercell["cell"], atoms=supercell["atoms"])

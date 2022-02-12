@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import numpy as np
 import argparse
 from pymatflow.cmd.structflow import read_structure
